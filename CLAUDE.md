@@ -83,12 +83,12 @@ El motor debe correr en un test de milisegundos sin levantar nada. Si necesita
 
 ## Estado actual
 
-**Fase 1 (unidades) arrancada.** `packages/engine/src/unidades.ts` existe, con
-tests (`unidades.test.ts`, 10/10 pasando) usando la aritmética intermedia ya
-verificada en `docs/motor-mvp.md` sección 2 como vectores. Corre nativo con
-`node --test src/unidades.test.ts` (Node 24 soporta TypeScript sin
-transpilar) — cero dependencias de runtime, como pide esta misma página.
-`potencia.ts`, `carga.ts`, `sala.ts` y `tipos.ts` **todavía no existen** como
+**Fase 1 y Fase 2 hechas.** `packages/engine/src/` tiene `tipos.ts`
+(esquema de dominio + `peorConfianza`), `unidades.ts` y `potencia.ts`, los
+tres con tests (22/22 pasando, `npm test` o `node --test src/`). Los
+vectores de prueba de `potencia.ts` usan pares reales de `equipos-seed.json`
+(Klipsch+Cambridge, KEF+Rega Brio) que ya coinciden con los vectores A/B/C
+de `docs/motor-mvp.md`. `carga.ts`, `sala.ts` **todavía no existen** como
 paquete; su lógica de referencia sigue sólo en el JavaScript de
 `prototipo-frontend.html` (ya verificada ahí, con un bug real encontrado y
 corregido en la regla de carga — ver historial de git). Orden sugerido en

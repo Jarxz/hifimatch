@@ -48,6 +48,8 @@ con su catálogo y el encuadre de venta.
   DAC → amplificador) ya está **diseñada** — fórmula, umbrales y vectores de
   prueba en `docs/motor-mvp.md` sección 6 — pero falta portarla a código y
   falta definir un umbral (cuánto recorrido de volumen se considera "corto").
+  `packages/engine/src/potencia.ts` ya implementa la regla de potencia real,
+  con tests contra pares reales de esta base.
   `cables` todavía no tiene ni diseño de regla.
 - **Prueba de realidad de la data:** confirmada. Para equipos populares los specs
   existen (fichas de fabricante + mediciones independientes de Stereophile,
@@ -100,10 +102,11 @@ algún momento necesita `fetch`, algo se hizo mal.
    (`unidades.test.ts`, 10/10 pasando) — conversión de sensibilidad,
    atenuación por distancia (`20·log₁₀`), suma de niveles en dB. Los vectores
    salieron de la aritmética intermedia ya verificada en `docs/motor-mvp.md`.
-3. **Fase 2 — potencia** (próximo paso pendiente). Portar la regla de margen
-   de potencia del prototipo a `src/potencia.ts`, con los vectores de prueba
-   de `docs/motor-mvp.md`. Es el corazón del análisis.
-4. **Fase 3 — carga y sala.** Las reglas de impedancia y la geometría del plano.
+3. ✅ **Fase 2 — potencia.** `packages/engine/src/potencia.ts` con tests
+   (vectores A/B/C de `docs/motor-mvp.md`, más aviso de `potenciaRecMinW` y
+   los dos límites exactos de frontera de veredicto — 7 tests, todos pasando).
+4. **Fase 3 — carga y sala** (próximo paso pendiente). Las reglas de
+   impedancia y la geometría del plano.
 5. **Fase 4 — frontend.** Portar el prototipo a la app, ahora consumiendo el
    motor real en vez de tener la lógica adentro.
 6. **Fase 5 — ampliar la base de datos.** Diez o quince equipos populares más,
