@@ -1,0 +1,14 @@
+{
+  "name": "@cadena/engine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Motor de compatibilidad hi-fi de CADENA. TypeScript puro, cero dependencias de runtime.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

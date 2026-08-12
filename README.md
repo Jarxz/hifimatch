@@ -28,10 +28,15 @@ con su catálogo y el encuadre de venta.
 - **Frontend:** hay un prototipo funcional y navegable en
   `prototipo-frontend.html` (fondo negro, hi-end). Tres pantallas: portada →
   configurar → resultado. Es la especificación visual y de comportamiento.
-- **Motor:** todavía vive **dentro del JavaScript del prototipo**, no como
-  paquete aparte. Calcula de verdad tres cosas: margen de potencia, carga de
-  impedancia y la geometría de sala (disposición + reflexiones). Las fórmulas
-  exactas están extraídas y documentadas en `docs/motor-mvp.md`.
+- **Motor:** la lógica de referencia (potencia, carga, geometría de sala)
+  todavía vive **dentro del JavaScript del prototipo** — ya probada contra los
+  vectores de `docs/motor-mvp.md` con un harness de Node; se encontró y corrigió
+  un bug real en la regla de carga (divergía del umbral documentado). El
+  primer paquete de TypeScript ya arrancó: `packages/engine/src/unidades.ts`
+  (conversión de sensibilidad, atenuación por distancia, suma de niveles en
+  dB), con tests (`node --test src/unidades.test.ts`, 10/10 pasando) tomados
+  de la aritmética ya verificada en `docs/motor-mvp.md`. `potencia.ts`,
+  `carga.ts`, `sala.ts` y `tipos.ts` todavía no existen como paquete.
 - **Base de datos:** semilla de 25 equipos con specs verificados y con fuente,
   en `data/equipos-seed.json` — 8 parlantes, 8 amplificadores, 3 streamers, 3
   DACs y 3 cables (interconexión y parlante, con resistencia/capacitancia/
@@ -88,14 +93,16 @@ algún momento necesita `fetch`, algo se hizo mal.
 
 ## El primer paso concreto
 
-1. **Crear el repo** con la estructura de arriba. Copiar `tipos.ts` del proyecto
-   anterior como base del esquema.
-2. **Fase 1 — unidades.** `src/unidades.ts` con sus tests: conversión de
-   sensibilidad, atenuación por distancia (`20·log₁₀`), suma logarítmica de dB.
-   Los números de prueba están en `docs/motor-mvp.md`.
-3. **Fase 2 — potencia.** Portar la regla de margen de potencia del prototipo a
-   `src/potencia.ts`, con los vectores de prueba de `docs/motor-mvp.md`. Es el
-   corazón del análisis.
+1. ✅ **Crear el repo** con la estructura de arriba — hecho, sin `tipos.ts`
+   todavía (no era necesario para unidades.ts; queda para cuando arranque
+   potencia.ts o carga.ts, que sí consumen equipos tipados).
+2. ✅ **Fase 1 — unidades.** `packages/engine/src/unidades.ts` con tests
+   (`unidades.test.ts`, 10/10 pasando) — conversión de sensibilidad,
+   atenuación por distancia (`20·log₁₀`), suma de niveles en dB. Los vectores
+   salieron de la aritmética intermedia ya verificada en `docs/motor-mvp.md`.
+3. **Fase 2 — potencia** (próximo paso pendiente). Portar la regla de margen
+   de potencia del prototipo a `src/potencia.ts`, con los vectores de prueba
+   de `docs/motor-mvp.md`. Es el corazón del análisis.
 4. **Fase 3 — carga y sala.** Las reglas de impedancia y la geometría del plano.
 5. **Fase 4 — frontend.** Portar el prototipo a la app, ahora consumiendo el
    motor real en vez de tener la lógica adentro.

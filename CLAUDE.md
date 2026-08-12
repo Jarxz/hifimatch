@@ -83,6 +83,13 @@ El motor debe correr en un test de milisegundos sin levantar nada. Si necesita
 
 ## Estado actual
 
-Sin código de motor todavía. La lógica de referencia está en el JavaScript de
-`prototipo-frontend.html` y documentada en `docs/motor-mvp.md`. Orden sugerido en
+**Fase 1 (unidades) arrancada.** `packages/engine/src/unidades.ts` existe, con
+tests (`unidades.test.ts`, 10/10 pasando) usando la aritmética intermedia ya
+verificada en `docs/motor-mvp.md` sección 2 como vectores. Corre nativo con
+`node --test src/unidades.test.ts` (Node 24 soporta TypeScript sin
+transpilar) — cero dependencias de runtime, como pide esta misma página.
+`potencia.ts`, `carga.ts`, `sala.ts` y `tipos.ts` **todavía no existen** como
+paquete; su lógica de referencia sigue sólo en el JavaScript de
+`prototipo-frontend.html` (ya verificada ahí, con un bug real encontrado y
+corregido en la regla de carga — ver historial de git). Orden sugerido en
 `README.md`: unidades → potencia → carga y sala → frontend → ampliar datos.
