@@ -502,12 +502,18 @@
       zf.className='flag sindato'; zf.innerHTML='Un dato faltante no se cuenta como aprobado. <b>Pendiente:</b> curva de impedancia medida.';
       zs.innerHTML='<b>Fuente:</b> impedancia nominal 8 Ω (fábrica). Mínima: sin medición. <span class="conf">confianza baja</span>';
     } else {
-      var hard=spk.minZ<=4, modest=(amp.p8<=50||amp.minLoad);
-      if(hard&&modest){ zv.className='verdict warn'; zv.textContent='Exige corriente';
+      var hard=spk.minZ<=4;
+      var reserva=(amp.p4!=null)&&(amp.p4/amp.p8>=1.7);
+      var potente=amp.p8>=60;
+      var resuelta=reserva||potente;
+      if(hard&&!resuelta){ zv.className='verdict warn'; zv.textContent='Exige corriente';
         zt.innerHTML='La impedancia baja a <b>'+nf(spk.minZ,1)+' Ω</b>, justo donde el bajo pide más corriente. Con un amplificador de potencia modesta puede sentirse el grave blando o sin control.';
-        zf.className='flag'; zf.innerHTML='Conviene un amplificador que <b>doble su potencia al bajar de 8 a 4 Ω</b> — señal de buena entrega de corriente.'; }
-      else if(hard){ zv.className='verdict ok'; zv.textContent='Cubierto';
+        zf.className='flag'; zf.innerHTML='Conviene un amplificador que <b>doble su potencia al bajar de 8 a 4 Ω</b> (reserva ≥1,7×) o que entregue <b>60 W o más</b> en 8 Ω — señal de buena entrega de corriente.'; }
+      else if(hard&&reserva){ zv.className='verdict ok'; zv.textContent='Cubierto';
         zt.innerHTML='La impedancia baja a <b>'+nf(spk.minZ,1)+' Ω</b>, una carga exigente, pero este amplificador tiene reserva de corriente (casi dobla su potencia a 4 Ω) y la controla.';
+        zf.className='flag hidden'; }
+      else if(hard){ zv.className='verdict ok'; zv.textContent='Cubierto';
+        zt.innerHTML='La impedancia baja a <b>'+nf(spk.minZ,1)+' Ω</b>, una carga exigente, pero este amplificador entrega suficiente potencia (≥60 W en 8 Ω) como para controlarla, aunque no hay dato de cuánto sube su potencia a 4 Ω.';
         zf.className='flag hidden'; }
       else{ zv.className='verdict ok'; zv.textContent='Carga benigna';
         zt.innerHTML='La impedancia se mantiene alta; es una carga fácil para cualquier amplificador.';
