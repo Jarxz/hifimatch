@@ -83,13 +83,14 @@ El motor debe correr en un test de milisegundos sin levantar nada. Si necesita
 
 ## Estado actual
 
-**Fase 1 y Fase 2 hechas.** `packages/engine/src/` tiene `tipos.ts`
-(esquema de dominio + `peorConfianza`), `unidades.ts` y `potencia.ts`, los
-tres con tests (22/22 pasando, `npm test` o `node --test src/`). Los
-vectores de prueba de `potencia.ts` usan pares reales de `equipos-seed.json`
-(Klipsch+Cambridge, KEF+Rega Brio) que ya coinciden con los vectores A/B/C
-de `docs/motor-mvp.md`. `carga.ts`, `sala.ts` **todavía no existen** como
-paquete; su lógica de referencia sigue sólo en el JavaScript de
-`prototipo-frontend.html` (ya verificada ahí, con un bug real encontrado y
-corregido en la regla de carga — ver historial de git). Orden sugerido en
-`README.md`: unidades → potencia → carga y sala → frontend → ampliar datos.
+**Fases 1, 2 y 3 hechas — el motor completo ya existe como paquete
+TypeScript.** `packages/engine/src/` tiene `tipos.ts`, `unidades.ts`,
+`potencia.ts`, `carga.ts` y `sala.ts`, los cinco con tests (36/36 pasando,
+`npm test` o `node --test src/`). `carga.test.ts` incluye como test de
+regresión el bug real que se encontró y corrigió antes en el prototipo
+(amplificador de 55W sin dato a 4Ω que el umbral viejo de 50W dejaba pasar
+como "Cubierto"). `sala.test.ts` reproduce el vector de la sección 4 del
+doc. Sigue faltando: Fase 4 (portar `prototipo-frontend.html` para que
+consuma este motor real en vez de tener la lógica adentro) y Fase 5
+(seguir ampliando la base de datos). La regla de ganancia de cadena
+(sección 6 de motor-mvp.md) sigue sólo diseñada, no implementada.

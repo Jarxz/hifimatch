@@ -105,10 +105,12 @@ algún momento necesita `fetch`, algo se hizo mal.
 3. ✅ **Fase 2 — potencia.** `packages/engine/src/potencia.ts` con tests
    (vectores A/B/C de `docs/motor-mvp.md`, más aviso de `potenciaRecMinW` y
    los dos límites exactos de frontera de veredicto — 7 tests, todos pasando).
-4. **Fase 3 — carga y sala** (próximo paso pendiente). Las reglas de
-   impedancia y la geometría del plano.
-5. **Fase 4 — frontend.** Portar el prototipo a la app, ahora consumiendo el
-   motor real en vez de tener la lógica adentro.
+4. ✅ **Fase 3 — carga y sala.** `packages/engine/src/carga.ts` y `sala.ts`,
+   con tests (9 + 5 = 14 tests). `carga.test.ts` lleva como regresión el bug
+   real que se encontró y corrigió antes en el prototipo. `sala.test.ts`
+   reproduce el vector de `docs/motor-mvp.md` sección 4.
+5. **Fase 4 — frontend** (próximo paso pendiente). Portar el prototipo a la
+   app, ahora consumiendo el motor real en vez de tener la lógica adentro.
 6. **Fase 5 — ampliar la base de datos.** Diez o quince equipos populares más,
    con specs verificados y con fuente. Es la curaduría de la que depende todo.
 
