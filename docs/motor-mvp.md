@@ -34,6 +34,15 @@ sensEntradaMv         número | null
 impedanciaEntradaOhm  número | null
 ```
 
+**Fuente digital (streamer o DAC)** — usada sólo por la regla de la sección 6,
+opcional, no entra a potencia/carga:
+```
+id, nombre, tipo
+salidaV                número | null   // tensión de salida analógica, RMS
+impedanciaSalidaOhm    número | null
+fuente, confianza      igual que el resto
+```
+
 El frontend además guarda `chips[]` y `descripcion` por equipo, pero eso es
 presentación, no entra al motor.
 
@@ -179,9 +188,146 @@ Estas reglas ya están especificadas en los docs del proyecto anterior; el MVP
 implementa sólo potencia, carga y geometría.
 
 **Sobre `streamers`, `dacs` y `cables` en `equipos-seed.json`:** ya tienen datos
-curados (con fuente y confianza, mismo estándar que parlantes/amplificadores),
-pero **no son entrada de ninguna regla todavía** — `potencia.ts` y `carga.ts`
-sólo miran parlante + amplificador, y así se mantiene mientras no exista una
-regla específica. Son catálogo adelantado para cuando se defina la regla de
-ganancia de cadena / puente de impedancias fuente→amp de este punto. No bloquean
-ni participan del veredicto de compatibilidad actual.
+curados (con fuente y confianza, mismo estándar que parlantes/amplificadores).
+La regla que los usaría (streamer/DAC → amplificador) ya está **diseñada** en
+la sección 6 de este documento, pero **todavía no está implementada en
+código** — `potencia.ts` y `carga.ts` siguen siendo las únicas reglas reales,
+y siguen dependiendo sólo de parlante + amplificador. `cables` todavía no
+tiene ni diseño de regla (afecta el puente de impedancias por su capacitancia/
+resistencia en serie, pero es un efecto de segundo orden que queda para más
+adelante).
+
+---
+
+## 6. Ganancia de cadena / puente de impedancias fuente→amplificador
+
+**Estado: diseñada, sin implementar.** Es una regla **opcional**: sólo corre
+si el usuario agrega una fuente (streamer o DAC) a la cadena. No reemplaza ni
+condiciona el veredicto de potencia/carga que ya existe entre parlante y
+amplificador — ese sigue funcionando igual con o sin fuente declarada.
+
+La pregunta no es una sino dos, físicamente distintas:
+
+1. ¿La impedancia de salida de la fuente es lo bastante baja frente a la
+   impedancia de entrada del ampli como para transferir la señal sin pérdida
+   ni interacción con el cable? (puente de impedancias / *voltage bridging*)
+2. ¿La tensión que entrega la fuente alcanza para que el ampli llegue a la
+   potencia nominal que usa la regla de potencia? Y si alcanza de sobra,
+   ¿cuánto recorrido útil le queda al potenciómetro de volumen?
+
+Aplica entre una **fuente** (`salidaV` / `impedanciaSalidaOhm`) y un
+**amplificador** (`sensEntradaMv` / `impedanciaEntradaOhm`) — los cuatro
+campos ya existen en el esquema (sección 1) y ya están poblados en
+`equipos-seed.json` para 3 streamers, 3 DACs y los 8 amplificadores.
+
+### 6.1 Puente de impedancias
+
+**Constante del modelo** (convención de ingeniería de audio, no dato del
+equipo — declararla como tal):
+- `RATIO_BRIDGING_OK = 10` — convención estándar de *voltage bridging* en
+  audio profesional (Rane "Sound System Interconnection"; Bill Whitlock /
+  Jensen Transformers): la entrada debe tener al menos 10× la impedancia de
+  salida de la fuente para que la pérdida de nivel sea despreciable (<1 dB) y
+  la respuesta en frecuencia no dependa de la capacitancia del cable.
+
+```
+si impedanciaSalidaOhm (fuente) es null o impedanciaEntradaOhm (amp) es null:
+    → sin-datos
+
+si no:
+    ratioZ = impedanciaEntradaOhm / impedanciaSalidaOhm
+
+    ratioZ ≥ 10    → ok     "Puente correcto"
+    1 ≤ ratioZ < 10 → warn  "Puente ajustado" — pérdida de nivel/graves
+                             medible con cables largos o de alta capacitancia
+    ratioZ < 1      → alert "Puente insuficiente" — la fuente no puede
+                             manejar esa entrada, pérdida de nivel significativa
+```
+
+El corte en 10:1 es citable (convención de la industria). El corte en 1:1
+entre `warn` y `alert` es la frontera física obvia (por debajo de 1:1 la
+fuente ve más carga que su propia impedancia de salida), no una convención
+publicada — si preferís otro punto, se mueve fácil.
+
+### 6.2 Suficiencia de tensión y recorrido de volumen
+
+```
+margenV = salidaV (fuente) / (sensEntradaMv (amp) / 1000)
+```
+
+`sensEntradaMv` es la tensión que el ampli necesita a la entrada para
+entregar `potencia8OhmW` — es el mismo dato que ya está en el catálogo, no
+uno nuevo.
+
+```
+si salidaV (fuente) es null o sensEntradaMv (amp) es null:
+    → sin-datos
+
+si no:
+    margenV < 1                     → alert "Insuficiente" — la fuente no
+                                        llega a la tensión que el ampli
+                                        necesita para su potencia nominal; el
+                                        margen calculado por la regla de
+                                        potencia deja de ser válido con esta
+                                        fuente conectada.
+    1 ≤ margenV ≤ UMBRAL_RECORRIDO   → ok    "Recorrido de volumen sano"
+    margenV > UMBRAL_RECORRIDO       → warn  "Recorrido corto" — se usa sólo
+                                        una fracción baja del potenciómetro;
+                                        el sistema funciona pero con menos
+                                        resolución de volumen en el rango de
+                                        escucha habitual.
+```
+
+**`UMBRAL_RECORRIDO` — sin definir.** A diferencia de `RATIO_BRIDGING_OK`, no
+encontré un número equivalente y citable para "a partir de cuántas veces de
+sobra el recorrido del volumen se siente corto". Con los pares reales de
+`equipos-seed.json` el rango va de ~5,7× (Topping E30 II → Cambridge CXA81,
+vector A abajo) a ~19× (Schiit Modi+ → Denon PMA-600NE, vector B) — el valor
+que se elija decide si casos como B caen en `ok` o en `warn`. **Se pregunta
+antes de fijarlo, no se inventa** (regla del proyecto).
+
+**Confianza:** el veredicto hereda la peor confianza entre `salidaV` /
+`impedanciaSalidaOhm` de la fuente y `sensEntradaMv` / `impedanciaEntradaOhm`
+del ampli.
+
+### Vectores de prueba
+
+Con datos reales de `equipos-seed.json` salvo donde se indica "sintético":
+
+```
+A · Topping E30 II (2,1 V, 20 Ω) → Cambridge CXA81 (370 mV, 43 kΩ)
+    ratioZ = 43000/20 = 2150       → ok "Puente correcto"
+    margenV = 2,1/0,370 = 5,68     → ok "Recorrido sano" (bajo cualquier
+                                       umbral razonable)
+
+B · Schiit Modi+ (2,0 V, 75 Ω) → Denon PMA-600NE (110 mV, 30 kΩ)
+    ratioZ = 30000/75 = 400        → ok "Puente correcto"
+    margenV = 2,0/0,110 = 18,18    → warn "Recorrido corto" — el caso más
+                                       exigente de la base actual; define el
+                                       umbral que falta
+
+C · Bluesound Node (2,2 V, 500 Ω) → Rega Brio (210 mV, 47 kΩ)
+    ratioZ = 47000/500 = 94        → ok "Puente correcto" (a pesar de la
+                                       impedancia de salida alta del Bluesound)
+    margenV = 2,2/0,210 = 10,48    → warn "Recorrido corto"
+
+D · NAD C316BEE V2 (sensEntradaMv=200, impedanciaEntradaOhm=null) + Schiit Modi+
+    ratioZ: sin impedanciaEntradaOhm → sin-datos (6.1)
+    margenV = 2,0/0,200 = 10       → corre igual (6.2) — dato parcial, no
+                                       todo el equipo está en null
+
+E · Cambridge CXN V2 (salidaV=null, impedanciaSalidaOhm=null) + cualquier ampli
+    → sin-datos en 6.1 y en 6.2 (la ficha oficial no publica esos valores)
+
+F · Hegel H95 (sensEntradaMv=null, impedanciaEntradaOhm=null) + cualquier fuente
+    → sin-datos en 6.1 y en 6.2
+
+G (sintético) · fuente de 50 mV → Denon PMA-600NE (110 mV)
+    margenV = 0,050/0,110 = 0,45   → alert "Insuficiente" — ejemplo: una
+                                       salida de línea muy débil o un tape
+                                       deck antiguo sin preamplificar
+
+H (sintético) · fuente con impedanciaSalidaOhm=15000 Ω → ampli con
+  impedanciaEntradaOhm=10000 Ω
+    ratioZ = 10000/15000 = 0,67    → alert "Puente insuficiente"
+```

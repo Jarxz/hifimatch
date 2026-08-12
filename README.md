@@ -37,11 +37,13 @@ con su catálogo y el encuadre de venta.
   DACs y 3 cables (interconexión y parlante, con resistencia/capacitancia/
   inductancia reales de ficha técnica). Es el activo de curaduría y sirve de
   fixtures de test. Streamers, DACs y cables están curados con la misma
-  disciplina pero **no participan de ninguna regla todavía**: el motor sólo
-  calcula potencia y carga a partir de parlante + amplificador. Van a
-  necesitar reglas propias (ganancia de la cadena, puente de impedancias
-  fuente-amp) que todavía no están especificadas — ver `docs/motor-mvp.md`
-  sección 5.
+  disciplina pero **no participan de ninguna regla implementada todavía**: el
+  motor sólo calcula potencia y carga a partir de parlante + amplificador. La
+  regla de ganancia de cadena / puente de impedancias fuente-amp (streamer o
+  DAC → amplificador) ya está **diseñada** — fórmula, umbrales y vectores de
+  prueba en `docs/motor-mvp.md` sección 6 — pero falta portarla a código y
+  falta definir un umbral (cuánto recorrido de volumen se considera "corto").
+  `cables` todavía no tiene ni diseño de regla.
 - **Prueba de realidad de la data:** confirmada. Para equipos populares los specs
   existen (fichas de fabricante + mediciones independientes de Stereophile,
   Erin's Audio Corner, ASR). La advertencia es que el spec de fábrica puede

@@ -3,7 +3,7 @@
     "descripcion": "Base de datos semilla de CADENA. Specs de equipos populares con fuente y confianza. Sirve de fixtures de test para el motor y de arranque para la curaduría. VERIFICAR cada valor contra las fuentes citadas antes de publicar.",
     "esquema": "ver docs/motor-mvp.md sección 1",
     "unidad_sensibilidad": "dB/2.83V·m",
-    "categorias_sin_regla": "streamers, dacs y cables se curan con la misma disciplina (fuente + confianza, null en vez de estimar) pero todavía NO tienen una regla de compatibilidad propia en motor-mvp.md. No son entrada obligatoria: potencia.ts y carga.ts siguen dependiendo sólo de parlantes + amplificadores. Sirven de catálogo y de futura base para una regla de ganancia de cadena / puente de impedancias fuente-amp (ver motor-mvp.md sección 5)."
+    "categorias_sin_regla": "streamers, dacs y cables se curan con la misma disciplina (fuente + confianza, null en vez de estimar). La regla que usaría streamers/dacs (ganancia de cadena / puente de impedancias fuente-amp) ya está DISEÑADA en motor-mvp.md sección 6, pero NO implementada en código. potencia.ts y carga.ts siguen siendo las únicas reglas reales y dependen sólo de parlantes + amplificadores; streamers/dacs/cables no son entrada obligatoria de nada todavía. cables no tiene ni diseño de regla."
   },
 
   "parlantes": [
