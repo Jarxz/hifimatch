@@ -63,12 +63,25 @@ packages/engine/   TypeScript puro, CERO dependencias de runtime.
   src/carga.ts     Regla de carga / impedancia
   src/sala.ts      Geometría: disposición, distancia, reflexiones
   src/ganancia.ts  Ganancia de cadena: puente de impedancias + recorrido de volumen (fuente→ampli)
-packages/data/     Base de datos curada de equipos (con fuente y confianza)
-apps/web/          Frontend (portar prototipo-frontend.html)
+packages/data/     Catálogo curado de equipos, bilingüe (con fuente y confianza)
+  src/catalogo.ts        El dato: parlantes, amplificadores, fuentes, cables
+  src/tipos-catalogo.ts  DatoCitado<T>, Localizado — el esquema de presentación
+  src/idioma.ts          Idioma = 'es'|'en'; Localizado = {es,en}
+apps/web/          Frontend: Vite + TypeScript modular, consume engine y data directo
+  src/main.ts            Arranque, estado, listeners
+  src/idioma/            es.ts (define Textos) + en.ts + idioma.ts (aplicar/guardar)
+  src/formato/numeros.ts Intl.NumberFormat por idioma — reemplaza cualquier nf() a mano
+  src/datos/             adaptadores.ts (catálogo → tipos del motor) + etiquetas.ts (chips derivados)
+  src/vista/             resultado.ts (PURO) + plano.ts (PURO) + pintar.ts (DOM) + medidor.ts + selectores.ts + pantallas.ts
 ```
 
 El motor debe correr en un test de milisegundos sin levantar nada. Si necesita
-`fetch`, algo se hizo mal.
+`fetch`, algo se hizo mal. Lo mismo vale, sin excepción, para `packages/data` y
+para todo lo "puro" de `apps/web` (`resultado.ts`, `plano.ts`,
+`datos/*`, `formato/*`, `idioma/*`): imports relativos con extensión `.ts`,
+cero dependencias, corren con `node --test` sin bundler ni DOM. Sólo
+`vista/pintar.ts` y `vista/medidor.ts` tocan `document` — esa es la única
+capa que un test de Node no puede ejercitar directo.
 
 ## Convenciones no negociables
 
@@ -81,54 +94,83 @@ El motor debe correr en un test de milisegundos sin levantar nada. Si necesita
   `impedanciaOhm`, `distanciaM`. Nunca un número desnudo.
 - **Toda conversión de unidad vive en `unidades.ts`,** testeada aparte. La
   confusión dB/W/m vs dB/2.83V/m es la fuente de error más común del dominio.
+- **El motor no emite texto de UI.** Cada regla devuelve `codigo` (una unión
+  de literales) y, cuando hace falta redactar algo con números (ej. el aviso
+  de potencia mínima recomendada), una estructura con esos números en crudo
+  — nunca una frase armada. Un motor que decide en qué idioma se lee el sitio
+  no es "interfaz intercambiable" (ver primera sección de este documento).
+- **Todo texto de producto vive en `apps/web/src/idioma/{es,en}.ts`,** en los
+  dos idiomas. `es.ts` define el esquema (`typeof es` → `Textos`); una clave
+  que falte en `en.ts`, o una función con otra firma, es error de `tsc`, no
+  un texto vacío en pantalla. Los parámetros que le llegan a cada función del
+  diccionario son siempre `string` ya formateado (por `formato/numeros.ts`,
+  según el idioma activo) — el diccionario redacta, nunca formatea números.
 
 ## Estado actual
 
-**Fases 1 a 4 hechas**, más la regla de ganancia de cadena (sección 6 de
-motor-mvp.md). El motor completo vive en `packages/engine/src/` (`tipos.ts`,
-`unidades.ts`, `potencia.ts`, `carga.ts`, `sala.ts`, `ganancia.ts`), 47/47
-tests pasando (`npm test` en `packages/engine/`). Se compila a JS de
-navegador con `npm run build` (usa `rewriteRelativeImportExtensions` de
-TS 5.7+ para que los imports con extensión `.ts` del código fuente —
-necesarios para que `node --test` corra sin transpilar — se conviertan en
-`.js` en el output). El resultado vive en `packages/engine/dist/` y **sí
-se commitea** (excepción a `dist/` en `.gitignore`): no hay build step en
-el despliegue, así que el archivo compilado tiene que estar en el repo.
+**Motor completo, catálogo único y bilingüe, sitio en Vite.** El monorepo
+tiene tres workspaces npm (`packages/engine`, `packages/data`, `apps/web`) con
+`package.json` raíz (`workspaces`); todo corre con `npm test` / `npm run
+typecheck` / `npm run build` desde la raíz.
 
-`prototipo-frontend.html` ya **consume el motor real**. Primer intento
-usó `<script type="module">` importando `dist/*.js` directo — **no
-funciona**: los navegadores basados en Chromium bloquean por CORS los
-módulos ES cuando la página se abre como archivo local (`file://`), que es
-como este sitio está pensado para abrirse (doble clic, sin servidor). No
-lo detecté hasta que se probó en un navegador real. Se corrigió con
-`packages/engine/scripts/bundle-navegador.mjs`: concatena los `.js`
-compilados en un único script clásico sin `import`/`export`
-(`dist/cadena-engine.browser.js`, generado por `npm run build`), cargado
-con `<script src="...">` normal — sin la restricción de CORS de los
-módulos. El script principal (`<script defer>`, sin `type="module"`, sin
-`defer` en el bundle) llama a
-`window.CadenaEngine.evaluarPotencia/evaluarCarga/calcularDisposicion/
-evaluarPuenteImpedancias/evaluarRecorridoVolumen` en vez de recalcular las
-fórmulas inline; las constantes `RATIO_BRIDGING_OK`/`UMBRAL_RECORRIDO`
-también se exponen en `window.CadenaEngine`, así el HTML nunca hardcodea
-esos números en el texto. Los objetos `SPK`/`AMP`/`FUENTE` siguen siendo
-datos de presentación (chips, desc), traducidos al tipo del motor por tres
-funciones adaptadoras (`parlanteDelMotor`, `amplificadorDelMotor`,
-`fuenteDelMotor`) — la única capa de traducción, no de duplicación de
-lógica. Verificado con un harness de Node que carga el bundle como script
-clásico (sin ESM, igual que un navegador) y extrae los datos/adaptadores
-del HTML real: los 8 vectores documentados en motor-mvp.md sección 6.3
-coinciden exactamente.
+**El motor** (`packages/engine/src/`: `tipos.ts`, `unidades.ts`,
+`potencia.ts`, `carga.ts`, `sala.ts`, `ganancia.ts`) devuelve **códigos, no
+texto** — `codigo: 'con-margen'|'justo'|'insuficiente'`, etc., y en
+`potencia.ts` un `avisos: AvisoPotencia[]` con los números en crudo. 47/47
+tests.
 
-La regla de ganancia es **opcional**: el selector "Fuente digital" en la
-pantalla de configuración no es requerido, y sus dos tarjetas de resultado
-(puente de impedancias, recorrido de volumen) sólo aparecen si el usuario
-eligió una fuente — no condicionan ni reemplazan los veredictos de
-potencia/carga. `UMBRAL_RECORRIDO` no tenía número citable (a diferencia
-de `RATIO_BRIDGING_OK=10`, convención de la industria) — motor-mvp.md lo
-marcaba explícito como "sin definir... se pregunta antes de fijarlo, no se
-inventa"; se preguntó y quedó en **10×** (mismo orden que el umbral de
-puente).
+**El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
+datos de equipos — 25 equipos (8 parlantes, 8 amplificadores, 6 fuentes
+digitales que unifican streamers+DACs, 3 cables curados sin regla todavía),
+bilingüe desde el origen (`Localizado = {es, en}` en cada campo de
+presentación). Reemplaza lo que antes vivía duplicado entre
+`prototipo-frontend.html` y `data/equipos-seed.json` — ya habían divergido en
+9 puntos antes de fusionarse acá. 11/11 tests (completitud es/en, ids únicos,
+lint de separador decimal).
 
-Falta: Fase 5 (seguir ampliando la base — ya tiene 25 equipos en 5
-categorías más 6 fuentes digitales, es trabajo sin fin natural).
+**El frontend** (`apps/web/`) es Vite + TypeScript modular; `prototipo-
+frontend.html` y su bundler artesanal (`bundle-navegador.mjs`) ya no existen.
+El sitio sigue teniendo que abrirse por doble clic (`file://`) además de
+servirse por web: `vite-plugin-singlefile` inlinea JS y CSS en un único
+`index.html` autocontenido, así no queda nada externo que el navegador tenga
+que *fetchear* — el bloqueo real de Chromium sobre `file://` es al fetchear
+un módulo externo, no a los módulos en sí; un `<script type="module">`
+inline ejecuta igual. `apps/web/scripts/verificar-build.mjs` corre dentro de
+`npm run build` y hace fallar el build si algún `<script src>` o `<link
+rel=modulepreload>` externo sobrevive — la regresión de CORS que este
+proyecto ya sufrió una vez ahora la detecta el build, no un navegador real.
+Dentro de `apps/web/src`, todo lo que no es DOM (`vista/resultado.ts`,
+`vista/plano.ts`, `datos/adaptadores.ts`, `datos/etiquetas.ts`,
+`formato/numeros.ts`, `idioma/*`) usa imports relativos con extensión `.ts` —
+igual convención que `packages/engine` — y por eso corre con `node --test`
+sin bundler: los alias de Vite (`@engine/...`) no los entiende el test runner
+de Node, que resuelve módulos como Node puro, así que se descartaron a favor
+de la convención ya probada del motor. 53/53 tests.
+
+**Bilingüe real, no maquetado.** `apps/web/src/idioma/es.ts` define el
+esquema de textos (`typeof es` → `Textos`); `en.ts` lo implementa — una clave
+faltante es error de compilación. El botón ES/EN vive en el banner de
+configurar/resultado **y** en la portada (que no tiene banner: sin el botón
+ahí no se puede cambiar de idioma antes de entrar). Cambiar de idioma
+reformatea números por locale (`Intl.NumberFormat` vía
+`formato/numeros.ts`), repinta el cromo estático (`data-i18n` +
+`aplicarCromoEstatico()`) y, si ya hay una cadena completa, recalcula el
+resultado sin forzar la navegación a esa pantalla. Verificado extremo a
+extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
+`apps/web/dist/index.html` abierto por `file://`.
+
+**111 tests totales** (47 motor + 11 catálogo + 53 frontend, estos últimos
+con vectores propios en inglés además de los de español). Correlato de cada
+fase en el historial de commits, no en este documento.
+
+Falta:
+- **Deploy en Vercel** — el sitio está listo (`npm run build` produce un
+  `apps/web/dist/index.html` autocontenido) pero todavía no hay `vercel.json`
+  ni repo remoto conectado.
+- **Huecos de datos en `fuentes`** (streamers/DACs): la impedancia de salida
+  del WiiM Pro Plus y del Cambridge CXN V2 siguen en `null` — cerrarlos
+  (con cita, o dejarlos en `null` con motivo si no hay fuente confiable) es
+  tarea pendiente, no bloqueante.
+- **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
+  de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
+  parte del alcance actual.

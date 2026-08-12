@@ -5,7 +5,7 @@ import type { Parlante, Amplificador } from './tipos.ts';
 
 const EPS = 0.05; // tolerancia estándar del proyecto (motor-mvp.md, cabecera)
 
-// Fixtures = data/equipos-seed.json (mismos valores, mismas fuentes).
+// Fixtures = packages/data/src/catalogo.ts (mismos valores, mismas fuentes).
 const klipsch: Parlante = {
   id: 'klipsch-rp600m-ii',
   nombre: 'Klipsch RP-600M II',

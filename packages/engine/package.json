@@ -5,9 +5,8 @@
   "description": "Motor de compatibilidad hi-fi de CADENA. TypeScript puro, cero dependencias de runtime.",
   "type": "module",
   "scripts": {
-    "test": "node --test src/**/*.test.ts",
-    "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json && node scripts/bundle-navegador.mjs"
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from './ganancia.ts';
 import type { Amplificador, Fuente } from './tipos.ts';
 
-// Fixtures = data/equipos-seed.json (streamers, dacs, amplificadores).
+// Fixtures = packages/data/src/catalogo.ts (streamers, dacs, amplificadores).
 const toppingE30ii: Fuente = {
   id: 'topping-e30-ii',
   nombre: 'Topping E30 II',

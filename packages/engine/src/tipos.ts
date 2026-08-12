@@ -1,7 +1,8 @@
 /**
  * Esquema de dominio — fuente de verdad. Espeja exactamente la forma de los
- * datos en data/equipos-seed.json y lo documentado en docs/motor-mvp.md
- * sección 1. Ningún equipo hardcodeado acá: sólo formas de datos.
+ * datos en packages/data/src/catalogo.ts y lo documentado en
+ * docs/motor-mvp.md sección 1. Ningún equipo hardcodeado acá: sólo formas
+ * de datos.
  */
 
 export type Confianza = 'alta' | 'media' | 'baja';
@@ -40,7 +41,7 @@ export interface Amplificador {
  * cadena (ganancia.ts, motor-mvp.md sección 6). Opcional: no entra a
  * potencia.ts ni carga.ts. A diferencia de Parlante/Amplificador, fuente y
  * confianza son un solo par para todo el registro, no por campo — así está
- * curado en data/equipos-seed.json (categorías streamers/dacs).
+ * curado en packages/data/src/catalogo.ts (categoría `fuentes`).
  */
 export interface Fuente {
   id: string;

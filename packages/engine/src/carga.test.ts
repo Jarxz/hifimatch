@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluarCarga } from './carga.ts';
 import type { Parlante, Amplificador } from './tipos.ts';
 
-// Mismos fixtures que potencia.test.ts (= data/equipos-seed.json).
+// Mismos fixtures que potencia.test.ts (= packages/data/src/catalogo.ts).
 const kef: Parlante = {
   id: 'kef-ls50-meta',
   nombre: 'KEF LS50 Meta',

@@ -1,8 +1,11 @@
 # Motor MVP — fórmulas, esquema y vectores de prueba
 
-Esto es lo que hoy calcula el prototipo (`prototipo-frontend.html`), extraído para
-portarlo a TypeScript con tests. Los números de los vectores están calculados a
-mano: úsalos como casos esperados **antes** de escribir la implementación.
+Esto es lo que calcula el motor (`packages/engine/src/`), consumido por
+`apps/web/`. Los números de los vectores están calculados a mano y viven
+también como tests (`*.test.ts` junto a cada regla, más
+`apps/web/src/datos/adaptadores.test.ts`, que los reproduce contra el
+catálogo real de `packages/data/src/catalogo.ts`); si cambia un dato del
+catálogo o una fórmula, son la referencia para saber qué se rompió.
 
 Convención: `log₁₀` es logaritmo base 10. Tolerancia de los tests: ±0,05 dB salvo
 que se indique otra.
@@ -43,8 +46,11 @@ impedanciaSalidaOhm    número | null
 fuente, confianza      igual que el resto
 ```
 
-El frontend además guarda `chips[]` y `descripcion` por equipo, pero eso es
-presentación, no entra al motor.
+El catálogo (`packages/data/src/catalogo.ts`) además guarda `tipo`,
+`descripcion`, `chipsExtra[]` y `fuentes[]` por equipo, bilingües — eso es
+presentación, no entra al motor. Los chips que sí son físicos (`8 Ω`,
+`mín 3,5 Ω`, `40–100 W`…) no se guardan: se derivan de estos mismos campos
+en `apps/web/src/datos/etiquetas.ts`, así no pueden divergir del dato real.
 
 ---
 
@@ -75,15 +81,18 @@ SPL_disponible = sensibilidadDb
 margen = SPL_disponible − pico_objetivo
 ```
 
-**Veredicto** (por `margen`, en dB):
+**Veredicto** (por `margen`, en dB). El motor devuelve `codigo` — no texto;
+la traducción a pantalla vive en `apps/web/src/idioma/{es,en}.ts`:
 ```
-margen ≥ 3     ok      "Con margen"
-0 ≤ margen < 3 warn    "Justo"
-margen < 0     alert   "Insuficiente"
+margen ≥ 3     ok      codigo: 'con-margen'
+0 ≤ margen < 3 warn    codigo: 'justo'
+margen < 0     alert   codigo: 'insuficiente'
 ```
 
 **Aviso extra:** si `potenciaRecMinW` no es null y `potencia8OhmW < potenciaRecMinW`,
-agregar nota: el fabricante recomienda desde X W.
+el motor agrega a `avisos[]` un `{ codigo: 'bajo-potencia-recomendada',
+recomendadaW, entregadaW }` — números en crudo, sin redactar la frase (eso
+también es tarea del diccionario, no del motor).
 
 **Confianza:** el veredicto hereda la peor confianza de los datos que usó (sobre
 todo la de `sensibilidadDb`).
@@ -109,7 +118,7 @@ parlante? Es distinta de la potencia (SPL): acá manda la impedancia mínima.
 
 ```
 si impedanciaMinOhm === null:
-    → sin-datos   "Sin dato"     // NUNCA ok. Falta la curva de impedancia.
+    → sin-datos   codigo: 'sin-dato'   // NUNCA ok. Falta la curva de impedancia.
 
 si no:
     dura   = impedanciaMinOhm ≤ 4
@@ -119,9 +128,9 @@ si no:
     potente = potencia8OhmW ≥ 60
     resuelta = reserva || potente
 
-    si  dura && !resuelta → warn   "Exige corriente"
-    si  dura &&  resuelta → ok     "Cubierto"
-    si !dura              → ok     "Carga benigna"
+    si  dura && !resuelta → warn   codigo: 'exige-corriente'
+    si  dura &&  resuelta → ok     codigo: 'cubierto'
+    si !dura              → ok     codigo: 'carga-benigna'
 ```
 
 ### Vectores de prueba
@@ -176,33 +185,31 @@ reflexionIzq=(0, 1,487)   reflexionDer=(3,6, 1,487)   puntoDulce=(1,8, 3,126)
 
 ---
 
-## 5. Lo que el MVP todavía NO hace
+## 5. Lo que el motor todavía NO hace
 
-- Fuente/streamer y ganancia de la cadena (el bloque B de `docs/reglas.md` del
-  proyecto anterior): recorrido de volumen, puente de impedancias fuente→amp.
 - Subwoofer, cables, modos de sala.
 - Modo "buscar" (llenar un hueco con candidatos) y modo "proponer" (armar cadenas
   desde un presupuesto). Requieren la función de score, que es decisión abierta.
 
-Estas reglas ya están especificadas en los docs del proyecto anterior; el MVP
-implementa sólo potencia, carga y geometría.
+Estas reglas ya están especificadas en los docs del proyecto anterior; el motor
+implementa potencia, carga, geometría y ganancia de cadena (sección 6).
 
-**Sobre `streamers`, `dacs` y `cables` en `equipos-seed.json`:** ya tienen datos
-curados (con fuente y confianza, mismo estándar que parlantes/amplificadores).
-La regla que los usaría (streamer/DAC → amplificador) ya está **diseñada** en
-la sección 6 de este documento, pero **todavía no está implementada en
-código** — `potencia.ts` y `carga.ts` siguen siendo las únicas reglas reales,
-y siguen dependiendo sólo de parlante + amplificador. `cables` todavía no
-tiene ni diseño de regla (afecta el puente de impedancias por su capacitancia/
+**Sobre `cables` en `packages/data/src/catalogo.ts`:** tiene datos curados
+(fuente y confianza, mismo estándar que el resto), pero **todavía no tiene ni
+diseño de regla** (afecta el puente de impedancias por su capacitancia/
 resistencia en serie, pero es un efecto de segundo orden que queda para más
-adelante).
+adelante). `streamers`/`dacs` (unificados en la categoría `fuentes` del
+catálogo) sí tienen su regla implementada — ver sección 6.
 
 ---
 
 ## 6. Ganancia de cadena / puente de impedancias fuente→amplificador
 
-**Estado: diseñada, sin implementar.** Es una regla **opcional**: sólo corre
-si el usuario agrega una fuente (streamer o DAC) a la cadena. No reemplaza ni
+**Estado: implementada** (`packages/engine/src/ganancia.ts`,
+`evaluarPuenteImpedancias` y `evaluarRecorridoVolumen`). Es una regla
+**opcional**: sólo corre si el usuario agrega una fuente (streamer o DAC) a
+la cadena — en `apps/web`, el selector "Fuente digital" no es obligatorio, y
+las dos tarjetas de resultado sólo aparecen si se eligió una. No reemplaza ni
 condiciona el veredicto de potencia/carga que ya existe entre parlante y
 amplificador — ese sigue funcionando igual con o sin fuente declarada.
 
@@ -218,7 +225,8 @@ La pregunta no es una sino dos, físicamente distintas:
 Aplica entre una **fuente** (`salidaV` / `impedanciaSalidaOhm`) y un
 **amplificador** (`sensEntradaMv` / `impedanciaEntradaOhm`) — los cuatro
 campos ya existen en el esquema (sección 1) y ya están poblados en
-`equipos-seed.json` para 3 streamers, 3 DACs y los 8 amplificadores.
+`packages/data/src/catalogo.ts` para 3 streamers, 3 DACs y los 8
+amplificadores.
 
 ### 6.1 Puente de impedancias
 
@@ -232,15 +240,15 @@ equipo — declararla como tal):
 
 ```
 si impedanciaSalidaOhm (fuente) es null o impedanciaEntradaOhm (amp) es null:
-    → sin-datos
+    → sin-datos codigo: 'sin-dato'
 
 si no:
     ratioZ = impedanciaEntradaOhm / impedanciaSalidaOhm
 
-    ratioZ ≥ 10    → ok     "Puente correcto"
-    1 ≤ ratioZ < 10 → warn  "Puente ajustado" — pérdida de nivel/graves
+    ratioZ ≥ 10    → ok     codigo: 'puente-correcto'
+    1 ≤ ratioZ < 10 → warn  codigo: 'puente-ajustado' — pérdida de nivel/graves
                              medible con cables largos o de alta capacitancia
-    ratioZ < 1      → alert "Puente insuficiente" — la fuente no puede
+    ratioZ < 1      → alert codigo: 'puente-insuficiente' — la fuente no puede
                              manejar esa entrada, pérdida de nivel significativa
 ```
 
@@ -261,30 +269,31 @@ uno nuevo.
 
 ```
 si salidaV (fuente) es null o sensEntradaMv (amp) es null:
-    → sin-datos
+    → sin-datos codigo: 'sin-dato'
 
 si no:
-    margenV < 1                     → alert "Insuficiente" — la fuente no
-                                        llega a la tensión que el ampli
-                                        necesita para su potencia nominal; el
-                                        margen calculado por la regla de
-                                        potencia deja de ser válido con esta
-                                        fuente conectada.
-    1 ≤ margenV ≤ UMBRAL_RECORRIDO   → ok    "Recorrido de volumen sano"
-    margenV > UMBRAL_RECORRIDO       → warn  "Recorrido corto" — se usa sólo
-                                        una fracción baja del potenciómetro;
-                                        el sistema funciona pero con menos
-                                        resolución de volumen en el rango de
-                                        escucha habitual.
+    margenV < 1                     → alert codigo: 'insuficiente' — la
+                                        fuente no llega a la tensión que el
+                                        ampli necesita para su potencia
+                                        nominal; el margen calculado por la
+                                        regla de potencia deja de ser válido
+                                        con esta fuente conectada.
+    1 ≤ margenV ≤ UMBRAL_RECORRIDO   → ok    codigo: 'recorrido-sano'
+    margenV > UMBRAL_RECORRIDO       → warn  codigo: 'recorrido-corto' — se
+                                        usa sólo una fracción baja del
+                                        potenciómetro; el sistema funciona
+                                        pero con menos resolución de volumen
+                                        en el rango de escucha habitual.
 ```
 
-**`UMBRAL_RECORRIDO` — sin definir.** A diferencia de `RATIO_BRIDGING_OK`, no
-encontré un número equivalente y citable para "a partir de cuántas veces de
-sobra el recorrido del volumen se siente corto". Con los pares reales de
-`equipos-seed.json` el rango va de ~5,7× (Topping E30 II → Cambridge CXA81,
-vector A abajo) a ~19× (Schiit Modi+ → Denon PMA-600NE, vector B) — el valor
-que se elija decide si casos como B caen en `ok` o en `warn`. **Se pregunta
-antes de fijarlo, no se inventa** (regla del proyecto).
+**`UMBRAL_RECORRIDO = 10`.** A diferencia de `RATIO_BRIDGING_OK`, no existe un
+número equivalente y citable para "a partir de cuántas veces de sobra el
+recorrido del volumen se siente corto" — con los pares reales del catálogo el
+rango va de ~5,7× (Topping E30 II → Cambridge CXA81, vector A abajo) a ~19×
+(Schiit Modi+ → Denon PMA-600NE, vector B). Siguiendo la regla del proyecto
+("no inventes umbrales, si falta un número se pregunta"), se preguntó y se
+fijó en **10×** — mismo orden de magnitud que `RATIO_BRIDGING_OK`, y dentro
+del rango que separa el vector A (`ok`) del B y el C (`warn`).
 
 **Confianza:** el veredicto hereda la peor confianza entre `salidaV` /
 `impedanciaSalidaOhm` de la fuente y `sensEntradaMv` / `impedanciaEntradaOhm`
@@ -292,7 +301,9 @@ del ampli.
 
 ### Vectores de prueba
 
-Con datos reales de `equipos-seed.json` salvo donde se indica "sintético":
+Con datos reales de `packages/data/src/catalogo.ts` salvo donde se indica
+"sintético". Reproducidos también contra el catálogo real (buscando por id,
+no fixtures copiadas) en `apps/web/src/datos/adaptadores.test.ts`.
 
 ```
 A · Topping E30 II (2,1 V, 20 Ω) → Cambridge CXA81 (370 mV, 43 kΩ)

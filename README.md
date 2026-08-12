@@ -25,38 +25,31 @@ con su catálogo y el encuadre de venta.
 
 ## Dónde estamos hoy
 
-- **Frontend:** `prototipo-frontend.html` (fondo negro, hi-end). Tres
-  pantallas: portada → configurar → resultado. Ya **consume el motor real**
-  — importa `packages/engine/dist/*.js` por `<script type="module">` y
-  calcula potencia/carga/sala con el paquete real, no con lógica duplicada.
 - **Motor:** `packages/engine/src/` completo — `tipos.ts`, `unidades.ts`,
-  `potencia.ts`, `carga.ts`, `sala.ts`, 36/36 tests pasando (`npm test`).
-  Se compila a JS de navegador con `npm run build`; el resultado se
-  commitea en `dist/` porque no hay build step en el despliegue (es un
-  sitio estático). Antes de existir como paquete, esta misma lógica se
-  probó dentro del JavaScript del prototipo con un harness de Node contra
-  los vectores de `docs/motor-mvp.md`, y así se encontró y corrigió un bug
-  real en la regla de carga (divergía del umbral documentado) — el puerto
-  a TypeScript ya nació con ese fix adentro.
-- **Base de datos:** semilla de 25 equipos con specs verificados y con fuente,
-  en `data/equipos-seed.json` — 8 parlantes, 8 amplificadores, 3 streamers, 3
-  DACs y 3 cables (interconexión y parlante, con resistencia/capacitancia/
-  inductancia reales de ficha técnica). Es el activo de curaduría y sirve de
-  fixtures de test. Streamers, DACs y cables están curados con la misma
-  disciplina pero **no participan de ninguna regla implementada todavía**: el
-  motor sólo calcula potencia y carga a partir de parlante + amplificador. La
-  regla de ganancia de cadena / puente de impedancias fuente-amp (streamer o
-  DAC → amplificador) ya está **diseñada** — fórmula, umbrales y vectores de
-  prueba en `docs/motor-mvp.md` sección 6 — pero falta portarla a código y
-  falta definir un umbral (cuánto recorrido de volumen se considera "corto").
-  `packages/engine/src/potencia.ts` ya implementa la regla de potencia real,
-  con tests contra pares reales de esta base.
-  `cables` todavía no tiene ni diseño de regla.
+  `potencia.ts`, `carga.ts`, `sala.ts`, `ganancia.ts` (puente de impedancias +
+  recorrido de volumen, fuente→ampli). 47/47 tests. Devuelve **códigos, no
+  texto** (`codigo: 'con-margen'`, etc.) — el motor no decide en qué idioma
+  se lee el sitio.
+- **Catálogo:** `packages/data/src/catalogo.ts`, única fuente de datos —
+  25 equipos (8 parlantes, 8 amplificadores, 6 fuentes digitales que
+  unifican streamers+DACs, 3 cables curados sin regla todavía), **bilingüe
+  desde el origen** (`{es, en}` en cada campo de presentación). 11/11 tests.
+- **Frontend:** `apps/web/`, Vite + TypeScript modular. Tres pantallas
+  (portada → configurar → resultado) más un botón ES/EN. Consume el motor y
+  el catálogo como código fuente TypeScript directo — sin bundler artesanal,
+  sin build intermedio commiteado. El sitio sigue abriendo por doble clic
+  (`file://`), además de servirse por web: `vite-plugin-singlefile` inlinea
+  todo en un único `index.html`. 53/53 tests.
 - **Prueba de realidad de la data:** confirmada. Para equipos populares los specs
   existen (fichas de fabricante + mediciones independientes de Stereophile,
   Erin's Audio Corner, ASR). La advertencia es que el spec de fábrica puede
   engañar —el Klipsch declara 94,5 dB pero la anecoica da ~86— así que la base
   necesita **curaduría, no copiar y pegar**.
+
+`prototipo-frontend.html` y `data/equipos-seed.json` (las versiones previas,
+HTML monolítico + JSON suelto) ya no existen — su contenido se migró
+íntegro al catálogo de `packages/data`. Ver `CLAUDE.md` §Estado actual para
+el detalle de cada fase.
 
 ## Qué se reutiliza del diseño anterior
 
@@ -75,24 +68,33 @@ Lo que **no** se reutiliza: `modo-propuesta.md` y `caso-real.md` estaban atados
 al presupuesto y catálogo de la tienda; `plan.md` tenía fases pensadas para ese
 cliente. La disciplina general (una tarea por sesión, tests primero) sí aplica.
 
-## Arquitectura propuesta
+## Arquitectura
 
 ```
 packages/
   engine/          TypeScript puro, CERO dependencias de runtime.
-    src/tipos.ts   Esquema de dominio (equipos, veredictos) — reusar el anterior
+    src/tipos.ts     Esquema de dominio
     src/unidades.ts  Conversiones dB / impedancia / distancia, testeadas aparte
     src/potencia.ts  Regla de margen de potencia (ver docs/motor-mvp.md)
     src/carga.ts     Regla de carga/impedancia
     src/sala.ts      Geometría: disposición + distancia + reflexiones
+    src/ganancia.ts  Puente de impedancias + recorrido de volumen (fuente→ampli)
   data/
-    equipos.json   Base curada (arranca desde data/equipos-seed.json)
+    src/catalogo.ts        El dato: parlantes, amplificadores, fuentes, cables
+    src/tipos-catalogo.ts  DatoCitado<T>, Localizado (bilingüe)
 apps/
-  web/             El frontend (portar prototipo-frontend.html a componentes)
+  web/             Vite + TypeScript modular
+    src/main.ts        Arranque, estado, listeners
+    src/idioma/         es.ts (define Textos) + en.ts + idioma.ts
+    src/formato/        Intl.NumberFormat por idioma
+    src/datos/          adaptadores.ts + etiquetas.ts (chips derivados)
+    src/vista/          resultado.ts + plano.ts (PUROS) + pintar.ts (DOM) + medidor.ts + selectores.ts
 ```
 
 El motor tiene que correr en un test de milisegundos sin levantar nada. Si en
-algún momento necesita `fetch`, algo se hizo mal.
+algún momento necesita `fetch`, algo se hizo mal. Lo mismo aplica a
+`packages/data` y a todo lo puro de `apps/web` — sólo `vista/pintar.ts` y
+`vista/medidor.ts` tocan el DOM.
 
 ## El primer paso concreto
 
@@ -110,18 +112,30 @@ algún momento necesita `fetch`, algo se hizo mal.
    con tests (9 + 5 = 14 tests). `carga.test.ts` lleva como regresión el bug
    real que se encontró y corrigió antes en el prototipo. `sala.test.ts`
    reproduce el vector de `docs/motor-mvp.md` sección 4.
-5. ✅ **Fase 4 — frontend.** `prototipo-frontend.html` importa el motor
-   compilado (`packages/engine/dist/cadena-engine.browser.js`, generado con
-   `npm run build`) y llama a `evaluarPotencia`/`evaluarCarga`/
-   `calcularDisposicion` reales en vez de recalcular las fórmulas inline. El
-   primer intento usaba `<script type="module">` — no funciona abriendo el
-   archivo como `file://`, los navegadores basados en Chromium lo bloquean
-   por CORS. Corregido empaquetando el motor en un script clásico sin
-   `import`/`export`. Verificado cargando ese bundle igual que lo haría un
-   navegador (sin ESM) y extrayendo el adaptador del HTML real: los
-   vectores documentados coinciden.
-6. **Fase 5 — ampliar la base de datos** (en curso, sin fin natural). Ya son
-   25 equipos en 5 categorías; seguir sumando specs verificados con fuente.
+5. ✅ **Fase 4 — frontend (versión HTML único, histórica).** El primer
+   frontend fue `prototipo-frontend.html` importando el motor compilado a
+   mano (`bundle-navegador.mjs`, para esquivar el bloqueo por CORS de los
+   módulos ES sobre `file://`). Superada por la Fase 6: ni el archivo ni el
+   bundler existen ya.
+6. ✅ **Fase 6 — migración a Vite + bilingüe.** `apps/web/` reemplaza el HTML
+   único: TypeScript modular, `packages/engine`/`packages/data` consumidos
+   como fuente directa (imports relativos, sin alias — `node --test` no
+   entiende los alias de Vite). `vite-plugin-singlefile` mantiene el
+   requisito de abrir por doble clic, con un guardia
+   (`scripts/verificar-build.mjs`) que hace fallar el build si la regresión
+   de CORS vuelve. El motor deja de emitir texto en español (`codigo`, no
+   `etiqueta`) para que `apps/web/src/idioma/{es,en}.ts` pueda traducir sin
+   duplicar ninguna regla. Catálogo único (`packages/data`) reemplaza la
+   duplicación entre el HTML viejo y `data/equipos-seed.json`. 111 tests
+   entre los tres paquetes.
+7. ⬜ **Fase 7 — deploy.** `npm run build` ya produce un `apps/web/dist/
+   index.html` autocontenido, listo para Vercel; falta el `vercel.json`, el
+   repo remoto y el primer deploy.
+8. ⬜ **Fase 8 — cerrar huecos de streamers/DACs.** WiiM Pro Plus y
+   Cambridge CXN V2 siguen con impedancia de salida en `null`.
+9. **Fase 5 (cont.) — ampliar la base de datos** (en curso, sin fin natural).
+   25 equipos hoy; seguir sumando specs verificados con fuente. La regla de
+   `cables` tampoco tiene diseño todavía.
 
 Prompt sugerido para abrir la primera sesión:
 
@@ -153,12 +167,13 @@ cada fase termina en algo comprobable a mano.
 
 - `README.md` — este archivo.
 - `CLAUDE.md` — contexto del motor para el repo (dos capas, prohibiciones,
-  convenciones).
-- `docs/motor-mvp.md` — las fórmulas exactas que hoy implementa el prototipo, con
-  vectores de prueba. **Lo más importante para portar el motor.**
-- `data/equipos-seed.json` — base de datos semilla, con fuentes.
-- `prototipo-frontend.html` — el prototipo navegable; referencia visual y de
-  comportamiento.
+  convenciones). Tiene el detalle más al día del estado del proyecto.
+- `docs/motor-mvp.md` — las fórmulas exactas que implementa el motor, con
+  vectores de prueba. **Lo más importante para tocar cualquier regla.**
+- `packages/data/src/catalogo.ts` — el catálogo curado, bilingüe, con fuentes.
+- `apps/web/` — el sitio real (Vite); no hay ya un HTML de un solo archivo
+  para usar de referencia visual — `npm run dev` o `npm run build` desde la
+  raíz.
 
 ## Decisiones abiertas
 
