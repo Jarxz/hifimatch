@@ -1,0 +1,14 @@
+{
+  "name": "@cadena/data",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Catálogo curado y bilingüe de equipos hi-fi para CADENA. Cero dependencias de runtime.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
