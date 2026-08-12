@@ -25,18 +25,19 @@ con su catálogo y el encuadre de venta.
 
 ## Dónde estamos hoy
 
-- **Frontend:** hay un prototipo funcional y navegable en
-  `prototipo-frontend.html` (fondo negro, hi-end). Tres pantallas: portada →
-  configurar → resultado. Es la especificación visual y de comportamiento.
-- **Motor:** la lógica de referencia (potencia, carga, geometría de sala)
-  todavía vive **dentro del JavaScript del prototipo** — ya probada contra los
-  vectores de `docs/motor-mvp.md` con un harness de Node; se encontró y corrigió
-  un bug real en la regla de carga (divergía del umbral documentado). El
-  primer paquete de TypeScript ya arrancó: `packages/engine/src/unidades.ts`
-  (conversión de sensibilidad, atenuación por distancia, suma de niveles en
-  dB), con tests (`node --test src/unidades.test.ts`, 10/10 pasando) tomados
-  de la aritmética ya verificada en `docs/motor-mvp.md`. `potencia.ts`,
-  `carga.ts`, `sala.ts` y `tipos.ts` todavía no existen como paquete.
+- **Frontend:** `prototipo-frontend.html` (fondo negro, hi-end). Tres
+  pantallas: portada → configurar → resultado. Ya **consume el motor real**
+  — importa `packages/engine/dist/*.js` por `<script type="module">` y
+  calcula potencia/carga/sala con el paquete real, no con lógica duplicada.
+- **Motor:** `packages/engine/src/` completo — `tipos.ts`, `unidades.ts`,
+  `potencia.ts`, `carga.ts`, `sala.ts`, 36/36 tests pasando (`npm test`).
+  Se compila a JS de navegador con `npm run build`; el resultado se
+  commitea en `dist/` porque no hay build step en el despliegue (es un
+  sitio estático). Antes de existir como paquete, esta misma lógica se
+  probó dentro del JavaScript del prototipo con un harness de Node contra
+  los vectores de `docs/motor-mvp.md`, y así se encontró y corrigió un bug
+  real en la regla de carga (divergía del umbral documentado) — el puerto
+  a TypeScript ya nació con ese fix adentro.
 - **Base de datos:** semilla de 25 equipos con specs verificados y con fuente,
   en `data/equipos-seed.json` — 8 parlantes, 8 amplificadores, 3 streamers, 3
   DACs y 3 cables (interconexión y parlante, con resistencia/capacitancia/
@@ -109,10 +110,14 @@ algún momento necesita `fetch`, algo se hizo mal.
    con tests (9 + 5 = 14 tests). `carga.test.ts` lleva como regresión el bug
    real que se encontró y corrigió antes en el prototipo. `sala.test.ts`
    reproduce el vector de `docs/motor-mvp.md` sección 4.
-5. **Fase 4 — frontend** (próximo paso pendiente). Portar el prototipo a la
-   app, ahora consumiendo el motor real en vez de tener la lógica adentro.
-6. **Fase 5 — ampliar la base de datos.** Diez o quince equipos populares más,
-   con specs verificados y con fuente. Es la curaduría de la que depende todo.
+5. ✅ **Fase 4 — frontend.** `prototipo-frontend.html` ahora importa el motor
+   compilado (`packages/engine/dist/*.js`, generado con `npm run build`) vía
+   `<script type="module">` y llama a `evaluarPotencia`/`evaluarCarga`/
+   `calcularDisposicion` reales en vez de recalcular las fórmulas inline.
+   Verificado extrayendo el adaptador del HTML real y corriéndolo contra el
+   motor compilado real: los vectores documentados coinciden.
+6. **Fase 5 — ampliar la base de datos** (en curso, sin fin natural). Ya son
+   25 equipos en 5 categorías; seguir sumando specs verificados con fuente.
 
 Prompt sugerido para abrir la primera sesión:
 

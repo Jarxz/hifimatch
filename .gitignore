@@ -1,3 +1,7 @@
 node_modules/
-dist/
 .DS_Store
+
+# packages/engine/dist/ SÍ se commitea a propósito: prototipo-frontend.html
+# lo importa directo por <script type="module">, sin build step en el
+# despliegue (es un archivo estático). Regenerar con `npm run build` en
+# packages/engine/ después de tocar cualquier .ts fuente.

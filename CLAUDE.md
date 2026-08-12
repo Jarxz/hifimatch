@@ -83,14 +83,29 @@ El motor debe correr en un test de milisegundos sin levantar nada. Si necesita
 
 ## Estado actual
 
-**Fases 1, 2 y 3 hechas — el motor completo ya existe como paquete
-TypeScript.** `packages/engine/src/` tiene `tipos.ts`, `unidades.ts`,
-`potencia.ts`, `carga.ts` y `sala.ts`, los cinco con tests (36/36 pasando,
-`npm test` o `node --test src/`). `carga.test.ts` incluye como test de
-regresión el bug real que se encontró y corrigió antes en el prototipo
-(amplificador de 55W sin dato a 4Ω que el umbral viejo de 50W dejaba pasar
-como "Cubierto"). `sala.test.ts` reproduce el vector de la sección 4 del
-doc. Sigue faltando: Fase 4 (portar `prototipo-frontend.html` para que
-consuma este motor real en vez de tener la lógica adentro) y Fase 5
-(seguir ampliando la base de datos). La regla de ganancia de cadena
-(sección 6 de motor-mvp.md) sigue sólo diseñada, no implementada.
+**Fases 1 a 4 hechas.** El motor completo vive en `packages/engine/src/`
+(`tipos.ts`, `unidades.ts`, `potencia.ts`, `carga.ts`, `sala.ts`), 36/36
+tests pasando (`npm test` en `packages/engine/`). Se compila a JS de
+navegador con `npm run build` (usa `rewriteRelativeImportExtensions` de
+TS 5.7+ para que los imports con extensión `.ts` del código fuente —
+necesarios para que `node --test` corra sin transpilar — se conviertan en
+`.js` en el output). El resultado vive en `packages/engine/dist/` y **sí
+se commitea** (excepción a `dist/` en `.gitignore`): no hay build step en
+el despliegue, así que el archivo compilado tiene que estar en el repo.
+
+`prototipo-frontend.html` ya **consume el motor real** vía
+`<script type="module">` que importa `dist/potencia.js`, `dist/carga.js`
+y `dist/sala.js` y los cuelga en `window.CadenaEngine`. El script principal
+(ahora `<script defer>`, para garantizar que corre después del módulo)
+llama a `window.CadenaEngine.evaluarPotencia/evaluarCarga/calcularDisposicion`
+en vez de recalcular las fórmulas inline. Los objetos `SPK`/`AMP` siguen
+siendo datos de presentación (chips, desc), traducidos al tipo del motor
+por dos funciones adaptadoras (`parlanteDelMotor`, `amplificadorDelMotor`)
+— la única capa de traducción, no de duplicación de lógica. Verificado con
+un harness de Node que extrae ese adaptador del HTML real y lo corre
+contra el motor compilado real: los 3 vectores documentados coinciden
+exactamente.
+
+Falta: Fase 5 (seguir ampliando la base — ya tiene 25 equipos en 5
+categorías, es trabajo sin fin natural) y la regla de ganancia de cadena
+(sección 6 de motor-mvp.md), que sigue sólo diseñada, no implementada.
