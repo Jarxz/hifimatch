@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "descripcion": "Base de datos semilla de CADENA. Specs de equipos populares con fuente y confianza. Sirve de fixtures de test para el motor y de arranque para la curaduría. VERIFICAR cada valor contra las fuentes citadas antes de publicar.",
+    "esquema": "ver docs/motor-mvp.md sección 1",
+    "unidad_sensibilidad": "dB/2.83V·m"
+  },
+
+  "parlantes": [
+    {
+      "id": "kef-ls50-meta",
+      "nombre": "KEF LS50 Meta",
+      "tipo": "Monitor de 2 vías, puerto trasero, driver coaxial Uni-Q",
+      "sensibilidadDb": { "valor": 85, "fuente": "KEF (ficha)", "confianza": "alta", "nota": "medición independiente (Stereophile / Erin's Audio Corner) ~84,5 dB — coincide con fábrica" },
+      "impedanciaNominalOhm": 8,
+      "impedanciaMinOhm": 3.5,
+      "potenciaRecMinW": 40,
+      "potenciaRecMaxW": 100,
+      "maxSplDb": 106,
+      "fuentes": ["KEF (ficha oficial)", "Stereophile (mediciones J. Atkinson)", "Erin's Audio Corner"],
+      "chips": ["8 Ω", "85 dB", "mín 3,5 Ω", "40–100 W", "106 dB máx"]
+    },
+    {
+      "id": "klipsch-rp600m-ii",
+      "nombre": "Klipsch RP-600M II",
+      "tipo": "Monitor de 2 vías, trompa Tractrix, puerto trasero",
+      "sensibilidadDb": { "valor": 86, "fuente": "Erin's Audio Corner (anecoica)", "confianza": "media", "nota": "fábrica declara 94,5 dB pero es en media-espacio; se usa la anecoica ~86 dB" },
+      "impedanciaNominalOhm": 8,
+      "impedanciaMinOhm": null,
+      "potenciaRecMinW": null,
+      "potenciaRecMaxW": 100,
+      "fuentes": ["Klipsch (ficha oficial)", "Erin's Audio Corner"],
+      "chips": ["8 Ω", "86 dB anecoica", "100 W"],
+      "_pendiente": "curva de impedancia medida (impedanciaMinOhm) — hoy sin dato, por eso la regla de carga devuelve 'sin-datos'"
+    }
+  ],
+
+  "amplificadores": [
+    {
+      "id": "cambridge-cxa81",
+      "nombre": "Cambridge Audio CXA81",
+      "tipo": "Integrado Clase AB, con DAC",
+      "potencia8OhmW": { "valor": 80, "fuente": "Cambridge Audio (ficha)", "confianza": "alta" },
+      "potencia4OhmW": { "valor": 120, "fuente": "Cambridge Audio (ficha)", "confianza": "alta" },
+      "cargaMinOhm": null,
+      "sensEntradaMv": 370,
+      "impedanciaEntradaOhm": 43000,
+      "fuentes": ["Cambridge Audio (ficha oficial)", "Stereophile"],
+      "chips": ["80 W / 8 Ω", "120 W / 4 Ω", "XLR balanceado", "DAC ESS", "amort. >110"]
+    },
+    {
+      "id": "rega-brio",
+      "nombre": "Rega Brio",
+      "tipo": "Integrado Clase AB, con phono MM",
+      "potencia8OhmW": { "valor": 50, "fuente": "Rega (ficha)", "confianza": "alta" },
+      "potencia4OhmW": { "valor": 73, "fuente": "Stereophile (medición)", "confianza": "media" },
+      "cargaMinOhm": 4,
+      "sensEntradaMv": 210,
+      "impedanciaEntradaOhm": 47000,
+      "fuentes": ["Rega (ficha oficial)", "Stereophile"],
+      "chips": ["50 W / 8 Ω", "73 W / 4 Ω", "phono MM", "mín 4 Ω"]
+    }
+  ]
+}
