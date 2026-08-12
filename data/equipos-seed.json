@@ -2,7 +2,8 @@
   "_meta": {
     "descripcion": "Base de datos semilla de CADENA. Specs de equipos populares con fuente y confianza. Sirve de fixtures de test para el motor y de arranque para la curaduría. VERIFICAR cada valor contra las fuentes citadas antes de publicar.",
     "esquema": "ver docs/motor-mvp.md sección 1",
-    "unidad_sensibilidad": "dB/2.83V·m"
+    "unidad_sensibilidad": "dB/2.83V·m",
+    "categorias_sin_regla": "streamers, dacs y cables se curan con la misma disciplina (fuente + confianza, null en vez de estimar) pero todavía NO tienen una regla de compatibilidad propia en motor-mvp.md. No son entrada obligatoria: potencia.ts y carga.ts siguen dependiendo sólo de parlantes + amplificadores. Sirven de catálogo y de futura base para una regla de ganancia de cadena / puente de impedancias fuente-amp (ver motor-mvp.md sección 5)."
   },
 
   "parlantes": [
@@ -209,6 +210,132 @@
       "fuentes": ["Arcam (ficha oficial)"],
       "chips": ["50 W / 8 Ω", "75 W / 4 Ω", "phono MM"],
       "_pendiente": "sensibilidad e impedancia de entrada de línea — no confirmadas con certeza en la ficha pública disponible"
+    }
+  ],
+
+  "streamers": [
+    {
+      "id": "bluesound-node-n130",
+      "nombre": "Bluesound Node (N130, 2021)",
+      "tipo": "Streamer de red con DAC integrado (salida analógica)",
+      "dac": "Texas Instruments PCM5242",
+      "salidaV": 2.2,
+      "impedanciaSalidaOhm": 500,
+      "fuente": "Bluesound (ficha, vía documentación de soporte)",
+      "confianza": "media",
+      "fuentes": ["Bluesound (ficha oficial)", "documentación de soporte Bluesound"],
+      "chips": ["2,2 V salida", "PCM5242", "hasta 24/192 + MQA"],
+      "_pendiente": "500 Ω de impedancia de salida es alto para una salida de línea — verificar contra la ficha oficial completa antes de usarlo en una regla"
+    },
+    {
+      "id": "wiim-pro-plus",
+      "nombre": "WiiM Pro Plus",
+      "tipo": "Streamer de red con DAC integrado (salida analógica)",
+      "dac": "AKM AKM4493SEQ",
+      "salidaV": 2.0,
+      "impedanciaSalidaOhm": null,
+      "fuente": "WiiM (ficha oficial)",
+      "confianza": "alta",
+      "fuentes": ["WiiM (ficha oficial / blog del fabricante)"],
+      "chips": ["2,0 V salida", "AKM4493SEQ", "hasta 32/768"],
+      "_pendiente": "impedancia de salida — no publicada"
+    },
+    {
+      "id": "cambridge-cxn-v2",
+      "nombre": "Cambridge Audio CXN (V2)",
+      "tipo": "Streamer de red con DAC integrado, salida RCA y XLR",
+      "dac": "2× Wolfson WM8740",
+      "salidaV": null,
+      "impedanciaSalidaOhm": null,
+      "fuente": "Cambridge Audio (ficha oficial)",
+      "confianza": "baja",
+      "fuentes": ["Cambridge Audio (ficha oficial)"],
+      "chips": ["RCA + XLR", "2× WM8740"],
+      "_pendiente": "voltaje e impedancia de salida — la ficha oficial no los publica; fuentes de terceros dan valores aproximados ('~2 V') sin confirmar, así que se dejan en null en vez de asumir"
+    }
+  ],
+
+  "dacs": [
+    {
+      "id": "schiit-modi-plus",
+      "nombre": "Schiit Modi+",
+      "tipo": "DAC de escritorio, USB/coaxial/óptico",
+      "chip": "ESS ES9018",
+      "salidaV": 2.0,
+      "impedanciaSalidaOhm": 75,
+      "fuente": "Schiit (ficha oficial)",
+      "confianza": "alta",
+      "fuentes": ["Schiit Audio (ficha oficial)"],
+      "chips": ["2,0 V RMS", "75 Ω salida", "USB/coax/óptico"]
+    },
+    {
+      "id": "topping-e30-ii",
+      "nombre": "Topping E30 II",
+      "tipo": "DAC de escritorio, sólo RCA (sin XLR)",
+      "chip": "2× AKM AK4493S",
+      "salidaV": 2.1,
+      "impedanciaSalidaOhm": 20,
+      "fuente": "Topping (ficha oficial)",
+      "confianza": "alta",
+      "fuentes": ["Topping (ficha oficial)"],
+      "chips": ["2,1 V RMS", "20 Ω salida", "sólo RCA", "preamp con volumen"]
+    },
+    {
+      "id": "cambridge-dacmagic-200m",
+      "nombre": "Cambridge Audio DacMagic 200M",
+      "tipo": "DAC/preamp de escritorio, RCA y XLR",
+      "chip": null,
+      "salidaV": 2.1,
+      "salidaVBalanceada": 4.2,
+      "impedanciaSalidaOhm": 50,
+      "impedanciaSalidaBalanceadaOhm": 100,
+      "fuente": "Cambridge Audio (ficha oficial)",
+      "confianza": "alta",
+      "fuentes": ["Cambridge Audio (ficha oficial)"],
+      "chips": ["2,1 V RCA / 4,2 V XLR", "<50 Ω / <100 Ω", "salida fija o variable"]
+    }
+  ],
+
+  "cables": [
+    {
+      "id": "belden-5000up",
+      "nombre": "Belden 5000UP (12 AWG)",
+      "tipo": "Cable de parlante, 2 conductores 12 AWG, sin blindaje",
+      "calibreAwg": 12,
+      "resistenciaOhmM": 0.00512,
+      "capacitanciaPfM": 100,
+      "inductanciaUhM": 0.52,
+      "fuente": "Belden (ficha técnica oficial)",
+      "confianza": "alta",
+      "fuentes": ["Belden (techdata oficial, catalog.belden.com)"],
+      "chips": ["12 AWG", "0,0051 Ω/m", "100 pF/m", "0,52 µH/m"],
+      "_pendiente": "resistencia convertida de 1,56 Ω/1000 ft publicados por Belden; no es un valor medido aparte"
+    },
+    {
+      "id": "mogami-w3082",
+      "nombre": "Mogami W3082",
+      "tipo": "Cable de parlante, construcción coaxial de baja inductancia",
+      "calibreAwg": 14,
+      "resistenciaOhmM": 0.009,
+      "capacitanciaPfM": 253,
+      "inductanciaUhM": 0.4,
+      "fuente": "Mogami (ficha técnica oficial)",
+      "confianza": "alta",
+      "fuentes": ["Mogami (ficha técnica oficial)"],
+      "chips": ["≈14 AWG", "0,009 Ω/m", "253 pF/m", "0,4 µH/m", "baja inductancia"]
+    },
+    {
+      "id": "mogami-2534",
+      "nombre": "Mogami 2534 (Neglex Quad)",
+      "tipo": "Cable de interconexión balanceado (XLR), construcción quad",
+      "calibreAwg": 24,
+      "resistenciaOhmM": 0.083,
+      "capacitanciaPfM": 97,
+      "inductanciaUhM": 0.4,
+      "fuente": "Mogami (ficha técnica oficial)",
+      "confianza": "alta",
+      "fuentes": ["Mogami (ficha técnica oficial, Neglex Quad W2534)"],
+      "chips": ["24 AWG", "0,083 Ω/m", "97 pF/m cond-cond", "0,4 µH/m", "blindaje trenzado"]
     }
   ]
 }

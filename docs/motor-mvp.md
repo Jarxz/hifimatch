@@ -177,3 +177,11 @@ reflexionIzq=(0, 1,487)   reflexionDer=(3,6, 1,487)   puntoDulce=(1,8, 3,126)
 
 Estas reglas ya están especificadas en los docs del proyecto anterior; el MVP
 implementa sólo potencia, carga y geometría.
+
+**Sobre `streamers`, `dacs` y `cables` en `equipos-seed.json`:** ya tienen datos
+curados (con fuente y confianza, mismo estándar que parlantes/amplificadores),
+pero **no son entrada de ninguna regla todavía** — `potencia.ts` y `carga.ts`
+sólo miran parlante + amplificador, y así se mantiene mientras no exista una
+regla específica. Son catálogo adelantado para cuando se defina la regla de
+ganancia de cadena / puente de impedancias fuente→amp de este punto. No bloquean
+ni participan del veredicto de compatibilidad actual.

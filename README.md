@@ -32,11 +32,16 @@ con su catálogo y el encuadre de venta.
   paquete aparte. Calcula de verdad tres cosas: margen de potencia, carga de
   impedancia y la geometría de sala (disposición + reflexiones). Las fórmulas
   exactas están extraídas y documentadas en `docs/motor-mvp.md`.
-- **Base de datos:** semilla de 16 equipos (8 parlantes, 8 amplificadores) con
-  specs verificados y con fuente, en `data/equipos-seed.json`. Es el activo de
-  curaduría y sirve de fixtures de test. Streamer, DAC y cables quedan para una
-  ampliación posterior — necesitan reglas propias (ganancia de la cadena, puente
-  de impedancias fuente-amp) que todavía no están especificadas.
+- **Base de datos:** semilla de 25 equipos con specs verificados y con fuente,
+  en `data/equipos-seed.json` — 8 parlantes, 8 amplificadores, 3 streamers, 3
+  DACs y 3 cables (interconexión y parlante, con resistencia/capacitancia/
+  inductancia reales de ficha técnica). Es el activo de curaduría y sirve de
+  fixtures de test. Streamers, DACs y cables están curados con la misma
+  disciplina pero **no participan de ninguna regla todavía**: el motor sólo
+  calcula potencia y carga a partir de parlante + amplificador. Van a
+  necesitar reglas propias (ganancia de la cadena, puente de impedancias
+  fuente-amp) que todavía no están especificadas — ver `docs/motor-mvp.md`
+  sección 5.
 - **Prueba de realidad de la data:** confirmada. Para equipos populares los specs
   existen (fichas de fabricante + mediciones independientes de Stereophile,
   Erin's Audio Corner, ASR). La advertencia es que el spec de fábrica puede
