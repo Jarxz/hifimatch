@@ -77,10 +77,10 @@ test('Bluesound Node: V y Ω de salida derivados + chipsExtra', () => {
   assert.equal(especFuente(fuente('bluesound-node-n130'), 'es'), '2,2 V salida · 500 Ω salida');
 });
 
-test('WiiM: impedanciaSalidaOhm null → sólo el chip de voltaje, sin placeholder', () => {
+test('WiiM: impedancia de salida cerrada en el Paso 9 (10 Ω, Hi-Fi News) — ya no falta ese chip', () => {
   const chips = chipsFuente(fuente('wiim-pro-plus'), 'es');
-  assert.deepEqual(chips.slice(0, 1), ['2,0 V salida']);
-  assert.ok(!chips.some((c) => c.includes('Ω salida')));
+  assert.deepEqual(chips.slice(0, 2), ['2,0 V salida', '10 Ω salida']);
+  assert.ok(chips.includes('salida configurable'), chips.join(', '));
 });
 
 test('Cambridge CXN V2: sin ningún chip físico (salidaV e impedanciaSalidaOhm null) → especFuente cae a chipsExtra en vez de quedar vacío', () => {

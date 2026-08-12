@@ -509,25 +509,26 @@ export const CATALOGO: Catalogo = {
         en: 'Network streamer, integrated DAC (analog output)',
       },
       descripcion: {
-        es: 'DAC integrado Texas Instruments PCM5242, salida analógica fija de 2,2 V. Su impedancia de salida (500 Ω) es alta para una salida de línea — <b>conviene revisar el puente de impedancias</b> hacia el amplificador, sobre todo con cables largos.',
-        en: 'A built-in Texas Instruments PCM5242 DAC, with a fixed 2.2 V analog output. Its output impedance (500 Ω) is high for a line output — <b>worth checking the impedance bridge</b> to the amplifier, especially with long cables.',
+        es: 'DAC integrado Texas Instruments PCM5242, salida analógica fija de 2,2 V. La ficha oficial no publica la impedancia de salida; confirmada directamente por soporte técnico de Bluesound en 500 Ω — alta para una salida de línea, <b>conviene revisar el puente de impedancias</b> hacia el amplificador, sobre todo con cables largos.',
+        en: 'A built-in Texas Instruments PCM5242 DAC, with a fixed 2.2 V analog output. The official spec sheet does not publish the output impedance; confirmed directly by Bluesound technical support at 500 Ω — high for a line output, <b>worth checking the impedance bridge</b> to the amplifier, especially with long cables.',
       },
       salidaV: 2.2,
       impedanciaSalidaOhm: 500,
       fuente: {
-        es: 'Bluesound (ficha, vía documentación de soporte)',
-        en: 'Bluesound (spec, via support documentation)',
+        es: 'Bluesound (soporte técnico oficial, respuesta directa y atribuida)',
+        en: 'Bluesound (official technical support, direct and attributed reply)',
       },
       confianza: 'media',
       chipsExtra: [
         { es: 'PCM5242', en: 'PCM5242' },
         { es: 'hasta 24/192 + MQA', en: 'up to 24/192 + MQA' },
       ],
-      fuentes: ['Bluesound (ficha oficial)', 'documentación de soporte Bluesound'],
-      pendiente: {
-        es: '500 Ω de impedancia de salida es alto para una salida de línea — verificar contra la ficha oficial completa antes de usarlo en una regla',
-        en: '500 Ω output impedance is high for a line output — verify against the complete official spec sheet before relying on it in a rule',
-      },
+      fuentes: [
+        'Bluesound (ficha oficial) — no publica voltaje ni impedancia de salida',
+        'Bluesound Support Community: Tony W. (Product Support Manager), 8 dic 2023 — ' +
+          '"RCA / Analog Output Level is 2.2V @ 500 ohms Impedance" (específico del NODE N130; ' +
+          'el Node 2i es distinto: 650 Ω / 0,6 V, según el mismo hilo de soporte)',
+      ],
     },
     {
       id: 'wiim-pro-plus',
@@ -537,22 +538,25 @@ export const CATALOGO: Catalogo = {
         en: 'Network streamer, integrated DAC (analog output)',
       },
       descripcion: {
-        es: 'DAC AKM AKM4493SEQ, salida analógica fija de 2,0 V. El fabricante no publica la impedancia de salida — <b>la regla de puente de impedancias no tiene ese dato</b>; el recorrido de volumen sí puede calcularse.',
-        en: 'An AKM AKM4493SEQ DAC, with a fixed 2.0 V analog output. The manufacturer does not publish the output impedance — <b>the impedance-bridge rule has no data for that</b>; the volume headroom can still be calculated.',
+        es: 'DAC AKM AKM4493SEQ. La salida de línea es <b>configurable por el usuario</b> (500 mV / 800 mV / 1 V / 2 V) — acá se registra el máximo (2,0 V); el recorrido de volumen real depende de en qué nivel esté configurada. Impedancia de salida de 10 Ω medida de forma independiente (no publicada por el fabricante): baja, buen puente con casi cualquier entrada de línea.',
+        en: 'AKM AKM4493SEQ DAC. The line output is <b>user-configurable</b> (500 mV / 800 mV / 1 V / 2 V) — the maximum (2.0 V) is recorded here; the actual volume headroom depends on which level it is set to. Output impedance of 10 Ω independently measured (not published by the manufacturer): low, bridging well with almost any line input.',
       },
       salidaV: 2.0,
-      impedanciaSalidaOhm: null,
-      fuente: { es: 'WiiM (ficha oficial)', en: 'WiiM (official spec sheet)' },
+      impedanciaSalidaOhm: 10,
+      fuente: {
+        es: 'WiiM (ficha oficial, voltaje máximo configurable); Hi-Fi News (medición independiente, impedancia de salida)',
+        en: 'WiiM (official spec sheet, configurable maximum voltage); Hi-Fi News (independent measurement, output impedance)',
+      },
       confianza: 'alta',
       chipsExtra: [
         { es: 'AKM4493SEQ', en: 'AKM4493SEQ' },
         { es: 'hasta 32/768', en: 'up to 32/768' },
+        { es: 'salida configurable', en: 'configurable output' },
       ],
-      fuentes: ['WiiM (ficha oficial / blog del fabricante)'],
-      pendiente: {
-        es: 'impedancia de salida — no publicada',
-        en: 'output impedance — not published',
-      },
+      fuentes: [
+        'WiiM (ficha oficial / foro oficial — nivel de salida configurable: 500 mV/800 mV/1 V/2 V)',
+        'Hi-Fi News (lab report, hifinews.com/content/wiim-pro-plus-lab-report — 2 V desde 10 Ω)',
+      ],
     },
     {
       id: 'cambridge-cxn-v2',

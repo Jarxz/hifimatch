@@ -341,4 +341,15 @@ G (sintético) · fuente de 50 mV → Denon PMA-600NE (110 mV)
 H (sintético) · fuente con impedanciaSalidaOhm=15000 Ω → ampli con
   impedanciaEntradaOhm=10000 Ω
     ratioZ = 10000/15000 = 0,67    → alert "Puente insuficiente"
+
+I · WiiM Pro Plus (2,0 V, 10 Ω) → Cambridge CXA81 (370 mV, 43 kΩ)
+    ratioZ = 43000/10 = 4300       → ok "Puente correcto"
+    margenV = 2,0/0,370 = 5,41     → ok "Recorrido sano"
+    Agregado en el Paso 9 de la migración a Vite: la impedancia de salida
+    del WiiM Pro Plus no la publica el fabricante, pero Hi-Fi News la midió
+    de forma independiente en 10 Ω (hifinews.com/content/wiim-pro-plus-
+    lab-report) — antes de esto, este par daba "sin-datos" en 6.1. La
+    salida del WiiM es además configurable por el usuario (500 mV/800 mV/
+    1 V/2 V); 2,0 V es el máximo, no un valor fijo — ver
+    packages/data/src/catalogo.ts para la cita completa.
 ```

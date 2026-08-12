@@ -159,18 +159,28 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**111 tests totales** (47 motor + 11 catálogo + 53 frontend, estos últimos
+**112 tests totales** (47 motor + 11 catálogo + 54 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 
+**Huecos de `fuentes` (streamers/DACs) revisados.** La impedancia de salida
+del WiiM Pro Plus estaba en `null`; se cerró en 10 Ω con una medición
+independiente (Hi-Fi News, lab report) — el fabricante no la publica. Su
+salida además es configurable (500 mV/800 mV/1 V/2 V): se registra el
+máximo (2,0 V) con nota explícita, no un valor fijo inventado. El Cambridge
+Audio CXN (V2) se queda en `null` a propósito: la ficha oficial no publica
+voltaje ni impedancia de salida, y las fuentes de terceros sólo dan
+aproximaciones ("~2 V") — exactamente el tipo de dato que la doctrina
+prohíbe copiar sin confirmar. Es también el vector E de la sección 6 de
+`docs/motor-mvp.md`: preserva el caso demostrativo de que un dato faltante
+nunca es verde.
+
 Falta:
-- **Deploy en Vercel** — el sitio está listo (`npm run build` produce un
-  `apps/web/dist/index.html` autocontenido) pero todavía no hay `vercel.json`
-  ni repo remoto conectado.
-- **Huecos de datos en `fuentes`** (streamers/DACs): la impedancia de salida
-  del WiiM Pro Plus y del Cambridge CXN V2 siguen en `null` — cerrarlos
-  (con cita, o dejarlos en `null` con motivo si no hay fuente confiable) es
-  tarea pendiente, no bloqueante.
+- **Deploy en Vercel** — `vercel.json` y `docs/despliegue.md` ya existen y
+  `npm run build` produce un `apps/web/dist/index.html` autocontenido, pero
+  todavía no hay repo remoto ni proyecto conectado en el dashboard de
+  Vercel — son acciones con efectos fuera del repo (credenciales, servicios
+  externos) que le corresponden al usuario.
 - **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
   de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
   parte del alcance actual.

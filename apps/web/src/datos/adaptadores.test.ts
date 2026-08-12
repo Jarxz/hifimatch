@@ -105,6 +105,15 @@ test('§6 D — NAD C316BEE V2 (sin impedanciaEntradaOhm) + Schiit Modi+: sin-da
   assert.equal(v.codigo, 'recorrido-sano');
 });
 
+test('§6 (Paso 9) — WiiM Pro Plus → Cambridge CXA81: ya no es sin-datos. Impedancia de salida cerrada en 10 Ω (Hi-Fi News, medición independiente) → ratioZ=4300 Puente correcto; margenV≈5,41 Recorrido sano', () => {
+  const z = evaluarPuenteImpedancias(fuente('wiim-pro-plus'), amplificador('cambridge-cxa81'));
+  const v = evaluarRecorridoVolumen(fuente('wiim-pro-plus'), amplificador('cambridge-cxa81'));
+  assert.equal(z.codigo, 'puente-correcto');
+  assert.ok(Math.abs((z.ratioZ as number) - 4300) < 0.01);
+  assert.equal(v.codigo, 'recorrido-sano');
+  assert.ok(Math.abs((v.margenV as number) - 5.4054) < 0.01);
+});
+
 test('§6 E — Cambridge CXN V2 (sin salidaV ni impedanciaSalidaOhm) + cualquier ampli: sin-datos en ambas', () => {
   const z = evaluarPuenteImpedancias(fuente('cambridge-cxn-v2'), amplificador('cambridge-cxa81'));
   const v = evaluarRecorridoVolumen(fuente('cambridge-cxn-v2'), amplificador('cambridge-cxa81'));
