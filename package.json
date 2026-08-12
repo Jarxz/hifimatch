@@ -12,8 +12,8 @@
   "scripts": {
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web",
-    "test": "npm test -w packages/engine && npm test -w packages/data",
-    "typecheck": "npm run typecheck -w packages/engine && npm run typecheck -w packages/data",
+    "test": "npm test -w packages/engine && npm test -w packages/data && npm test -w apps/web",
+    "typecheck": "npm run typecheck -w packages/engine && npm run typecheck -w packages/data && npm run typecheck -w apps/web",
     "verify": "npm run typecheck && npm run test"
   }
 }

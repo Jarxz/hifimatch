@@ -1,6 +1,12 @@
 node_modules/
 .DS_Store
 
+# apps/web/dist/ es el build de Vite (vite-plugin-singlefile): un artefacto
+# generado, no una excepción como packages/engine/dist/ de abajo. Se genera
+# con `npm run build` y Vercel lo reconstruye en el deploy — no se commitea.
+apps/web/dist/
+.vercel/
+
 # packages/engine/dist/ SÍ se commitea a propósito: prototipo-frontend.html lo
 # carga como script clásico (<script src>, sin type="module" — los navegadores
 # Chromium bloquean por CORS los módulos ES sobre file://), sin build step en
