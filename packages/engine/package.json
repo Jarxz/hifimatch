@@ -10,6 +10,7 @@
     "build": "tsc -p tsconfig.build.json && node scripts/bundle-navegador.mjs"
   },
   "devDependencies": {
+    "@types/node": "^26.2.0",
     "typescript": "^5.6.0"
   }
 }

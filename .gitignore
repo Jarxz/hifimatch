@@ -1,7 +1,14 @@
 node_modules/
 .DS_Store
 
-# packages/engine/dist/ SÍ se commitea a propósito: prototipo-frontend.html
-# lo importa directo por <script type="module">, sin build step en el
-# despliegue (es un archivo estático). Regenerar con `npm run build` en
-# packages/engine/ después de tocar cualquier .ts fuente.
+# packages/engine/dist/ SÍ se commitea a propósito: prototipo-frontend.html lo
+# carga como script clásico (<script src>, sin type="module" — los navegadores
+# Chromium bloquean por CORS los módulos ES sobre file://), sin build step en
+# el despliegue (es un archivo estático). Regenerar con `npm run build` en
+# packages/engine/ después de tocar cualquier .ts fuente. Esto es transitorio:
+# muere en el Paso 7 de la migración a Vite (ver docs/despliegue.md).
+
+# Respaldo histórico del estado inicial del proyecto (README/CLAUDE.md/
+# equipos-seed.json/motor-mvp.md/prototipo-frontend.html previos + un zip).
+# Nada del código actual lo referencia; material de archivo, no de trabajo.
+BASE/
