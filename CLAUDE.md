@@ -62,6 +62,7 @@ packages/engine/   TypeScript puro, CERO dependencias de runtime.
   src/potencia.ts  Regla de margen de potencia
   src/carga.ts     Regla de carga / impedancia
   src/sala.ts      Geometría: disposición, distancia, reflexiones
+  src/ganancia.ts  Ganancia de cadena: puente de impedancias + recorrido de volumen (fuente→ampli)
 packages/data/     Base de datos curada de equipos (con fuente y confianza)
 apps/web/          Frontend (portar prototipo-frontend.html)
 ```
@@ -83,8 +84,9 @@ El motor debe correr en un test de milisegundos sin levantar nada. Si necesita
 
 ## Estado actual
 
-**Fases 1 a 4 hechas.** El motor completo vive en `packages/engine/src/`
-(`tipos.ts`, `unidades.ts`, `potencia.ts`, `carga.ts`, `sala.ts`), 36/36
+**Fases 1 a 4 hechas**, más la regla de ganancia de cadena (sección 6 de
+motor-mvp.md). El motor completo vive en `packages/engine/src/` (`tipos.ts`,
+`unidades.ts`, `potencia.ts`, `carga.ts`, `sala.ts`, `ganancia.ts`), 47/47
 tests pasando (`npm test` en `packages/engine/`). Se compila a JS de
 navegador con `npm run build` (usa `rewriteRelativeImportExtensions` de
 TS 5.7+ para que los imports con extensión `.ts` del código fuente —
@@ -99,21 +101,34 @@ funciona**: los navegadores basados en Chromium bloquean por CORS los
 módulos ES cuando la página se abre como archivo local (`file://`), que es
 como este sitio está pensado para abrirse (doble clic, sin servidor). No
 lo detecté hasta que se probó en un navegador real. Se corrigió con
-`packages/engine/scripts/bundle-navegador.mjs`: concatena los 5 `.js`
+`packages/engine/scripts/bundle-navegador.mjs`: concatena los `.js`
 compilados en un único script clásico sin `import`/`export`
 (`dist/cadena-engine.browser.js`, generado por `npm run build`), cargado
 con `<script src="...">` normal — sin la restricción de CORS de los
 módulos. El script principal (`<script defer>`, sin `type="module"`, sin
 `defer` en el bundle) llama a
-`window.CadenaEngine.evaluarPotencia/evaluarCarga/calcularDisposicion` en
-vez de recalcular las fórmulas inline. Los objetos `SPK`/`AMP` siguen
-siendo datos de presentación (chips, desc), traducidos al tipo del motor
-por dos funciones adaptadoras (`parlanteDelMotor`, `amplificadorDelMotor`)
-— la única capa de traducción, no de duplicación de lógica. Verificado con
-un harness de Node que carga el bundle como script clásico (sin ESM,
-igual que un navegador) y extrae el adaptador del HTML real: los 3
-vectores documentados coinciden exactamente.
+`window.CadenaEngine.evaluarPotencia/evaluarCarga/calcularDisposicion/
+evaluarPuenteImpedancias/evaluarRecorridoVolumen` en vez de recalcular las
+fórmulas inline; las constantes `RATIO_BRIDGING_OK`/`UMBRAL_RECORRIDO`
+también se exponen en `window.CadenaEngine`, así el HTML nunca hardcodea
+esos números en el texto. Los objetos `SPK`/`AMP`/`FUENTE` siguen siendo
+datos de presentación (chips, desc), traducidos al tipo del motor por tres
+funciones adaptadoras (`parlanteDelMotor`, `amplificadorDelMotor`,
+`fuenteDelMotor`) — la única capa de traducción, no de duplicación de
+lógica. Verificado con un harness de Node que carga el bundle como script
+clásico (sin ESM, igual que un navegador) y extrae los datos/adaptadores
+del HTML real: los 8 vectores documentados en motor-mvp.md sección 6.3
+coinciden exactamente.
+
+La regla de ganancia es **opcional**: el selector "Fuente digital" en la
+pantalla de configuración no es requerido, y sus dos tarjetas de resultado
+(puente de impedancias, recorrido de volumen) sólo aparecen si el usuario
+eligió una fuente — no condicionan ni reemplazan los veredictos de
+potencia/carga. `UMBRAL_RECORRIDO` no tenía número citable (a diferencia
+de `RATIO_BRIDGING_OK=10`, convención de la industria) — motor-mvp.md lo
+marcaba explícito como "sin definir... se pregunta antes de fijarlo, no se
+inventa"; se preguntó y quedó en **10×** (mismo orden que el umbral de
+puente).
 
 Falta: Fase 5 (seguir ampliando la base — ya tiene 25 equipos en 5
-categorías, es trabajo sin fin natural) y la regla de ganancia de cadena
-(sección 6 de motor-mvp.md), que sigue sólo diseñada, no implementada.
+categorías más 6 fuentes digitales, es trabajo sin fin natural).

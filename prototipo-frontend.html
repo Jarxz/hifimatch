@@ -188,6 +188,12 @@
       </div>
     </div>
 
+    <div class="picker">
+      <div class="rowlabel">Fuente digital <span class="req">opcional · streamer o DAC</span></div>
+      <div class="sel"><select id="sel-fuente" class="empty" onchange="pick('fuente',this.value)"></select></div>
+      <div id="info-fuente"></div>
+    </div>
+
     <div class="room">
       <h3>Dimensiones de la sala</h3>
       <div class="dims">
@@ -221,7 +227,6 @@
 
     <div class="soon">
       <span class="st">Próximamente</span>
-      <span class="pillsoon">Streamer / fuente</span>
       <span class="pillsoon">Subwoofer</span>
       <span class="pillsoon">Cables</span>
       <span class="pillsoon">Modos de sala</span>
@@ -279,6 +284,24 @@
           <div class="src" id="z-src"></div>
         </div>
 
+        <div class="card hidden" id="card-puente">
+          <div class="ct"><span class="layer">Capa física</span><span class="verdict" id="pz-verdict">—</span></div>
+          <h3>Puente de impedancias: fuente → amplificador</h3>
+          <p id="pz-text">—</p>
+          <div class="calc" id="pz-calc"></div>
+          <div class="flag hidden" id="pz-flag"></div>
+          <div class="src" id="pz-src"></div>
+        </div>
+
+        <div class="card hidden" id="card-recorrido">
+          <div class="ct"><span class="layer">Capa física</span><span class="verdict" id="pv-verdict">—</span></div>
+          <h3>Recorrido del volumen</h3>
+          <p id="pv-text">—</p>
+          <div class="calc" id="pv-calc"></div>
+          <div class="flag hidden" id="pv-flag"></div>
+          <div class="src" id="pv-src"></div>
+        </div>
+
         <div class="card">
           <div class="ct"><span class="layer">Geometría</span><span class="verdict" style="color:var(--dim)">Disposición de referencia</span></div>
           <h3>Plano, escucha y reflexiones</h3>
@@ -294,6 +317,7 @@
 
         <footer class="note">
           <b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>
+          Si agregás una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para verificarse escuchando.<br>
           Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide en media-espacio y sobreestima, se usa la medición anecoica independiente.
         </footer>
       </main>
@@ -382,51 +406,94 @@
   };
   var AMP = {
     cxa81:{ name:'Cambridge Audio CXA81', spec:'80 W / 8 Ω · 120 W / 4 Ω', p8:80, p4:120, p8Conf:'alta', p4Conf:'alta',
+      sensMv:370, inZOhm:43000,
       type:'Integrado Clase AB · con DAC',
       chips:['80 W / 8 Ω','120 W / 4 Ω','XLR balanceado','DAC ESS','amort. >110'],
       desc:'80 W en 8 Ω que suben a 120 W en 4 Ω: <b>casi los dobla</b>, señal de buena entrega de corriente para cargas exigentes. Trae DAC ESS Sabre, entrada balanceada XLR y factor de amortiguación sobre 110.' },
     brio:{ name:'Rega Brio', spec:'50 W / 8 Ω · 73 W / 4 Ω · mín 4 Ω', p8:50, p4:73, p8Conf:'alta', p4Conf:'media', minLoad:4,
+      sensMv:210, inZOhm:47000,
       type:'Integrado Clase AB · con phono',
       chips:['50 W / 8 Ω','73 W / 4 Ω','phono MM','mín 4 Ω'],
       desc:'50 W en 8 Ω y 73 W en 4 Ω, con impedancia de salida muy baja (buen control del cono). <b>Potencia modesta</b>: rinde mejor con parlantes eficientes o de carga benigna. Incluye previo de phono; no trae DAC.' },
     nad:{ name:'NAD C 316BEE V2', spec:'40 W / 8 Ω · 40 W / 4 Ω · mín 2 Ω', p8:40, p4:40, p8Conf:'alta', p4Conf:'alta',
+      sensMv:200, inZOhm:null,
       type:'Integrado Clase AB · con phono',
       chips:['40 W / 8 Ω','40 W / 4 Ω','phono MM','mín 2 Ω'],
       desc:'40 W tanto en 8 Ω como en 4 Ω — NAD no dobla potencia entre ambas cargas, a diferencia de otros integrados de este rango. Reserva de corriente dinámica (IHF) hasta 2 Ω.' },
     marantz:{ name:'Marantz PM6007', spec:'45 W / 8 Ω · 60 W / 4 Ω · mín 4 Ω', p8:45, p4:60, p8Conf:'alta', p4Conf:'alta',
+      sensMv:200, inZOhm:20000,
       type:'Integrado Clase AB · con DAC y phono',
       chips:['45 W / 8 Ω','60 W / 4 Ω','DAC','phono MM','mín 4 Ω'],
       desc:'45 W en 8 Ω que suben a 60 W en 4 Ω (reserva 1,3×, no llega al umbral de 1,7× de la regla de carga). Trae DAC integrado y previo de phono MM.' },
     yamaha:{ name:'Yamaha A-S501', spec:'85 W / 8 Ω · 120 W / 4 Ω* · DAC', p8:85, p4:120, p8Conf:'alta', p4Conf:'media',
+      sensMv:200, inZOhm:47000,
       type:'Integrado Clase AB · con DAC y phono',
       chips:['85 W / 8 Ω','120 W / 4 Ω*','DAC','phono MM'],
       desc:'85 W en 8 Ω medidos con THD muy bajo (0,019%); el dato de 120 W a 4 Ω usa una condición de medición distinta (1 kHz, 0,7% THD) — no son directamente comparables entre sí.' },
     denon:{ name:'Denon PMA-600NE', spec:'45 W / 8 Ω · 70 W / 4 Ω · DAC', p8:45, p4:70, p8Conf:'alta', p4Conf:'alta',
+      sensMv:110, inZOhm:30000,
       type:'Integrado Clase AB · con DAC y phono',
       chips:['45 W / 8 Ω','70 W / 4 Ω','DAC','phono MM'],
       desc:'45 W en 8 Ω que suben a 70 W en 4 Ω (reserva 1,56×, por debajo del umbral 1,7×). Trae DAC integrado y previo de phono MM.' },
     hegel:{ name:'Hegel H95', spec:'60 W / 8 Ω · mín 2 Ω · DAC', p8:60, p4:null, p8Conf:'alta', p4Conf:null,
+      sensMv:null, inZOhm:null,
       type:'Integrado Clase AB · con DAC',
       chips:['60 W / 8 Ω','mín 2 Ω','DAC','amort. >2000'],
       desc:'60 W en 8 Ω (1 kHz, 1% THD). Hegel no publica una potencia continua a 4 Ω — sólo declara carga mínima de 2 Ω, señal de una etapa de salida con reserva de corriente aunque sin el dato formal a 4 Ω.' },
     arcam:{ name:'Arcam A5 (Radia)', spec:'50 W / 8 Ω · 75 W / 4 Ω · phono', p8:50, p4:75, p8Conf:'alta', p4Conf:'alta',
+      sensMv:null, inZOhm:null,
       type:'Integrado Clase AB · con phono',
       chips:['50 W / 8 Ω','75 W / 4 Ω','phono MM'],
       desc:'50 W en 8 Ω que suben a 75 W en 4 Ω (reserva 1,5×, por debajo del umbral 1,7×). Trae previo de phono MM; no incluye DAC.' }
   };
+  var FUENTE = {
+    bluesound:{ name:'Bluesound Node (N130, 2021)', spec:'2,2 V salida · 500 Ω salida', outV:2.2, outZ:500, conf:'media',
+      type:'Streamer de red · DAC integrado (salida analógica)',
+      chips:['2,2 V salida','PCM5242','500 Ω salida'],
+      desc:'DAC integrado Texas Instruments PCM5242, salida analógica fija de 2,2 V. Su impedancia de salida (500 Ω) es alta para una salida de línea — <b>conviene revisar el puente de impedancias</b> hacia el amplificador, sobre todo con cables largos.',
+      srcTxt:'Bluesound (ficha, vía documentación de soporte)' },
+    wiim:{ name:'WiiM Pro Plus', spec:'2,0 V salida · Z salida sin publicar', outV:2.0, outZ:null, conf:'alta',
+      type:'Streamer de red · DAC integrado (salida analógica)',
+      chips:['2,0 V salida','AKM4493SEQ','32/768'],
+      desc:'DAC AKM AKM4493SEQ, salida analógica fija de 2,0 V. El fabricante no publica la impedancia de salida — <b>la regla de puente de impedancias no tiene ese dato</b>; el recorrido de volumen sí puede calcularse.',
+      srcTxt:'WiiM (ficha oficial / blog del fabricante)' },
+    cxn:{ name:'Cambridge Audio CXN (V2)', spec:'voltaje/Z de salida sin publicar', outV:null, outZ:null, conf:'baja',
+      type:'Streamer de red · DAC integrado, RCA y XLR',
+      chips:['RCA + XLR','2× WM8740'],
+      desc:'DAC doble Wolfson WM8740, salida RCA y XLR. La ficha oficial no publica voltaje ni impedancia de salida — <b>ninguna de las dos subreglas de ganancia corre</b> con este equipo.',
+      srcTxt:'Cambridge Audio (ficha oficial)' },
+    modiplus:{ name:'Schiit Modi+', spec:'2,0 V RMS · 75 Ω salida', outV:2.0, outZ:75, conf:'alta',
+      type:'DAC de escritorio · USB/coaxial/óptico',
+      chips:['2,0 V RMS','75 Ω salida','USB/coax/óptico'],
+      desc:'DAC ESS ES9018, salida fija de 2,0 V y 75 Ω de salida — impedancia moderada, típica de un DAC de escritorio sin preamplificación.',
+      srcTxt:'Schiit Audio (ficha oficial)' },
+    toppinge30:{ name:'Topping E30 II', spec:'2,1 V RMS · 20 Ω salida', outV:2.1, outZ:20, conf:'alta',
+      type:'DAC de escritorio · sólo RCA',
+      chips:['2,1 V RMS','20 Ω salida','sólo RCA','preamp con volumen'],
+      desc:'DAC doble AKM AK4493S, salida de 2,1 V y 20 Ω — impedancia de salida baja, buen puente con casi cualquier entrada de línea.',
+      srcTxt:'Topping (ficha oficial)' },
+    dacmagic:{ name:'Cambridge Audio DacMagic 200M', spec:'2,1 V RCA (4,2 V XLR) · <50 Ω', outV:2.1, outZ:50, conf:'alta',
+      type:'DAC/preamp de escritorio · RCA y XLR',
+      chips:['2,1 V RCA / 4,2 V XLR','<50 Ω','salida fija o variable'],
+      desc:'Preamp/DAC con salida fija o variable; se usan acá los valores de RCA (no balanceada): 2,1 V y menos de 50 Ω de impedancia de salida.',
+      srcTxt:'Cambridge Audio (ficha oficial)' }
+  };
   var LVL = { mod:{t:'Moderado', peak:90}, alto:{t:'Alto', peak:100}, ref:{t:'Referencia', peak:105} };
 
-  var st = { spk:null, amp:null, W:3.6, L:5.0, H:2.4, lvl:'alto' };
+  var st = { spk:null, amp:null, fuente:null, W:3.6, L:5.0, H:2.4, lvl:'alto' };
 
   // ---- selects + splash ----
   (function(){
-    var s=document.getElementById('sel-spk'), a=document.getElementById('sel-amp');
+    var s=document.getElementById('sel-spk'), a=document.getElementById('sel-amp'), f=document.getElementById('sel-fuente');
     s.innerHTML='<option value="">— Selecciona —</option>';
     for(var k in SPK){ s.innerHTML+='<option value="'+k+'">'+SPK[k].name+'</option>'; }
     s.innerHTML+='<option value="" disabled>Más parlantes · próximamente</option>';
     a.innerHTML='<option value="">— Selecciona —</option>';
     for(var j in AMP){ a.innerHTML+='<option value="'+j+'">'+AMP[j].name+'</option>'; }
     a.innerHTML+='<option value="" disabled>Más amplificadores · próximamente</option>';
+    f.innerHTML='<option value="">— Ninguna (opcional) —</option>';
+    for(var m in FUENTE){ f.innerHTML+='<option value="'+m+'">'+FUENTE[m].name+'</option>'; }
+    f.innerHTML+='<option value="" disabled>Más streamers/DACs · próximamente</option>';
     var t=document.getElementById('splash-ticks'), h=[8,12,8,16,8,12,8,22,8,12,8,16,8,12,8];
     h.forEach(function(v){ var i=document.createElement('i'); i.style.height=v+'px'; t.appendChild(i); });
   })();
@@ -435,9 +502,10 @@
     var chips=(o.chips||[]).map(function(c){return '<span>'+c+'</span>';}).join('');
     return '<div class="info"><div class="info-type">'+o.type+'</div><div class="chips">'+chips+'</div><div class="info-desc">'+o.desc+'</div></div>';
   }
+  var DB_POR_KIND = { spk:SPK, amp:AMP, fuente:FUENTE };
   function pick(kind,val){
     var sel=document.getElementById('sel-'+kind), box=document.getElementById('info-'+kind);
-    var db=(kind==='spk')?SPK:AMP;
+    var db=DB_POR_KIND[kind];
     if(!val){ st[kind]=null; sel.classList.add('empty'); box.innerHTML=''; }
     else{ st[kind]=val; sel.classList.remove('empty'); box.innerHTML=infoHTML(db[val]); }
     refresh();
@@ -479,8 +547,19 @@
       potencia8OhmW: { valor: amp.p8, fuente: amp.spec, confianza: amp.p8Conf },
       potencia4OhmW: (amp.p4 != null) ? { valor: amp.p4, fuente: amp.spec, confianza: amp.p4Conf } : null,
       cargaMinOhm: amp.minLoad || null,
-      sensEntradaMv: null,
-      impedanciaEntradaOhm: null
+      sensEntradaMv: (amp.sensMv != null) ? amp.sensMv : null,
+      impedanciaEntradaOhm: (amp.inZOhm != null) ? amp.inZOhm : null
+    };
+  }
+  // Igual criterio que los adaptadores de arriba: sólo reempaqueta los datos
+  // de FUENTE al tipo `Fuente` del motor (packages/engine/src/tipos.ts),
+  // usado por la regla de ganancia de cadena (packages/engine/src/ganancia.ts).
+  function fuenteDelMotor(f){
+    return {
+      salidaV: (f.outV != null) ? f.outV : null,
+      impedanciaSalidaOhm: (f.outZ != null) ? f.outZ : null,
+      fuente: f.srcTxt,
+      confianza: f.conf
     };
   }
   var NIVEL_MOTOR = { mod:'moderado', alto:'alto', ref:'referencia' };
@@ -559,11 +638,12 @@
   }
 
   function analizar(){
-    var spk=SPK[st.spk], amp=AMP[st.amp], lvl=LVL[st.lvl], r=room();
+    var spk=SPK[st.spk], amp=AMP[st.amp], fuente=st.fuente?FUENTE[st.fuente]:null, lvl=LVL[st.lvl], r=room();
     var parlanteM=parlanteDelMotor(spk), ampM=amplificadorDelMotor(amp);
 
     document.getElementById('chain').innerHTML =
-      item('Parlantes', spk.name, spk.spec) + item('Amplificador', amp.name, amp.spec);
+      item('Parlantes', spk.name, spk.spec) + item('Amplificador', amp.name, amp.spec) +
+      (fuente ? item('Fuente', fuente.name, fuente.spec) : '');
     document.getElementById('r-wl').textContent=nf(r.W,1)+' × '+nf(r.L,1)+' m';
     document.getElementById('r-h').textContent=nf(r.H,2)+' m';
     document.getElementById('r-dist').textContent='≈ '+nf(r.dist,1)+' m';
@@ -630,6 +710,75 @@
         zt.innerHTML='La impedancia se mantiene alta; es una carga fácil para cualquier amplificador.';
         zf.className='flag hidden'; }
       zs.innerHTML='<b>Fuente:</b> impedancia nominal '+spk.nomZ+' Ω, mínima '+nf(spk.minZ,1)+' Ω (fábrica / medición). <span class="conf">confianza media</span>';
+    }
+
+    // ganancia de cadena (puente de impedancias + recorrido de volumen) —
+    // opcional: sólo corre si hay una fuente elegida. Delega en el motor
+    // real (packages/engine/src/ganancia.ts). No condiciona ni reemplaza
+    // los veredictos de potencia/carga de arriba.
+    var cardPuente=document.getElementById('card-puente'), cardRecorrido=document.getElementById('card-recorrido');
+    if(fuente){
+      cardPuente.classList.remove('hidden');
+      cardRecorrido.classList.remove('hidden');
+      var fuenteM=fuenteDelMotor(fuente);
+      var RBO=window.CadenaEngine.RATIO_BRIDGING_OK, UR=window.CadenaEngine.UMBRAL_RECORRIDO;
+
+      var resPuente = window.CadenaEngine.evaluarPuenteImpedancias(fuenteM, ampM);
+      var pzv=document.getElementById('pz-verdict'), pzt=document.getElementById('pz-text');
+      var pzf=document.getElementById('pz-flag'), pzc=document.getElementById('pz-calc'), pzs=document.getElementById('pz-src');
+      if(resPuente.severidad==='sin-datos'){
+        pzv.className='verdict'; pzv.style.color='var(--dim)'; pzv.textContent=resPuente.etiqueta;
+        pzt.innerHTML='Falta la impedancia de salida de <b>'+fuente.name+'</b> o la de entrada de <b>'+amp.name+'</b>. Sin ambos datos no se afirma que el puente sea correcto.';
+        pzc.innerHTML='';
+        pzf.className='flag sindato'; pzf.innerHTML='Un dato faltante no se cuenta como aprobado. <b>Pendiente:</b> impedancia de salida de la fuente o de entrada del amplificador.';
+      } else {
+        var ratioZ=resPuente.ratioZ;
+        pzc.innerHTML='ratioZ = Z entrada('+amp.name+') / Z salida('+fuente.name+') = '+nf(amp.inZOhm,0)+' / '+nf(fuente.outZ,0)+' = <b>'+nf(ratioZ,1)+'×</b>';
+        if(resPuente.severidad==='ok'){
+          pzv.className='verdict ok'; pzv.textContent=resPuente.etiqueta;
+          pzt.innerHTML='La entrada del amplificador es <b>'+nf(ratioZ,1)+'×</b> la impedancia de salida de la fuente — sobre la convención de '+RBO+':1 para transferir la señal sin pérdida perceptible.';
+          pzf.className='flag hidden';
+        } else if(resPuente.severidad==='warn'){
+          pzv.className='verdict warn'; pzv.textContent=resPuente.etiqueta;
+          pzt.innerHTML='La entrada del amplificador es sólo <b>'+nf(ratioZ,1)+'×</b> la impedancia de salida de la fuente — bajo la convención de '+RBO+':1. Con cables largos o de alta capacitancia puede haber pérdida de nivel o de graves medible.';
+          pzf.className='flag'; pzf.innerHTML='Conviene una fuente con menor impedancia de salida, o cables de interconexión cortos y de baja capacitancia.';
+        } else {
+          pzv.className='verdict alert'; pzv.textContent=resPuente.etiqueta;
+          pzt.innerHTML='La impedancia de entrada del amplificador es menor que la de salida de la fuente (<b>'+nf(ratioZ,2)+'×</b>) — la fuente no tiene margen para manejar esa entrada. Pérdida de nivel significativa.';
+          pzf.className='flag'; pzf.innerHTML='Esta combinación no transfiere la señal correctamente. Conviene otra fuente o un preamplificador intermedio con baja impedancia de salida.';
+        }
+        pzs.innerHTML='<b>Convención:</b> puente de voltaje ≥'+RBO+':1 (Rane «Sound System Interconnection»; Whitlock / Jensen Transformers) — no es un dato del equipo, es una convención de ingeniería de audio. <span class="conf">confianza '+fuente.conf+'</span>';
+      }
+
+      var resRecorrido = window.CadenaEngine.evaluarRecorridoVolumen(fuenteM, ampM);
+      var pvv=document.getElementById('pv-verdict'), pvt=document.getElementById('pv-text');
+      var pvf=document.getElementById('pv-flag'), pvc=document.getElementById('pv-calc'), pvs=document.getElementById('pv-src');
+      if(resRecorrido.severidad==='sin-datos'){
+        pvv.className='verdict'; pvv.style.color='var(--dim)'; pvv.textContent=resRecorrido.etiqueta;
+        pvt.innerHTML='Falta el voltaje de salida de <b>'+fuente.name+'</b> o la sensibilidad de entrada de <b>'+amp.name+'</b>.';
+        pvc.innerHTML='';
+        pvf.className='flag sindato'; pvf.innerHTML='Un dato faltante no se cuenta como aprobado. <b>Pendiente:</b> voltaje de salida de la fuente o sensibilidad de entrada del amplificador.';
+      } else {
+        var margenV=resRecorrido.margenV;
+        pvc.innerHTML='margenV = salidaV('+fuente.name+') / sensEntrada('+amp.name+') = '+nf(fuente.outV,2)+' / '+nf(amp.sensMv/1000,2)+' = <b>'+nf(margenV,1)+'×</b>';
+        if(resRecorrido.severidad==='ok'){
+          pvv.className='verdict ok'; pvv.textContent=resRecorrido.etiqueta;
+          pvt.innerHTML='La fuente entrega <b>'+nf(margenV,1)+'×</b> la tensión que el amplificador necesita para su potencia nominal — recorrido de volumen sano.';
+          pvf.className='flag hidden';
+        } else if(resRecorrido.severidad==='warn'){
+          pvv.className='verdict warn'; pvv.textContent=resRecorrido.etiqueta;
+          pvt.innerHTML='La fuente entrega <b>'+nf(margenV,1)+'×</b> de sobra la tensión que necesita el amplificador — se usa sólo una fracción baja del recorrido del potenciómetro. El sistema funciona, con menos resolución de volumen en el rango de escucha habitual.';
+          pvf.className='flag hidden';
+        } else {
+          pvv.className='verdict alert'; pvv.textContent=resRecorrido.etiqueta;
+          pvt.innerHTML='La fuente entrega sólo <b>'+nf(margenV,2)+'×</b> la tensión que el amplificador necesita para su potencia nominal — no alcanza. El margen que calculó la regla de potencia deja de ser válido con esta fuente conectada.';
+          pvf.className='flag'; pvf.innerHTML='Conviene una fuente con mayor tensión de salida, o revisar si hay una etapa de preamplificación intermedia.';
+        }
+        pvs.innerHTML='<b>Umbral de recorrido:</b> '+UR+'× — criterio del sitio, no una convención publicada; se verifica escuchando. <span class="conf">confianza '+fuente.conf+'</span>';
+      }
+    } else {
+      cardPuente.classList.add('hidden');
+      cardRecorrido.classList.add('hidden');
     }
 
     document.getElementById('plan').innerHTML = buildPlan(r);

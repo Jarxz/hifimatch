@@ -35,6 +35,23 @@ export interface Amplificador {
   impedanciaEntradaOhm: number | null;
 }
 
+/**
+ * Fuente digital (streamer o DAC) — usada sólo por la regla de ganancia de
+ * cadena (ganancia.ts, motor-mvp.md sección 6). Opcional: no entra a
+ * potencia.ts ni carga.ts. A diferencia de Parlante/Amplificador, fuente y
+ * confianza son un solo par para todo el registro, no por campo — así está
+ * curado en data/equipos-seed.json (categorías streamers/dacs).
+ */
+export interface Fuente {
+  id: string;
+  nombre: string;
+  tipo: string;
+  salidaV: number | null; // tensión de salida analógica, RMS
+  impedanciaSalidaOhm: number | null;
+  fuente: string;
+  confianza: Confianza;
+}
+
 export type Severidad = 'ok' | 'warn' | 'alert' | 'sin-datos';
 
 const ORDEN_CONFIANZA: Record<Confianza, number> = { alta: 2, media: 1, baja: 0 };

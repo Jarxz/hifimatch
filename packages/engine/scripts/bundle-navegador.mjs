@@ -17,11 +17,20 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const distDir = join(__dirname, '..', 'dist');
 
 // Orden de dependencias: unidades.js y tipos.js no importan nada de acá;
-// carga.js y sala.js tampoco; potencia.js importa de unidades.js y tipos.js.
-const ARCHIVOS = ['unidades.js', 'tipos.js', 'carga.js', 'sala.js', 'potencia.js'];
+// carga.js, sala.js y ganancia.js tampoco; potencia.js importa de unidades.js
+// y tipos.js.
+const ARCHIVOS = ['unidades.js', 'tipos.js', 'carga.js', 'sala.js', 'ganancia.js', 'potencia.js'];
 
 // Único contrato público hacia prototipo-frontend.html.
-const PUBLICAS = ['evaluarPotencia', 'evaluarCarga', 'calcularDisposicion'];
+const PUBLICAS = [
+  'evaluarPotencia',
+  'evaluarCarga',
+  'calcularDisposicion',
+  'evaluarPuenteImpedancias',
+  'evaluarRecorridoVolumen',
+  'RATIO_BRIDGING_OK',
+  'UMBRAL_RECORRIDO',
+];
 
 let salida =
   '// GENERADO por packages/engine/scripts/bundle-navegador.mjs — no editar a mano.\n' +
