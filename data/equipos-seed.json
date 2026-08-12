@@ -31,6 +31,81 @@
       "fuentes": ["Klipsch (ficha oficial)", "Erin's Audio Corner"],
       "chips": ["8 Ω", "86 dB anecoica", "100 W"],
       "_pendiente": "curva de impedancia medida (impedanciaMinOhm) — hoy sin dato, por eso la regla de carga devuelve 'sin-datos'"
+    },
+    {
+      "id": "elac-debut2-b62",
+      "nombre": "ELAC Debut 2.0 B6.2",
+      "tipo": "Monitor de 2 vías, puerto trasero, tweeter de domo de tela",
+      "sensibilidadDb": { "valor": 87, "fuente": "ELAC (ficha)", "confianza": "alta", "nota": "medición independiente (Audio Science Review) 86,6 dB — coincide con fábrica" },
+      "impedanciaNominalOhm": 6,
+      "impedanciaMinOhm": null,
+      "potenciaRecMinW": 30,
+      "potenciaRecMaxW": 120,
+      "fuentes": ["ELAC (ficha oficial)", "Audio Science Review (ASR)"],
+      "chips": ["6 Ω", "87 dB", "30–120 W"],
+      "_pendiente": "impedancia mínima medida — no se encontró dato confiable de ASR/Erin's, la regla de carga devuelve 'sin-datos'"
+    },
+    {
+      "id": "wharfedale-diamond-12-1",
+      "nombre": "Wharfedale Diamond 12.1",
+      "tipo": "Monitor de 2 vías, puerto trasero",
+      "sensibilidadDb": { "valor": 88, "fuente": "Wharfedale (ficha)", "confianza": "media", "nota": "no se encontró medición independiente (Stereophile/ASR/Erin's) de este modelo" },
+      "impedanciaNominalOhm": 8,
+      "impedanciaMinOhm": 4,
+      "potenciaRecMinW": 20,
+      "potenciaRecMaxW": 100,
+      "fuentes": ["Wharfedale (ficha oficial)"],
+      "chips": ["8 Ω", "88 dB", "mín 4 Ω", "20–100 W"]
+    },
+    {
+      "id": "bw-606-s2-anniversary",
+      "nombre": "Bowers & Wilkins 606 S2 Anniversary Edition",
+      "tipo": "Monitor de 2 vías, puerto trasero, tweeter de domo",
+      "sensibilidadDb": { "valor": 88, "fuente": "Bowers & Wilkins (ficha)", "confianza": "media", "nota": "no se encontró medición independiente de este modelo específico" },
+      "impedanciaNominalOhm": 8,
+      "impedanciaMinOhm": 3.7,
+      "potenciaRecMinW": 30,
+      "potenciaRecMaxW": 120,
+      "fuentes": ["Bowers & Wilkins (ficha oficial)"],
+      "chips": ["8 Ω", "88 dB", "mín 3,7 Ω", "30–120 W"]
+    },
+    {
+      "id": "q-acoustics-3020i",
+      "nombre": "Q Acoustics 3020i",
+      "tipo": "Monitor de 2 vías, puerto trasero",
+      "sensibilidadDb": { "valor": 88, "fuente": "Q Acoustics (ficha)", "confianza": "media", "nota": "no se encontró medición independiente de este modelo" },
+      "impedanciaNominalOhm": 6,
+      "impedanciaMinOhm": 4,
+      "potenciaRecMinW": 25,
+      "potenciaRecMaxW": 75,
+      "fuentes": ["Q Acoustics (ficha oficial)"],
+      "chips": ["6 Ω", "88 dB", "mín 4 Ω", "25–75 W"]
+    },
+    {
+      "id": "revel-performa3-m106",
+      "nombre": "Revel Performa3 M106",
+      "tipo": "Monitor de 2 vías, puerto trasero, tweeter de titanio",
+      "sensibilidadDb": { "valor": 87, "fuente": "Revel (ficha)", "confianza": "alta", "nota": "medición independiente (Stereophile / J. Atkinson) ~86,4 dB(B) — coincide con fábrica" },
+      "impedanciaNominalOhm": 8,
+      "impedanciaMinOhm": 5.76,
+      "potenciaRecMinW": 50,
+      "potenciaRecMaxW": 150,
+      "fuentes": ["Revel (ficha oficial)", "Stereophile (mediciones J. Atkinson)"],
+      "chips": ["8 Ω", "87 dB", "mín 5,76 Ω", "50–150 W"],
+      "_pendiente": "mínimo medido a 138 Hz y 2400 Hz (fase −34°); es un mínimo benigno, no una caída dura"
+    },
+    {
+      "id": "dynaudio-emit-20",
+      "nombre": "Dynaudio Emit 20",
+      "tipo": "Monitor de 2 vías, puerto trasero",
+      "sensibilidadDb": { "valor": 86, "fuente": "Dynaudio (ficha)", "confianza": "media", "nota": "no se encontró medición independiente de sensibilidad que confirme o corrija la ficha" },
+      "impedanciaNominalOhm": 6,
+      "impedanciaMinOhm": 5.4,
+      "potenciaRecMinW": 70,
+      "potenciaRecMaxW": null,
+      "fuentes": ["Dynaudio (ficha oficial)", "HiFi Critic (M. Colloms, medición de impedancia)"],
+      "chips": ["6 Ω", "86 dB", "mín 5,4 Ω", "≥70 W"],
+      "_pendiente": "fábrica sólo publica el mínimo recomendado (70 W), no un rango; no confundir con el power handling IEC (160 W), que es una métrica distinta"
     }
   ],
 
@@ -58,6 +133,82 @@
       "impedanciaEntradaOhm": 47000,
       "fuentes": ["Rega (ficha oficial)", "Stereophile"],
       "chips": ["50 W / 8 Ω", "73 W / 4 Ω", "phono MM", "mín 4 Ω"]
+    },
+    {
+      "id": "nad-c316bee-v2",
+      "nombre": "NAD C 316BEE V2",
+      "tipo": "Integrado Clase AB, con phono MM",
+      "potencia8OhmW": { "valor": 40, "fuente": "NAD (ficha)", "confianza": "alta" },
+      "potencia4OhmW": { "valor": 40, "fuente": "NAD (ficha)", "confianza": "alta", "nota": "NAD publica la misma potencia continua a 8 y 4 Ω (no dobla); la reserva para 4 Ω aparece sólo como potencia dinámica IHF (120 W), una métrica distinta" },
+      "cargaMinOhm": 2,
+      "sensEntradaMv": 200,
+      "impedanciaEntradaOhm": null,
+      "fuentes": ["NAD (ficha oficial)"],
+      "chips": ["40 W / 8 Ω", "40 W / 4 Ω", "phono MM", "mín 2 Ω"],
+      "_pendiente": "impedancia de entrada de línea — no encontrada en la ficha pública"
+    },
+    {
+      "id": "marantz-pm6007",
+      "nombre": "Marantz PM6007",
+      "tipo": "Integrado Clase AB, con DAC y phono MM",
+      "potencia8OhmW": { "valor": 45, "fuente": "Marantz (ficha)", "confianza": "alta" },
+      "potencia4OhmW": { "valor": 60, "fuente": "Marantz (ficha)", "confianza": "alta" },
+      "cargaMinOhm": 4,
+      "sensEntradaMv": 200,
+      "impedanciaEntradaOhm": 20000,
+      "fuentes": ["Marantz (ficha oficial)"],
+      "chips": ["45 W / 8 Ω", "60 W / 4 Ω", "DAC", "phono MM", "mín 4 Ω"]
+    },
+    {
+      "id": "yamaha-as501",
+      "nombre": "Yamaha A-S501",
+      "tipo": "Integrado Clase AB, con DAC y phono MM",
+      "potencia8OhmW": { "valor": 85, "fuente": "Yamaha (ficha)", "confianza": "alta", "nota": "potencia RMS mínima garantizada, 0,019% THD" },
+      "potencia4OhmW": { "valor": 120, "fuente": "Yamaha (ficha)", "confianza": "media", "nota": "medida a 1 kHz con 0,7% THD — condición distinta a la de 8 Ω, no son directamente comparables" },
+      "cargaMinOhm": null,
+      "sensEntradaMv": 200,
+      "impedanciaEntradaOhm": 47000,
+      "fuentes": ["Yamaha (ficha oficial)"],
+      "chips": ["85 W / 8 Ω", "120 W / 4 Ω*", "DAC", "phono MM"],
+      "_pendiente": "impedancia mínima de carga (cargaMinOhm) — no se encontró como spec explícita, distinta de la tabla de potencia dinámica"
+    },
+    {
+      "id": "denon-pma600ne",
+      "nombre": "Denon PMA-600NE",
+      "tipo": "Integrado Clase AB, con DAC y phono MM",
+      "potencia8OhmW": { "valor": 45, "fuente": "Denon (ficha)", "confianza": "alta" },
+      "potencia4OhmW": { "valor": 70, "fuente": "Denon (ficha)", "confianza": "alta" },
+      "cargaMinOhm": null,
+      "sensEntradaMv": 110,
+      "impedanciaEntradaOhm": 30000,
+      "fuentes": ["Denon (ficha oficial)"],
+      "chips": ["45 W / 8 Ω", "70 W / 4 Ω", "DAC", "phono MM"]
+    },
+    {
+      "id": "hegel-h95",
+      "nombre": "Hegel H95",
+      "tipo": "Integrado Clase AB, con DAC",
+      "potencia8OhmW": { "valor": 60, "fuente": "Hegel (ficha)", "confianza": "alta", "nota": "1 kHz, 1% THD" },
+      "potencia4OhmW": { "valor": 96, "fuente": "SoundStage! / Hi-Fi News (medición)", "confianza": "baja", "nota": "es una ráfaga dinámica (tono de 80 Hz, 500 ms), no una potencia continua — Hegel no publica un valor continuo a 4 Ω, sólo declara carga mínima de 2 Ω" },
+      "cargaMinOhm": 2,
+      "sensEntradaMv": null,
+      "impedanciaEntradaOhm": null,
+      "fuentes": ["Hegel (ficha oficial)", "SoundStageNetwork / Hi-Fi News (medición)"],
+      "chips": ["60 W / 8 Ω", "mín 2 Ω", "DAC", "amort. >2000"],
+      "_pendiente": "sensibilidad e impedancia de entrada de línea — no publicadas por Hegel para este modelo"
+    },
+    {
+      "id": "arcam-a5",
+      "nombre": "Arcam A5 (Radia)",
+      "tipo": "Integrado Clase AB, con phono MM",
+      "potencia8OhmW": { "valor": 50, "fuente": "Arcam (ficha)", "confianza": "alta" },
+      "potencia4OhmW": { "valor": 75, "fuente": "Arcam (ficha)", "confianza": "alta" },
+      "cargaMinOhm": null,
+      "sensEntradaMv": null,
+      "impedanciaEntradaOhm": null,
+      "fuentes": ["Arcam (ficha oficial)"],
+      "chips": ["50 W / 8 Ω", "75 W / 4 Ω", "phono MM"],
+      "_pendiente": "sensibilidad e impedancia de entrada de línea — no confirmadas con certeza en la ficha pública disponible"
     }
   ]
 }

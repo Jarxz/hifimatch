@@ -32,8 +32,11 @@ con su catálogo y el encuadre de venta.
   paquete aparte. Calcula de verdad tres cosas: margen de potencia, carga de
   impedancia y la geometría de sala (disposición + reflexiones). Las fórmulas
   exactas están extraídas y documentadas en `docs/motor-mvp.md`.
-- **Base de datos:** semilla de 4 equipos con specs verificados y con fuente, en
-  `data/equipos-seed.json`. Es el activo de curaduría y sirve de fixtures de test.
+- **Base de datos:** semilla de 16 equipos (8 parlantes, 8 amplificadores) con
+  specs verificados y con fuente, en `data/equipos-seed.json`. Es el activo de
+  curaduría y sirve de fixtures de test. Streamer, DAC y cables quedan para una
+  ampliación posterior — necesitan reglas propias (ganancia de la cadena, puente
+  de impedancias fuente-amp) que todavía no están especificadas.
 - **Prueba de realidad de la data:** confirmada. Para equipos populares los specs
   existen (fichas de fabricante + mediciones independientes de Stereophile,
   Erin's Audio Corner, ASR). La advertencia es que el spec de fábrica puede
