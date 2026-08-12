@@ -4,7 +4,7 @@
  * sólo mueve/pinta lo que cambia en cada análisis.
  */
 import { numConSigno } from '../formato/numeros.ts';
-import { IDIOMA_PROVISIONAL as IDIOMA } from '../idioma-provisional.ts';
+import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 
 const SMIN = -9;
 const SMAX = 9;
@@ -57,7 +57,7 @@ export function construirEscala(contenedor: HTMLElement): void {
 }
 
 /** Mueve la aguja, el readout y la zona coloreada al margen actual. */
-export function actualizarMedidor(margenDb: number): void {
+export function actualizarMedidor(margenDb: number, idioma: Idioma): void {
   const pct = pctDe(margenDb);
   const needle = document.getElementById('pw-needle');
   const read = document.getElementById('pw-read');
@@ -65,7 +65,7 @@ export function actualizarMedidor(margenDb: number): void {
   if (!needle || !read || !zone) return;
 
   needle.style.left = pct + '%';
-  read.textContent = numConSigno(margenDb, 1, IDIOMA) + ' dB';
+  read.textContent = numConSigno(margenDb, 1, idioma) + ' dB';
   read.style.left = pct + '%';
 
   if (margenDb >= 0) {

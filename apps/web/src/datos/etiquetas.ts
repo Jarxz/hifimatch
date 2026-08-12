@@ -5,11 +5,6 @@
  * terminaron divergiendo (ver commit de packages/data). Lo no derivable
  * (DAC, phono, nombres de chip) sigue viniendo de `chipsExtra`, bilingüe.
  *
- * Paso 4: sitio sólo en español (`IDIOMA` fijo acá). El Paso 6 le agrega el
- * parámetro de idioma a estas funciones — el número ya sale por
- * formato/numeros.ts con la firma final, así que ese paso no toca esta
- * lógica de derivación, sólo qué idioma le pasa.
- *
  * Nota: `especX()` junta sólo los chips "físicos" (Ω/W/V), sin
  * `chipsExtra` (DAC, phono, nombres de chip) — es la línea compacta del
  * ítem de cadena. El prototipo era inconsistente acá (algunos amplis
@@ -19,7 +14,8 @@
  */
 import { num } from '../formato/numeros.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
-import { IDIOMA_PROVISIONAL as IDIOMA } from '../idioma-provisional.ts';
+import type { Idioma } from '../../../../packages/data/src/idioma.ts';
+import { textosDe } from '../idioma/idioma.ts';
 
 /** Cuántos decimales necesita un número para representarse tal cual está
  * en el catálogo (3.5 → 1, 4 → 0, 5.76 → 2) — evita "4,0" para valores
@@ -30,72 +26,75 @@ function decimalesNaturales(v: number): number {
   return i === -1 ? 0 : s.length - i - 1;
 }
 
-function rangoPotenciaW(min: number | null, max: number | null): string | null {
-  if (min !== null && max !== null) return `${num(min, 0, IDIOMA)}–${num(max, 0, IDIOMA)} W`;
-  if (min === null && max !== null) return `${num(max, 0, IDIOMA)} W`;
-  if (min !== null && max === null) return `≥${num(min, 0, IDIOMA)} W`;
+function rangoPotenciaW(min: number | null, max: number | null, idioma: Idioma): string | null {
+  if (min !== null && max !== null) return `${num(min, 0, idioma)}–${num(max, 0, idioma)} W`;
+  if (min === null && max !== null) return `${num(max, 0, idioma)} W`;
+  if (min !== null && max === null) return `≥${num(min, 0, idioma)} W`;
   return null;
 }
 
-function chipsCoreParlante(p: ParlanteCat): string[] {
-  const chips: string[] = [`${num(p.impedanciaNominalOhm, 0, IDIOMA)} Ω`];
-  const calificador = p.sensibilidadDb.calificador ? ` ${p.sensibilidadDb.calificador[IDIOMA]}` : '';
-  chips.push(`${num(p.sensibilidadDb.valor, 0, IDIOMA)} dB${calificador}`);
+function chipsCoreParlante(p: ParlanteCat, idioma: Idioma): string[] {
+  const t = textosDe(idioma);
+  const chips: string[] = [`${num(p.impedanciaNominalOhm, 0, idioma)} Ω`];
+  const calificador = p.sensibilidadDb.calificador ? ` ${p.sensibilidadDb.calificador[idioma]}` : '';
+  chips.push(`${num(p.sensibilidadDb.valor, 0, idioma)} dB${calificador}`);
   if (p.impedanciaMinOhm !== null) {
-    chips.push(`mín ${num(p.impedanciaMinOhm, decimalesNaturales(p.impedanciaMinOhm), IDIOMA)} Ω`);
+    chips.push(`${t.catalogo.min} ${num(p.impedanciaMinOhm, decimalesNaturales(p.impedanciaMinOhm), idioma)} Ω`);
   }
-  const rango = rangoPotenciaW(p.potenciaRecMinW, p.potenciaRecMaxW);
+  const rango = rangoPotenciaW(p.potenciaRecMinW, p.potenciaRecMaxW, idioma);
   if (rango) chips.push(rango);
-  if (p.maxSplDb !== null) chips.push(`${num(p.maxSplDb, 0, IDIOMA)} dB máx`);
+  if (p.maxSplDb !== null) chips.push(`${num(p.maxSplDb, 0, idioma)} dB ${t.catalogo.max}`);
   return chips;
 }
 
-export function chipsParlante(p: ParlanteCat): string[] {
-  return [...chipsCoreParlante(p), ...p.chipsExtra.map((c) => c[IDIOMA])];
+export function chipsParlante(p: ParlanteCat, idioma: Idioma): string[] {
+  return [...chipsCoreParlante(p, idioma), ...p.chipsExtra.map((c) => c[idioma])];
 }
 
-export function especParlante(p: ParlanteCat): string {
-  const core = chipsCoreParlante(p);
-  return (core.length > 0 ? core : p.chipsExtra.map((c) => c[IDIOMA])).join(' · ');
+export function especParlante(p: ParlanteCat, idioma: Idioma): string {
+  const core = chipsCoreParlante(p, idioma);
+  return (core.length > 0 ? core : p.chipsExtra.map((c) => c[idioma])).join(' · ');
 }
 
-function chipsCoreAmplificador(a: AmplificadorCat): string[] {
-  const chips: string[] = [`${num(a.potencia8OhmW.valor, 0, IDIOMA)} W / 8 Ω`];
+function chipsCoreAmplificador(a: AmplificadorCat, idioma: Idioma): string[] {
+  const t = textosDe(idioma);
+  const chips: string[] = [`${num(a.potencia8OhmW.valor, 0, idioma)} W / 8 Ω`];
   if (a.potencia4OhmW !== null) {
     const asterisco = a.potencia4OhmW.nota ? '*' : '';
-    chips.push(`${num(a.potencia4OhmW.valor, 0, IDIOMA)} W / 4 Ω${asterisco}`);
+    chips.push(`${num(a.potencia4OhmW.valor, 0, idioma)} W / 4 Ω${asterisco}`);
   }
   if (a.cargaMinOhm !== null) {
-    chips.push(`mín ${num(a.cargaMinOhm, decimalesNaturales(a.cargaMinOhm), IDIOMA)} Ω`);
+    chips.push(`${t.catalogo.min} ${num(a.cargaMinOhm, decimalesNaturales(a.cargaMinOhm), idioma)} Ω`);
   }
   return chips;
 }
 
-export function chipsAmplificador(a: AmplificadorCat): string[] {
-  return [...chipsCoreAmplificador(a), ...a.chipsExtra.map((c) => c[IDIOMA])];
+export function chipsAmplificador(a: AmplificadorCat, idioma: Idioma): string[] {
+  return [...chipsCoreAmplificador(a, idioma), ...a.chipsExtra.map((c) => c[idioma])];
 }
 
-export function especAmplificador(a: AmplificadorCat): string {
-  const core = chipsCoreAmplificador(a);
-  return (core.length > 0 ? core : a.chipsExtra.map((c) => c[IDIOMA])).join(' · ');
+export function especAmplificador(a: AmplificadorCat, idioma: Idioma): string {
+  const core = chipsCoreAmplificador(a, idioma);
+  return (core.length > 0 ? core : a.chipsExtra.map((c) => c[idioma])).join(' · ');
 }
 
-function chipsCoreFuente(f: FuenteCat): string[] {
+function chipsCoreFuente(f: FuenteCat, idioma: Idioma): string[] {
+  const t = textosDe(idioma);
   const chips: string[] = [];
   // Fijo en 1 decimal (no decimalesNaturales): 2.0 en JS es indistinguible
   // de 2, así que "naturales" perdería el cero y mostraría "2 V" en vez de
   // "2,0 V" — inconsistente con las fuentes que sí tienen decimal (2,1 V,
   // 2,2 V). Todo salidaV del catálogo es una cantidad de 1 decimal.
-  if (f.salidaV !== null) chips.push(`${num(f.salidaV, 1, IDIOMA)} V salida`);
-  if (f.impedanciaSalidaOhm !== null) chips.push(`${num(f.impedanciaSalidaOhm, 0, IDIOMA)} Ω salida`);
+  if (f.salidaV !== null) chips.push(`${num(f.salidaV, 1, idioma)} V ${t.catalogo.salida}`);
+  if (f.impedanciaSalidaOhm !== null) chips.push(`${num(f.impedanciaSalidaOhm, 0, idioma)} Ω ${t.catalogo.salida}`);
   return chips;
 }
 
-export function chipsFuente(f: FuenteCat): string[] {
-  return [...chipsCoreFuente(f), ...f.chipsExtra.map((c) => c[IDIOMA])];
+export function chipsFuente(f: FuenteCat, idioma: Idioma): string[] {
+  return [...chipsCoreFuente(f, idioma), ...f.chipsExtra.map((c) => c[idioma])];
 }
 
-export function especFuente(f: FuenteCat): string {
-  const core = chipsCoreFuente(f);
-  return (core.length > 0 ? core : f.chipsExtra.map((c) => c[IDIOMA])).join(' · ');
+export function especFuente(f: FuenteCat, idioma: Idioma): string {
+  const core = chipsCoreFuente(f, idioma);
+  return (core.length > 0 ? core : f.chipsExtra.map((c) => c[idioma])).join(' · ');
 }

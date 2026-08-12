@@ -3,6 +3,7 @@
  * formateado desde resultado.ts (puro); acá sólo se asigna a elementos.
  */
 import type { ModeloTarjetaPotencia, ModeloTarjetaCarga, ModeloTarjetaPuente, ModeloTarjetaRecorrido } from './resultado.ts';
+import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { actualizarMedidor } from './medidor.ts';
 
 function el(id: string): HTMLElement {
@@ -56,13 +57,13 @@ export function pintarSala(anchoLargo: string, alto: string, distancia: string, 
   el('r-peak').textContent = pico;
 }
 
-export function pintarPotencia(m: ModeloTarjetaPotencia): void {
+export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma): void {
   pintarVerdict('pw-verdict', false, m.verdictoClase, m.verdictoTexto);
   el('pw-text').innerHTML = m.textoHtml;
   el('pw-calc').innerHTML = m.calcHtml;
   pintarFlag('pw-flag', m.avisoHtml, false);
   el('pw-src').innerHTML = m.fuenteHtml;
-  actualizarMedidor(m.margenDb);
+  actualizarMedidor(m.margenDb, idioma);
 }
 
 export function pintarCarga(m: ModeloTarjetaCarga): void {
