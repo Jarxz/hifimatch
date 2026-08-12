@@ -93,18 +93,26 @@ necesarios para que `node --test` corra sin transpilar — se conviertan en
 se commitea** (excepción a `dist/` en `.gitignore`): no hay build step en
 el despliegue, así que el archivo compilado tiene que estar en el repo.
 
-`prototipo-frontend.html` ya **consume el motor real** vía
-`<script type="module">` que importa `dist/potencia.js`, `dist/carga.js`
-y `dist/sala.js` y los cuelga en `window.CadenaEngine`. El script principal
-(ahora `<script defer>`, para garantizar que corre después del módulo)
-llama a `window.CadenaEngine.evaluarPotencia/evaluarCarga/calcularDisposicion`
-en vez de recalcular las fórmulas inline. Los objetos `SPK`/`AMP` siguen
+`prototipo-frontend.html` ya **consume el motor real**. Primer intento
+usó `<script type="module">` importando `dist/*.js` directo — **no
+funciona**: los navegadores basados en Chromium bloquean por CORS los
+módulos ES cuando la página se abre como archivo local (`file://`), que es
+como este sitio está pensado para abrirse (doble clic, sin servidor). No
+lo detecté hasta que se probó en un navegador real. Se corrigió con
+`packages/engine/scripts/bundle-navegador.mjs`: concatena los 5 `.js`
+compilados en un único script clásico sin `import`/`export`
+(`dist/cadena-engine.browser.js`, generado por `npm run build`), cargado
+con `<script src="...">` normal — sin la restricción de CORS de los
+módulos. El script principal (`<script defer>`, sin `type="module"`, sin
+`defer` en el bundle) llama a
+`window.CadenaEngine.evaluarPotencia/evaluarCarga/calcularDisposicion` en
+vez de recalcular las fórmulas inline. Los objetos `SPK`/`AMP` siguen
 siendo datos de presentación (chips, desc), traducidos al tipo del motor
 por dos funciones adaptadoras (`parlanteDelMotor`, `amplificadorDelMotor`)
 — la única capa de traducción, no de duplicación de lógica. Verificado con
-un harness de Node que extrae ese adaptador del HTML real y lo corre
-contra el motor compilado real: los 3 vectores documentados coinciden
-exactamente.
+un harness de Node que carga el bundle como script clásico (sin ESM,
+igual que un navegador) y extrae el adaptador del HTML real: los 3
+vectores documentados coinciden exactamente.
 
 Falta: Fase 5 (seguir ampliando la base — ya tiene 25 equipos en 5
 categorías, es trabajo sin fin natural) y la regla de ganancia de cadena

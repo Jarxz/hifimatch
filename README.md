@@ -110,12 +110,16 @@ algún momento necesita `fetch`, algo se hizo mal.
    con tests (9 + 5 = 14 tests). `carga.test.ts` lleva como regresión el bug
    real que se encontró y corrigió antes en el prototipo. `sala.test.ts`
    reproduce el vector de `docs/motor-mvp.md` sección 4.
-5. ✅ **Fase 4 — frontend.** `prototipo-frontend.html` ahora importa el motor
-   compilado (`packages/engine/dist/*.js`, generado con `npm run build`) vía
-   `<script type="module">` y llama a `evaluarPotencia`/`evaluarCarga`/
-   `calcularDisposicion` reales en vez de recalcular las fórmulas inline.
-   Verificado extrayendo el adaptador del HTML real y corriéndolo contra el
-   motor compilado real: los vectores documentados coinciden.
+5. ✅ **Fase 4 — frontend.** `prototipo-frontend.html` importa el motor
+   compilado (`packages/engine/dist/cadena-engine.browser.js`, generado con
+   `npm run build`) y llama a `evaluarPotencia`/`evaluarCarga`/
+   `calcularDisposicion` reales en vez de recalcular las fórmulas inline. El
+   primer intento usaba `<script type="module">` — no funciona abriendo el
+   archivo como `file://`, los navegadores basados en Chromium lo bloquean
+   por CORS. Corregido empaquetando el motor en un script clásico sin
+   `import`/`export`. Verificado cargando ese bundle igual que lo haría un
+   navegador (sin ESM) y extrayendo el adaptador del HTML real: los
+   vectores documentados coinciden.
 6. **Fase 5 — ampliar la base de datos** (en curso, sin fin natural). Ya son
    25 equipos en 5 categorías; seguir sumando specs verificados con fuente.
 

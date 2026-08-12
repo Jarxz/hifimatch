@@ -301,15 +301,21 @@
   </div>
 </section>
 
-<script type="module">
-  // El motor real (packages/engine/src/*.ts) compilado a JS de navegador en
-  // packages/engine/dist/ — cero bundler, cero dependencias de runtime.
-  // Regenerar con `npm run build` en packages/engine/ tras tocar el motor.
-  import { evaluarPotencia } from './packages/engine/dist/potencia.js';
-  import { evaluarCarga } from './packages/engine/dist/carga.js';
-  import { calcularDisposicion } from './packages/engine/dist/sala.js';
-  window.CadenaEngine = { evaluarPotencia, evaluarCarga, calcularDisposicion };
-</script>
+<!--
+  El motor real (packages/engine/src/*.ts) compilado y empaquetado en
+  packages/engine/dist/cadena-engine.browser.js — cuelga window.CadenaEngine
+  con evaluarPotencia/evaluarCarga/calcularDisposicion. Regenerar con
+  `npm run build` en packages/engine/ tras tocar el motor.
+
+  A propósito NO es un script de tipo módulo: los navegadores basados en
+  Chromium bloquean por CORS los módulos ES cuando la página se abre como
+  archivo local (file://) en vez de servida por http, y este sitio no tiene
+  servidor — se abre haciendo doble clic. Un script clásico con atributo
+  "src" no tiene esa restricción. Sin "defer": tiene que terminar de correr
+  antes que el script de abajo, que lo usa apenas carga la página (en
+  refresh()).
+-->
+<script src="./packages/engine/dist/cadena-engine.browser.js"></script>
 <script defer>
   if(!Math.log10){ Math.log10=function(x){return Math.log(x)/Math.LN10;}; }
   function nf(x,d){ return x.toFixed(d).replace('.',','); }
