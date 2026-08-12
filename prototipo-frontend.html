@@ -321,7 +321,49 @@
       chips:['8 Ω','86 dB anecoica','100 W','44 Hz–25 kHz'],
       desc:'Tweeter de titanio de 1" en trompa Tractrix sobre woofer Cerametallic de 6,5". La trompa lo hace <b>eficiente y fácil de mover</b>, con impedancia benigna cerca de 8 Ω. Cuidado con el dato: la sensibilidad de fábrica (94,5 dB) es en media-espacio; la anecoica independiente da ~86 dB.',
       sensSrc:'fábrica 94,5 dB en media-espacio; anecoica independiente ~86 dB — se usa la anecoica',
-      nomZ:8, minZ:null, recMin:null, recMax:100 }
+      nomZ:8, minZ:null, recMin:null, recMax:100 },
+    elac:{ name:'ELAC Debut 2.0 B6.2', sens:87, sensConf:'alta',
+      spec:'6 Ω · 87 dB · 30–120 W',
+      type:'Monitor de 2 vías · puerto trasero',
+      chips:['6 Ω','87 dB','30–120 W'],
+      desc:'Tweeter de domo de tela de 1" sobre woofer de fibra de aramida de 6,5". Impedancia nominal de 6 Ω, más exigente que un 8 Ω típico, pero sin una caída mínima medida de forma confiable todavía — <b>la regla de carga no tiene ese dato</b>.',
+      sensSrc:'87 dB/2.83V·m (fábrica); medición independiente (Audio Science Review) 86,6 dB — coinciden',
+      nomZ:6, minZ:null, recMin:30, recMax:120 },
+    wharfedale:{ name:'Wharfedale Diamond 12.1', sens:88, sensConf:'media',
+      spec:'8 Ω · 88 dB · mín 4 Ω · 20–100 W',
+      type:'Monitor de 2 vías · puerto trasero',
+      chips:['8 Ω','88 dB','mín 4 Ω','20–100 W'],
+      desc:'Tweeter textil de 1" sobre woofer Klarity de 5". Impedancia nominal 8 Ω con mínima de 4 Ω — carga moderadamente exigente. No encontramos medición independiente que confirme la sensibilidad de fábrica.',
+      sensSrc:'88 dB/2.83V·m (fábrica); sin medición independiente encontrada',
+      nomZ:8, minZ:4, recMin:20, recMax:100 },
+    bw606:{ name:'Bowers & Wilkins 606 S2 Anniversary Edition', sens:88, sensConf:'media',
+      spec:'8 Ω · 88 dB · mín 3,7 Ω · 30–120 W',
+      type:'Monitor de 2 vías · puerto trasero',
+      chips:['8 Ω','88 dB','mín 3,7 Ω','30–120 W'],
+      desc:'Tweeter de domo sobre woofer Continuum de 6,5". Impedancia mínima de 3,7 Ω según ficha oficial — carga exigente, sin medición independiente publicada de este modelo específico.',
+      sensSrc:'88 dB/2.83V·m (fábrica); sin medición independiente encontrada',
+      nomZ:8, minZ:3.7, recMin:30, recMax:120 },
+    qacoustics:{ name:'Q Acoustics 3020i', sens:88, sensConf:'media',
+      spec:'6 Ω · 88 dB · mín 4 Ω · 25–75 W',
+      type:'Monitor de 2 vías · puerto trasero',
+      chips:['6 Ω','88 dB','mín 4 Ω','25–75 W'],
+      desc:'Domo de 22 mm sobre woofer de 5". Impedancia nominal 6 Ω con mínima de 4 Ω. Rango de potencia recomendada relativamente bajo (25–75 W): pensado para amplificadores modestos.',
+      sensSrc:'88 dB/2.83V·m (fábrica); sin medición independiente encontrada',
+      nomZ:6, minZ:4, recMin:25, recMax:75 },
+    revel:{ name:'Revel Performa3 M106', sens:87, sensConf:'alta',
+      spec:'8 Ω · 87 dB · mín 5,76 Ω · 50–150 W',
+      type:'Monitor de 2 vías · puerto trasero',
+      chips:['8 Ω','87 dB','mín 5,76 Ω','50–150 W'],
+      desc:'Tweeter de titanio sobre woofer de aluminio. Su impedancia mínima medida (5,76 Ω, a 138 Hz y 2400 Hz) es benigna: no baja de forma crítica pese al nominal de 8 Ω.',
+      sensSrc:'87 dB/2.83V·m (fábrica); medición independiente (Stereophile / J. Atkinson) ~86,4 dB(B) — coinciden',
+      nomZ:8, minZ:5.76, recMin:50, recMax:150 },
+    dynaudio:{ name:'Dynaudio Emit 20', sens:86, sensConf:'media',
+      spec:'6 Ω · 86 dB · mín 5,4 Ω · ≥70 W',
+      type:'Monitor de 2 vías · puerto trasero',
+      chips:['6 Ω','86 dB','mín 5,4 Ω','≥70 W'],
+      desc:'Impedancia mínima medida de forma independiente (HiFi Critic / M. Colloms) en 5,4 Ω, a 40 Hz y 170 Hz — carga benigna pese al nominal de 6 Ω. La fábrica recomienda desde 70 W, sin techo publicado.',
+      sensSrc:'86 dB/2.83V·m (fábrica); sin medición independiente de sensibilidad encontrada',
+      nomZ:6, minZ:5.4, recMin:70, recMax:null }
   };
   var AMP = {
     cxa81:{ name:'Cambridge Audio CXA81', spec:'80 W / 8 Ω · 120 W / 4 Ω', p8:80, p4:120,
@@ -331,7 +373,31 @@
     brio:{ name:'Rega Brio', spec:'50 W / 8 Ω · 73 W / 4 Ω · mín 4 Ω', p8:50, p4:73, minLoad:4,
       type:'Integrado Clase AB · con phono',
       chips:['50 W / 8 Ω','73 W / 4 Ω','phono MM','mín 4 Ω'],
-      desc:'50 W en 8 Ω y 73 W en 4 Ω, con impedancia de salida muy baja (buen control del cono). <b>Potencia modesta</b>: rinde mejor con parlantes eficientes o de carga benigna. Incluye previo de phono; no trae DAC.' }
+      desc:'50 W en 8 Ω y 73 W en 4 Ω, con impedancia de salida muy baja (buen control del cono). <b>Potencia modesta</b>: rinde mejor con parlantes eficientes o de carga benigna. Incluye previo de phono; no trae DAC.' },
+    nad:{ name:'NAD C 316BEE V2', spec:'40 W / 8 Ω · 40 W / 4 Ω · mín 2 Ω', p8:40, p4:40,
+      type:'Integrado Clase AB · con phono',
+      chips:['40 W / 8 Ω','40 W / 4 Ω','phono MM','mín 2 Ω'],
+      desc:'40 W tanto en 8 Ω como en 4 Ω — NAD no dobla potencia entre ambas cargas, a diferencia de otros integrados de este rango. Reserva de corriente dinámica (IHF) hasta 2 Ω.' },
+    marantz:{ name:'Marantz PM6007', spec:'45 W / 8 Ω · 60 W / 4 Ω · mín 4 Ω', p8:45, p4:60,
+      type:'Integrado Clase AB · con DAC y phono',
+      chips:['45 W / 8 Ω','60 W / 4 Ω','DAC','phono MM','mín 4 Ω'],
+      desc:'45 W en 8 Ω que suben a 60 W en 4 Ω (reserva 1,3×, no llega al umbral de 1,7× de la regla de carga). Trae DAC integrado y previo de phono MM.' },
+    yamaha:{ name:'Yamaha A-S501', spec:'85 W / 8 Ω · 120 W / 4 Ω* · DAC', p8:85, p4:120,
+      type:'Integrado Clase AB · con DAC y phono',
+      chips:['85 W / 8 Ω','120 W / 4 Ω*','DAC','phono MM'],
+      desc:'85 W en 8 Ω medidos con THD muy bajo (0,019%); el dato de 120 W a 4 Ω usa una condición de medición distinta (1 kHz, 0,7% THD) — no son directamente comparables entre sí.' },
+    denon:{ name:'Denon PMA-600NE', spec:'45 W / 8 Ω · 70 W / 4 Ω · DAC', p8:45, p4:70,
+      type:'Integrado Clase AB · con DAC y phono',
+      chips:['45 W / 8 Ω','70 W / 4 Ω','DAC','phono MM'],
+      desc:'45 W en 8 Ω que suben a 70 W en 4 Ω (reserva 1,56×, por debajo del umbral 1,7×). Trae DAC integrado y previo de phono MM.' },
+    hegel:{ name:'Hegel H95', spec:'60 W / 8 Ω · mín 2 Ω · DAC', p8:60, p4:null,
+      type:'Integrado Clase AB · con DAC',
+      chips:['60 W / 8 Ω','mín 2 Ω','DAC','amort. >2000'],
+      desc:'60 W en 8 Ω (1 kHz, 1% THD). Hegel no publica una potencia continua a 4 Ω — sólo declara carga mínima de 2 Ω, señal de una etapa de salida con reserva de corriente aunque sin el dato formal a 4 Ω.' },
+    arcam:{ name:'Arcam A5 (Radia)', spec:'50 W / 8 Ω · 75 W / 4 Ω · phono', p8:50, p4:75,
+      type:'Integrado Clase AB · con phono',
+      chips:['50 W / 8 Ω','75 W / 4 Ω','phono MM'],
+      desc:'50 W en 8 Ω que suben a 75 W en 4 Ω (reserva 1,5×, por debajo del umbral 1,7×). Trae previo de phono MM; no incluye DAC.' }
   };
   var LVL = { mod:{t:'Moderado', peak:90}, alto:{t:'Alto', peak:100}, ref:{t:'Referencia', peak:105} };
 
@@ -513,7 +579,10 @@
         zt.innerHTML='La impedancia baja a <b>'+nf(spk.minZ,1)+' Ω</b>, una carga exigente, pero este amplificador tiene reserva de corriente (casi dobla su potencia a 4 Ω) y la controla.';
         zf.className='flag hidden'; }
       else if(hard){ zv.className='verdict ok'; zv.textContent='Cubierto';
-        zt.innerHTML='La impedancia baja a <b>'+nf(spk.minZ,1)+' Ω</b>, una carga exigente, pero este amplificador entrega suficiente potencia (≥60 W en 8 Ω) como para controlarla, aunque no hay dato de cuánto sube su potencia a 4 Ω.';
+        var razonPotente = (amp.p4!=null)
+          ? ('aunque su reserva a 4 Ω ('+nf(amp.p4/amp.p8,1)+'×) no llega al umbral de 1,7×, entrega suficiente potencia (≥60 W en 8 Ω) como para controlarla.')
+          : ('no hay dato de cuánto sube su potencia a 4 Ω, pero entrega suficiente potencia (≥60 W en 8 Ω) como para controlarla.');
+        zt.innerHTML='La impedancia baja a <b>'+nf(spk.minZ,1)+' Ω</b>, una carga exigente, pero este amplificador '+razonPotente;
         zf.className='flag hidden'; }
       else{ zv.className='verdict ok'; zv.textContent='Carga benigna';
         zt.innerHTML='La impedancia se mantiene alta; es una carga fácil para cualquier amplificador.';
