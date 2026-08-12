@@ -22,9 +22,11 @@ export const RATIO_BRIDGING_OK = 10;
  * preguntar en vez de inventarla. */
 export const UMBRAL_RECORRIDO = 10;
 
+export type CodigoPuenteImpedancias = 'sin-dato' | 'puente-correcto' | 'puente-ajustado' | 'puente-insuficiente';
+
 export interface ResultadoPuenteImpedancias {
   severidad: Severidad; // 'sin-datos' si falta algún dato de impedancia; si no, 'ok' | 'warn' | 'alert'
-  etiqueta: 'Sin dato' | 'Puente correcto' | 'Puente ajustado' | 'Puente insuficiente';
+  codigo: CodigoPuenteImpedancias;
   ratioZ: number | null; // null cuando severidad es 'sin-datos'
   // NOTA: igual que carga.ts, el esquema actual no lleva confianza por campo
   // en Amplificador.impedanciaEntradaOhm — sólo Fuente tiene un único
@@ -38,23 +40,25 @@ export function evaluarPuenteImpedancias(
   amplificador: Amplificador
 ): ResultadoPuenteImpedancias {
   if (fuente.impedanciaSalidaOhm === null || amplificador.impedanciaEntradaOhm === null) {
-    return { severidad: 'sin-datos', etiqueta: 'Sin dato', ratioZ: null };
+    return { severidad: 'sin-datos', codigo: 'sin-dato', ratioZ: null };
   }
 
   const ratioZ = amplificador.impedanciaEntradaOhm / fuente.impedanciaSalidaOhm;
 
   if (ratioZ >= RATIO_BRIDGING_OK) {
-    return { severidad: 'ok', etiqueta: 'Puente correcto', ratioZ };
+    return { severidad: 'ok', codigo: 'puente-correcto', ratioZ };
   }
   if (ratioZ >= 1) {
-    return { severidad: 'warn', etiqueta: 'Puente ajustado', ratioZ };
+    return { severidad: 'warn', codigo: 'puente-ajustado', ratioZ };
   }
-  return { severidad: 'alert', etiqueta: 'Puente insuficiente', ratioZ };
+  return { severidad: 'alert', codigo: 'puente-insuficiente', ratioZ };
 }
+
+export type CodigoRecorridoVolumen = 'sin-dato' | 'insuficiente' | 'recorrido-sano' | 'recorrido-corto';
 
 export interface ResultadoRecorridoVolumen {
   severidad: Severidad; // 'sin-datos' si falta algún dato de tensión; si no, 'ok' | 'warn' | 'alert'
-  etiqueta: 'Sin dato' | 'Insuficiente' | 'Recorrido de volumen sano' | 'Recorrido corto';
+  codigo: CodigoRecorridoVolumen;
   margenV: number | null; // null cuando severidad es 'sin-datos'
   // Mismo motivo que ResultadoPuenteImpedancias: sin `confianza` declarado.
 }
@@ -64,16 +68,16 @@ export function evaluarRecorridoVolumen(
   amplificador: Amplificador
 ): ResultadoRecorridoVolumen {
   if (fuente.salidaV === null || amplificador.sensEntradaMv === null) {
-    return { severidad: 'sin-datos', etiqueta: 'Sin dato', margenV: null };
+    return { severidad: 'sin-datos', codigo: 'sin-dato', margenV: null };
   }
 
   const margenV = fuente.salidaV / (amplificador.sensEntradaMv / 1000);
 
   if (margenV < 1) {
-    return { severidad: 'alert', etiqueta: 'Insuficiente', margenV };
+    return { severidad: 'alert', codigo: 'insuficiente', margenV };
   }
   if (margenV <= UMBRAL_RECORRIDO) {
-    return { severidad: 'ok', etiqueta: 'Recorrido de volumen sano', margenV };
+    return { severidad: 'ok', codigo: 'recorrido-sano', margenV };
   }
-  return { severidad: 'warn', etiqueta: 'Recorrido corto', margenV };
+  return { severidad: 'warn', codigo: 'recorrido-corto', margenV };
 }

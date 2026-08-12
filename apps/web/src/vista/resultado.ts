@@ -8,13 +8,20 @@
  * Paso 4: sitio sólo en español, mismo texto que tenía
  * prototipo-frontend.html salvo donde la redacción cambió porque la fuente
  * del dato cambió de forma (ver packages/data: `fuente` es una cita corta,
- * ya no la oración larga que hoy vive en `nota`). El Paso 5 cambia el
- * insumo (el motor deja de emitir `etiqueta`/`avisos` en prosa) sin tocar
- * la forma de este archivo; el Paso 6 le agrega el parámetro de idioma.
+ * ya no la oración larga que hoy vive en `nota`).
+ *
+ * Paso 5: el motor ya no emite `etiqueta`/`avisos` en prosa — devuelve
+ * `codigo` (una unión de literales) y, en potencia.ts, `avisos` con los
+ * números en crudo (`AvisoPotencia`). Las cuatro tablas TEXTO_* de abajo
+ * son la traducción código→texto, hoy fija en español; el Paso 6 las
+ * reemplaza por los diccionarios de `idioma/es.ts` y `idioma/en.ts` — el
+ * resto de este archivo no cambia de forma, sólo de dónde saca el texto.
  */
-import type { ResultadoPotencia } from '../../../../packages/engine/src/potencia.ts';
-import type { ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
+import type { CodigoPotencia, AvisoPotencia, ResultadoPotencia } from '../../../../packages/engine/src/potencia.ts';
+import type { CodigoCarga, ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
 import type {
+  CodigoPuenteImpedancias,
+  CodigoRecorridoVolumen,
   ResultadoPuenteImpedancias,
   ResultadoRecorridoVolumen,
 } from '../../../../packages/engine/src/ganancia.ts';
@@ -24,6 +31,37 @@ import { num, numConSigno } from '../formato/numeros.ts';
 import { IDIOMA_PROVISIONAL as IDIOMA } from '../idioma-provisional.ts';
 
 export type ClaseVerdicto = 'ok' | 'warn' | 'alert' | 'dim';
+
+const TEXTO_POTENCIA: Record<CodigoPotencia, string> = {
+  'con-margen': 'Con margen',
+  justo: 'Justo',
+  insuficiente: 'Insuficiente',
+};
+
+const TEXTO_CARGA: Record<CodigoCarga, string> = {
+  'sin-dato': 'Sin dato',
+  'exige-corriente': 'Exige corriente',
+  cubierto: 'Cubierto',
+  'carga-benigna': 'Carga benigna',
+};
+
+const TEXTO_PUENTE: Record<CodigoPuenteImpedancias, string> = {
+  'sin-dato': 'Sin dato',
+  'puente-correcto': 'Puente correcto',
+  'puente-ajustado': 'Puente ajustado',
+  'puente-insuficiente': 'Puente insuficiente',
+};
+
+const TEXTO_RECORRIDO: Record<CodigoRecorridoVolumen, string> = {
+  'sin-dato': 'Sin dato',
+  insuficiente: 'Insuficiente',
+  'recorrido-sano': 'Recorrido de volumen sano',
+  'recorrido-corto': 'Recorrido corto',
+};
+
+function textoAvisoPotencia(a: AvisoPotencia): string {
+  return `El fabricante recomienda desde ${num(a.recomendadaW, 0, IDIOMA)} W para este parlante; el amplificador entrega ${num(a.entregadaW, 0, IDIOMA)} W.`;
+}
 
 export interface ModeloTarjetaPotencia {
   verdictoClase: ClaseVerdicto;
@@ -66,7 +104,7 @@ export function modeloPotencia(
     `objetivo en pico (${nivelMinuscula}) = <b>${num(picoObjetivoDb, 0, IDIOMA)} dB</b><br>` +
     `margen = ${num(r.splDisponibleDb, 1, IDIOMA)} − ${num(picoObjetivoDb, 0, IDIOMA)} = <b>${numConSigno(r.margenDb, 1, IDIOMA)} dB</b>`;
 
-  const avisoHtml = r.avisos.length > 0 ? r.avisos[0]! : null;
+  const avisoHtml = r.avisos.length > 0 ? textoAvisoPotencia(r.avisos[0]!) : null;
 
   const fuenteHtml =
     `<b>Fuente sensibilidad:</b> ${spk.sensibilidadDb.fuente[IDIOMA]}` +
@@ -77,7 +115,7 @@ export function modeloPotencia(
 
   return {
     verdictoClase: r.severidad,
-    verdictoTexto: r.etiqueta,
+    verdictoTexto: TEXTO_POTENCIA[r.codigo],
     margenDb: r.margenDb,
     textoHtml,
     calcHtml,
@@ -101,7 +139,7 @@ export function modeloCarga(spk: ParlanteCat, amp: AmplificadorCat, r: Resultado
     return {
       sinDatos: true,
       verdictoClase: 'dim',
-      verdictoTexto: r.etiqueta,
+      verdictoTexto: TEXTO_CARGA[r.codigo],
       textoHtml:
         'No hay una medición precisa de la impedancia mínima de este parlante. Las mediciones ' +
         'independientes no reportan caídas críticas, pero <b>sin el dato no se afirma que sea una carga fácil</b>.',
@@ -143,7 +181,7 @@ export function modeloCarga(spk: ParlanteCat, amp: AmplificadorCat, r: Resultado
   return {
     sinDatos: false,
     verdictoClase: r.severidad,
-    verdictoTexto: r.etiqueta,
+    verdictoTexto: TEXTO_CARGA[r.codigo],
     textoHtml,
     avisoHtml,
     avisoEsSinDatos: false,
@@ -167,7 +205,7 @@ export function modeloPuente(fuente: FuenteCat, amp: AmplificadorCat, r: Resulta
     return {
       sinDatos: true,
       verdictoClase: 'dim',
-      verdictoTexto: r.etiqueta,
+      verdictoTexto: TEXTO_PUENTE[r.codigo],
       textoHtml: `Falta la impedancia de salida de <b>${fuente.nombre}</b> o la de entrada de <b>${amp.nombre}</b>. Sin ambos datos no se afirma que el puente sea correcto.`,
       calcHtml: '',
       avisoHtml: 'Un dato faltante no se cuenta como aprobado. <b>Pendiente:</b> impedancia de salida de la fuente o de entrada del amplificador.',
@@ -197,7 +235,7 @@ export function modeloPuente(fuente: FuenteCat, amp: AmplificadorCat, r: Resulta
   return {
     sinDatos: false,
     verdictoClase: r.severidad,
-    verdictoTexto: r.etiqueta,
+    verdictoTexto: TEXTO_PUENTE[r.codigo],
     textoHtml,
     calcHtml,
     avisoHtml,
@@ -222,7 +260,7 @@ export function modeloRecorrido(fuente: FuenteCat, amp: AmplificadorCat, r: Resu
     return {
       sinDatos: true,
       verdictoClase: 'dim',
-      verdictoTexto: r.etiqueta,
+      verdictoTexto: TEXTO_RECORRIDO[r.codigo],
       textoHtml: `Falta el voltaje de salida de <b>${fuente.nombre}</b> o la sensibilidad de entrada de <b>${amp.nombre}</b>.`,
       calcHtml: '',
       avisoHtml: 'Un dato faltante no se cuenta como aprobado. <b>Pendiente:</b> voltaje de salida de la fuente o sensibilidad de entrada del amplificador.',
@@ -253,7 +291,7 @@ export function modeloRecorrido(fuente: FuenteCat, amp: AmplificadorCat, r: Resu
   return {
     sinDatos: false,
     verdictoClase: r.severidad,
-    verdictoTexto: r.etiqueta,
+    verdictoTexto: TEXTO_RECORRIDO[r.codigo],
     textoHtml,
     calcHtml,
     avisoHtml,

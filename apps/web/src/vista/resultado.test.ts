@@ -33,7 +33,8 @@ test('modeloPotencia: severidad "ok" → verdictoClase "ok", nunca "alert"/"dim"
   const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto');
   const m = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100);
   assert.equal(m.verdictoClase, 'ok');
-  assert.equal(m.verdictoTexto, r.etiqueta);
+  assert.equal(r.codigo, 'con-margen');
+  assert.equal(m.verdictoTexto, 'Con margen');
   assert.match(m.textoHtml, /Alcanza con holgura/);
 });
 

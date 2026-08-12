@@ -38,21 +38,21 @@ test('§2 Vector A — Klipsch + Cambridge CXA81, 2,5 m, alto: margen +6,07 → 
   assert.ok(Math.abs(r.splDisponibleDb - 106.07) < EPS);
   assert.ok(Math.abs(r.margenDb - 6.07) < EPS);
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Con margen');
+  assert.equal(r.codigo, 'con-margen');
 });
 
 test('§2 Vector B — KEF + Rega Brio, 3,0 m, alto: margen +1,45 → Justo', () => {
   const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'alto');
   assert.ok(Math.abs(r.margenDb - 1.45) < EPS);
   assert.equal(r.severidad, 'warn');
-  assert.equal(r.etiqueta, 'Justo');
+  assert.equal(r.codigo, 'justo');
 });
 
 test('§2 Vector C — KEF + Rega Brio, 3,0 m, referencia: margen −3,55 → Insuficiente', () => {
   const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'referencia');
   assert.ok(Math.abs(r.margenDb - -3.55) < EPS);
   assert.equal(r.severidad, 'alert');
-  assert.equal(r.etiqueta, 'Insuficiente');
+  assert.equal(r.codigo, 'insuficiente');
 });
 
 // ---- motor-mvp.md sección 3 (carga) ----
@@ -60,19 +60,19 @@ test('§2 Vector C — KEF + Rega Brio, 3,0 m, referencia: margen −3,55 → In
 test('§3 KEF (minZ 3,5) + Cambridge CXA81 (80/120): dura, potente → Cubierto', () => {
   const r = evaluarCarga(parlante('kef-ls50-meta'), amplificador('cambridge-cxa81'));
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Cubierto');
+  assert.equal(r.codigo, 'cubierto');
 });
 
 test('§3 KEF (minZ 3,5) + Rega Brio (50/73): dura, reserva 1,46<1,7, no potente → Exige corriente', () => {
   const r = evaluarCarga(parlante('kef-ls50-meta'), amplificador('rega-brio'));
   assert.equal(r.severidad, 'warn');
-  assert.equal(r.etiqueta, 'Exige corriente');
+  assert.equal(r.codigo, 'exige-corriente');
 });
 
 test('§3 Klipsch (minZ null) + cualquier ampli → Sin dato', () => {
   const r = evaluarCarga(parlante('klipsch-rp600m-ii'), amplificador('cambridge-cxa81'));
   assert.equal(r.severidad, 'sin-datos');
-  assert.equal(r.etiqueta, 'Sin dato');
+  assert.equal(r.codigo, 'sin-dato');
 });
 
 // ---- motor-mvp.md sección 6.3 (ganancia de cadena) ----
@@ -80,29 +80,29 @@ test('§3 Klipsch (minZ null) + cualquier ampli → Sin dato', () => {
 test('§6 A — Topping E30 II → Cambridge CXA81: Puente correcto, Recorrido sano', () => {
   const z = evaluarPuenteImpedancias(fuente('topping-e30-ii'), amplificador('cambridge-cxa81'));
   const v = evaluarRecorridoVolumen(fuente('topping-e30-ii'), amplificador('cambridge-cxa81'));
-  assert.equal(z.etiqueta, 'Puente correcto');
-  assert.equal(v.etiqueta, 'Recorrido de volumen sano');
+  assert.equal(z.codigo, 'puente-correcto');
+  assert.equal(v.codigo, 'recorrido-sano');
 });
 
 test('§6 B — Schiit Modi+ → Denon PMA-600NE: Puente correcto, Recorrido corto (caso más exigente)', () => {
   const z = evaluarPuenteImpedancias(fuente('schiit-modi-plus'), amplificador('denon-pma600ne'));
   const v = evaluarRecorridoVolumen(fuente('schiit-modi-plus'), amplificador('denon-pma600ne'));
-  assert.equal(z.etiqueta, 'Puente correcto');
-  assert.equal(v.etiqueta, 'Recorrido corto');
+  assert.equal(z.codigo, 'puente-correcto');
+  assert.equal(v.codigo, 'recorrido-corto');
 });
 
 test('§6 C — Bluesound Node → Rega Brio: Puente correcto, Recorrido corto', () => {
   const z = evaluarPuenteImpedancias(fuente('bluesound-node-n130'), amplificador('rega-brio'));
   const v = evaluarRecorridoVolumen(fuente('bluesound-node-n130'), amplificador('rega-brio'));
-  assert.equal(z.etiqueta, 'Puente correcto');
-  assert.equal(v.etiqueta, 'Recorrido corto');
+  assert.equal(z.codigo, 'puente-correcto');
+  assert.equal(v.codigo, 'recorrido-corto');
 });
 
 test('§6 D — NAD C316BEE V2 (sin impedanciaEntradaOhm) + Schiit Modi+: sin-datos en puente, recorrido corre igual', () => {
   const z = evaluarPuenteImpedancias(fuente('schiit-modi-plus'), amplificador('nad-c316bee-v2'));
   const v = evaluarRecorridoVolumen(fuente('schiit-modi-plus'), amplificador('nad-c316bee-v2'));
   assert.equal(z.severidad, 'sin-datos');
-  assert.equal(v.etiqueta, 'Recorrido de volumen sano');
+  assert.equal(v.codigo, 'recorrido-sano');
 });
 
 test('§6 E — Cambridge CXN V2 (sin salidaV ni impedanciaSalidaOhm) + cualquier ampli: sin-datos en ambas', () => {

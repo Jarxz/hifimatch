@@ -14,9 +14,11 @@ export const RATIO_RESERVA = 1.7;
  * incluso sin dato de reserva a 4 Ω. Declarado como supuesto del modelo. */
 export const POTENCIA_RESUELVE_W = 60;
 
+export type CodigoCarga = 'sin-dato' | 'exige-corriente' | 'cubierto' | 'carga-benigna';
+
 export interface ResultadoCarga {
   severidad: Severidad; // 'sin-datos' si impedanciaMinOhm es null; si no, 'ok' | 'warn'
-  etiqueta: 'Sin dato' | 'Exige corriente' | 'Cubierto' | 'Carga benigna';
+  codigo: CodigoCarga;
   dura: boolean | null; // null cuando severidad es 'sin-datos'
   reserva: boolean | null;
   potente: boolean | null;
@@ -30,7 +32,7 @@ export function evaluarCarga(parlante: Parlante, amplificador: Amplificador): Re
   if (parlante.impedanciaMinOhm === null) {
     return {
       severidad: 'sin-datos',
-      etiqueta: 'Sin dato',
+      codigo: 'sin-dato',
       dura: null,
       reserva: null,
       potente: null,
@@ -45,10 +47,10 @@ export function evaluarCarga(parlante: Parlante, amplificador: Amplificador): Re
   const resuelta = reserva || potente;
 
   if (dura && !resuelta) {
-    return { severidad: 'warn', etiqueta: 'Exige corriente', dura, reserva, potente };
+    return { severidad: 'warn', codigo: 'exige-corriente', dura, reserva, potente };
   }
   if (dura && resuelta) {
-    return { severidad: 'ok', etiqueta: 'Cubierto', dura, reserva, potente };
+    return { severidad: 'ok', codigo: 'cubierto', dura, reserva, potente };
   }
-  return { severidad: 'ok', etiqueta: 'Carga benigna', dura, reserva, potente };
+  return { severidad: 'ok', codigo: 'carga-benigna', dura, reserva, potente };
 }

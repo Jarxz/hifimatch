@@ -21,13 +21,24 @@ export const PICO_OBJETIVO_DB: Record<NivelEscucha, number> = {
 export const SUMA_PAR_DB = 6;
 export const GANANCIA_SALA_DB = 3;
 
+export type CodigoPotencia = 'con-margen' | 'justo' | 'insuficiente';
+
+/** El fabricante recomienda desde `recomendadaW` para este parlante; el
+ * amplificador entrega `entregadaW`. El motor no redacta la frase — sólo
+ * los números — para no fijar el idioma en el producto; ver CLAUDE.md. */
+export interface AvisoPotencia {
+  codigo: 'bajo-potencia-recomendada';
+  recomendadaW: number;
+  entregadaW: number;
+}
+
 export interface ResultadoPotencia {
   splDisponibleDb: number;
   margenDb: number;
   severidad: 'ok' | 'warn' | 'alert';
-  etiqueta: string;
+  codigo: CodigoPotencia;
   confianza: Confianza;
-  avisos: string[];
+  avisos: AvisoPotencia[];
 }
 
 export function evaluarPotencia(
@@ -46,27 +57,28 @@ export function evaluarPotencia(
   const margenDb = splDisponibleDb - PICO_OBJETIVO_DB[nivel];
 
   let severidad: ResultadoPotencia['severidad'];
-  let etiqueta: string;
+  let codigo: CodigoPotencia;
   if (margenDb >= 3) {
     severidad = 'ok';
-    etiqueta = 'Con margen';
+    codigo = 'con-margen';
   } else if (margenDb >= 0) {
     severidad = 'warn';
-    etiqueta = 'Justo';
+    codigo = 'justo';
   } else {
     severidad = 'alert';
-    etiqueta = 'Insuficiente';
+    codigo = 'insuficiente';
   }
 
-  const avisos: string[] = [];
+  const avisos: AvisoPotencia[] = [];
   if (
     parlante.potenciaRecMinW !== null &&
     amplificador.potencia8OhmW.valor < parlante.potenciaRecMinW
   ) {
-    avisos.push(
-      `El fabricante recomienda desde ${parlante.potenciaRecMinW} W para este parlante; ` +
-        `el amplificador entrega ${amplificador.potencia8OhmW.valor} W.`
-    );
+    avisos.push({
+      codigo: 'bajo-potencia-recomendada',
+      recomendadaW: parlante.potenciaRecMinW,
+      entregadaW: amplificador.potencia8OhmW.valor,
+    });
   }
 
   const confianza = peorConfianza(
@@ -74,5 +86,5 @@ export function evaluarPotencia(
     amplificador.potencia8OhmW.confianza
   );
 
-  return { splDisponibleDb, margenDb, severidad, etiqueta, confianza, avisos };
+  return { splDisponibleDb, margenDb, severidad, codigo, confianza, avisos };
 }

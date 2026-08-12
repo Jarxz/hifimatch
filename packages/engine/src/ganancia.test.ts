@@ -102,46 +102,46 @@ const hegel: Amplificador = {
 test('A · Topping E30 II → Cambridge CXA81: ratioZ=2150 → Puente correcto; margenV=5,68 → Recorrido sano', () => {
   const z = evaluarPuenteImpedancias(toppingE30ii, cambridgeCxa81);
   assert.equal(z.severidad, 'ok');
-  assert.equal(z.etiqueta, 'Puente correcto');
+  assert.equal(z.codigo, 'puente-correcto');
   assert.ok(Math.abs((z.ratioZ as number) - 2150) < 0.01);
 
   const v = evaluarRecorridoVolumen(toppingE30ii, cambridgeCxa81);
   assert.equal(v.severidad, 'ok');
-  assert.equal(v.etiqueta, 'Recorrido de volumen sano');
+  assert.equal(v.codigo, 'recorrido-sano');
   assert.ok(Math.abs((v.margenV as number) - 5.6757) < 0.01);
 });
 
 test('B · Schiit Modi+ → Denon PMA-600NE: ratioZ=400 → Puente correcto; margenV=18,18 → Recorrido corto (caso más exigente)', () => {
   const z = evaluarPuenteImpedancias(schiitModiPlus, denon);
   assert.equal(z.severidad, 'ok');
-  assert.equal(z.etiqueta, 'Puente correcto');
+  assert.equal(z.codigo, 'puente-correcto');
 
   const v = evaluarRecorridoVolumen(schiitModiPlus, denon);
   assert.equal(v.severidad, 'warn');
-  assert.equal(v.etiqueta, 'Recorrido corto');
+  assert.equal(v.codigo, 'recorrido-corto');
   assert.ok(Math.abs((v.margenV as number) - 18.1818) < 0.01);
 });
 
 test('C · Bluesound Node → Rega Brio: ratioZ=94 → Puente correcto; margenV=10,48 → Recorrido corto', () => {
   const z = evaluarPuenteImpedancias(bluesoundNode, rega);
   assert.equal(z.severidad, 'ok');
-  assert.equal(z.etiqueta, 'Puente correcto');
+  assert.equal(z.codigo, 'puente-correcto');
 
   const v = evaluarRecorridoVolumen(bluesoundNode, rega);
   assert.equal(v.severidad, 'warn');
-  assert.equal(v.etiqueta, 'Recorrido corto');
+  assert.equal(v.codigo, 'recorrido-corto');
   assert.ok(Math.abs((v.margenV as number) - 10.4762) < 0.01);
 });
 
 test('D · NAD C316BEE V2 (impedanciaEntradaOhm null) + Schiit Modi+: sin-datos en puente, pero recorrido corre igual (dato parcial)', () => {
   const z = evaluarPuenteImpedancias(schiitModiPlus, nad);
   assert.equal(z.severidad, 'sin-datos');
-  assert.equal(z.etiqueta, 'Sin dato');
+  assert.equal(z.codigo, 'sin-dato');
   assert.equal(z.ratioZ, null);
 
   const v = evaluarRecorridoVolumen(schiitModiPlus, nad);
   assert.equal(v.severidad, 'ok');
-  assert.equal(v.etiqueta, 'Recorrido de volumen sano');
+  assert.equal(v.codigo, 'recorrido-sano');
   assert.ok(Math.abs((v.margenV as number) - 10) < 0.001); // margenV=10 exacto, límite cerrado por arriba
 });
 
@@ -171,7 +171,7 @@ test('G (sintético) · fuente de 50 mV → Denon PMA-600NE (110 mV): margenV=0,
   };
   const v = evaluarRecorridoVolumen(fuenteDebil, denon);
   assert.equal(v.severidad, 'alert');
-  assert.equal(v.etiqueta, 'Insuficiente');
+  assert.equal(v.codigo, 'insuficiente');
   assert.ok(Math.abs((v.margenV as number) - 0.4545) < 0.01);
 });
 
@@ -191,7 +191,7 @@ test('H (sintético) · fuente con impedanciaSalidaOhm=15000 → ampli con imped
   };
   const z = evaluarPuenteImpedancias(fuenteAltaZ, ampBajaZEntrada);
   assert.equal(z.severidad, 'alert');
-  assert.equal(z.etiqueta, 'Puente insuficiente');
+  assert.equal(z.codigo, 'puente-insuficiente');
   assert.ok(Math.abs((z.ratioZ as number) - 0.6667) < 0.01);
 });
 
@@ -199,19 +199,19 @@ test('límite exacto ratioZ=10 cuenta como "correcto" (≥10, cerrado por abajo)
   const fuenteLimite: Fuente = { ...toppingE30ii, impedanciaSalidaOhm: 4300 }; // 43000/4300 = 10 exacto
   const z = evaluarPuenteImpedancias(fuenteLimite, cambridgeCxa81);
   assert.equal(z.severidad, 'ok');
-  assert.equal(z.etiqueta, 'Puente correcto');
+  assert.equal(z.codigo, 'puente-correcto');
 });
 
 test('límite exacto ratioZ=1 cuenta como "ajustado" (≥1, cerrado por abajo)', () => {
   const fuenteLimite: Fuente = { ...toppingE30ii, impedanciaSalidaOhm: 43000 }; // ratio 1 exacto
   const z = evaluarPuenteImpedancias(fuenteLimite, cambridgeCxa81);
   assert.equal(z.severidad, 'warn');
-  assert.equal(z.etiqueta, 'Puente ajustado');
+  assert.equal(z.codigo, 'puente-ajustado');
 });
 
 test('límite exacto margenV=1 cuenta como "sano" (≥1, cerrado por abajo)', () => {
   const fuenteLimite: Fuente = { ...toppingE30ii, salidaV: 0.37 }; // 0.37/0.37 = 1 exacto
   const v = evaluarRecorridoVolumen(fuenteLimite, cambridgeCxa81);
   assert.equal(v.severidad, 'ok');
-  assert.equal(v.etiqueta, 'Recorrido de volumen sano');
+  assert.equal(v.codigo, 'recorrido-sano');
 });

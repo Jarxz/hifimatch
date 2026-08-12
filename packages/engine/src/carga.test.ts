@@ -51,20 +51,20 @@ const rega: Amplificador = {
 test('KEF (minZ 3,5) + Cambridge CXA81 (80/120): dura, potente (80≥60) → Cubierto', () => {
   const r = evaluarCarga(kef, cambridge);
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Cubierto');
+  assert.equal(r.codigo, 'cubierto');
 });
 
 test('KEF (minZ 3,5) + Rega Brio (50/73): dura, reserva 1,46<1,7, no potente (50<60) → Exige corriente', () => {
   const r = evaluarCarga(kef, rega);
   assert.equal(r.severidad, 'warn');
-  assert.equal(r.etiqueta, 'Exige corriente');
+  assert.equal(r.codigo, 'exige-corriente');
 });
 
 test('Klipsch (minZ null) + cualquier ampli → Sin dato', () => {
   const r1 = evaluarCarga(klipsch, cambridge);
   const r2 = evaluarCarga(klipsch, rega);
   assert.equal(r1.severidad, 'sin-datos');
-  assert.equal(r1.etiqueta, 'Sin dato');
+  assert.equal(r1.codigo, 'sin-dato');
   assert.equal(r2.severidad, 'sin-datos');
 });
 
@@ -83,7 +83,7 @@ test('regresión: ampli de 55W sin dato a 4Ω, especie dura → Exige corriente 
   };
   const r = evaluarCarga(kef, ampMediocre);
   assert.equal(r.severidad, 'warn');
-  assert.equal(r.etiqueta, 'Exige corriente');
+  assert.equal(r.codigo, 'exige-corriente');
 });
 
 test('reserva de corriente resuelve una carga dura aunque la potencia bruta sea baja', () => {
@@ -100,7 +100,7 @@ test('reserva de corriente resuelve una carga dura aunque la potencia bruta sea 
   };
   const r = evaluarCarga(kef, ampReserva);
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Cubierto');
+  assert.equal(r.codigo, 'cubierto');
 });
 
 test('impedancia mínima > 4Ω es carga benigna sin importar el ampli', () => {
@@ -112,21 +112,21 @@ test('impedancia mínima > 4Ω es carga benigna sin importar el ampli', () => {
   };
   const r = evaluarCarga(parlanteBenigno, ampDebil);
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Carga benigna');
+  assert.equal(r.codigo, 'carga-benigna');
 });
 
 test('límite exacto minZ=4 cuenta como "dura" (≤4, cerrado por abajo)', () => {
   const parlanteLimite: Parlante = { ...kef, impedanciaMinOhm: 4 };
   const r = evaluarCarga(parlanteLimite, rega); // rega no resuelve (50<60, ratio 1.46<1.7)
   assert.equal(r.severidad, 'warn');
-  assert.equal(r.etiqueta, 'Exige corriente');
+  assert.equal(r.codigo, 'exige-corriente');
 });
 
 test('límite exacto p8=60 cuenta como "potente" (≥60, cerrado por abajo)', () => {
   const ampLimite: Amplificador = { ...rega, potencia8OhmW: { valor: 60, fuente: 'test', confianza: 'alta' }, potencia4OhmW: null };
   const r = evaluarCarga(kef, ampLimite);
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Cubierto');
+  assert.equal(r.codigo, 'cubierto');
 });
 
 test('límite exacto ratio p4/p8=1.7 cuenta como "reserva" (≥1.7, cerrado por abajo)', () => {
@@ -137,5 +137,5 @@ test('límite exacto ratio p4/p8=1.7 cuenta como "reserva" (≥1.7, cerrado por 
   };
   const r = evaluarCarga(kef, ampLimite);
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Cubierto');
+  assert.equal(r.codigo, 'cubierto');
 });

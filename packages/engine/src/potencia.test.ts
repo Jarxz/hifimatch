@@ -55,7 +55,7 @@ test('Vector A — Klipsch + Cambridge CXA81, 2.5m, alto: margen +6,07 → Con m
   assert.ok(Math.abs(r.splDisponibleDb - 106.07) < EPS);
   assert.ok(Math.abs(r.margenDb - 6.07) < EPS);
   assert.equal(r.severidad, 'ok');
-  assert.equal(r.etiqueta, 'Con margen');
+  assert.equal(r.codigo, 'con-margen');
   // confianza: peor(media de sensibilidad, alta de potencia) = media
   assert.equal(r.confianza, 'media');
 });
@@ -65,7 +65,7 @@ test('Vector B — KEF + Rega Brio, 3.0m, alto: margen +1,45 → Justo', () => {
   assert.ok(Math.abs(r.splDisponibleDb - 101.45) < EPS);
   assert.ok(Math.abs(r.margenDb - 1.45) < EPS);
   assert.equal(r.severidad, 'warn');
-  assert.equal(r.etiqueta, 'Justo');
+  assert.equal(r.codigo, 'justo');
   assert.equal(r.confianza, 'alta');
 });
 
@@ -73,7 +73,7 @@ test('Vector C — KEF + Rega Brio, 3.0m, referencia: margen −3,55 → Insufic
   const r = evaluarPotencia(kef, rega, 3.0, 'referencia');
   assert.ok(Math.abs(r.margenDb - -3.55) < EPS);
   assert.equal(r.severidad, 'alert');
-  assert.equal(r.etiqueta, 'Insuficiente');
+  assert.equal(r.codigo, 'insuficiente');
 });
 
 test('Rega Brio (50W) no dispara aviso de potenciaRecMinW de KEF (40W): 50 ≥ 40', () => {
@@ -95,7 +95,7 @@ test('aviso extra: amplificador por debajo de potenciaRecMinW del parlante', () 
   // KEF pide desde 40W (potenciaRecMinW); este ampli da 30W < 40W.
   const r = evaluarPotencia(kef, ampSubpotente, 2.5, 'moderado');
   assert.equal(r.avisos.length, 1);
-  assert.match(r.avisos[0]!, /40/);
+  assert.deepEqual(r.avisos[0], { codigo: 'bajo-potencia-recomendada', recomendadaW: 40, entregadaW: 30 });
 });
 
 test('límite exacto margen=3 cae en "ok", no en "warn" (frontera cerrada por arriba)', () => {
