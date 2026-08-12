@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
-import { fileURLToPath } from 'node:url';
 
 /**
  * El sitio tiene que poder abrirse por doble clic (file://), además de
@@ -16,16 +15,17 @@ import { fileURLToPath } from 'node:url';
  * de alguna forma sobrevive un <script src> o <link href> externo — no
  * confiar ciegamente en que el plugin siga haciendo esto en versiones
  * futuras (ver docs/despliegue.md).
+ *
+ * Sin alias hacia packages/engine o packages/data a propósito: un alias de
+ * Vite (`@engine/...`) no lo entiende `node --test`, que resuelve módulos
+ * como Node puro. Import relativo con extensión .ts en todo apps/web/src,
+ * igual convención que ya usan packages/engine y packages/data — así los
+ * mismos archivos corren bajo Vite (dev/build) y bajo Node (tests) sin
+ * ninguna diferencia de sintaxis entre uno y otro.
  */
 export default defineConfig({
   base: './',
   plugins: [viteSingleFile()],
-  resolve: {
-    alias: {
-      '@engine': fileURLToPath(new URL('../../packages/engine/src', import.meta.url)),
-      '@data': fileURLToPath(new URL('../../packages/data/src', import.meta.url)),
-    },
-  },
   build: {
     target: 'es2022',
     outDir: 'dist',

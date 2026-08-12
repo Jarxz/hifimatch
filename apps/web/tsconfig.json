@@ -13,12 +13,7 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {
-      "@engine/*": ["../../packages/engine/src/*"],
-      "@data/*": ["../../packages/data/src/*"]
-    }
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"]
 }

@@ -3,10 +3,184 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cadena · esqueleto Vite</title>
+<title>Cadena · compatibilidad hi-fi</title>
 </head>
 <body>
-<div id="app">Cargando…</div>
+
+<!-- SPLASH -->
+<section class="screen active" id="s-splash">
+  <div class="wrap"><div class="splash">
+    <button class="enter" id="btn-entrar" aria-label="Entrar al análisis de compatibilidad">
+      <div class="mark">CA<b>DENA</b></div>
+      <div class="ticks" id="splash-ticks" aria-hidden="true"></div>
+      <div class="subm">análisis de compatibilidad hi-fi</div>
+      <div class="cta">Analizar un sistema <span aria-hidden="true">→</span></div>
+      <div class="foot">basado en física · specs medidos · sin opiniones de gusto</div>
+    </button>
+  </div></div>
+</section>
+
+<!-- CONFIG -->
+<section class="screen" id="s-config">
+  <div class="wrap">
+    <div class="head">
+      <div><div class="hm">CA<b>DENA</b></div><div class="hs">Configurar</div></div>
+      <button class="back" id="btn-volver-splash">← Volver</button>
+    </div>
+
+    <h1 class="lead">Define la cadena</h1>
+    <p class="lead-note">Elige un amplificador y un par de parlantes, y dale las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
+
+    <div class="split">
+      <div class="picker">
+        <div class="rowlabel">Parlantes <span class="req">requerido</span></div>
+        <div class="sel"><select id="sel-spk" class="empty"></select></div>
+        <div id="info-spk"></div>
+      </div>
+      <div class="picker">
+        <div class="rowlabel">Amplificador <span class="req">requerido</span></div>
+        <div class="sel"><select id="sel-amp" class="empty"></select></div>
+        <div id="info-amp"></div>
+      </div>
+    </div>
+
+    <div class="picker">
+      <div class="rowlabel">Fuente digital <span class="req">opcional · streamer o DAC</span></div>
+      <div class="sel"><select id="sel-fuente" class="empty"></select></div>
+      <div id="info-fuente"></div>
+    </div>
+
+    <div class="room">
+      <h3>Dimensiones de la sala</h3>
+      <div class="dims">
+        <div class="dim">
+          <div class="dl">Ancho (frente) <b id="v-W">3,6 m</b></div>
+          <input type="range" id="in-W" min="2.5" max="7" step="0.1" value="3.6">
+        </div>
+        <div class="dim">
+          <div class="dl">Largo (fondo) <b id="v-L">5,0 m</b></div>
+          <input type="range" id="in-L" min="3" max="9" step="0.1" value="5.0">
+        </div>
+        <div class="dim">
+          <div class="dl">Alto <b id="v-H">2,4 m</b></div>
+          <input type="range" id="in-H" min="2.2" max="3.5" step="0.05" value="2.4">
+        </div>
+      </div>
+
+      <div class="rline">
+        <span class="rl">Nivel de escucha</span>
+        <div class="segs" role="group" aria-label="Nivel de escucha">
+          <button data-lvl="mod">Moderado</button>
+          <button data-lvl="alto" aria-pressed="true">Alto</button>
+          <button data-lvl="ref">Referencia</button>
+        </div>
+      </div>
+      <div class="rline">
+        <span class="rl">Distancia de escucha resultante</span>
+        <div class="derived">≈ <b id="v-dist">—</b> · volumen <b id="v-vol">—</b></div>
+      </div>
+    </div>
+
+    <div class="soon">
+      <span class="st">Próximamente</span>
+      <span class="pillsoon">Subwoofer</span>
+      <span class="pillsoon">Cables</span>
+      <span class="pillsoon">Modos de sala</span>
+    </div>
+
+    <div class="foot-bar">
+      <div class="miss" id="miss">Falta elegir parlantes y amplificador</div>
+      <button class="analizar" id="btn-an" disabled>Analizar</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="screen" id="s-results">
+  <div class="wrap">
+    <div class="head">
+      <div><div class="hm">CA<b>DENA</b></div><div class="hs">Resultado</div></div>
+      <button class="back" id="btn-volver-config">← Cambiar sistema</button>
+    </div>
+
+    <div class="grid">
+      <aside class="rail">
+        <div class="blk"><h2>La cadena</h2><div id="chain"></div></div>
+        <div class="blk">
+          <h2>Sala</h2>
+          <div class="rr"><span>Ancho × largo</span><b id="r-wl">—</b></div>
+          <div class="rr"><span>Alto</span><b id="r-h">—</b></div>
+          <div class="rr"><span>Distancia escucha</span><b id="r-dist">—</b></div>
+          <div class="rr"><span>Nivel</span><b id="r-lvl">—</b></div>
+          <div class="rr"><span>Pico objetivo</span><b id="r-peak">—</b></div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <h2>Evaluación</h2>
+
+        <div class="card">
+          <div class="ct"><span class="layer">Capa física</span><span class="verdict" id="pw-verdict">—</span></div>
+          <h3>Potencia frente a los picos de la sala</h3>
+          <p id="pw-text">—</p>
+          <div class="meter">
+            <div class="scale" id="pw-scale"></div>
+            <div class="scap"><span>insuficiente</span><span>margen sobre el pico (dB)</span><span>de sobra</span></div>
+          </div>
+          <div class="calc" id="pw-calc"></div>
+          <div class="flag hidden" id="pw-flag"></div>
+          <div class="src" id="pw-src"></div>
+        </div>
+
+        <div class="card">
+          <div class="ct"><span class="layer">Capa física</span><span class="verdict" id="z-verdict">—</span></div>
+          <h3>La carga que ve el amplificador</h3>
+          <p id="z-text">—</p>
+          <div class="flag hidden" id="z-flag"></div>
+          <div class="src" id="z-src"></div>
+        </div>
+
+        <div class="card hidden" id="card-puente">
+          <div class="ct"><span class="layer">Capa física</span><span class="verdict" id="pz-verdict">—</span></div>
+          <h3>Puente de impedancias: fuente → amplificador</h3>
+          <p id="pz-text">—</p>
+          <div class="calc" id="pz-calc"></div>
+          <div class="flag hidden" id="pz-flag"></div>
+          <div class="src" id="pz-src"></div>
+        </div>
+
+        <div class="card hidden" id="card-recorrido">
+          <div class="ct"><span class="layer">Capa física</span><span class="verdict" id="pv-verdict">—</span></div>
+          <h3>Recorrido del volumen</h3>
+          <p id="pv-text">—</p>
+          <div class="calc" id="pv-calc"></div>
+          <div class="flag hidden" id="pv-flag"></div>
+          <div class="src" id="pv-src"></div>
+        </div>
+
+        <div class="card">
+          <div class="ct"><span class="layer">Geometría</span><span class="verdict" style="color:var(--dim)">Disposición de referencia</span></div>
+          <h3>Plano, escucha y reflexiones</h3>
+          <p>Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
+          <div class="plan-wrap" id="plan"></div>
+          <div class="legend">
+            <span><i style="border-top:1px dashed var(--dim)"></i> triángulo de escucha</span>
+            <span><i style="border-top:1px dashed var(--warn)"></i> 1ª reflexión</span>
+            <span><i style="border-top:2px solid var(--text)"></i> parlante / escucha</span>
+          </div>
+          <div class="src">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
+        </div>
+
+        <footer class="note">
+          <b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>
+          Si agregás una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para verificarse escuchando.<br>
+          Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide en media-espacio y sobreestima, se usa la medición anecoica independiente.
+        </footer>
+      </main>
+    </div>
+  </div>
+</section>
+
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
