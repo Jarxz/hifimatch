@@ -120,7 +120,7 @@ texto** — `codigo: 'con-margen'|'justo'|'insuficiente'`, etc., y en
 tests.
 
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
-datos de equipos — 33 equipos (13 parlantes, 11 amplificadores, 6 fuentes
+datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 8 fuentes
 digitales que unifican streamers+DACs, 3 cables curados sin regla todavía),
 bilingüe desde el origen (`Localizado = {es, en}` en cada campo de
 presentación). Reemplaza lo que antes vivía duplicado entre
@@ -143,6 +143,15 @@ Varios campos (`maxSplDb` de la mayoría de los parlantes, `sensEntradaMv`/
 `impedanciaEntradaOhm` de Hegel H95 y Arcam A5) siguen en `null` porque se
 verificó activamente que el fabricante no los publica — no por falta de
 búsqueda.
+
+**Segunda tanda: Marantz SR6008, Cambridge Audio AXN10, Wadia 121.** El
+SR6008 es un receptor AV multicanal, no un integrado estéreo dedicado — se
+registra explícitamente el rating de **2 canales excitados** (110 W/8 Ω), no
+la cifra de 1 canal a 1 kHz que infla el marketing de otros fabricantes;
+`potencia4OhmW` y el factor de amortiguación quedan en `null` porque Marantz
+no los publica. El Wadia 121 (DAC de escritorio descontinuado, ~2012) tiene
+salida ajustable en 3 pasos: se registra el máximo medido por Stereophile
+(3,48 V), mismo criterio que el WiiM Pro Plus del Paso 9.
 
 **El frontend** (`apps/web/`) es Vite + TypeScript modular; `prototipo-
 frontend.html` y su bundler artesanal (`bundle-navegador.mjs`) ya no existen.

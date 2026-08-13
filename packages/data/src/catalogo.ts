@@ -770,6 +770,45 @@ export const CATALOGO: Catalogo = {
         en: 'input sensitivity is declared as "<300 mV" (not an exact point value); minimum load and damping factor are not published by the manufacturer',
       },
     },
+    {
+      id: 'marantz-sr6008',
+      nombre: 'Marantz SR6008',
+      tipo: {
+        es: 'Receptor AV Clase AB, 7 canales + 2 subwoofer (ratings de 2 canales excitados)',
+        en: 'Class AB AV receiver, 7.2-channel (2-channel-driven ratings)',
+      },
+      descripcion: {
+        es: 'Receptor AV multicanal (7 canales + 2 pre-out de subwoofer), no un integrado estéreo dedicado. <b>Se registra el rating de 2 canales excitados</b> (110 W/8 Ω, 20 Hz–20 kHz, 0,08% THD), no la cifra inflada de 1 canal a 1 kHz que usan otros fabricantes — Marantz publica esta convención de forma consistente en toda la familia. La potencia real por canal cae si se usan más de 2 canales a la vez.',
+        en: 'A multichannel AV receiver (7 channels + 2 subwoofer pre-outs), not a dedicated stereo integrated. <b>The 2-channel-driven rating is recorded</b> (110 W/8 Ω, 20 Hz–20 kHz, 0.08% THD), not the inflated 1-channel-at-1kHz figure other manufacturers use — Marantz publishes this convention consistently across the family. Real per-channel power drops once more than 2 channels are driven at once.',
+      },
+      potencia8OhmW: {
+        valor: 110,
+        fuente: { es: 'Marantz (ficha oficial)', en: 'Marantz (official spec sheet)' },
+        confianza: 'media',
+        nota: {
+          es: 'sin banco de pruebas independiente del SR6008 puntual; corroboración indirecta vía el predecesor SR6006 (misma cifra nominal), que Sound & Vision midió en 127,9 W con 2 canales excitados pero sólo 71,3 W con los 7 canales excitados — ilustra cuánto cae la potencia real fuera de estéreo puro',
+          en: 'no independent bench test of the SR6008 itself; indirect corroboration via the predecessor SR6006 (same nominal figure), which Sound & Vision measured at 127.9 W with 2 channels driven but only 71.3 W with all 7 driven — illustrating how much real power drops outside pure stereo use',
+        },
+      },
+      potencia4OhmW: null,
+      cargaMinOhm: 6,
+      sensEntradaMv: 200,
+      impedanciaEntradaOhm: 47000,
+      chipsExtra: [
+        { es: 'Audyssey MultEQ XT', en: 'Audyssey MultEQ XT' },
+        { es: 'HDAM / Current Feedback', en: 'HDAM / Current Feedback' },
+        { es: '7 canales + 2 pre-out sub', en: '7 channels + 2 sub pre-outs' },
+      ],
+      fuentes: [
+        'Marantz (ficha de especificaciones oficial, PDF)',
+        'Sound & Vision (HT Labs Measures, SR6006 — modelo predecesor, corroboración indirecta)',
+        'Marantz (soporte técnico oficial, tolerancia de carga por debajo de 6 Ω)',
+      ],
+      pendiente: {
+        es: 'potencia a 4 Ω y factor de amortiguación: no publicados por el fabricante, no estimados. cargaMinOhm (6 Ω) es el rating del selector trasero; el soporte técnico de Marantz tolera hasta 3,2 Ω a volumen moderado, pero no lo garantiza como carga continua — se registra el valor declarado, no el tolerado',
+        en: 'power at 4 Ω and damping factor: not published by the manufacturer, not estimated. cargaMinOhm (6 Ω) is the rear-panel selector rating; Marantz technical support tolerates down to 3.2 Ω at moderate volume, but does not guarantee it as a continuous load — the declared figure is recorded, not the tolerated one',
+      },
+    },
   ],
 
   fuentes: [
@@ -905,6 +944,62 @@ export const CATALOGO: Catalogo = {
         { es: 'salida fija o variable', en: 'fixed or variable output' },
       ],
       fuentes: ['Cambridge Audio (ficha oficial)'],
+    },
+    {
+      id: 'cambridge-axn10',
+      nombre: 'Cambridge Audio AXN10',
+      tipo: {
+        es: 'Streamer de red, DAC integrado (salida analógica)',
+        en: 'Network streamer, integrated DAC (analog output)',
+      },
+      descripcion: {
+        es: 'DAC ESS Sabre ES9033Q, salida fija de 2,0 V. Impedancia de salida de 500 Ω — alta para una salida de línea moderna, <b>conviene revisar el puente de impedancias</b> hacia el amplificador. Plataforma de streaming StreamMagic Gen 4 (AirPlay 2, Chromecast, Roon Ready, Tidal Connect/MQA, Spotify Connect).',
+        en: 'An ESS Sabre ES9033Q DAC, with a fixed 2.0 V output. A 500 Ω output impedance — high for a modern line output, <b>worth checking the impedance bridge</b> to the amplifier. StreamMagic Gen 4 streaming platform (AirPlay 2, Chromecast, Roon Ready, Tidal Connect/MQA, Spotify Connect).',
+      },
+      salidaV: 2.0,
+      impedanciaSalidaOhm: 500,
+      fuente: { es: 'Cambridge Audio (ficha oficial)', en: 'Cambridge Audio (official spec sheet)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'ESS Sabre ES9033Q', en: 'ESS Sabre ES9033Q' },
+        { es: 'hasta 32/768 + DSD512', en: 'up to 32/768 + DSD512' },
+        { es: 'StreamMagic Gen 4', en: 'StreamMagic Gen 4' },
+      ],
+      fuentes: ['Cambridge Audio (ficha técnica oficial, manuals.cambridgeaudio.com)'],
+      pendiente: {
+        es: 'impedancia de salida (500 Ω) es alta para una salida de línea moderna (lo típico ronda 50–100 Ω); confirmada de forma idéntica en dos consultas independientes a la misma ficha oficial, pero no se pudo abrir el manual en PDF directamente para una verificación visual adicional',
+        en: 'output impedance (500 Ω) is high for a modern line output (typical figures run 50–100 Ω); confirmed identically across two independent lookups of the same official spec sheet, but the PDF manual could not be opened directly for additional visual verification',
+      },
+    },
+    {
+      id: 'wadia-121',
+      nombre: 'Wadia 121 Decoding Computer',
+      tipo: {
+        es: 'DAC/preamp de escritorio con etapa de audífonos, salida ajustable en 3 pasos',
+        en: 'Desktop DAC/preamp with headphone stage, 3-step adjustable output',
+      },
+      descripcion: {
+        es: 'DAC ESS9018 (Sabre32) con re-muestreo propietario DigiMaster a 32-bit/1,4 MHz antes de la conversión. Salida <b>ajustable en tres pasos</b> (1,0/2,0/4,0 V nominal) — acá se registra el máximo medido (3,48 V); el recorrido de volumen real depende de en qué paso esté configurada. Descontinuado (Wadia cerró como marca); DAC confirmado por desarme técnico, no por ficha oficial vigente.',
+        en: 'An ESS9018 (Sabre32) DAC with proprietary DigiMaster re-sampling to 32-bit/1.4 MHz before conversion. A <b>3-step adjustable output</b> (1.0/2.0/4.0 V nominal) — the measured maximum (3.48 V) is recorded here; the actual volume headroom depends on which step it is set to. Discontinued (Wadia closed as a brand); the DAC chip is confirmed by a technical teardown, not a current official spec sheet.',
+      },
+      salidaV: 3.48,
+      impedanciaSalidaOhm: 48,
+      fuente: { es: 'Stereophile (mediciones J. Atkinson)', en: 'Stereophile (J. Atkinson measurements)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'ESS9018 Sabre32', en: 'ESS9018 Sabre32' },
+        { es: 'hasta 24/192 (AES/EBU, coax, óptico, USB)', en: 'up to 24/192 (AES/EBU, coax, optical, USB)' },
+        { es: 'etapa de audífonos Clase A', en: 'Class A headphone stage' },
+      ],
+      fuentes: [
+        'Stereophile (especificaciones y mediciones, J. Atkinson)',
+        'Wadia (ficha oficial / manual de época, ~2012)',
+        'avmentor.net (desarme técnico)',
+      ],
+      pendiente: {
+        es: 'salida ajustable en 3 pasos (1,0/2,0/4,0 V nominal; medido por Stereophile en 0,871/1,74/3,48 V) — se registra el máximo medido, mismo criterio que el WiiM Pro Plus. La salida XLR mide aproximadamente el doble de impedancia que la RCA (~96 Ω); se registra el valor RCA (48 Ω). Potencia e impedancia de carga de la salida de audífonos no publicadas en ninguna fuente consultada',
+        en: 'output adjustable in 3 steps (1.0/2.0/4.0 V nominal; measured by Stereophile at 0.871/1.74/3.48 V) — the measured maximum is recorded here, the same criterion used for the WiiM Pro Plus. The XLR output measures roughly double the impedance of the RCA (~96 Ω); the RCA figure (48 Ω) is recorded. Headphone output power and load impedance are not published in any source consulted',
+      },
     },
   ],
 
