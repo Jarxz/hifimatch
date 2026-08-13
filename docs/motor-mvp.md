@@ -185,9 +185,49 @@ reflexionIzq=(0, 1,487)   reflexionDer=(3,6, 1,487)   puntoDulce=(1,8, 3,126)
 
 ---
 
+## 4bis. Modos de sala (`modos.ts`)
+
+**Estado: implementada.** Modos axiales solamente (una sola dimensión) —
+son los más fuertes porque no pierden energía en reflexiones múltiples;
+tangenciales y oblicuos quedan fuera de este modelo. Mismo supuesto y misma
+salvedad que `sala.ts`: sala rígida y rectangular, se verifica midiendo.
+
+```
+f(L, n) = n·c / (2·L)     c = 343 m/s (velocidad del sonido, ~20 °C)
+```
+
+Se listan los modos de cada eje (ancho, largo, alto) hasta `TECHO_MODOS_HZ =
+300` — techo estándar de la región de modos de sala en acústica doméstica
+(por encima, la densidad modal es alta y deja de comportarse como
+resonancias individuales).
+
+**Agrupamiento:** dos modos de **ejes distintos** (nunca del mismo eje —
+ahí son armónicos, no una coincidencia) se consideran agrupados si su
+diferencia relativa es menor a `UMBRAL_AGRUPAMIENTO = 0,05` (5 %), y ambos
+caen por debajo de `TECHO_AGRUPAMIENTO_HZ = 150` — un techo más estricto que
+el de listado, porque por encima de ~150 Hz la densidad modal sube y que dos
+modos caigan cerca deja de ser indicio de mala proporción de sala. **Ambos
+umbrales son criterio del sitio, no una convención publicada** — igual
+salvedad que el umbral de recorrido de volumen de la sección 6.
+
+**Severidad: techo `warn`, nunca `error`** (regla de sala, CLAUDE.md). `ok`
+si no hay agrupamiento, `warn` si hay al menos un par.
+
+### Vector de prueba (W=3.6, L=5.0, H=2.4 — la sala por defecto del sitio)
+
+3,6 y 2,4 están en razón exacta 3:2 → el modo de orden 3 del ancho
+(142,9167 Hz) coincide exactamente (diferencia 0 Hz) con el de orden 2 del
+alto. Resultado: `warn`, con ese par entre los agrupados — la sala de
+demostración del sitio tiene, de hecho, un problema real de proporciones.
+
+Vector de control sin agrupamiento: W=2.5, L=3.0, H=2.2 (sin razones
+simples entre ejes) → `ok`.
+
+---
+
 ## 5. Lo que el motor todavía NO hace
 
-- Subwoofer, cables, modos de sala.
+- Subwoofer, cables.
 - Modo "buscar" (llenar un hueco con candidatos) y modo "proponer" (armar cadenas
   desde un presupuesto). Requieren la función de score, que es decisión abierta.
 
@@ -198,8 +238,8 @@ implementa potencia, carga, geometría y ganancia de cadena (sección 6).
 (fuente y confianza, mismo estándar que el resto), pero **todavía no tiene ni
 diseño de regla** (afecta el puente de impedancias por su capacitancia/
 resistencia en serie, pero es un efecto de segundo orden que queda para más
-adelante). `streamers`/`dacs` (unificados en la categoría `fuentes` del
-catálogo) sí tienen su regla implementada — ver sección 6.
+adelante). `streamers` y `dacs` (dos categorías separadas del catálogo,
+mismo esquema `FuenteCat`) sí tienen su regla implementada — ver sección 6.
 
 ---
 

@@ -5,6 +5,7 @@ import {
   gananciaPorPotenciaDb,
   sumarNivelesDb,
   sensibilidadA1WDb,
+  frecuenciaModoAxialHz,
 } from './unidades.ts';
 
 // Tolerancia estándar del proyecto: ±0,05 dB (ver docs/motor-mvp.md, cabecera).
@@ -64,4 +65,21 @@ test('sensibilidadA1WDb — a 4 Ω, 2,83V son ~2W: la sensibilidad "a 1W" baja ~
 test('sensibilidadA1WDb — a 16 Ω, 2,83V son ~0,5W: la sensibilidad "a 1W" sube ~3,01 dB', () => {
   const resultado = sensibilidadA1WDb(85, 16);
   assert.ok(Math.abs(resultado - 88.01) < EPS);
+});
+
+test('frecuenciaModoAxialHz — orden 1 en W=3,6 m: 343/(2·3,6) = 47,6389 Hz', () => {
+  assert.ok(Math.abs(frecuenciaModoAxialHz(3.6, 1) - 47.6389) < EPS);
+});
+
+test('frecuenciaModoAxialHz — el orden escala linealmente (orden 3 = 3× el orden 1)', () => {
+  const f1 = frecuenciaModoAxialHz(2.4, 1);
+  const f3 = frecuenciaModoAxialHz(2.4, 3);
+  assert.ok(Math.abs(f3 - 3 * f1) < EPS);
+});
+
+test('frecuenciaModoAxialHz — dimensiones en razón 3:2 (3,6 y 2,4) hacen coincidir modos de orden distinto', () => {
+  // 3,6/2,4 = 3/2 exacto → el modo orden 3 de W coincide con el orden 2 de H.
+  const modoW3 = frecuenciaModoAxialHz(3.6, 3);
+  const modoH2 = frecuenciaModoAxialHz(2.4, 2);
+  assert.ok(Math.abs(modoW3 - modoH2) < EPS);
 });

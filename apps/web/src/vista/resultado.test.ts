@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
+import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
 import type { Parlante, Amplificador } from '../../../../packages/engine/src/tipos.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from '../datos/adaptadores.ts';
-import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido } from './resultado.ts';
+import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos } from './resultado.ts';
 
 function parlanteCat(id: string): ParlanteCat {
   const p = CATALOGO.parlantes.find((x) => x.id === id);
@@ -154,6 +155,47 @@ test('modeloRecorrido: "sin-datos" es clase "dim"; "warn" cuando el margen super
   const mCorto = modeloRecorrido(fuenteSchiit, denon, rCorto, 'es');
   assert.equal(mCorto.verdictoClase, 'warn');
   assert.match(mCorto.textoHtml, /de sobra/);
+});
+
+// ---- modos de sala ----
+
+test('modeloModos: sala 3,6×5,0×2,4 (razón 3:2 ancho/alto) → "warn", con el par de agrupamiento en el aviso', () => {
+  const r = evaluarModos({ anchoM: 3.6, largoM: 5.0, altoM: 2.4 });
+  const m = modeloModos(r, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Modos agrupados');
+  assert.ok(m.avisoHtml !== null);
+  assert.match(m.avisoHtml!, /ancho/);
+  assert.match(m.avisoHtml!, /alto/);
+  assert.ok(m.listaHtml.length > 0);
+});
+
+test('modeloModos: sala 2,5×3,0×2,2 sin agrupamiento → "ok", sin aviso', () => {
+  const r = evaluarModos({ anchoM: 2.5, largoM: 3.0, altoM: 2.2 });
+  const m = modeloModos(r, 'es');
+  assert.equal(m.verdictoClase, 'ok');
+  assert.equal(m.verdictoTexto, 'Bien distribuidos');
+  assert.equal(m.avisoHtml, null);
+});
+
+test('modeloModos nunca es "alert" ni "dim" — el techo de severidad de sala es "warn" (CLAUDE.md)', () => {
+  const salas = [
+    { anchoM: 2.5, largoM: 3.0, altoM: 2.2 },
+    { anchoM: 3.6, largoM: 5.0, altoM: 2.4 },
+    { anchoM: 4, largoM: 4, altoM: 2.5 },
+  ];
+  for (const sala of salas) {
+    const clase = modeloModos(evaluarModos(sala), 'es').verdictoClase;
+    assert.ok(clase === 'ok' || clase === 'warn', `clase inesperada: ${clase}`);
+  }
+});
+
+test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas', () => {
+  const r = evaluarModos({ anchoM: 3.6, largoM: 5.0, altoM: 2.4 });
+  const m = modeloModos(r, 'en');
+  assert.equal(m.verdictoTexto, 'Clustered modes');
+  assert.match(m.textoHtml, /mode pair/);
+  assert.doesNotMatch(m.textoHtml, /par\(es\)/);
 });
 
 // ---- idioma 'en': mismos números, texto en inglés ----

@@ -107,7 +107,6 @@
       <span class="st" data-i18n="config.proximamente">Próximamente</span>
       <span class="pillsoon" data-i18n="config.subwoofer">Subwoofer</span>
       <span class="pillsoon" data-i18n="config.cables">Cables</span>
-      <span class="pillsoon" data-i18n="config.modosSala">Modos de sala</span>
     </div>
 
     <div class="foot-bar">
@@ -215,6 +214,15 @@
             <span><i style="border-top:2px solid var(--text)"></i> <span data-i18n="resultado.plano.leyendaParlante">parlante / escucha</span></span>
           </div>
           <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
+        </div>
+
+        <div class="card">
+          <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="mo-verdict">—</span></div>
+          <h3 data-i18n="motor.modos.titulo">Modos de sala (graves)</h3>
+          <p id="mo-text">—</p>
+          <div class="calc" id="mo-lista"></div>
+          <div class="flag hidden" id="mo-flag"></div>
+          <div class="src" id="mo-src"></div>
         </div>
 
         <footer class="note" data-i18n-html="resultado.footer.html">

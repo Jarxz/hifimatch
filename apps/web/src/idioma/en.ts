@@ -54,7 +54,6 @@ export const en: Textos = {
     proximamente: 'Coming soon',
     subwoofer: 'Subwoofer',
     cables: 'Cables',
-    modosSala: 'Room modes',
     faltaElegir: (p) => `Still need to pick ${p.que}`,
     faltaParlantes: 'speakers',
     faltaAmplificador: 'an amplifier',
@@ -213,6 +212,23 @@ export const en: Textos = {
       alertAviso: 'A source with higher output voltage helps, or check whether an intermediate preamp stage is missing.',
       fuente: (p) =>
         `<b>Headroom threshold:</b> ${p.umbral}× — a site criterion, not a published convention; verified by listening. <span class="conf">${p.confianza} confidence</span>`,
+    },
+
+    modos: {
+      titulo: 'Room modes (bass)',
+      verdicto: {
+        'modos-distribuidos': 'Well distributed',
+        'modos-agrupados': 'Clustered modes',
+      },
+      eje: { ancho: 'width', largo: 'length', alto: 'height' },
+      textoOk: (p) =>
+        `The room's bass resonances are reasonably distributed below ${p.techo} Hz — no coincidences reinforcing a particular frequency were found.`,
+      textoWarn: (p) =>
+        `${p.n} mode pair(s) fall within the clustering threshold below ${p.techo} Hz — a sign of bass reinforcement at those frequencies.`,
+      filaModo: (p) => `${p.eje} · order ${p.orden} · <b>${p.frecuencia} Hz</b>`,
+      parAgrupado: (p) => `${p.a} (${p.frecuenciaA} Hz) and ${p.b} (${p.frecuenciaB} Hz)`,
+      fuente: (p) =>
+        `<b>Criterion:</b> rigid, rectangular room model, axial modes only. Clustering = two modes on different axes within ${p.umbral}% of each other, below ${p.techo} Hz — a site criterion, not a published convention; verified by measuring/listening.`,
     },
   },
 

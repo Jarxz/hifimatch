@@ -13,6 +13,7 @@
 import type { CodigoPotencia } from '../../../../packages/engine/src/potencia.ts';
 import type { CodigoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { CodigoPuenteImpedancias, CodigoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
+import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 
 export const es = {
@@ -64,7 +65,6 @@ export const es = {
     proximamente: 'Próximamente',
     subwoofer: 'Subwoofer',
     cables: 'Cables',
-    modosSala: 'Modos de sala',
     faltaElegir: (p: { que: string }): string => `Falta elegir ${p.que}`,
     faltaParlantes: 'parlantes',
     faltaAmplificador: 'amplificador',
@@ -225,6 +225,25 @@ export const es = {
       alertAviso: 'Conviene una fuente con mayor tensión de salida, o revisar si hay una etapa de preamplificación intermedia.',
       fuente: (p: { umbral: number; confianza: string }): string =>
         `<b>Umbral de recorrido:</b> ${p.umbral}× — criterio del sitio, no una convención publicada; se verifica escuchando. <span class="conf">confianza ${p.confianza}</span>`,
+    },
+
+    modos: {
+      titulo: 'Modos de sala (graves)',
+      verdicto: {
+        'modos-distribuidos': 'Bien distribuidos',
+        'modos-agrupados': 'Modos agrupados',
+      } satisfies Record<CodigoModos, string>,
+      eje: { ancho: 'ancho', largo: 'largo', alto: 'alto' } satisfies Record<EjeSala, string>,
+      textoOk: (p: { techo: string }): string =>
+        `Las resonancias de graves de la sala están razonablemente distribuidas por debajo de ${p.techo} Hz — no se detectan coincidencias que refuercen una frecuencia en particular.`,
+      textoWarn: (p: { n: string; techo: string }): string =>
+        `${p.n} par(es) de modos caen dentro del umbral de agrupamiento por debajo de ${p.techo} Hz — señal de refuerzo de graves en esas frecuencias.`,
+      filaModo: (p: { eje: string; orden: string; frecuencia: string }): string =>
+        `${p.eje} · orden ${p.orden} · <b>${p.frecuencia} Hz</b>`,
+      parAgrupado: (p: { a: string; b: string; frecuenciaA: string; frecuenciaB: string }): string =>
+        `${p.a} (${p.frecuenciaA} Hz) y ${p.b} (${p.frecuenciaB} Hz)`,
+      fuente: (p: { techo: string; umbral: string }): string =>
+        `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
     },
   },
 

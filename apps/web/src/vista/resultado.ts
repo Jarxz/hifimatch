@@ -14,6 +14,8 @@ import type { ResultadoPotencia } from '../../../../packages/engine/src/potencia
 import type { ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
+import type { ResultadoModos } from '../../../../packages/engine/src/modos.ts';
+import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages/engine/src/modos.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { num, numConSigno } from '../formato/numeros.ts';
@@ -285,5 +287,53 @@ export function modeloRecorrido(
     avisoHtml,
     avisoEsSinDatos: false,
     fuenteHtml: t.motor.recorrido.fuente({ umbral: UMBRAL_RECORRIDO, confianza: t.catalogo.confianza[fuente.confianza] }),
+  };
+}
+
+export interface ModeloTarjetaModos {
+  verdictoClase: ClaseVerdicto; // 'ok' | 'warn' — nunca 'alert'/'dim': ver CLAUDE.md, techo de severidad de sala
+  verdictoTexto: string;
+  textoHtml: string;
+  listaHtml: string;
+  avisoHtml: string | null;
+  fuenteHtml: string;
+}
+
+export function modeloModos(r: ResultadoModos, idioma: Idioma): ModeloTarjetaModos {
+  const t = textosDe(idioma);
+  const eje = t.motor.modos.eje;
+
+  const techoFmt = String(TECHO_AGRUPAMIENTO_HZ);
+
+  const listaHtml = r.modos
+    .map((m) => t.motor.modos.filaModo({ eje: eje[m.eje], orden: String(m.orden), frecuencia: num(m.frecuenciaHz, 1, idioma) }))
+    .join('<br>');
+
+  const textoHtml =
+    r.severidad === 'ok'
+      ? t.motor.modos.textoOk({ techo: techoFmt })
+      : t.motor.modos.textoWarn({ n: String(r.agrupados.length), techo: techoFmt });
+
+  const avisoHtml =
+    r.agrupados.length > 0
+      ? r.agrupados
+          .map((a) =>
+            t.motor.modos.parAgrupado({
+              a: `${eje[a.modoA.eje]} · ${a.modoA.orden}`,
+              b: `${eje[a.modoB.eje]} · ${a.modoB.orden}`,
+              frecuenciaA: num(a.modoA.frecuenciaHz, 1, idioma),
+              frecuenciaB: num(a.modoB.frecuenciaHz, 1, idioma),
+            })
+          )
+          .join('<br>')
+      : null;
+
+  return {
+    verdictoClase: r.severidad,
+    verdictoTexto: t.motor.modos.verdicto[r.codigo],
+    textoHtml,
+    listaHtml,
+    avisoHtml,
+    fuenteHtml: t.motor.modos.fuente({ techo: techoFmt, umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)) }),
   };
 }

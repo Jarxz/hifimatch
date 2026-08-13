@@ -2,7 +2,7 @@
  * Única capa que escribe en el DOM del resultado. Todo el texto ya viene
  * formateado desde resultado.ts (puro); acá sólo se asigna a elementos.
  */
-import type { ModeloTarjetaPotencia, ModeloTarjetaCarga, ModeloTarjetaPuente, ModeloTarjetaRecorrido } from './resultado.ts';
+import type { ModeloTarjetaPotencia, ModeloTarjetaCarga, ModeloTarjetaPuente, ModeloTarjetaRecorrido, ModeloTarjetaModos } from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { actualizarMedidor } from './medidor.ts';
 
@@ -113,4 +113,14 @@ export function pintarGanancia(
 
 export function pintarPlano(svg: string): void {
   el('plan').innerHTML = svg;
+}
+
+/** A diferencia de potencia/carga/ganancia, modos de sala siempre tiene dato
+ * (sólo depende de las dimensiones, nunca de equipos) — nunca "sin-datos". */
+export function pintarModos(m: ModeloTarjetaModos): void {
+  pintarVerdict('mo-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('mo-text').innerHTML = m.textoHtml;
+  el('mo-lista').innerHTML = m.listaHtml;
+  pintarFlag('mo-flag', m.avisoHtml, false);
+  el('mo-src').innerHTML = m.fuenteHtml;
 }

@@ -62,6 +62,7 @@ packages/engine/   TypeScript puro, CERO dependencias de runtime.
   src/potencia.ts  Regla de margen de potencia
   src/carga.ts     Regla de carga / impedancia
   src/sala.ts      Geometría: disposición, distancia, reflexiones
+  src/modos.ts     Modos axiales de sala (resonancias de graves) + detección de agrupamiento
   src/ganancia.ts  Ganancia de cadena: puente de impedancias + recorrido de volumen (fuente→ampli)
 packages/data/     Catálogo curado de equipos, bilingüe (con fuente y confianza)
   src/catalogo.ts        El dato: parlantes, amplificadores, streamers, DACs, cables
@@ -114,10 +115,19 @@ tiene tres workspaces npm (`packages/engine`, `packages/data`, `apps/web`) con
 typecheck` / `npm run build` desde la raíz.
 
 **El motor** (`packages/engine/src/`: `tipos.ts`, `unidades.ts`,
-`potencia.ts`, `carga.ts`, `sala.ts`, `ganancia.ts`) devuelve **códigos, no
-texto** — `codigo: 'con-margen'|'justo'|'insuficiente'`, etc., y en
-`potencia.ts` un `avisos: AvisoPotencia[]` con los números en crudo. 47/47
-tests.
+`potencia.ts`, `carga.ts`, `sala.ts`, `modos.ts`, `ganancia.ts`) devuelve
+**códigos, no texto** — `codigo: 'con-margen'|'justo'|'insuficiente'`, etc.,
+y en `potencia.ts` un `avisos: AvisoPotencia[]` con los números en crudo.
+58/58 tests.
+
+**Modos de sala** (`modos.ts`) es la primera regla de sala con severidad
+(techo `warn`, nunca `error` — CLAUDE.md ya lo declaraba antes de que
+existiera la regla que lo necesitaba). Modos axiales únicamente; agrupa dos
+modos de ejes distintos si caen a menos de 5 % de diferencia por debajo de
+150 Hz — ambos umbrales declarados como criterio del sitio, no una
+convención publicada. La sala por defecto del sitio (3,6×5,0×2,4 m) da
+`warn` de verdad: 3,6/2,4 = 3:2 exacto, así que el modo de orden 3 del
+ancho coincide exactamente con el de orden 2 del alto.
 
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
 datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 4 streamers +
@@ -201,7 +211,7 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**112 tests totales** (47 motor + 11 catálogo + 54 frontend, estos últimos
+**127 tests totales** (58 motor + 11 catálogo + 58 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 

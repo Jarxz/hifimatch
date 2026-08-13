@@ -4,6 +4,7 @@ import { calcularDisposicion } from '../../../packages/engine/src/sala.ts';
 import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
+import { evaluarModos } from '../../../packages/engine/src/modos.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 
@@ -13,8 +14,8 @@ import { ir } from './vista/pantallas.ts';
 import { poblarSelectores, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
-import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido } from './vista/resultado.ts';
-import { pintarCadena, pintarSala, pintarPotencia, pintarCarga, pintarGanancia, pintarPlano } from './vista/pintar.ts';
+import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos } from './vista/resultado.ts';
+import { pintarCadena, pintarSala, pintarPotencia, pintarCarga, pintarGanancia, pintarPlano, pintarModos } from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
 import { num } from './formato/numeros.ts';
@@ -191,6 +192,7 @@ function renderizarResultado(): void {
   }
 
   pintarPlano(construirPlanoSvg(sala, disposicion, idiomaActual));
+  pintarModos(modeloModos(evaluarModos(sala), idiomaActual));
 }
 
 function analizar(): void {
