@@ -82,13 +82,19 @@ function refrescar(): void {
   }
 }
 
-function infoHTML(kind: 'spk' | 'amp' | 'fuente', id: string): string {
+function infoHTML(kind: 'spk' | 'amp' | 'streamer' | 'dac', id: string): string {
   if (kind === 'spk') return infoHtmlParlante(buscarParlante(id), idiomaActual);
   if (kind === 'amp') return infoHtmlAmplificador(buscarAmplificador(id), idiomaActual);
   return infoHtmlFuente(buscarFuente(id), idiomaActual);
 }
 
-function pick(kind: 'spk' | 'amp', valor: string): void {
+/**
+ * Streamer y DAC son selectores independientes y opcionales, igual que
+ * parlante/amplificador — el usuario puede elegir uno, otro, los dos o
+ * ninguno. Cada uno evalúa su propio puente/recorrido contra el
+ * amplificador (ver pintarGanancia), así que no hace falta exclusión mutua.
+ */
+function pick(kind: 'spk' | 'amp' | 'streamer' | 'dac', valor: string): void {
   const sel = document.getElementById('sel-' + kind) as HTMLSelectElement | null;
   const box = document.getElementById('info-' + kind);
   if (!sel || !box) return;
@@ -101,35 +107,6 @@ function pick(kind: 'spk' | 'amp', valor: string): void {
     estado[kind] = valor;
     sel.classList.remove('empty');
     box.innerHTML = infoHTML(kind, valor);
-  }
-  refrescar();
-}
-
-/**
- * El usuario elige a lo sumo una fuente digital — streamer o DAC, nunca
- * ambos — pero son dos <select> separados (dos categorías del catálogo).
- * Elegir en uno limpia el otro; ambos comparten `estado.fuente` y la misma
- * tarjeta `info-fuente`.
- */
-function pickFuente(origen: 'streamer' | 'dac', valor: string): void {
-  const selStreamer = document.getElementById('sel-streamer') as HTMLSelectElement | null;
-  const selDac = document.getElementById('sel-dac') as HTMLSelectElement | null;
-  const box = document.getElementById('info-fuente');
-  if (!selStreamer || !selDac || !box) return;
-
-  const selActual = origen === 'streamer' ? selStreamer : selDac;
-  const selOtro = origen === 'streamer' ? selDac : selStreamer;
-
-  if (!valor) {
-    estado.fuente = null;
-    selActual.classList.add('empty');
-    box.innerHTML = '';
-  } else {
-    estado.fuente = valor;
-    selActual.classList.remove('empty');
-    selOtro.value = '';
-    selOtro.classList.add('empty');
-    box.innerHTML = infoHTML('fuente', valor);
   }
   refrescar();
 }
@@ -155,7 +132,8 @@ function renderizarResultado(): void {
 
   const spk = buscarParlante(estado.spk);
   const amp = buscarAmplificador(estado.amp);
-  const fuente = estado.fuente ? buscarFuente(estado.fuente) : null;
+  const streamer = estado.streamer ? buscarFuente(estado.streamer) : null;
+  const dac = estado.dac ? buscarFuente(estado.dac) : null;
 
   const parlanteM = parlanteDelCatalogo(spk, idiomaActual);
   const ampM = amplificadorDelCatalogo(amp, idiomaActual);
@@ -169,7 +147,8 @@ function renderizarResultado(): void {
     { categoria: t.resultado.itemParlantes, nombre: spk.nombre, espec: especParlante(spk, idiomaActual) },
     { categoria: t.resultado.itemAmplificador, nombre: amp.nombre, espec: especAmplificador(amp, idiomaActual) },
   ];
-  if (fuente) items.push({ categoria: t.resultado.itemFuente, nombre: fuente.nombre, espec: especFuente(fuente, idiomaActual) });
+  if (streamer) items.push({ categoria: t.resultado.itemStreamer, nombre: streamer.nombre, espec: especFuente(streamer, idiomaActual) });
+  if (dac) items.push({ categoria: t.resultado.itemDac, nombre: dac.nombre, espec: especFuente(dac, idiomaActual) });
   pintarCadena(items);
 
   pintarSala(
@@ -189,16 +168,26 @@ function renderizarResultado(): void {
   const resCarga = evaluarCarga(parlanteM, ampM);
   pintarCarga(modeloCarga(spk, amp, resCarga, idiomaActual));
 
-  if (fuente) {
-    const fuenteM = fuenteDelCatalogo(fuente, idiomaActual);
-    const resPuente = evaluarPuenteImpedancias(fuenteM, ampM);
-    const resRecorrido = evaluarRecorridoVolumen(fuenteM, ampM);
+  if (streamer) {
+    const streamerM = fuenteDelCatalogo(streamer, idiomaActual);
+    const resPuente = evaluarPuenteImpedancias(streamerM, ampM);
+    const resRecorrido = evaluarRecorridoVolumen(streamerM, ampM);
     pintarGanancia(
-      modeloPuente(fuente, amp, resPuente, idiomaActual),
-      modeloRecorrido(fuente, amp, resRecorrido, idiomaActual)
+      'streamer',
+      modeloPuente(streamer, amp, resPuente, idiomaActual),
+      modeloRecorrido(streamer, amp, resRecorrido, idiomaActual)
     );
   } else {
-    pintarGanancia(null, null);
+    pintarGanancia('streamer', null, null);
+  }
+
+  if (dac) {
+    const dacM = fuenteDelCatalogo(dac, idiomaActual);
+    const resPuente = evaluarPuenteImpedancias(dacM, ampM);
+    const resRecorrido = evaluarRecorridoVolumen(dacM, ampM);
+    pintarGanancia('dac', modeloPuente(dac, amp, resPuente, idiomaActual), modeloRecorrido(dac, amp, resRecorrido, idiomaActual));
+  } else {
+    pintarGanancia('dac', null, null);
   }
 
   pintarPlano(construirPlanoSvg(sala, disposicion, idiomaActual));
@@ -221,7 +210,7 @@ function cambiarIdioma(idioma: Idioma): void {
   aplicarCromoEstatico(idioma);
   actualizarTextosDimension();
 
-  (['spk', 'amp', 'fuente'] as const).forEach((kind) => {
+  (['spk', 'amp', 'streamer', 'dac'] as const).forEach((kind) => {
     const valor = estado[kind];
     const box = document.getElementById('info-' + kind);
     if (valor && box) box.innerHTML = infoHTML(kind, valor);
@@ -249,8 +238,8 @@ function wireEventos(): void {
 
   document.getElementById('sel-spk')?.addEventListener('change', (e) => pick('spk', (e.target as HTMLSelectElement).value));
   document.getElementById('sel-amp')?.addEventListener('change', (e) => pick('amp', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-streamer')?.addEventListener('change', (e) => pickFuente('streamer', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-dac')?.addEventListener('change', (e) => pickFuente('dac', (e.target as HTMLSelectElement).value));
+  document.getElementById('sel-streamer')?.addEventListener('change', (e) => pick('streamer', (e.target as HTMLSelectElement).value));
+  document.getElementById('sel-dac')?.addEventListener('change', (e) => pick('dac', (e.target as HTMLSelectElement).value));
 
   document.getElementById('in-W')?.addEventListener('input', (e) => setDim('W', parseFloat((e.target as HTMLInputElement).value)));
   document.getElementById('in-L')?.addEventListener('input', (e) => setDim('L', parseFloat((e.target as HTMLInputElement).value)));

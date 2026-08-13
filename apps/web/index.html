@@ -61,15 +61,16 @@
 
     <div class="split">
       <div class="picker">
-        <div class="rowlabel"><span data-i18n="config.streamer">Streamer</span> <span class="req" data-i18n="config.opcionalFuente">opcional · streamer o DAC, no ambos</span></div>
+        <div class="rowlabel"><span data-i18n="config.streamer">Streamer</span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
         <div class="sel"><select id="sel-streamer" class="empty"></select></div>
+        <div id="info-streamer"></div>
       </div>
       <div class="picker">
-        <div class="rowlabel"><span data-i18n="config.dac">DAC</span> <span class="req" data-i18n="config.opcionalFuente">opcional · streamer o DAC, no ambos</span></div>
+        <div class="rowlabel"><span data-i18n="config.dac">DAC</span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
         <div class="sel"><select id="sel-dac" class="empty"></select></div>
+        <div id="info-dac"></div>
       </div>
     </div>
-    <div id="info-fuente"></div>
 
     <div class="room">
       <h3 data-i18n="config.dimensionesTitulo">Dimensiones de la sala</h3>
@@ -167,22 +168,40 @@
           <div class="src" id="z-src"></div>
         </div>
 
-        <div class="card hidden" id="card-puente">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict">—</span></div>
-          <h3 data-i18n="motor.puente.titulo">Puente de impedancias: fuente → amplificador</h3>
-          <p id="pz-text">—</p>
-          <div class="calc" id="pz-calc"></div>
-          <div class="flag hidden" id="pz-flag"></div>
-          <div class="src" id="pz-src"></div>
+        <div class="card hidden" id="card-puente-streamer">
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-streamer">—</span></div>
+          <h3 data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</h3>
+          <p id="pz-text-streamer">—</p>
+          <div class="calc" id="pz-calc-streamer"></div>
+          <div class="flag hidden" id="pz-flag-streamer"></div>
+          <div class="src" id="pz-src-streamer"></div>
         </div>
 
-        <div class="card hidden" id="card-recorrido">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict">—</span></div>
-          <h3 data-i18n="motor.recorrido.titulo">Recorrido del volumen</h3>
-          <p id="pv-text">—</p>
-          <div class="calc" id="pv-calc"></div>
-          <div class="flag hidden" id="pv-flag"></div>
-          <div class="src" id="pv-src"></div>
+        <div class="card hidden" id="card-recorrido-streamer">
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-streamer">—</span></div>
+          <h3 data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</h3>
+          <p id="pv-text-streamer">—</p>
+          <div class="calc" id="pv-calc-streamer"></div>
+          <div class="flag hidden" id="pv-flag-streamer"></div>
+          <div class="src" id="pv-src-streamer"></div>
+        </div>
+
+        <div class="card hidden" id="card-puente-dac">
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-dac">—</span></div>
+          <h3 data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</h3>
+          <p id="pz-text-dac">—</p>
+          <div class="calc" id="pz-calc-dac"></div>
+          <div class="flag hidden" id="pz-flag-dac"></div>
+          <div class="src" id="pz-src-dac"></div>
+        </div>
+
+        <div class="card hidden" id="card-recorrido-dac">
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-dac">—</span></div>
+          <h3 data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</h3>
+          <p id="pv-text-dac">—</p>
+          <div class="calc" id="pv-calc-dac"></div>
+          <div class="flag hidden" id="pv-flag-dac"></div>
+          <div class="src" id="pv-src-dac"></div>
         </div>
 
         <div class="card">

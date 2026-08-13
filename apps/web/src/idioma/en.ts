@@ -34,7 +34,7 @@ export const en: Textos = {
     streamer: 'Streamer',
     dac: 'DAC',
     requerido: 'required',
-    opcionalFuente: 'optional · streamer or DAC, not both',
+    opcionalFuente: 'optional',
     selectPlaceholder: '— Select —',
     fuentePlaceholder: '— None (optional) —',
     masParlantes: 'More speakers · coming soon',
@@ -68,7 +68,8 @@ export const en: Textos = {
     cadena: 'The chain',
     itemParlantes: 'Speakers',
     itemAmplificador: 'Amplifier',
-    itemFuente: 'Source',
+    itemStreamer: 'Streamer',
+    itemDac: 'DAC',
     sala: 'Room',
     anchoLargo: 'Width × length',
     alto: 'Height',
@@ -163,7 +164,8 @@ export const en: Textos = {
     },
 
     puente: {
-      titulo: 'Impedance bridge: source → amplifier',
+      tituloStreamer: 'Impedance bridge: streamer → amplifier',
+      tituloDac: 'Impedance bridge: DAC → amplifier',
       verdicto: {
         'sin-dato': 'No data',
         'puente-correcto': 'Bridge correct',
@@ -189,7 +191,8 @@ export const en: Textos = {
     },
 
     recorrido: {
-      titulo: 'Volume headroom',
+      tituloStreamer: 'Volume headroom: streamer',
+      tituloDac: 'Volume headroom: DAC',
       verdicto: {
         'sin-dato': 'No data',
         insuficiente: 'Insufficient',

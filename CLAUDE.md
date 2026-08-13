@@ -129,13 +129,21 @@ fusionarse acá. 11/11 tests (completitud es/en, ids únicos, lint de
 separador decimal).
 
 **Streamers y DACs son dos categorías separadas** (`Catalogo.streamers` /
-`Catalogo.dacs`, dos `<select>` distintos en el sitio con exclusión mutua —
-elegir uno limpia el otro), no una sola lista como al principio de la Fase 5.
-Comparten el mismo esquema (`FuenteCat`) porque **el motor sigue sin
-distinguirlos** — sólo usa `salidaV`/`impedanciaSalidaOhm`
-(`packages/engine/src/tipos.ts` `Fuente`); la separación es puramente de
-presentación, porque el usuario elige un tipo de fuente digital u otro,
-nunca los dos a la vez.
+`Catalogo.dacs`, dos `<select>` distintos en el sitio), no una sola lista
+como al principio de la Fase 5. Comparten el mismo esquema (`FuenteCat`)
+porque **el motor sigue sin distinguirlos** — sólo usa `salidaV`/
+`impedanciaSalidaOhm` (`packages/engine/src/tipos.ts` `Fuente`); la
+separación es puramente de presentación.
+
+**Streamer y DAC pueden elegirse a la vez** (`estado.streamer` y
+`estado.dac`, independientes — no hay exclusión mutua). Cada uno evalúa su
+propio puente de impedancias y recorrido de volumen contra el amplificador,
+en pares de tarjetas separados (`card-puente-streamer`/`card-recorrido-
+streamer` y `card-puente-dac`/`card-recorrido-dac`, con títulos distintos:
+"streamer → amplificador" / "DAC → amplificador") — nunca se mezclan dos
+evaluaciones de ganancia en una sola tarjeta. `pintarGanancia(categoria,
+puente, recorrido)` en `vista/pintar.ts` toma la categoría como primer
+argumento para pintar el par correcto.
 
 **Ampliación del catálogo (Fase 5, primera tanda).** 5 parlantes y 3
 amplificadores nuevos, investigados con la misma disciplina de fuente +

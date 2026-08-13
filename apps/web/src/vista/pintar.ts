@@ -73,10 +73,21 @@ export function pintarCarga(m: ModeloTarjetaCarga): void {
   el('z-src').innerHTML = m.fuenteHtml;
 }
 
-/** null cuando no hay fuente elegida: oculta ambas tarjetas y no toca su contenido. */
-export function pintarGanancia(puente: ModeloTarjetaPuente | null, recorrido: ModeloTarjetaRecorrido | null): void {
-  const cardPuente = el('card-puente');
-  const cardRecorrido = el('card-recorrido');
+/**
+ * Streamer y DAC son dos categorías independientes que pueden estar
+ * elegidas a la vez (ver estado.ts) — cada una tiene su propio par de
+ * tarjetas (card-puente-streamer/card-recorrido-streamer,
+ * card-puente-dac/card-recorrido-dac) para no mezclar dos evaluaciones de
+ * ganancia distintas en una sola tarjeta. `null` oculta el par de esa
+ * categoría sin tocar su contenido.
+ */
+export function pintarGanancia(
+  categoria: 'streamer' | 'dac',
+  puente: ModeloTarjetaPuente | null,
+  recorrido: ModeloTarjetaRecorrido | null
+): void {
+  const cardPuente = el('card-puente-' + categoria);
+  const cardRecorrido = el('card-recorrido-' + categoria);
 
   if (!puente || !recorrido) {
     cardPuente.classList.add('hidden');
@@ -87,17 +98,17 @@ export function pintarGanancia(puente: ModeloTarjetaPuente | null, recorrido: Mo
   cardPuente.classList.remove('hidden');
   cardRecorrido.classList.remove('hidden');
 
-  pintarVerdict('pz-verdict', puente.sinDatos, puente.verdictoClase, puente.verdictoTexto);
-  el('pz-text').innerHTML = puente.textoHtml;
-  el('pz-calc').innerHTML = puente.calcHtml;
-  pintarFlag('pz-flag', puente.avisoHtml, puente.avisoEsSinDatos);
-  el('pz-src').innerHTML = puente.fuenteHtml;
+  pintarVerdict('pz-verdict-' + categoria, puente.sinDatos, puente.verdictoClase, puente.verdictoTexto);
+  el('pz-text-' + categoria).innerHTML = puente.textoHtml;
+  el('pz-calc-' + categoria).innerHTML = puente.calcHtml;
+  pintarFlag('pz-flag-' + categoria, puente.avisoHtml, puente.avisoEsSinDatos);
+  el('pz-src-' + categoria).innerHTML = puente.fuenteHtml;
 
-  pintarVerdict('pv-verdict', recorrido.sinDatos, recorrido.verdictoClase, recorrido.verdictoTexto);
-  el('pv-text').innerHTML = recorrido.textoHtml;
-  el('pv-calc').innerHTML = recorrido.calcHtml;
-  pintarFlag('pv-flag', recorrido.avisoHtml, recorrido.avisoEsSinDatos);
-  el('pv-src').innerHTML = recorrido.fuenteHtml;
+  pintarVerdict('pv-verdict-' + categoria, recorrido.sinDatos, recorrido.verdictoClase, recorrido.verdictoTexto);
+  el('pv-text-' + categoria).innerHTML = recorrido.textoHtml;
+  el('pv-calc-' + categoria).innerHTML = recorrido.calcHtml;
+  pintarFlag('pv-flag-' + categoria, recorrido.avisoHtml, recorrido.avisoEsSinDatos);
+  el('pv-src-' + categoria).innerHTML = recorrido.fuenteHtml;
 }
 
 export function pintarPlano(svg: string): void {

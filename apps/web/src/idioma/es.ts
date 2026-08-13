@@ -44,7 +44,7 @@ export const es = {
     streamer: 'Streamer',
     dac: 'DAC',
     requerido: 'requerido',
-    opcionalFuente: 'opcional · streamer o DAC, no ambos',
+    opcionalFuente: 'opcional',
     selectPlaceholder: '— Selecciona —',
     fuentePlaceholder: '— Ninguno (opcional) —',
     masParlantes: 'Más parlantes · próximamente',
@@ -78,7 +78,8 @@ export const es = {
     cadena: 'La cadena',
     itemParlantes: 'Parlantes',
     itemAmplificador: 'Amplificador',
-    itemFuente: 'Fuente',
+    itemStreamer: 'Streamer',
+    itemDac: 'DAC',
     sala: 'Sala',
     anchoLargo: 'Ancho × largo',
     alto: 'Alto',
@@ -173,7 +174,8 @@ export const es = {
     },
 
     puente: {
-      titulo: 'Puente de impedancias: fuente → amplificador',
+      tituloStreamer: 'Puente de impedancias: streamer → amplificador',
+      tituloDac: 'Puente de impedancias: DAC → amplificador',
       verdicto: {
         'sin-dato': 'Sin dato',
         'puente-correcto': 'Puente correcto',
@@ -200,7 +202,8 @@ export const es = {
     },
 
     recorrido: {
-      titulo: 'Recorrido del volumen',
+      tituloStreamer: 'Recorrido del volumen: streamer',
+      tituloDac: 'Recorrido del volumen: DAC',
       verdicto: {
         'sin-dato': 'Sin dato',
         insuficiente: 'Insuficiente',
