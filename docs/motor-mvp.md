@@ -229,7 +229,7 @@ simples entre ejes) → `ok`.
 
 - Subwoofer, cables.
 - Modo "buscar" (llenar un hueco con candidatos) y modo "proponer" (armar cadenas
-  desde un presupuesto). Requieren la función de score, que es decisión abierta.
+  desde un presupuesto).
 
 Estas reglas ya están especificadas en los docs del proyecto anterior; el motor
 implementa potencia, carga, geometría y ganancia de cadena (sección 6).
@@ -392,4 +392,66 @@ I · WiiM Pro Plus (2,0 V, 10 Ω) → Cambridge CXA81 (370 mV, 43 kΩ)
     salida del WiiM es además configurable por el usuario (500 mV/800 mV/
     1 V/2 V); 2,0 V es el máximo, no un valor fijo — ver
     packages/data/src/catalogo.ts para la cita completa.
+
+---
+
+## 7. Puntaje del match (`puntaje.ts`) — CAPA CRITERIO-EDITORIAL
+
+**Estado: implementada.** A diferencia de todo lo anterior (secciones 2-4bis
+y 6), esto **no es física**: es un único número 1-10 que combina las
+severidades ya calculadas por las reglas de arriba, con pesos que este sitio
+declara desde su criterio. Ver CLAUDE.md, "Las dos capas" — se rotula en
+pantalla como "Criterio editorial, no física", nunca junto a un veredicto de
+capa física.
+
+`puntaje.ts` no decide severidades — sólo las combina. Recibe una lista de
+`{ nombre, peso, severidad }` por componente (`severidad: null` si el
+componente no aplica a este match, ej. sin streamer ni dac elegido).
+
+### Pesos declarados
+
+| Componente | Peso | Por qué |
+|---|---|---|
+| Potencia | 30 % | Riesgo real: recorte audible si no alcanza |
+| Carga | 25 % | Riesgo real: amplificador forzado en cargas duras |
+| Puente de impedancias | 17 % | Ajuste fino de ganancia, no un riesgo de falla |
+| Recorrido de volumen | 13 % | Ergonómico — el sistema funciona igual, sólo cambia la resolución del volumen |
+| Modos de sala | 15 % | De la sala, no de la combinación de equipos — el sitio eligió incluirlo igual |
+
+Suman 1 (`puntaje.test.ts` lo verifica). **Son un criterio, no un dato
+medido** — otro sitio razonable pesaría distinto.
+
+### Puntos por severidad
+
+`ok` = 10 · `warn` = 5 · `alert` = 0. `sin-datos` (o componente no
+aplicable) se **excluye**, no puntúa ni penaliza — mismo principio que el
+resto del proyecto ("dato faltante nunca es `ok`"). El puntaje final es el
+promedio ponderado sólo de los componentes evaluados, re-normalizado sobre
+la suma de sus pesos — así un componente sin dato no arrastra el número
+hacia abajo simplemente por faltar.
+
+`componentesEvaluados`/`componentesTotales` viaja en el resultado para que,
+si faltó algo, el sitio lo declare (aviso explícito: "calculado sobre N de
+M componentes").
+
+**Piso de 1, nunca 0** (`Math.max(1, Math.round(promedio))`): la escala
+declarada es 1-10.
+
+### Streamer + DAC simultáneos
+
+Desde que el sitio permite elegir streamer y DAC a la vez (ver CLAUDE.md),
+puente/recorrido pueden tener hasta dos resultados por match. Se combinan
+con `peorSeveridad()` (mismo idioma que `peorConfianza()` en tipos.ts): si
+cualquiera de las dos fuentes elegidas tiene un problema, el puntaje lo
+refleja. Si ambas están en `sin-datos`, el componente completo queda
+`sin-datos` (excluido); si al menos una tiene severidad real, se usa la
+peor de las reales.
+
+### Vector de prueba
+
+Los 5 en `ok` → 10/10. Los 5 en `alert` (menos modos, que nunca es `alert`)
+→ 1/10. Sin streamer ni dac (puente=null, recorrido=null), potencia=ok,
+carga=warn, modos=ok → evaluados sobre 3 componentes:
+`(0,30·10 + 0,25·5 + 0,15·10) / 0,70 = 5,75/0,70 ≈ 8,21` → 8/10. Vectores
+completos en `packages/engine/src/puntaje.test.ts`.
 ```

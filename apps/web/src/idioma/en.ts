@@ -230,6 +230,23 @@ export const en: Textos = {
       fuente: (p) =>
         `<b>Criterion:</b> rigid, rectangular room model, axial modes only. Clustering = two modes on different axes within ${p.umbral}% of each other, below ${p.techo} Hz — a site criterion, not a published convention; verified by measuring/listening.`,
     },
+
+    puntaje: {
+      titulo: 'Match score',
+      rotulo: 'Editorial criterion, not physics',
+      componente: {
+        potencia: 'Power',
+        carga: 'Load',
+        puente: 'Impedance bridge',
+        recorrido: 'Volume headroom',
+        modos: 'Room modes',
+      },
+      filaIncluida: (p) => `${p.nombre}: ${p.puntos}/10`,
+      filaExcluida: (p) => `${p.nombre}: not enough data, excluded`,
+      aviso: (p) => `Calculated over ${p.evaluados} of ${p.total} components — the rest lacked enough data and were not included (neither added nor subtracted).`,
+      criterio:
+        '<b>Editorial criterion, not a measured figure:</b> combines the severities above with weights this site declares — power 30% · load 25% · impedance bridge 17% · volume headroom 13% · room modes 15%. Another reasonable criterion would weigh things differently.',
+    },
   },
 
   catalogo: {

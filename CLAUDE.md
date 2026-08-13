@@ -64,6 +64,7 @@ packages/engine/   TypeScript puro, CERO dependencias de runtime.
   src/sala.ts      Geometría: disposición, distancia, reflexiones
   src/modos.ts     Modos axiales de sala (resonancias de graves) + detección de agrupamiento
   src/ganancia.ts  Ganancia de cadena: puente de impedancias + recorrido de volumen (fuente→ampli)
+  src/puntaje.ts   Puntaje 1-10 del match — CAPA CRITERIO-EDITORIAL, no física (pesos declarados)
 packages/data/     Catálogo curado de equipos, bilingüe (con fuente y confianza)
   src/catalogo.ts        El dato: parlantes, amplificadores, streamers, DACs, cables
   src/tipos-catalogo.ts  DatoCitado<T>, Localizado — el esquema de presentación
@@ -118,7 +119,7 @@ typecheck` / `npm run build` desde la raíz.
 `potencia.ts`, `carga.ts`, `sala.ts`, `modos.ts`, `ganancia.ts`) devuelve
 **códigos, no texto** — `codigo: 'con-margen'|'justo'|'insuficiente'`, etc.,
 y en `potencia.ts` un `avisos: AvisoPotencia[]` con los números en crudo.
-58/58 tests.
+69/69 tests.
 
 **Modos de sala** (`modos.ts`) es la primera regla de sala con severidad
 (techo `warn`, nunca `error` — CLAUDE.md ya lo declaraba antes de que
@@ -128,6 +129,18 @@ modos de ejes distintos si caen a menos de 5 % de diferencia por debajo de
 convención publicada. La sala por defecto del sitio (3,6×5,0×2,4 m) da
 `warn` de verdad: 3,6/2,4 = 3:2 exacto, así que el modo de orden 3 del
 ancho coincide exactamente con el de orden 2 del alto.
+
+**Puntaje del match** (`puntaje.ts`) es la primera y única pieza del motor
+que vive en la **capa criterio-editorial**, no en la física — combina las
+severidades de potencia/carga/puente/recorrido/modos en un número 1-10 con
+pesos que el sitio declara (potencia 30 % · carga 25 % · puente 17 % ·
+recorrido 13 % · modos 15 %, `docs/motor-mvp.md` sección 7). `sin-datos` (o
+un componente no aplicable, ej. sin streamer ni dac elegido) se excluye del
+cálculo — no puntúa ni penaliza, y el sitio declara cuántos componentes sí
+se evaluaron. Se rotula en pantalla como "Criterio editorial, no física",
+en su propio bloque, nunca junto a un veredicto de capa física. Con
+streamer y dac elegidos a la vez, cada uno de puente/recorrido se combina
+con `peorSeveridad()` (mismo idioma que `peorConfianza()`).
 
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
 datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 4 streamers +
@@ -211,7 +224,7 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**127 tests totales** (58 motor + 11 catálogo + 58 frontend, estos últimos
+**141 tests totales** (69 motor + 11 catálogo + 61 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 

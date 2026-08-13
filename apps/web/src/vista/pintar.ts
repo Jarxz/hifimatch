@@ -2,7 +2,14 @@
  * Única capa que escribe en el DOM del resultado. Todo el texto ya viene
  * formateado desde resultado.ts (puro); acá sólo se asigna a elementos.
  */
-import type { ModeloTarjetaPotencia, ModeloTarjetaCarga, ModeloTarjetaPuente, ModeloTarjetaRecorrido, ModeloTarjetaModos } from './resultado.ts';
+import type {
+  ModeloTarjetaPotencia,
+  ModeloTarjetaCarga,
+  ModeloTarjetaPuente,
+  ModeloTarjetaRecorrido,
+  ModeloTarjetaModos,
+  ModeloPuntaje,
+} from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { actualizarMedidor } from './medidor.ts';
 
@@ -123,4 +130,13 @@ export function pintarModos(m: ModeloTarjetaModos): void {
   el('mo-lista').innerHTML = m.listaHtml;
   pintarFlag('mo-flag', m.avisoHtml, false);
   el('mo-src').innerHTML = m.fuenteHtml;
+}
+
+/** Capa criterio-editorial (puntaje.ts) — nunca usa pintarVerdict/las clases
+ * ok/warn/alert de la capa física; es un número simple en un <b>. */
+export function pintarPuntaje(m: ModeloPuntaje): void {
+  el('pt-puntaje').textContent = m.puntajeTexto;
+  el('pt-detalle').innerHTML = m.detalleHtml;
+  pintarFlag('pt-flag', m.avisoHtml, true);
+  el('pt-criterio').innerHTML = m.criterioHtml;
 }

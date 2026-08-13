@@ -14,6 +14,7 @@ import type { CodigoPotencia } from '../../../../packages/engine/src/potencia.ts
 import type { CodigoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { CodigoPuenteImpedancias, CodigoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos.ts';
+import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 
 export const es = {
@@ -244,6 +245,24 @@ export const es = {
         `${p.a} (${p.frecuenciaA} Hz) y ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p: { techo: string; umbral: string }): string =>
         `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
+    },
+
+    puntaje: {
+      titulo: 'Puntaje del match',
+      rotulo: 'Criterio editorial, no física',
+      componente: {
+        potencia: 'Potencia',
+        carga: 'Carga',
+        puente: 'Puente de impedancias',
+        recorrido: 'Recorrido de volumen',
+        modos: 'Modos de sala',
+      } satisfies Record<ComponentePuntaje['nombre'], string>,
+      filaIncluida: (p: { nombre: string; puntos: string }): string => `${p.nombre}: ${p.puntos}/10`,
+      filaExcluida: (p: { nombre: string }): string => `${p.nombre}: sin dato suficiente, no cuenta`,
+      aviso: (p: { evaluados: string; total: string }): string =>
+        `Calculado sobre ${p.evaluados} de ${p.total} componentes — el resto no tenía dato suficiente y no se incluyó (ni suma ni resta).`,
+      criterio:
+        '<b>Criterio editorial, no un dato medido:</b> combina las severidades de arriba con pesos que este sitio declara — potencia 30 % · carga 25 % · puente de impedancias 17 % · recorrido de volumen 13 % · modos de sala 15 %. Otro criterio razonable pesaría distinto.',
     },
   },
 

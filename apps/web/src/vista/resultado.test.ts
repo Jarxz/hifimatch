@@ -4,11 +4,13 @@ import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
+import { calcularPuntaje, PESOS_DECLARADOS } from '../../../../packages/engine/src/puntaje.ts';
+import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Parlante, Amplificador } from '../../../../packages/engine/src/tipos.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from '../datos/adaptadores.ts';
-import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos } from './resultado.ts';
+import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos, modeloPuntaje } from './resultado.ts';
 
 function parlanteCat(id: string): ParlanteCat {
   const p = CATALOGO.parlantes.find((x) => x.id === id);
@@ -196,6 +198,52 @@ test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas'
   assert.equal(m.verdictoTexto, 'Clustered modes');
   assert.match(m.textoHtml, /mode pair/);
   assert.doesNotMatch(m.textoHtml, /par\(es\)/);
+});
+
+// ---- puntaje (capa criterio-editorial) ----
+
+test('modeloPuntaje: todo "ok" da 10/10, detalle con los 5 componentes incluidos, sin aviso', () => {
+  const componentes: ComponentePuntaje[] = [
+    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
+    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: 'ok' },
+    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: 'ok' },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
+  ];
+  const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
+  assert.equal(m.puntaje, 10);
+  assert.equal(m.puntajeTexto, '10/10');
+  assert.equal(m.avisoHtml, null);
+  assert.match(m.detalleHtml, /Potencia: 10\/10/);
+  assert.match(m.criterioHtml, /Criterio editorial/);
+});
+
+test('modeloPuntaje: sin streamer ni dac, el detalle marca puente/recorrido excluidos y avisa que no se evaluaron los 5', () => {
+  const componentes: ComponentePuntaje[] = [
+    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
+    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: null },
+    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: null },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
+  ];
+  const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
+  assert.match(m.detalleHtml, /Puente de impedancias: sin dato suficiente, no cuenta/);
+  assert.ok(m.avisoHtml !== null);
+  assert.match(m.avisoHtml!, /3 de 5/);
+});
+
+test('modeloPuntaje en inglés: etiquetas de componente y criterio en inglés, sin mezclar idiomas', () => {
+  const componentes: ComponentePuntaje[] = [
+    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
+    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: 'ok' },
+    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: 'ok' },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
+  ];
+  const m = modeloPuntaje(calcularPuntaje(componentes), 'en');
+  assert.match(m.detalleHtml, /Power: 10\/10/);
+  assert.match(m.criterioHtml, /Editorial criterion/);
+  assert.doesNotMatch(m.detalleHtml, /Potencia/);
 });
 
 // ---- idioma 'en': mismos números, texto en inglés ----

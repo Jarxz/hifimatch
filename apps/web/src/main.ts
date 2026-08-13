@@ -4,8 +4,11 @@ import { calcularDisposicion } from '../../../packages/engine/src/sala.ts';
 import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
+import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../packages/engine/src/modos.ts';
+import { calcularPuntaje, peorSeveridad, PESOS_DECLARADOS } from '../../../packages/engine/src/puntaje.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
+import type { Severidad } from '../../../packages/engine/src/tipos.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 
 import { estado } from './estado.ts';
@@ -14,8 +17,8 @@ import { ir } from './vista/pantallas.ts';
 import { poblarSelectores, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
-import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos } from './vista/resultado.ts';
-import { pintarCadena, pintarSala, pintarPotencia, pintarCarga, pintarGanancia, pintarPlano, pintarModos } from './vista/pintar.ts';
+import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos, modeloPuntaje } from './vista/resultado.ts';
+import { pintarCadena, pintarSala, pintarPotencia, pintarCarga, pintarGanancia, pintarPlano, pintarModos, pintarPuntaje } from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
 import { num } from './formato/numeros.ts';
@@ -169,30 +172,59 @@ function renderizarResultado(): void {
   const resCarga = evaluarCarga(parlanteM, ampM);
   pintarCarga(modeloCarga(spk, amp, resCarga, idiomaActual));
 
+  let resPuenteStreamer: ResultadoPuenteImpedancias | null = null;
+  let resRecorridoStreamer: ResultadoRecorridoVolumen | null = null;
   if (streamer) {
     const streamerM = fuenteDelCatalogo(streamer, idiomaActual);
-    const resPuente = evaluarPuenteImpedancias(streamerM, ampM);
-    const resRecorrido = evaluarRecorridoVolumen(streamerM, ampM);
+    resPuenteStreamer = evaluarPuenteImpedancias(streamerM, ampM);
+    resRecorridoStreamer = evaluarRecorridoVolumen(streamerM, ampM);
     pintarGanancia(
       'streamer',
-      modeloPuente(streamer, amp, resPuente, idiomaActual),
-      modeloRecorrido(streamer, amp, resRecorrido, idiomaActual)
+      modeloPuente(streamer, amp, resPuenteStreamer, idiomaActual),
+      modeloRecorrido(streamer, amp, resRecorridoStreamer, idiomaActual)
     );
   } else {
     pintarGanancia('streamer', null, null);
   }
 
+  let resPuenteDac: ResultadoPuenteImpedancias | null = null;
+  let resRecorridoDac: ResultadoRecorridoVolumen | null = null;
   if (dac) {
     const dacM = fuenteDelCatalogo(dac, idiomaActual);
-    const resPuente = evaluarPuenteImpedancias(dacM, ampM);
-    const resRecorrido = evaluarRecorridoVolumen(dacM, ampM);
-    pintarGanancia('dac', modeloPuente(dac, amp, resPuente, idiomaActual), modeloRecorrido(dac, amp, resRecorrido, idiomaActual));
+    resPuenteDac = evaluarPuenteImpedancias(dacM, ampM);
+    resRecorridoDac = evaluarRecorridoVolumen(dacM, ampM);
+    pintarGanancia('dac', modeloPuente(dac, amp, resPuenteDac, idiomaActual), modeloRecorrido(dac, amp, resRecorridoDac, idiomaActual));
   } else {
     pintarGanancia('dac', null, null);
   }
 
   pintarPlano(construirPlanoSvg(sala, disposicion, idiomaActual));
-  pintarModos(modeloModos(evaluarModos(sala), idiomaActual));
+  const resModos = evaluarModos(sala);
+  pintarModos(modeloModos(resModos, idiomaActual));
+
+  const puntaje = calcularPuntaje([
+    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: resCarga.severidad },
+    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: severidadCombinada(resPuenteStreamer, resPuenteDac) },
+    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: severidadCombinada(resRecorridoStreamer, resRecorridoDac) },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: resModos.severidad },
+  ]);
+  pintarPuntaje(modeloPuntaje(puntaje, idiomaActual));
+}
+
+/**
+ * Combina hasta dos resultados opcionales (streamer y dac) en una sola
+ * severidad para el puntaje: si ninguno está elegido, el componente no
+ * aplica (null); si alguno tiene una severidad real (no "sin-datos"), se
+ * usa la peor de las reales; si los elegidos están todos en "sin-datos",
+ * el componente entero queda "sin-datos" — nunca se inventa un valor.
+ */
+function severidadCombinada(...resultados: Array<{ severidad: Severidad } | null>): Severidad | null {
+  const elegidos = resultados.filter((r): r is { severidad: Severidad } => r !== null);
+  if (elegidos.length === 0) return null;
+  const reales = elegidos.map((r) => r.severidad).filter((s): s is Exclude<Severidad, 'sin-datos'> => s !== 'sin-datos');
+  if (reales.length === 0) return 'sin-datos';
+  return peorSeveridad(...reales);
 }
 
 function analizar(): void {

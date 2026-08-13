@@ -16,6 +16,7 @@ import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../.
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
 import type { ResultadoModos } from '../../../../packages/engine/src/modos.ts';
 import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages/engine/src/modos.ts';
+import type { ResultadoPuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { num, numConSigno } from '../formato/numeros.ts';
@@ -335,5 +336,42 @@ export function modeloModos(r: ResultadoModos, idioma: Idioma): ModeloTarjetaMod
     listaHtml,
     avisoHtml,
     fuenteHtml: t.motor.modos.fuente({ techo: techoFmt, umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)) }),
+  };
+}
+
+export interface ModeloPuntaje {
+  puntaje: number;
+  puntajeTexto: string;
+  detalleHtml: string;
+  avisoHtml: string | null;
+  criterioHtml: string;
+}
+
+/** CAPA CRITERIO-EDITORIAL — ver puntaje.ts. Nunca se pinta con las clases
+ * ok/warn/alert de la capa física (ClaseVerdicto); es un número simple, no
+ * un veredicto. */
+export function modeloPuntaje(r: ResultadoPuntaje, idioma: Idioma): ModeloPuntaje {
+  const t = textosDe(idioma);
+  const nombreLabel = t.motor.puntaje.componente;
+
+  const detalleHtml = r.detalle
+    .map((d) =>
+      d.incluido
+        ? t.motor.puntaje.filaIncluida({ nombre: nombreLabel[d.nombre], puntos: String(d.puntos) })
+        : t.motor.puntaje.filaExcluida({ nombre: nombreLabel[d.nombre] })
+    )
+    .join('<br>');
+
+  const avisoHtml =
+    r.componentesEvaluados < r.componentesTotales
+      ? t.motor.puntaje.aviso({ evaluados: String(r.componentesEvaluados), total: String(r.componentesTotales) })
+      : null;
+
+  return {
+    puntaje: r.puntaje,
+    puntajeTexto: `${r.puntaje}/10`,
+    detalleHtml,
+    avisoHtml,
+    criterioHtml: t.motor.puntaje.criterio,
   };
 }
