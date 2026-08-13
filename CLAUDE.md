@@ -64,7 +64,7 @@ packages/engine/   TypeScript puro, CERO dependencias de runtime.
   src/sala.ts      Geometría: disposición, distancia, reflexiones
   src/ganancia.ts  Ganancia de cadena: puente de impedancias + recorrido de volumen (fuente→ampli)
 packages/data/     Catálogo curado de equipos, bilingüe (con fuente y confianza)
-  src/catalogo.ts        El dato: parlantes, amplificadores, fuentes, cables
+  src/catalogo.ts        El dato: parlantes, amplificadores, streamers, DACs, cables
   src/tipos-catalogo.ts  DatoCitado<T>, Localizado — el esquema de presentación
   src/idioma.ts          Idioma = 'es'|'en'; Localizado = {es,en}
 apps/web/          Frontend: Vite + TypeScript modular, consume engine y data directo
@@ -120,13 +120,22 @@ texto** — `codigo: 'con-margen'|'justo'|'insuficiente'`, etc., y en
 tests.
 
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
-datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 8 fuentes
-digitales que unifican streamers+DACs, 3 cables curados sin regla todavía),
-bilingüe desde el origen (`Localizado = {es, en}` en cada campo de
-presentación). Reemplaza lo que antes vivía duplicado entre
-`prototipo-frontend.html` y `data/equipos-seed.json` — ya habían divergido en
-9 puntos antes de fusionarse acá. 11/11 tests (completitud es/en, ids únicos,
-lint de separador decimal).
+datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 4 streamers +
+4 DACs, 3 cables curados sin regla todavía), bilingüe desde el origen
+(`Localizado = {es, en}` en cada campo de presentación). Reemplaza lo que
+antes vivía duplicado entre `prototipo-frontend.html` y
+`data/equipos-seed.json` — ya habían divergido en 9 puntos antes de
+fusionarse acá. 11/11 tests (completitud es/en, ids únicos, lint de
+separador decimal).
+
+**Streamers y DACs son dos categorías separadas** (`Catalogo.streamers` /
+`Catalogo.dacs`, dos `<select>` distintos en el sitio con exclusión mutua —
+elegir uno limpia el otro), no una sola lista como al principio de la Fase 5.
+Comparten el mismo esquema (`FuenteCat`) porque **el motor sigue sin
+distinguirlos** — sólo usa `salidaV`/`impedanciaSalidaOhm`
+(`packages/engine/src/tipos.ts` `Fuente`); la separación es puramente de
+presentación, porque el usuario elige un tipo de fuente digital u otro,
+nunca los dos a la vez.
 
 **Ampliación del catálogo (Fase 5, primera tanda).** 5 parlantes y 3
 amplificadores nuevos, investigados con la misma disciplina de fuente +

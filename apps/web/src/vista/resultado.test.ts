@@ -20,7 +20,7 @@ function ampCat(id: string): AmplificadorCat {
   return a;
 }
 function fuenteCat(id: string): FuenteCat {
-  const f = CATALOGO.fuentes.find((x) => x.id === id);
+  const f = [...CATALOGO.streamers, ...CATALOGO.dacs].find((x) => x.id === id);
   if (!f) throw new Error(id);
   return f;
 }

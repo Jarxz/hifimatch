@@ -14,7 +14,7 @@ function amplificador(id: string) {
   return a;
 }
 function fuente(id: string) {
-  const f = CATALOGO.fuentes.find((x) => x.id === id);
+  const f = [...CATALOGO.streamers, ...CATALOGO.dacs].find((x) => x.id === id);
   if (!f) throw new Error(`no encontrado: ${id}`);
   return f;
 }

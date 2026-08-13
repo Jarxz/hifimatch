@@ -52,8 +52,11 @@ export interface AmplificadorCat {
 }
 
 /**
- * Streamer o DAC — el motor no distingue entre ambos (packages/engine/src
- * /tipos.ts `Fuente`), así que tampoco lo hace el catálogo: una sola lista.
+ * Esquema compartido por streamers y DACs — el motor no distingue entre
+ * ambos (packages/engine/src/tipos.ts `Fuente`), sólo usa salidaV/
+ * impedanciaSalidaOhm. La separación en dos categorías (`Catalogo.streamers`
+ * / `Catalogo.dacs`) es de presentación: el usuario elige uno u otro, nunca
+ * los dos a la vez.
  */
 export interface FuenteCat {
   id: string;
@@ -93,6 +96,14 @@ export interface CableCat {
 export interface Catalogo {
   parlantes: readonly ParlanteCat[];
   amplificadores: readonly AmplificadorCat[];
-  fuentes: readonly FuenteCat[];
+  /**
+   * Streamers y DACs son dos categorías separadas en el catálogo y en el
+   * sitio (dos selectores) porque el usuario elige uno u otro, no ambos a
+   * la vez. Comparten el mismo esquema (`FuenteCat`) porque el motor sigue
+   * sin distinguirlos: ambos son sólo salidaV/impedanciaSalidaOhm hacia el
+   * amplificador (packages/engine/src/tipos.ts `Fuente`).
+   */
+  streamers: readonly FuenteCat[];
+  dacs: readonly FuenteCat[];
   cables: readonly CableCat[];
 }

@@ -811,7 +811,7 @@ export const CATALOGO: Catalogo = {
     },
   ],
 
-  fuentes: [
+  streamers: [
     {
       id: 'bluesound-node-n130',
       nombre: 'Bluesound Node (N130, 2021)',
@@ -895,6 +895,35 @@ export const CATALOGO: Catalogo = {
       },
     },
     {
+      id: 'cambridge-axn10',
+      nombre: 'Cambridge Audio AXN10',
+      tipo: {
+        es: 'Streamer de red, DAC integrado (salida analógica)',
+        en: 'Network streamer, integrated DAC (analog output)',
+      },
+      descripcion: {
+        es: 'DAC ESS Sabre ES9033Q, salida fija de 2,0 V. Impedancia de salida de 500 Ω — alta para una salida de línea moderna, <b>conviene revisar el puente de impedancias</b> hacia el amplificador. Plataforma de streaming StreamMagic Gen 4 (AirPlay 2, Chromecast, Roon Ready, Tidal Connect/MQA, Spotify Connect).',
+        en: 'An ESS Sabre ES9033Q DAC, with a fixed 2.0 V output. A 500 Ω output impedance — high for a modern line output, <b>worth checking the impedance bridge</b> to the amplifier. StreamMagic Gen 4 streaming platform (AirPlay 2, Chromecast, Roon Ready, Tidal Connect/MQA, Spotify Connect).',
+      },
+      salidaV: 2.0,
+      impedanciaSalidaOhm: 500,
+      fuente: { es: 'Cambridge Audio (ficha oficial)', en: 'Cambridge Audio (official spec sheet)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'ESS Sabre ES9033Q', en: 'ESS Sabre ES9033Q' },
+        { es: 'hasta 32/768 + DSD512', en: 'up to 32/768 + DSD512' },
+        { es: 'StreamMagic Gen 4', en: 'StreamMagic Gen 4' },
+      ],
+      fuentes: ['Cambridge Audio (ficha técnica oficial, manuals.cambridgeaudio.com)'],
+      pendiente: {
+        es: 'impedancia de salida (500 Ω) es alta para una salida de línea moderna (lo típico ronda 50–100 Ω); confirmada de forma idéntica en dos consultas independientes a la misma ficha oficial, pero no se pudo abrir el manual en PDF directamente para una verificación visual adicional',
+        en: 'output impedance (500 Ω) is high for a modern line output (typical figures run 50–100 Ω); confirmed identically across two independent lookups of the same official spec sheet, but the PDF manual could not be opened directly for additional visual verification',
+      },
+    },
+  ],
+
+  dacs: [
+    {
       id: 'schiit-modi-plus',
       nombre: 'Schiit Modi+',
       tipo: { es: 'DAC de escritorio, USB/coaxial/óptico', en: 'Desktop DAC, USB/coaxial/optical' },
@@ -944,32 +973,6 @@ export const CATALOGO: Catalogo = {
         { es: 'salida fija o variable', en: 'fixed or variable output' },
       ],
       fuentes: ['Cambridge Audio (ficha oficial)'],
-    },
-    {
-      id: 'cambridge-axn10',
-      nombre: 'Cambridge Audio AXN10',
-      tipo: {
-        es: 'Streamer de red, DAC integrado (salida analógica)',
-        en: 'Network streamer, integrated DAC (analog output)',
-      },
-      descripcion: {
-        es: 'DAC ESS Sabre ES9033Q, salida fija de 2,0 V. Impedancia de salida de 500 Ω — alta para una salida de línea moderna, <b>conviene revisar el puente de impedancias</b> hacia el amplificador. Plataforma de streaming StreamMagic Gen 4 (AirPlay 2, Chromecast, Roon Ready, Tidal Connect/MQA, Spotify Connect).',
-        en: 'An ESS Sabre ES9033Q DAC, with a fixed 2.0 V output. A 500 Ω output impedance — high for a modern line output, <b>worth checking the impedance bridge</b> to the amplifier. StreamMagic Gen 4 streaming platform (AirPlay 2, Chromecast, Roon Ready, Tidal Connect/MQA, Spotify Connect).',
-      },
-      salidaV: 2.0,
-      impedanciaSalidaOhm: 500,
-      fuente: { es: 'Cambridge Audio (ficha oficial)', en: 'Cambridge Audio (official spec sheet)' },
-      confianza: 'alta',
-      chipsExtra: [
-        { es: 'ESS Sabre ES9033Q', en: 'ESS Sabre ES9033Q' },
-        { es: 'hasta 32/768 + DSD512', en: 'up to 32/768 + DSD512' },
-        { es: 'StreamMagic Gen 4', en: 'StreamMagic Gen 4' },
-      ],
-      fuentes: ['Cambridge Audio (ficha técnica oficial, manuals.cambridgeaudio.com)'],
-      pendiente: {
-        es: 'impedancia de salida (500 Ω) es alta para una salida de línea moderna (lo típico ronda 50–100 Ω); confirmada de forma idéntica en dos consultas independientes a la misma ficha oficial, pero no se pudo abrir el manual en PDF directamente para una verificación visual adicional',
-        en: 'output impedance (500 Ω) is high for a modern line output (typical figures run 50–100 Ω); confirmed identically across two independent lookups of the same official spec sheet, but the PDF manual could not be opened directly for additional visual verification',
-      },
     },
     {
       id: 'wadia-121',

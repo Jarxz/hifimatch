@@ -20,8 +20,9 @@ export function poblarSelectores(idioma: Idioma): void {
   const t = textosDe(idioma).config;
   const selSpk = document.getElementById('sel-spk') as HTMLSelectElement | null;
   const selAmp = document.getElementById('sel-amp') as HTMLSelectElement | null;
-  const selFuente = document.getElementById('sel-fuente') as HTMLSelectElement | null;
-  if (!selSpk || !selAmp || !selFuente) return;
+  const selStreamer = document.getElementById('sel-streamer') as HTMLSelectElement | null;
+  const selDac = document.getElementById('sel-dac') as HTMLSelectElement | null;
+  if (!selSpk || !selAmp || !selStreamer || !selDac) return;
 
   selSpk.innerHTML =
     `<option value="" data-i18n="config.selectPlaceholder">${t.selectPlaceholder}</option>` +
@@ -33,10 +34,15 @@ export function poblarSelectores(idioma: Idioma): void {
     opciones(CATALOGO.amplificadores) +
     `<option value="" disabled data-i18n="config.masAmplificadores">${t.masAmplificadores}</option>`;
 
-  selFuente.innerHTML =
+  selStreamer.innerHTML =
     `<option value="" data-i18n="config.fuentePlaceholder">${t.fuentePlaceholder}</option>` +
-    opciones(CATALOGO.fuentes) +
-    `<option value="" disabled data-i18n="config.masFuentes">${t.masFuentes}</option>`;
+    opciones(CATALOGO.streamers) +
+    `<option value="" disabled data-i18n="config.masStreamers">${t.masStreamers}</option>`;
+
+  selDac.innerHTML =
+    `<option value="" data-i18n="config.fuentePlaceholder">${t.fuentePlaceholder}</option>` +
+    opciones(CATALOGO.dacs) +
+    `<option value="" disabled data-i18n="config.masDacs">${t.masDacs}</option>`;
 }
 
 function infoHtml(tipo: string, chips: string[], descripcion: string): string {

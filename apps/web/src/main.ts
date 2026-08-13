@@ -40,7 +40,7 @@ function buscarAmplificador(id: string) {
   return a;
 }
 function buscarFuente(id: string) {
-  const f = CATALOGO.fuentes.find((x) => x.id === id);
+  const f = [...CATALOGO.streamers, ...CATALOGO.dacs].find((x) => x.id === id);
   if (!f) throw new Error(`fuente no encontrada: ${id}`);
   return f;
 }
@@ -88,7 +88,7 @@ function infoHTML(kind: 'spk' | 'amp' | 'fuente', id: string): string {
   return infoHtmlFuente(buscarFuente(id), idiomaActual);
 }
 
-function pick(kind: 'spk' | 'amp' | 'fuente', valor: string): void {
+function pick(kind: 'spk' | 'amp', valor: string): void {
   const sel = document.getElementById('sel-' + kind) as HTMLSelectElement | null;
   const box = document.getElementById('info-' + kind);
   if (!sel || !box) return;
@@ -101,6 +101,35 @@ function pick(kind: 'spk' | 'amp' | 'fuente', valor: string): void {
     estado[kind] = valor;
     sel.classList.remove('empty');
     box.innerHTML = infoHTML(kind, valor);
+  }
+  refrescar();
+}
+
+/**
+ * El usuario elige a lo sumo una fuente digital — streamer o DAC, nunca
+ * ambos — pero son dos <select> separados (dos categorías del catálogo).
+ * Elegir en uno limpia el otro; ambos comparten `estado.fuente` y la misma
+ * tarjeta `info-fuente`.
+ */
+function pickFuente(origen: 'streamer' | 'dac', valor: string): void {
+  const selStreamer = document.getElementById('sel-streamer') as HTMLSelectElement | null;
+  const selDac = document.getElementById('sel-dac') as HTMLSelectElement | null;
+  const box = document.getElementById('info-fuente');
+  if (!selStreamer || !selDac || !box) return;
+
+  const selActual = origen === 'streamer' ? selStreamer : selDac;
+  const selOtro = origen === 'streamer' ? selDac : selStreamer;
+
+  if (!valor) {
+    estado.fuente = null;
+    selActual.classList.add('empty');
+    box.innerHTML = '';
+  } else {
+    estado.fuente = valor;
+    selActual.classList.remove('empty');
+    selOtro.value = '';
+    selOtro.classList.add('empty');
+    box.innerHTML = infoHTML('fuente', valor);
   }
   refrescar();
 }
@@ -220,7 +249,8 @@ function wireEventos(): void {
 
   document.getElementById('sel-spk')?.addEventListener('change', (e) => pick('spk', (e.target as HTMLSelectElement).value));
   document.getElementById('sel-amp')?.addEventListener('change', (e) => pick('amp', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-fuente')?.addEventListener('change', (e) => pick('fuente', (e.target as HTMLSelectElement).value));
+  document.getElementById('sel-streamer')?.addEventListener('change', (e) => pickFuente('streamer', (e.target as HTMLSelectElement).value));
+  document.getElementById('sel-dac')?.addEventListener('change', (e) => pickFuente('dac', (e.target as HTMLSelectElement).value));
 
   document.getElementById('in-W')?.addEventListener('input', (e) => setDim('W', parseFloat((e.target as HTMLInputElement).value)));
   document.getElementById('in-L')?.addEventListener('input', (e) => setDim('L', parseFloat((e.target as HTMLInputElement).value)));

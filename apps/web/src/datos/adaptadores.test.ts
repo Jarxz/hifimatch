@@ -26,7 +26,7 @@ function amplificador(id: string) {
   return amplificadorDelCatalogo(a, 'es');
 }
 function fuente(id: string) {
-  const f = CATALOGO.fuentes.find((x) => x.id === id);
+  const f = [...CATALOGO.streamers, ...CATALOGO.dacs].find((x) => x.id === id);
   if (!f) throw new Error(`fuente no encontrada en el catálogo: ${id}`);
   return fuenteDelCatalogo(f, 'es');
 }

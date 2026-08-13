@@ -33,7 +33,8 @@ function recolectarLocalizados(valor: unknown, encontrados: Array<Record<Idioma,
 const TODOS_LOS_EQUIPOS = [
   ...CATALOGO.parlantes,
   ...CATALOGO.amplificadores,
-  ...CATALOGO.fuentes,
+  ...CATALOGO.streamers,
+  ...CATALOGO.dacs,
   ...CATALOGO.cables,
 ];
 
@@ -58,10 +59,11 @@ test('ids únicos en todo el catálogo', () => {
   }
 });
 
-test('conteo de equipos por categoría: 13 parlantes + 12 amplis + 8 fuentes (streamers+DACs) + 3 cables = 36', () => {
+test('conteo de equipos por categoría: 13 parlantes + 12 amplis + 4 streamers + 4 dacs + 3 cables = 36', () => {
   assert.equal(CATALOGO.parlantes.length, 13);
   assert.equal(CATALOGO.amplificadores.length, 12);
-  assert.equal(CATALOGO.fuentes.length, 8);
+  assert.equal(CATALOGO.streamers.length, 4);
+  assert.equal(CATALOGO.dacs.length, 4);
   assert.equal(CATALOGO.cables.length, 3);
   assert.equal(TODOS_LOS_EQUIPOS.length, 36);
 });
@@ -121,8 +123,8 @@ test('amplificadores: potencia8OhmW.valor es numérico; el resto es number|null,
   }
 });
 
-test('fuentes: salidaV/impedanciaSalidaOhm son number|null, nunca NaN ni 0 como sentinela de "sin dato"', () => {
-  for (const f of CATALOGO.fuentes) {
+test('streamers y dacs: salidaV/impedanciaSalidaOhm son number|null, nunca NaN ni 0 como sentinela de "sin dato"', () => {
+  for (const f of [...CATALOGO.streamers, ...CATALOGO.dacs]) {
     for (const campo of [f.salidaV, f.impedanciaSalidaOhm]) {
       assert.ok(campo === null || (typeof campo === 'number' && campo > 0), f.id);
     }

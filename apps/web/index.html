@@ -59,11 +59,17 @@
       </div>
     </div>
 
-    <div class="picker">
-      <div class="rowlabel"><span data-i18n="config.fuenteDigital">Fuente digital</span> <span class="req" data-i18n="config.opcionalFuente">opcional · streamer o DAC</span></div>
-      <div class="sel"><select id="sel-fuente" class="empty"></select></div>
-      <div id="info-fuente"></div>
+    <div class="split">
+      <div class="picker">
+        <div class="rowlabel"><span data-i18n="config.streamer">Streamer</span> <span class="req" data-i18n="config.opcionalFuente">opcional · streamer o DAC, no ambos</span></div>
+        <div class="sel"><select id="sel-streamer" class="empty"></select></div>
+      </div>
+      <div class="picker">
+        <div class="rowlabel"><span data-i18n="config.dac">DAC</span> <span class="req" data-i18n="config.opcionalFuente">opcional · streamer o DAC, no ambos</span></div>
+        <div class="sel"><select id="sel-dac" class="empty"></select></div>
+      </div>
     </div>
+    <div id="info-fuente"></div>
 
     <div class="room">
       <h3 data-i18n="config.dimensionesTitulo">Dimensiones de la sala</h3>
