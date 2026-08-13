@@ -38,15 +38,16 @@ test('impedancia mínima no entera se formatea con sus decimales naturales (5,76
   assert.ok(chips.includes('mín 5,76 Ω'), chips.join(', '));
 });
 
-test('Cambridge CXA81: 80W/8Ω + 120W/4Ω (sin nota, sin asterisco) + chipsExtra', () => {
+test('Cambridge CXA81: 80W/8Ω + 120W/4Ω (sin nota, sin asterisco) + mín 4 Ω + chipsExtra', () => {
   assert.deepEqual(chipsAmplificador(amplificador('cambridge-cxa81'), 'es'), [
     '80 W / 8 Ω',
     '120 W / 4 Ω',
+    'mín 4 Ω',
     'XLR balanceado',
     'DAC ESS',
     'amort. >110',
   ]);
-  assert.equal(especAmplificador(amplificador('cambridge-cxa81'), 'es'), '80 W / 8 Ω · 120 W / 4 Ω');
+  assert.equal(especAmplificador(amplificador('cambridge-cxa81'), 'es'), '80 W / 8 Ω · 120 W / 4 Ω · mín 4 Ω');
 });
 
 test('Yamaha: potencia4OhmW con nota (condición de medición distinta) → asterisco', () => {

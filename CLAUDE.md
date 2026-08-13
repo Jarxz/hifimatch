@@ -120,13 +120,29 @@ texto** — `codigo: 'con-margen'|'justo'|'insuficiente'`, etc., y en
 tests.
 
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
-datos de equipos — 25 equipos (8 parlantes, 8 amplificadores, 6 fuentes
+datos de equipos — 33 equipos (13 parlantes, 11 amplificadores, 6 fuentes
 digitales que unifican streamers+DACs, 3 cables curados sin regla todavía),
 bilingüe desde el origen (`Localizado = {es, en}` en cada campo de
 presentación). Reemplaza lo que antes vivía duplicado entre
 `prototipo-frontend.html` y `data/equipos-seed.json` — ya habían divergido en
 9 puntos antes de fusionarse acá. 11/11 tests (completitud es/en, ids únicos,
 lint de separador decimal).
+
+**Ampliación del catálogo (Fase 5, primera tanda).** 5 parlantes y 3
+amplificadores nuevos, investigados con la misma disciplina de fuente +
+confianza que el resto: Wharfedale Linton Heritage (no existe un "Klipsch
+Linton" — corregido tras consultarlo), Sonus Faber Lumina II, Monitor Audio
+Silver 50 (7G), Focal Vestia N2 (es columna de piso, no estantería — se
+declara así en `tipo`) y Diatone DS-251MK2 (vintage japonés de 1973,
+confianza media en casi todos los campos, varios en `null` porque las fichas
+de la época no publicaban esos datos); McIntosh MC252, Cayin LA-34 Plus y
+Advance Paris A10 Classic. De paso se cerraron huecos preexistentes:
+`impedanciaMinOhm` de ELAC Debut 2.0 B6.2, `maxSplDb` de Wharfedale Diamond
+12.1, y `cargaMinOhm` de Cambridge CXA81/Yamaha A-S501/Denon PMA-600NE.
+Varios campos (`maxSplDb` de la mayoría de los parlantes, `sensEntradaMv`/
+`impedanciaEntradaOhm` de Hegel H95 y Arcam A5) siguen en `null` porque se
+verificó activamente que el fabricante no los publica — no por falta de
+búsqueda.
 
 **El frontend** (`apps/web/`) es Vite + TypeScript modular; `prototipo-
 frontend.html` y su bundler artesanal (`bundle-navegador.mjs`) ya no existen.
@@ -175,12 +191,14 @@ prohíbe copiar sin confirmar. Es también el vector E de la sección 6 de
 `docs/motor-mvp.md`: preserva el caso demostrativo de que un dato faltante
 nunca es verde.
 
+**Desplegado en Vercel.** Producción en
+`https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
+Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
+resolución de workspaces); `buildCommand` corre `npm run verify && npm run
+build`, así que una regresión de tests o de typecheck bloquea el deploy antes
+de publicar nada.
+
 Falta:
-- **Deploy en Vercel** — `vercel.json` y `docs/despliegue.md` ya existen y
-  `npm run build` produce un `apps/web/dist/index.html` autocontenido, pero
-  todavía no hay repo remoto ni proyecto conectado en el dashboard de
-  Vercel — son acciones con efectos fuera del repo (credenciales, servicios
-  externos) que le corresponden al usuario.
 - **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
   de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
   parte del alcance actual.

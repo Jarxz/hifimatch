@@ -95,15 +95,15 @@ export const CATALOGO: Catalogo = {
         },
       },
       impedanciaNominalOhm: 6,
-      impedanciaMinOhm: null,
+      impedanciaMinOhm: 5,
       potenciaRecMinW: 30,
       potenciaRecMaxW: 120,
       maxSplDb: null,
       chipsExtra: [],
-      fuentes: ['ELAC (ficha oficial)', 'Audio Science Review (ASR)'],
+      fuentes: ['ELAC (ficha oficial)', 'Audio Science Review (ASR, reseña de amirm)'],
       pendiente: {
-        es: "impedancia mínima medida — no se encontró dato confiable de ASR/Erin's, la regla de carga devuelve 'sin-datos'",
-        en: "measured minimum impedance — no reliable data found from ASR/Erin's, the load rule returns 'no-data'",
+        es: 'impedancia mínima (~5 Ω) es la cifra textual de la reseña de ASR (amirm), leída del gráfico sin frecuencia exacta indicada en prosa — confianza media',
+        en: "minimum impedance (~5 Ω) is ASR's (amirm) review prose figure, read off the graph without an exact frequency stated in text — medium confidence",
       },
     },
     {
@@ -127,9 +127,13 @@ export const CATALOGO: Catalogo = {
       impedanciaMinOhm: 4,
       potenciaRecMinW: 20,
       potenciaRecMaxW: 100,
-      maxSplDb: null,
+      maxSplDb: 96,
       chipsExtra: [],
       fuentes: ['Wharfedale (ficha oficial)'],
+      pendiente: {
+        es: 'SPL máximo (96 dB) declarado por el fabricante como "Peak SPL", no como valor continuo/RMS — no directamente comparable con equipos que reporten maxSplDb bajo otra convención',
+        en: 'maximum SPL (96 dB) is manufacturer-rated as "Peak SPL," not a continuous/RMS figure — not directly comparable to equipment reporting maxSplDb under a different convention',
+      },
     },
     {
       id: 'bw-606-s2-anniversary',
@@ -245,6 +249,160 @@ export const CATALOGO: Catalogo = {
         en: 'the factory only publishes the recommended minimum (70 W), not a range; not to be confused with the IEC power handling rating (160 W), a different metric',
       },
     },
+    {
+      id: 'wharfedale-linton-heritage',
+      nombre: 'Wharfedale Linton Heritage',
+      tipo: {
+        es: 'Monitor de 3 vías, estantería, doble puerto trasero',
+        en: '3-way standmount monitor, dual rear port',
+      },
+      descripcion: {
+        es: 'Tweeter textil de 1" sobre medio de Kevlar tejido de 5" y woofer de Kevlar de 8". Caja de 3 vías inusualmente grande para estantería, con <b>graves generosos para el tamaño</b>. Impedancia mínima medida de forma independiente (3,4 Ω, Stereophile) confirma casi exactamente la de fábrica (3,5 Ω) — carga moderadamente exigente.',
+        en: 'A 1" fabric dome tweeter over a 5" woven Kevlar midrange and an 8" Kevlar woofer. An unusually large 3-way standmount cabinet, with <b>generous bass output for its size</b>. Independently measured minimum impedance (3.4 Ω, Stereophile) confirms the factory figure (3.5 Ω) almost exactly — a moderately demanding load.',
+      },
+      sensibilidadDb: {
+        valor: 88.1,
+        fuente: { es: 'Stereophile (mediciones J. Atkinson)', en: 'Stereophile (J. Atkinson measurements)' },
+        confianza: 'alta',
+        nota: {
+          es: 'fábrica declara 90 dB pero a 2,0 V/1m (no 2,83 V/1m estándar) — no comparable directamente; se usa el valor medido de Stereophile, ya en la referencia estándar del proyecto',
+          en: 'the factory rates it at 90 dB but at 2.0 V/1m (not the standard 2.83 V/1m) — not directly comparable; the Stereophile measured figure is used instead, already in this project\'s standard reference',
+        },
+      },
+      impedanciaNominalOhm: 6,
+      impedanciaMinOhm: 3.4,
+      potenciaRecMinW: 25,
+      potenciaRecMaxW: 200,
+      maxSplDb: 110,
+      chipsExtra: [{ es: '40 Hz–20 kHz', en: '40 Hz–20 kHz' }],
+      fuentes: ['Wharfedale (ficha oficial)', 'Stereophile (mediciones J. Atkinson)'],
+      pendiente: {
+        es: 'SPL máximo (110 dB) declarado por fábrica como pico, no continuo; no directamente comparable con equipos que reporten maxSplDb como valor continuo',
+        en: 'maximum SPL (110 dB) is factory-rated as peak, not continuous — not directly comparable to equipment reporting maxSplDb as a continuous figure',
+      },
+    },
+    {
+      id: 'sonus-faber-lumina-ii',
+      nombre: 'Sonus Faber Lumina II',
+      tipo: { es: 'Monitor de 2 vías, estantería, puerto trasero', en: '2-way standmount monitor, rear port' },
+      descripcion: {
+        es: 'Domo blando DAD de 29 mm sobre medio-woofer de pulpa de celulosa de 150 mm. Impedancia nominal de 4 Ω: <b>carga más exigente que el 8 Ω habitual</b> de este catálogo, aunque sin medición independiente del mínimo real.',
+        en: 'A 29 mm soft-dome DAD tweeter over a 150 mm cellulose-pulp mid-woofer. A 4 Ω nominal impedance: <b>a more demanding load than the usual 8 Ω</b> in this catalog, though without an independent measurement of the actual minimum.',
+      },
+      sensibilidadDb: {
+        valor: 86,
+        fuente: { es: 'Sonus Faber (ficha oficial)', en: 'Sonus Faber (official spec sheet)' },
+        confianza: 'alta',
+        nota: {
+          es: "medición independiente (Erin's Audio Corner) 85,8 dB — coincide con fábrica",
+          en: "independent measurement (Erin's Audio Corner) 85.8 dB — matches the factory figure",
+        },
+      },
+      impedanciaNominalOhm: 4,
+      impedanciaMinOhm: null,
+      potenciaRecMinW: 30,
+      potenciaRecMaxW: 150,
+      maxSplDb: null,
+      chipsExtra: [{ es: '55 Hz–24 kHz', en: '55 Hz–24 kHz' }],
+      fuentes: ['Sonus Faber (ficha oficial)', "Erin's Audio Corner"],
+      pendiente: {
+        es: "impedancia mínima medida — Erin's Audio Corner publicó un gráfico de impedancia sin cifra en prosa; sin ese dato, la regla de carga devuelve 'sin-datos'. SPL máximo tampoco publicado por ninguna fuente consultada",
+        en: "measured minimum impedance — Erin's Audio Corner published an impedance graph without a prose figure; without that data, the load rule returns 'no-data'. Maximum SPL is also not published by any source consulted",
+      },
+    },
+    {
+      id: 'monitor-audio-silver-50-7g',
+      nombre: 'Monitor Audio Silver 50 (7G)',
+      tipo: { es: 'Monitor de 2 vías, estantería, puerto trasero', en: '2-way standmount monitor, rear port' },
+      descripcion: {
+        es: 'Tweeter C-CAM Gold Dome de 25 mm con guía de ondas UD Waveguide II sobre medio-woofer C-CAM RST II de 133 mm. Sensibilidad e impedancia mínima <b>confirmadas casi exactas por medición independiente</b> (Hi-Fi News): 3,9 Ω a 250 Hz, coincide con la ficha oficial.',
+        en: 'A 25 mm C-CAM Gold Dome tweeter with a UD Waveguide II over a 133 mm C-CAM RST II mid-woofer. Sensitivity and minimum impedance <b>confirmed almost exactly by an independent measurement</b> (Hi-Fi News): 3.9 Ω at 250 Hz, matching the official spec sheet.',
+      },
+      sensibilidadDb: {
+        valor: 86,
+        fuente: { es: 'Monitor Audio (ficha oficial)', en: 'Monitor Audio (official spec sheet)' },
+        confianza: 'alta',
+        nota: {
+          es: "medición independiente: Erin's Audio Corner 85,5 dB; Hi-Fi News (P. Miller) 87 dB a 1 kHz / 86,6 dB promedio — ambas coinciden con fábrica dentro de 1 dB",
+          en: "independent measurement: Erin's Audio Corner 85.5 dB; Hi-Fi News (P. Miller) 87 dB at 1 kHz / 86.6 dB average — both match the factory figure within 1 dB",
+        },
+      },
+      impedanciaNominalOhm: 8,
+      impedanciaMinOhm: 3.9,
+      potenciaRecMinW: 40,
+      potenciaRecMaxW: 100,
+      maxSplDb: 104,
+      chipsExtra: [{ es: '47 Hz–35 kHz', en: '47 Hz–35 kHz' }],
+      fuentes: ['Monitor Audio (ficha oficial)', "Erin's Audio Corner", 'Hi-Fi News (lab report, P. Miller)'],
+      pendiente: {
+        es: 'Hi-Fi News mide la impedancia por debajo de 8 Ω entre 130–800 Hz y sugiere que el nominal real de trabajo es más cercano a 4 Ω; se mantiene el rótulo de fábrica (8 Ω) como nominal declarado',
+        en: 'Hi-Fi News measures the impedance dipping below 8 Ω between 130–800 Hz and suggests the real working nominal is closer to 4 Ω; the factory-declared nominal (8 Ω) is kept as the labeled figure',
+      },
+    },
+    {
+      id: 'focal-vestia-n2',
+      nombre: 'Focal Vestia N2',
+      tipo: {
+        es: 'Columna (piso) de 3 vías, doble puerto (frontal y trasero)',
+        en: '3-way floorstanding column, dual port (front and rear)',
+      },
+      descripcion: {
+        es: '<b>No es un modelo de estantería</b> — es la columna de piso de la línea Vestia (101 cm de alto), con tweeter TAM de 1" y dos woofers Slatefiber de 6,5". Todos los datos numéricos vienen de la ficha oficial, sin medición independiente que los corrobore.',
+        en: "<b>Not a standmount model</b> — this is the Vestia line's floorstanding column (101 cm tall), with a 1\" TAM tweeter and two 6.5\" Slatefiber woofers. All numeric figures come from the official spec sheet, with no independent measurement corroborating them.",
+      },
+      sensibilidadDb: {
+        valor: 91.5,
+        fuente: { es: 'Focal (ficha oficial)', en: 'Focal (official spec sheet)' },
+        confianza: 'media',
+        nota: {
+          es: 'no se encontró medición independiente (Stereophile, ASR, SoundStage) de este modelo específico',
+          en: 'no independent measurement found (Stereophile, ASR, SoundStage) for this specific model',
+        },
+      },
+      impedanciaNominalOhm: 8,
+      impedanciaMinOhm: 3,
+      potenciaRecMinW: 40,
+      potenciaRecMaxW: 250,
+      maxSplDb: null,
+      chipsExtra: [{ es: '47 Hz–30 kHz', en: '47 Hz–30 kHz' }],
+      fuentes: ['Focal (ficha oficial)'],
+      pendiente: {
+        es: 'impedancia mínima (3 Ω) sin frecuencia asociada en la ficha oficial, y sin corroborar con medición independiente — confianza más baja que el resto del dato de este equipo. SPL máximo no publicado',
+        en: "minimum impedance (3 Ω) has no associated frequency in the official spec sheet, and is not corroborated by an independent measurement — lower confidence than the rest of this unit's data. Maximum SPL not published",
+      },
+    },
+    {
+      id: 'diatone-ds251-mk2',
+      nombre: 'Diatone DS-251MK2',
+      tipo: {
+        es: 'Monitor vintage de 3 vías, suspensión acústica sellada (1973)',
+        en: 'Vintage 3-way monitor, sealed acoustic suspension (1973)',
+      },
+      descripcion: {
+        es: 'Parlante japonés vintage (Mitsubishi Diatone, 1973): woofer de 25 cm con marco die-cast de aluminio, tweeter de 5 cm y super-tweeter de 3 cm de aluminio duro. <b>Ficha de época, sin medición independiente moderna</b> — los datos vienen de archivos de catálogo, no de un manual escaneado directamente.',
+        en: 'A vintage Japanese speaker (Mitsubishi Diatone, 1973): a 25 cm woofer with a die-cast aluminum frame, a 5 cm tweeter, and a 3 cm hard-aluminum super-tweeter. <b>Period spec sheet, no modern independent measurement</b> — the data comes from catalog archives, not a directly scanned manual.',
+      },
+      sensibilidadDb: {
+        valor: 91,
+        fuente: { es: 'audio-heritage.jp (archivo de catálogo)', en: 'audio-heritage.jp (catalog archive)' },
+        confianza: 'media',
+        nota: {
+          es: 'declarada en el estándar japonés "New JIS" (1 W) de la época — no confirmado que equivalga a dB/2,83V·m estándar moderno; sin manual original escaneado que lo verifique',
+          en: 'stated in the era\'s Japanese "New JIS" (1 W) standard — not confirmed to be equivalent to the modern dB/2.83V·m standard; no scanned original manual available to verify it',
+        },
+      },
+      impedanciaNominalOhm: 8,
+      impedanciaMinOhm: null,
+      potenciaRecMinW: null,
+      potenciaRecMaxW: null,
+      maxSplDb: null,
+      chipsExtra: [{ es: '3 vías, 40 Hz–25 kHz', en: '3-way, 40 Hz–25 kHz' }],
+      fuentes: ['audio-heritage.jp (archivo de catálogo)', 'audio-database.com (misma familia de archivo)'],
+      pendiente: {
+        es: 'equipo discontinuado (~1976), sin manual original escaneado disponible. El catálogo de época sólo publica "entrada máxima" (40 W), que no equivale a un rango de potencia recomendada — se deja potenciaRecMinW/MaxW en null en vez de asumir la equivalencia. Impedancia mínima y SPL máximo tampoco se publicaban en fichas de esta época',
+        en: 'discontinued equipment (~1976), no scanned original manual available. The period catalog only publishes "maximum input" (40 W), which is not the same as a recommended power range — potenciaRecMinW/MaxW are left null instead of assuming the equivalence. Minimum impedance and maximum SPL were also not published in spec sheets of this era',
+      },
+    },
   ],
 
   amplificadores: [
@@ -266,7 +424,7 @@ export const CATALOGO: Catalogo = {
         fuente: { es: 'Cambridge Audio (ficha oficial)', en: 'Cambridge Audio (official spec sheet)' },
         confianza: 'alta',
       },
-      cargaMinOhm: null,
+      cargaMinOhm: 4,
       sensEntradaMv: 370,
       impedanciaEntradaOhm: 43000,
       chipsExtra: [
@@ -274,7 +432,11 @@ export const CATALOGO: Catalogo = {
         { es: 'DAC ESS', en: 'ESS DAC' },
         { es: 'amort. >110', en: 'damping >110' },
       ],
-      fuentes: ['Cambridge Audio (ficha oficial)', 'Stereophile'],
+      fuentes: ['Cambridge Audio (ficha oficial)', 'Stereophile', 'HiFi Engine / SpeakerDecision (agregadores)'],
+      pendiente: {
+        es: 'carga mínima (4 Ω) proviene de agregadores (HiFi Engine, SpeakerDecision) que citan la ficha del fabricante; no se pudo verificar contra el manual oficial en PDF (bloqueado al buscarlo) — confianza media',
+        en: 'minimum load (4 Ω) comes from aggregators (HiFi Engine, SpeakerDecision) citing the manufacturer spec sheet; could not be verified against the official PDF manual (blocked when fetched) — medium confidence',
+      },
     },
     {
       id: 'rega-brio',
@@ -391,7 +553,7 @@ export const CATALOGO: Catalogo = {
           en: 'measured at 1 kHz with 0.7% THD — a different condition than the 8 Ω figure, not directly comparable',
         },
       },
-      cargaMinOhm: null,
+      cargaMinOhm: 4,
       sensEntradaMv: 200,
       impedanciaEntradaOhm: 47000,
       chipsExtra: [
@@ -400,8 +562,8 @@ export const CATALOGO: Catalogo = {
       ],
       fuentes: ['Yamaha (ficha oficial)'],
       pendiente: {
-        es: 'impedancia mínima de carga (cargaMinOhm) — no se encontró como spec explícita, distinta de la tabla de potencia dinámica',
-        en: 'minimum load impedance (cargaMinOhm) — not found as an explicit spec, distinct from the dynamic power table',
+        es: 'el manual trae un selector de impedancia (IMPEDANCE SELECTOR): mínimo 4 Ω en posición LOW, 6 Ω en posición HIGH — se registra el mínimo real alcanzable (4 Ω), no el ajuste de fábrica por defecto',
+        en: 'the manual documents an IMPEDANCE SELECTOR: 4 Ω minimum in the LOW position, 6 Ω in HIGH — the real achievable minimum (4 Ω) is recorded here, not the default factory setting',
       },
     },
     {
@@ -425,7 +587,7 @@ export const CATALOGO: Catalogo = {
         fuente: { es: 'Denon (ficha oficial)', en: 'Denon (official spec sheet)' },
         confianza: 'alta',
       },
-      cargaMinOhm: null,
+      cargaMinOhm: 4,
       sensEntradaMv: 110,
       impedanciaEntradaOhm: 30000,
       chipsExtra: [
@@ -496,6 +658,116 @@ export const CATALOGO: Catalogo = {
       pendiente: {
         es: 'sensibilidad e impedancia de entrada de línea — no confirmadas con certeza en la ficha pública disponible',
         en: 'line input sensitivity and impedance — not confirmed with certainty in the available public spec sheet',
+      },
+    },
+    {
+      id: 'mcintosh-mc252',
+      nombre: 'McIntosh MC252',
+      tipo: {
+        es: 'Etapa de potencia estéreo Clase AB, con Output Autoformer',
+        en: 'Class AB stereo power amplifier, with Output Autoformer',
+      },
+      descripcion: {
+        es: 'Etapa de potencia (sin previo ni entradas de fuente): 250 W tanto en 8 Ω como en 4 Ω, <b>gracias al Output Autoformer patentado</b> que adapta la salida en vez de depender de un selector de taps o de la fuente de alimentación. Circuito balanceado de punta a punta, desde la entrada XLR hasta la salida.',
+        en: 'A power amplifier (no preamp, no source inputs): 250 W into both 8 Ω and 4 Ω, <b>thanks to the patented Output Autoformer</b> that adapts the output instead of relying on a tap selector or the power supply. A fully balanced circuit from the XLR input through to the output.',
+      },
+      potencia8OhmW: {
+        valor: 250,
+        fuente: { es: 'McIntosh (ficha oficial)', en: 'McIntosh (official spec sheet)' },
+        confianza: 'alta',
+      },
+      potencia4OhmW: {
+        valor: 250,
+        fuente: { es: 'McIntosh (ficha oficial)', en: 'McIntosh (official spec sheet)' },
+        confianza: 'alta',
+        nota: {
+          es: 'idéntica a la de 8 Ω — no es un error: el Output Autoformer entrega la misma potencia nominal en 2, 4 y 8 Ω sin selector de taps',
+          en: 'identical to the 8 Ω figure — not an error: the Output Autoformer delivers the same rated power into 2, 4, and 8 Ω without a tap selector',
+        },
+      },
+      cargaMinOhm: 2,
+      sensEntradaMv: 1600,
+      impedanciaEntradaOhm: 10000,
+      chipsExtra: [
+        { es: 'entrada XLR balanceada (3200 mV / 20 kΩ)', en: 'balanced XLR input (3200 mV / 20 kΩ)' },
+        { es: 'amort. 40', en: 'damping 40' },
+        { es: 'bloqueo DC a la salida', en: 'DC blocking at the output' },
+      ],
+      fuentes: ['McIntosh (ficha oficial)', 'audio-database.com', 'manual del propietario (McIntosh)'],
+      pendiente: {
+        es: 'sensEntradaMv e impedanciaEntradaOhm registrados para la entrada RCA no balanceada (1600 mV / 10 kΩ); la entrada XLR balanceada tiene valores distintos (3200 mV / 20 kΩ), ver chipsExtra',
+        en: 'sensEntradaMv and impedanciaEntradaOhm are recorded for the unbalanced RCA input (1600 mV / 10 kΩ); the balanced XLR input has different figures (3200 mV / 20 kΩ), see chipsExtra',
+      },
+    },
+    {
+      id: 'cayin-la34-plus',
+      nombre: 'Cayin LA-34 Plus',
+      tipo: {
+        es: 'Integrado a válvulas, Clase AB1 push-pull, 4× EL34',
+        en: 'Class AB1 push-pull tube integrated amplifier, 4× EL34',
+      },
+      descripcion: {
+        es: '32 W por canal con 4 válvulas de salida EL34 en push-pull, cableado punto a punto. <b>Potencia modesta, típica de un integrado a válvulas</b> — rinde mejor con parlantes eficientes. Salida por transformador con taps seleccionables de 4 Ω y 8 Ω, no una carga mínima en el sentido de un ampli de estado sólido.',
+        en: 'A 32 W-per-channel design with 4 EL34 output tubes in push-pull, point-to-point wired. <b>Modest power, typical of a tube integrated</b> — performs best with efficient speakers. Transformer output with selectable 4 Ω and 8 Ω taps, not a minimum load in the solid-state sense.',
+      },
+      potencia8OhmW: {
+        valor: 32,
+        fuente: { es: 'Cayin (manual del propietario)', en: "Cayin (owner's manual)" },
+        confianza: 'media',
+        nota: {
+          es: 'THD 1% a 1 kHz. Fuente primaria (cayin.cn) no disponible al momento de verificar; dato tomado del manual replicado por retailers (Elite Audio UK, Audio Costruzioni) que coinciden entre sí',
+          en: '1% THD at 1 kHz. Primary source (cayin.cn) unavailable at verification time; figure taken from the manual as republished by retailers (Elite Audio UK, Audio Costruzioni), which agree with each other',
+        },
+      },
+      potencia4OhmW: null,
+      cargaMinOhm: 4,
+      sensEntradaMv: 260,
+      impedanciaEntradaOhm: 100000,
+      chipsExtra: [
+        { es: '4× EL34 (push-pull)', en: '4× EL34 (push-pull)' },
+        { es: 'cableado punto a punto', en: 'point-to-point wiring' },
+        { es: 'bias externo ajustable', en: 'external bias adjustment' },
+      ],
+      fuentes: ['Cayin (manual del propietario, vía retailers)', 'Elite Audio UK', 'Audio Costruzioni'],
+      pendiente: {
+        es: 'sin dato de potencia a 4 Ω: la salida es por taps seleccionables de transformador (4 Ω/8 Ω), no una medición separada a impedancia fija — cargaMinOhm (4 Ω) refleja el tap más bajo disponible, no un mínimo soportado en el sentido de un ampli de estado sólido. Sitio oficial (cayin.cn) caído al momento de la investigación; tampoco se pudo confirmar el complemento exacto de válvulas de preamplificación (fuentes discrepan entre 12AX7+12AU7 y 5BK7A) ni el factor de amortiguación, no publicado',
+        en: 'no 4 Ω power figure: the output uses selectable transformer taps (4 Ω/8 Ω), not a separate fixed-impedance measurement — cargaMinOhm (4 Ω) reflects the lowest available tap, not a solid-state-style minimum. Official site (cayin.cn) was down at research time; the exact preamp tube complement could not be confirmed either (sources disagree between 12AX7+12AU7 and 5BK7A), nor was the damping factor, which is not published',
+      },
+    },
+    {
+      id: 'advance-paris-a10-classic',
+      nombre: 'Advance Paris A10 Classic',
+      tipo: { es: 'Integrado Clase AB con previo a válvulas y DAC', en: 'Class AB integrated amplifier with tube preamp stage and DAC' },
+      descripcion: {
+        es: '130 W en 8 Ω que suben a 190 W en 4 Ω (reserva 1,46×, por debajo del umbral 1,7×). Previo a válvulas (2× ECC81/12AT7) con conmutador "High Bias" que activa polarización Clase A en los primeros vatios. Trae DAC ESS9018 integrado y entrada XLR balanceada.',
+        en: '130 W into 8 Ω rising to 190 W into 4 Ω (1.46x reserve, below the 1.7x threshold). A tube preamp stage (2× ECC81/12AT7) with a "High Bias" switch that engages Class A bias for the first watts. Includes a built-in ESS9018 DAC and a balanced XLR input.',
+      },
+      potencia8OhmW: {
+        valor: 130,
+        fuente: { es: 'Advance Paris (ficha oficial)', en: 'Advance Paris (official spec sheet)' },
+        confianza: 'alta',
+      },
+      potencia4OhmW: {
+        valor: 190,
+        fuente: { es: 'Advance Paris (ficha oficial)', en: 'Advance Paris (official spec sheet)' },
+        confianza: 'media',
+        nota: {
+          es: 'no se publican condiciones de medición (THD, frecuencia) para ninguna de las dos cifras de potencia',
+          en: 'no measurement conditions (THD, frequency) are published for either power figure',
+        },
+      },
+      cargaMinOhm: null,
+      sensEntradaMv: 300,
+      impedanciaEntradaOhm: 47000,
+      chipsExtra: [
+        { es: 'conmutador High Bias (Clase A)', en: 'High Bias switch (Class A)' },
+        { es: 'DAC ESS9018', en: 'ESS9018 DAC' },
+        { es: 'XLR balanceado', en: 'Balanced XLR' },
+      ],
+      fuentes: ['Advance Paris (ficha oficial)', 'ecoustics.com', 'Dedicated Audio'],
+      pendiente: {
+        es: 'sensibilidad de entrada declarada como "<300 mV" (no un valor puntual exacto); carga mínima y factor de amortiguación no publicados por el fabricante',
+        en: 'input sensitivity is declared as "<300 mV" (not an exact point value); minimum load and damping factor are not published by the manufacturer',
       },
     },
   ],
