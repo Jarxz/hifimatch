@@ -141,6 +141,11 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .legend span{display:inline-flex; align-items:center; gap:7px}
 .legend i{width:16px; height:0; display:inline-block}
 
+.curvas{margin:14px 0}
+.curva-modal{margin-bottom:10px}
+.curva-modal svg{width:100%; height:auto; max-width:460px; display:block}
+.curva-leyenda{font-size:11px; color:var(--dim); margin-top:2px}
+
 .hidden{display:none !important}
 footer.note{margin-top:26px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--faint); line-height:1.8}
 footer.note b{color:var(--dim)}

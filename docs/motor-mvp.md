@@ -223,6 +223,17 @@ demostración del sitio tiene, de hecho, un problema real de proporciones.
 Vector de control sin agrupamiento: W=2.5, L=3.0, H=2.2 (sin razones
 simples entre ejes) → `ok`.
 
+### Curvas de presión modal (`apps/web/src/vista/curvamodal.ts`)
+
+Sólo cuando hay agrupamiento: una curva 1D por eje afectado, mostrando la
+intensidad relativa cos²(n·π·x/L) a lo largo de esa dimensión (0 a L
+metros) para cada orden involucrado en algún agrupamiento de ese eje.
+**Deliberadamente no es un mapa combinado 2D/3D de la sala** (como los que
+producen herramientas de simulación acústica real, ej. BEM/FEM) — eso exige
+sumar fase y amplitud relativa de cada modo, dato que este motor no tiene y
+no inventa. Son curvas independientes, una por eje, con esa salvedad
+explícita en el texto de la tarjeta.
+
 ---
 
 ## 5. Lo que el motor todavía NO hace

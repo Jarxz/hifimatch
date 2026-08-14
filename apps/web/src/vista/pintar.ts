@@ -132,6 +132,19 @@ export function pintarModos(m: ModeloTarjetaModos): void {
   el('mo-src').innerHTML = m.fuenteHtml;
 }
 
+/** '' cuando no hay modos agrupados (construirCurvasModalesSvg ya lo
+ * resuelve) — oculta el bloque en vez de dejar un contenedor vacío. */
+export function pintarCurvasModales(svg: string, caption: string): void {
+  const cont = el('mo-curvas');
+  if (!svg) {
+    cont.classList.add('hidden');
+    cont.innerHTML = '';
+    return;
+  }
+  cont.classList.remove('hidden');
+  cont.innerHTML = svg + `<div class="src">${caption}</div>`;
+}
+
 /** Capa criterio-editorial (puntaje.ts) — nunca usa pintarVerdict/las clases
  * ok/warn/alert de la capa física; es un número simple en un <b>. */
 export function pintarPuntaje(m: ModeloPuntaje): void {

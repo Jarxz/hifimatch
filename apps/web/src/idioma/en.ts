@@ -229,6 +229,8 @@ export const en: Textos = {
       parAgrupado: (p) => `${p.a} (${p.frecuenciaA} Hz) and ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p) =>
         `<b>Criterion:</b> rigid, rectangular room model, axial modes only. Clustering = two modes on different axes within ${p.umbral}% of each other, below ${p.techo} Hz — a site criterion, not a published convention; verified by measuring/listening.`,
+      curvaOrden: (p) => `order ${p.orden} (${p.frecuencia} Hz)`,
+      curvasCaption: 'Relative pressure along each affected axis — independent 1D curves per axis, not a combined room map.',
     },
 
     puntaje: {

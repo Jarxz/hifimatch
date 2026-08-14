@@ -245,6 +245,9 @@ export const es = {
         `${p.a} (${p.frecuenciaA} Hz) y ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p: { techo: string; umbral: string }): string =>
         `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
+      curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
+      curvasCaption:
+        'Presión relativa a lo largo de cada eje afectado — curvas 1D independientes por eje, no un mapa combinado de la sala.',
     },
 
     puntaje: {

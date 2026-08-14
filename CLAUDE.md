@@ -128,7 +128,11 @@ modos de ejes distintos si caen a menos de 5 % de diferencia por debajo de
 150 Hz — ambos umbrales declarados como criterio del sitio, no una
 convención publicada. La sala por defecto del sitio (3,6×5,0×2,4 m) da
 `warn` de verdad: 3,6/2,4 = 3:2 exacto, así que el modo de orden 3 del
-ancho coincide exactamente con el de orden 2 del alto.
+ancho coincide exactamente con el de orden 2 del alto. Cuando hay
+agrupamiento, `apps/web/src/vista/curvamodal.ts` dibuja una curva 1D de
+intensidad modal (cos²) por eje afectado — deliberadamente NO un mapa
+combinado 2D/3D como el de un simulador acústico real (BEM/FEM): eso exige
+fase y amplitud relativa entre modos, dato que este motor no tiene.
 
 **Puntaje del match** (`puntaje.ts`) es la primera y única pieza del motor
 que vive en la **capa criterio-editorial**, no en la física — combina las
@@ -224,7 +228,7 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**141 tests totales** (69 motor + 11 catálogo + 61 frontend, estos últimos
+**146 tests totales** (69 motor + 11 catálogo + 66 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 

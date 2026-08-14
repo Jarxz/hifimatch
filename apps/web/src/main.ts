@@ -17,8 +17,19 @@ import { ir } from './vista/pantallas.ts';
 import { poblarSelectores, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
+import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
 import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos, modeloPuntaje } from './vista/resultado.ts';
-import { pintarCadena, pintarSala, pintarPotencia, pintarCarga, pintarGanancia, pintarPlano, pintarModos, pintarPuntaje } from './vista/pintar.ts';
+import {
+  pintarCadena,
+  pintarSala,
+  pintarPotencia,
+  pintarCarga,
+  pintarGanancia,
+  pintarPlano,
+  pintarModos,
+  pintarCurvasModales,
+  pintarPuntaje,
+} from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
 import { num } from './formato/numeros.ts';
@@ -201,6 +212,10 @@ function renderizarResultado(): void {
   pintarPlano(construirPlanoSvg(sala, disposicion, idiomaActual));
   const resModos = evaluarModos(sala);
   pintarModos(modeloModos(resModos, idiomaActual));
+  pintarCurvasModales(
+    construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual),
+    textosDe(idiomaActual).motor.modos.curvasCaption
+  );
 
   const puntaje = calcularPuntaje([
     { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
