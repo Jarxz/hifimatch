@@ -579,17 +579,24 @@ tarjeta — así que la pantalla completa sigue siendo el único lugar
 donde se explican. El botón invierte a fondo claro en hover (mismo
 patrón de contraste que `.segs button[aria-pressed=true]`).
 
-**Títulos de tarjeta en dorado, un solo punto de cambio.** `.card h3`
-(el título grande de cada tarjeta — potencia, carga, puente/recorrido,
-modos, RT60, plano, "En resumen", y los 9 títulos desplegables de la
-guía, que heredan la misma regla vía `.info-item summary h3`) ahora usa
+**Títulos en dorado, en todas las pantallas — no sólo tarjetas.** Primero
+sólo `.card h3` (título de cada tarjeta de evaluación/concepto) pasó a
 `color:var(--dorado)`, variable nueva (`#C9A24B`) agregada a `:root`
 junto a `--ok`/`--warn`/`--alert` — deliberadamente un tono distinto al
 de `--warn` (`#C7AD7C`) aunque ambos sean "dorados": comparten familia
 de color por estética, pero uno es severidad y el otro es sólo
-tipografía, y no deben leerse como lo mismo. El hover que atenúa a
-`--dim` en la guía (`.info-item summary:hover h3`) sigue funcionando
-porque es más específico que la regla nueva.
+tipografía. A pedido explícito de ampliarlo a "todos los títulos de la
+página, no sólo del análisis", se sumaron `.lead` (el `<h1>` grande de
+cada pantalla: "Define la cadena" en configurar, "Cómo leer este
+análisis" en la guía) y `.rail h2, .main h2` (las etiquetas de sección
+en mayúscula del resultado: "Puntaje del match", "La cadena", "Sala",
+"Evaluación"). Deliberadamente **fuera** de esta regla: el wordmark
+"CADENA" (`.mark` en la portada, `.hm` en el header de cada pantalla)
+se queda en blanco — es la marca del sitio, no un título de contenido,
+y mezclarla con el dorado le quitaría el ancla visual neutra que tiene
+hoy. El hover que atenúa a `--dim` en la guía
+(`.info-item summary:hover h3`) sigue funcionando porque es más
+específico que la regla nueva.
 
 **Tarjeta de equipo elegido (config): sólo chips + descripción
 desplegable, no descripción siempre visible.** Al elegir un parlante,

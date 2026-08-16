@@ -41,7 +41,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .back:hover{color:var(--text)}
 
 /* CONFIG */
-.lead{font-weight:300; font-size:30px; letter-spacing:.01em; margin:30px 0 6px}
+.lead{font-weight:300; font-size:30px; letter-spacing:.01em; margin:30px 0 6px; color:var(--dorado)}
 .lead-note{color:var(--dim); font-size:14px; margin:0 0 30px; max-width:640px}
 .rowlabel{display:flex; align-items:baseline; justify-content:space-between; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--label); margin:0 0 9px}
 .rowlabel .req{color:var(--faint); letter-spacing:.12em}
@@ -103,7 +103,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .grid{display:grid; grid-template-columns:280px 1fr; gap:26px; margin-top:26px}
 @media (max-width:860px){ .grid{grid-template-columns:1fr} }
 .rail .blk{border:1px solid var(--line); border-radius:4px; padding:18px; margin-bottom:16px}
-.rail h2, .main h2{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--label); font-weight:400; margin:0 0 14px}
+.rail h2, .main h2{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--dorado); font-weight:400; margin:0 0 14px}
 .chainitem{padding:11px 0; border-bottom:1px solid var(--line)}
 .chainitem:last-child{border-bottom:0}
 .chainitem .ci-cat{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
