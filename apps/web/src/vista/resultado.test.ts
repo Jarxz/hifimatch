@@ -4,14 +4,25 @@ import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
+import { evaluarReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import { calcularPuntaje, PESOS_DECLARADOS } from '../../../../packages/engine/src/puntaje.ts';
 import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Parlante, Amplificador } from '../../../../packages/engine/src/tipos.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from '../datos/adaptadores.ts';
-import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos, modeloPuntaje, modeloResumenFinal } from './resultado.ts';
+import {
+  modeloPotencia,
+  modeloCarga,
+  modeloPuente,
+  modeloRecorrido,
+  modeloModos,
+  modeloReverberacion,
+  modeloPuntaje,
+  modeloResumenFinal,
+} from './resultado.ts';
 import type { ComponenteResumen } from './resultado.ts';
+import { num } from '../formato/numeros.ts';
 
 function parlanteCat(id: string): ParlanteCat {
   const p = CATALOGO.parlantes.find((x) => x.id === id);
@@ -35,7 +46,7 @@ test('modeloPotencia: severidad "ok" → verdictoClase "ok", nunca "alert"/"dim"
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
   const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto');
-  const m = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'es');
+  const m = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
   assert.equal(m.verdictoClase, 'ok');
   assert.equal(r.codigo, 'con-margen');
   assert.equal(m.verdictoTexto, 'Con margen');
@@ -47,7 +58,7 @@ test('modeloPotencia: severidad "alert" → texto de insuficiencia, no de sobra'
   const spk = parlanteCat('kef-ls50-meta');
   const amp = ampCat('rega-brio');
   const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia');
-  const m = modeloPotencia(spk, amp, r, 3.0, 'Referencia', 105, 'es');
+  const m = modeloPotencia(spk, amp, r, 3.0, 'Referencia', 105, 'rockpop', 'es');
   assert.equal(m.verdictoClase, 'alert');
   assert.match(m.textoHtml, /Faltan/);
   assert.doesNotMatch(m.textoHtml, /Alcanza con holgura/);
@@ -68,14 +79,29 @@ test('modeloPotencia: el aviso de potenciaRecMinW aparece sólo cuando el ampli 
   const parlanteM: Parlante = parlanteDelCatalogo(spkConMinimo, 'es');
   const ampM: Amplificador = amplificadorDelCatalogo(ampDebil, 'es');
   const r = evaluarPotencia(parlanteM, ampM, 2.5, 'moderado');
-  const m = modeloPotencia(spkConMinimo, ampDebil, r, 2.5, 'Moderado', 90, 'es');
+  const m = modeloPotencia(spkConMinimo, ampDebil, r, 2.5, 'Moderado', 90, 'rockpop', 'es');
   assert.ok(m.avisoHtml, 'debería haber aviso: 30 W < 40 W recomendados');
   assert.match(m.avisoHtml!, /40/);
 
   const ampSuficiente = ampCat('rega-brio'); // 50 W ≥ 40 W recomendados
   const rSinAviso = evaluarPotencia(parlanteM, amplificadorDelCatalogo(ampSuficiente, 'es'), 2.5, 'moderado');
-  const mSinAviso = modeloPotencia(spkConMinimo, ampSuficiente, rSinAviso, 2.5, 'Moderado', 90, 'es');
+  const mSinAviso = modeloPotencia(spkConMinimo, ampSuficiente, rSinAviso, 2.5, 'Moderado', 90, 'rockpop', 'es');
   assert.equal(mSinAviso.avisoHtml, null);
+});
+
+test('modeloPotencia: crestFactorHtml refleja el crest factor del género y el nivel promedio implicado (pico − crest factor)', () => {
+  const spk = parlanteCat('klipsch-rp600m-ii');
+  const amp = ampCat('cambridge-cxa81');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto');
+
+  const mRock = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
+  assert.match(mRock.crestFactorHtml, /10/); // crest factor rockpop = 10 dB
+  assert.match(mRock.crestFactorHtml, /90/); // 100 − 10
+
+  const mClasica = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'clasica', 'es');
+  assert.match(mClasica.crestFactorHtml, /18/); // crest factor clásica = 18 dB
+  assert.match(mClasica.crestFactorHtml, /82/); // 100 − 18
+  assert.notEqual(mRock.crestFactorHtml, mClasica.crestFactorHtml);
 });
 
 // ---- carga ----
@@ -204,6 +230,63 @@ test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas'
   assert.equal(m.verdictoTexto, 'Clustered modes');
   assert.match(m.textoHtml, /mode pair/);
   assert.doesNotMatch(m.textoHtml, /par\(es\)/);
+});
+
+// ---- reverberación (RT60) ----
+
+test('modeloReverberacion: sala por defecto, tipo "balanceada" → "ok", RT60 formateado en el texto', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarReverberacion(sala, 'balanceada');
+  const m = modeloReverberacion(r, 'balanceada', 'es');
+  assert.equal(m.verdictoClase, 'ok');
+  assert.equal(m.verdictoTexto, 'En rango');
+  assert.match(m.textoHtml, new RegExp(num(r.rt60S, 2, 'es')));
+  assert.match(m.fuenteHtml, /Sabine/);
+  assert.match(m.fuenteHtml, /Balanceada/);
+});
+
+test('modeloReverberacion: misma sala, tipo "moderna" (poca absorción) → "warn", veredicto "Muy viva"', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarReverberacion(sala, 'moderna');
+  const m = modeloReverberacion(r, 'moderna', 'es');
+  assert.equal(r.codigo, 'rt60-largo');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Muy viva');
+  assert.match(m.simpleHtml, /refleja mucho/);
+});
+
+test('modeloReverberacion: misma sala, tipo "tratada" (mucha absorción) → "warn", veredicto "Muy seca"', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarReverberacion(sala, 'tratada');
+  const m = modeloReverberacion(r, 'tratada', 'es');
+  assert.equal(r.codigo, 'rt60-corto');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Muy seca');
+  assert.match(m.simpleHtml, /absorbe mucho/);
+});
+
+test('modeloReverberacion nunca es "alert" ni "dim" — el techo de severidad de sala es "warn" (CLAUDE.md)', () => {
+  const salas = [
+    { anchoM: 2.5, largoM: 3.0, altoM: 2.2 },
+    { anchoM: 3.6, largoM: 5.0, altoM: 2.4 },
+    { anchoM: 7, largoM: 9, altoM: 3.5 },
+  ];
+  const tipos = ['moderna', 'balanceada', 'tratada'] as const;
+  for (const sala of salas) {
+    for (const tipo of tipos) {
+      const clase = modeloReverberacion(evaluarReverberacion(sala, tipo), tipo, 'es').verdictoClase;
+      assert.ok(clase === 'ok' || clase === 'warn', `clase inesperada: ${clase}`);
+    }
+  }
+});
+
+test('modeloReverberacion en inglés: veredicto y texto en inglés, sin mezclar idiomas', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarReverberacion(sala, 'balanceada');
+  const m = modeloReverberacion(r, 'balanceada', 'en');
+  assert.notEqual(m.verdictoTexto, 'En rango');
+  assert.match(m.fuenteHtml, /Sabine/);
+  assert.doesNotMatch(m.textoHtml, /sala doméstica/);
 });
 
 // ---- puntaje (capa criterio-editorial) ----
@@ -348,8 +431,8 @@ test('modeloPotencia en inglés: mismo margenDb numérico, texto y veredicto en 
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
   const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 2.5, 'alto');
-  const mEs = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'es');
-  const mEn = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'en');
+  const mEs = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
+  const mEn = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'en');
   assert.equal(mEn.margenDb, mEs.margenDb); // el número que calculó el motor no cambia con el idioma
   assert.equal(mEn.verdictoTexto, 'With margin');
   assert.match(mEn.textoHtml, /Plenty of headroom/);

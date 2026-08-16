@@ -14,6 +14,7 @@ import type { CodigoPotencia } from '../../../../packages/engine/src/potencia.ts
 import type { CodigoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { CodigoPuenteImpedancias, CodigoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos.ts';
+import type { CodigoReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 
@@ -58,10 +59,18 @@ export const es = {
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',
     alto: 'Alto',
+    tipoSala: 'Tipo de sala',
+    tipoSalaModerna: 'Moderna',
+    tipoSalaBalanceada: 'Balanceada',
+    tipoSalaTratada: 'Tratada',
     nivelEscucha: 'Nivel de escucha',
     nivelModerado: 'Moderado',
     nivelAlto: 'Alto',
     nivelReferencia: 'Referencia',
+    genero: 'Género musical',
+    generoRockPop: 'Rock/Pop',
+    generoJazzVocal: 'Jazz/Vocal',
+    generoClasica: 'Clásica',
     distanciaResultante: 'Distancia de escucha resultante',
     volumenPrefix: 'volumen',
     proximamente: 'Próximamente',
@@ -149,6 +158,8 @@ export const es = {
       fuente: (p: { sensFuente: string; sensNota: string; sensConf: string; potFuente: string; potConf: string }): string =>
         `<b>Fuente sensibilidad:</b> ${p.sensFuente}${p.sensNota} <span class="conf">confianza ${p.sensConf}</span><br>` +
         `<b>Fuente potencia:</b> ${p.potFuente} (RMS, 8 Ω) <span class="conf">confianza ${p.potConf}</span>`,
+      crestFactor: (p: { genero: string; crestFactorDb: string; nivelPromedio: string }): string =>
+        `Con el crest factor típico de <b>${p.genero}</b> (~${p.crestFactorDb} dB pico-promedio), el pico de arriba implica escuchar en promedio alrededor de <b>${p.nivelPromedio} dB</b>. Es un valor típico del género, no de la grabación puntual que estés escuchando.`,
     },
 
     carga: {
@@ -272,10 +283,29 @@ export const es = {
       fuente: (p: { techo: string; umbral: string }): string =>
         `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
       sugerencia:
-        'Conviene reposicionar los parlantes o el punto de escucha, o tratar acústicamente esas frecuencias — se verifica escuchando y midiendo en el espacio real.',
+        'Conviene reposicionar los parlantes o el punto de escucha, o tratar acústicamente esas frecuencias — se verifica escuchando y midiendo en el espacio real. Un filtro paramétrico (EQ activo) centrado cerca de esas frecuencias también puede atenuar el refuerzo, pero ajustarlo bien exige medir la sala real: este modelo no tiene la amplitud ni la fase medidas como para proponer un Q o una atenuación en dB.',
       curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Presión relativa a lo largo de cada eje afectado — sólo los agrupamientos de menor frecuencia (los más audibles y difíciles de tratar). Curvas 1D independientes por eje, no un mapa combinado de la sala.',
+    },
+
+    reverberacion: {
+      titulo: 'Tiempo de reverberación estimado (RT60)',
+      nombreCorto: 'Reverberación',
+      verdicto: {
+        'rt60-corto': 'Muy seca',
+        'rt60-ok': 'En rango',
+        'rt60-largo': 'Muy viva',
+      } satisfies Record<CodigoReverberacion, string>,
+      simple: {
+        'rt60-corto': 'La sala absorbe mucho — puede sonar apagada, sin aire.',
+        'rt60-ok': 'El tiempo de reverberación está en un rango cómodo para escuchar.',
+        'rt60-largo': 'La sala refleja mucho — puede sonar con eco o poco definida.',
+      } satisfies Record<CodigoReverberacion, string>,
+      texto: (p: { rt60: string; min: string; max: string }): string =>
+        `RT60 estimado: <b>${p.rt60} s</b>. El rango cómodo declarado para escucha crítica en una sala doméstica es ${p.min}–${p.max} s (una sala de concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de espacio).`,
+      fuente: (p: { alpha: string; tipoSala: string }): string =>
+        `<b>Fórmula:</b> ecuación de Sabine, RT60 = 0,161·V/A (V = volumen, A = absorción total en sabines). Coeficiente de absorción promedio para "${p.tipoSala}": <b>${p.alpha}</b> — criterio del sitio, valor típico de literatura de acústica arquitectónica para ese tipo de terminación, no una medición de tu sala real. Se verifica midiendo con un decibelímetro o una app de RT60.`,
     },
 
     puntaje: {

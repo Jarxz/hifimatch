@@ -111,6 +111,35 @@ C · sens=85, p8=50, dist=3.0, nivel=referencia(105)
 
 ---
 
+## 2bis. Crest factor por género (`genero.ts`)
+
+**Estado: implementada.** No es una regla con veredicto: es información
+adicional sobre la tarjeta de potencia, sin severidad ni umbral propio —
+no cambia `ok`/`warn`/`alert` de la sección 2.
+
+El pico objetivo de la sección 2 es un pico, no un nivel sostenido. El
+crest factor (relación pico/promedio, en dB) típico del género elegido
+convierte ese pico en el nivel promedio de escucha que implica:
+
+```
+CREST_FACTOR_DB = { rockpop: 10, jazzvocal: 14, clasica: 18 }   // dB, criterio del sitio
+
+nivelPromedioEstimadoDb = picoObjetivoDb − CREST_FACTOR_DB[genero]
+```
+
+Valores típicos de literatura de ingeniería de audio sobre rango dinámico
+de masterización — varían por grabación específica (un rock muy comprimido
+puede tener menos crest factor que un jazz poco comprimido); el motor lo
+declara así, no lo presenta como medición de la pista real que se escucha.
+
+### Vector de prueba
+```
+picoObjetivoDb=100, genero=rockpop  → nivelPromedioEstimadoDb = 100 − 10 = 90
+picoObjetivoDb=100, genero=clasica  → nivelPromedioEstimadoDb = 100 − 18 = 82
+```
+
+---
+
 ## 3. Regla de carga / impedancia (`carga.ts`)
 
 La pregunta: ¿el amplificador tiene corriente para la caída de impedancia del
@@ -242,6 +271,75 @@ varios pares (la sala por defecto tiene 4). La tarjeta ya no lista todos
 los modos individuales (hasta 300 Hz) — sólo el veredicto, la frase simple,
 el aviso de agrupamiento y estas curvas curadas.
 
+**Aviso de filtro de modo activo:** cuando hay agrupamiento, la sugerencia
+de la tarjeta (`sugerenciaHtml`) menciona, además de reposicionar
+parlantes/punto de escucha, que un filtro paramétrico (EQ activo) centrado
+en la frecuencia agrupada también puede atenuar el refuerzo — con la misma
+salvedad de siempre: ajustarlo exige medir la sala real, este modelo no
+tiene la amplitud ni la fase medidas como para proponer un Q o una
+atenuación en dB.
+
+---
+
+## 4ter. Reverberación estimada — RT60 (`reverberacion.ts`)
+
+**Estado: implementada.** Igual que `modos.ts`, depende sólo de la
+geometría de la sala (más un tipo de terminación declarado por el
+usuario) — nunca de los equipos elegidos, y por eso nunca es
+`sin-datos`.
+
+**Fórmula — ecuación de Sabine:**
+```
+RT60 = 0,161 · V / A
+
+V = anchoM · largoM · altoM                                    (volumen, m³)
+S = 2·(anchoM·largoM) + 2·(anchoM·altoM) + 2·(largoM·altoM)     (superficie total, m²)
+A = α · S                                                       (absorción, sabines)
+```
+
+`α` es el coeficiente de absorción promedio de la sala, y depende del
+**tipo de sala** que el usuario elige en el selector de configuración —
+**criterio del sitio**, valores típicos de literatura de acústica
+arquitectónica para ese tipo de terminación, no una medición real:
+
+```
+TipoSala      α       Descripción
+moderna       0,08    piso de porcelanato, pocos muebles — poca absorción
+balanceada    0,20    alfombra y cortinas — absorción media (default del sitio)
+tratada       0,35    tratamiento acústico — mucha absorción
+```
+
+**Rango cómodo declarado** para escucha crítica en una sala doméstica:
+`RT60_MIN_OK_S = 0,3` a `RT60_MAX_OK_S = 0,6` segundos (una sala de
+concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de
+espacio — la tarjeta lo aclara para que el número no se lea fuera de
+contexto).
+
+**Severidad: techo `warn`, nunca `error`** (regla de sala, CLAUDE.md):
+```
+rt60 < RT60_MIN_OK_S                        warn   codigo: 'rt60-corto'  ("Muy seca")
+RT60_MIN_OK_S ≤ rt60 ≤ RT60_MAX_OK_S        ok     codigo: 'rt60-ok'     ("En rango")
+rt60 > RT60_MAX_OK_S                        warn   codigo: 'rt60-largo'  ("Muy viva")
+```
+
+Aparece en "En resumen" (fortaleza si `ok`, debilidad si `warn`) pero
+**no participa del puntaje 1-10 de `puntaje.ts`** — es informativa, igual
+que el plano de reflexiones; los pesos declarados en la sección 7 no
+cambian.
+
+### Vector de prueba (sala por defecto, 3,6×5,0×2,4 m)
+```
+V = 43,2 m³; S = 2·18 + 2·8,64 + 2·12 = 77,28 m²
+
+balanceada (α=0,20): A=15,456   RT60 = 0,161·43,2/15,456 ≈ 0,450 s → "ok" ("En rango")
+moderna    (α=0,08): A=6,1824   RT60 = 6,9552/6,1824      ≈ 1,125 s → "warn" ("Muy viva")
+tratada    (α=0,35): A=27,048   RT60 = 6,9552/27,048       ≈ 0,257 s → "warn" ("Muy seca")
+```
+
+**Selector de tipo de música (género):** ver sección 2bis — comparte
+pantalla de configuración con el tipo de sala, pero informa la tarjeta de
+potencia, no ésta.
+
 ---
 
 ## 5. Lo que el motor todavía NO hace
@@ -249,9 +347,20 @@ el aviso de agrupamiento y estas curvas curadas.
 - Subwoofer, cables.
 - Modo "buscar" (llenar un hueco con candidatos) y modo "proponer" (armar cadenas
   desde un presupuesto).
+- **Factor de amortiguamiento real:** exige la impedancia de salida del
+  amplificador, dato que hoy el catálogo no tiene para ningún amplificador
+  (sí para streamers/DACs, ver sección 6). Pendiente de una tanda de
+  catálogo que la agregue.
+- **Audibilidad del piso de ruido (noise floor):** exige la relación
+  señal/ruido (SNR) de streamers/DACs, dato que el catálogo tampoco tiene
+  todavía.
+- **Ubicación de parlantes: regla de Cardas vs. tercios.** Hoy `sala.ts`
+  calcula una disposición de referencia única (triángulo simétrico); las
+  fórmulas alternativas de posicionamiento quedan para una sesión aparte.
 
 Estas reglas ya están especificadas en los docs del proyecto anterior; el motor
-implementa potencia, carga, geometría y ganancia de cadena (sección 6).
+implementa potencia, carga, geometría, modos de sala, reverberación y
+ganancia de cadena (secciones 2, 2bis, 3, 4, 4bis, 4ter, 6).
 
 **Sobre `cables` en `packages/data/src/catalogo.ts`:** tiene datos curados
 (fuente y confianza, mismo estándar que el resto), pero **todavía no tiene ni

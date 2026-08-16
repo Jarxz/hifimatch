@@ -8,6 +8,7 @@ import type {
   ModeloTarjetaPuente,
   ModeloTarjetaRecorrido,
   ModeloTarjetaModos,
+  ModeloTarjetaReverberacion,
   ModeloPuntaje,
   ModeloResumenFinal,
 } from './resultado.ts';
@@ -73,6 +74,7 @@ export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma): void {
   el('pw-calc').innerHTML = m.calcHtml;
   pintarFlag('pw-flag', m.avisoHtml, false);
   el('pw-src').innerHTML = m.fuenteHtml;
+  el('pw-crest').innerHTML = m.crestFactorHtml;
   actualizarMedidor(m.margenDb, idioma);
 }
 
@@ -152,6 +154,15 @@ export function pintarModos(m: ModeloTarjetaModos): void {
   el('mo-text').innerHTML = m.textoHtml;
   pintarFlag('mo-flag', m.avisoHtml, false);
   el('mo-src').innerHTML = m.fuenteHtml;
+}
+
+/** Igual que modos, siempre tiene dato (depende de dimensiones + tipo de
+ * sala, nunca de equipos) — nunca "sin-datos". */
+export function pintarReverberacion(m: ModeloTarjetaReverberacion): void {
+  pintarVerdict('rt-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('rt-simple').textContent = m.simpleHtml;
+  el('rt-text').innerHTML = m.textoHtml;
+  el('rt-src').innerHTML = m.fuenteHtml;
 }
 
 /** '' cuando no hay modos agrupados (construirCurvasModalesSvg ya lo

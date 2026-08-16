@@ -6,6 +6,9 @@ import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../packages/engine/src/modos.ts';
+import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
+import type { TipoSala } from '../../../packages/engine/src/reverberacion.ts';
+import type { Genero } from '../../../packages/engine/src/genero.ts';
 import { calcularPuntaje, peorSeveridad, PESOS_DECLARADOS } from '../../../packages/engine/src/puntaje.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Severidad } from '../../../packages/engine/src/tipos.ts';
@@ -24,6 +27,7 @@ import {
   modeloPuente,
   modeloRecorrido,
   modeloModos,
+  modeloReverberacion,
   modeloPuntaje,
   modeloResumenFinal,
 } from './vista/resultado.ts';
@@ -37,6 +41,7 @@ import {
   pintarPlano,
   pintarModos,
   pintarCurvasModales,
+  pintarReverberacion,
   pintarPuntaje,
   pintarResumenFinal,
 } from './vista/pintar.ts';
@@ -149,6 +154,20 @@ function setNivel(lvl: NivelUI): void {
   });
 }
 
+function setTipoSala(tipoSala: TipoSala): void {
+  estado.tipoSala = tipoSala;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-tiposala]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.tiposala === tipoSala));
+  });
+}
+
+function setGenero(genero: Genero): void {
+  estado.genero = genero;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-genero]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.genero === genero));
+  });
+}
+
 /** El núcleo de "Analizar": calcula y pinta las cuatro tarjetas de resultado
  * más el plano. Separado de analizar() para poder llamarlo de nuevo al
  * cambiar de idioma sin forzar la navegación a la pantalla de resultado. */
@@ -169,7 +188,7 @@ function renderizarResultado(): void {
   const picoObjetivo = PICO_OBJETIVO_DB[NIVEL_MOTOR[estado.lvl]];
 
   const resPot = evaluarPotencia(parlanteM, ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl]);
-  const mPot = modeloPotencia(spk, amp, resPot, disposicion.distanciaEscuchaM, nivelTexto, picoObjetivo, idiomaActual);
+  const mPot = modeloPotencia(spk, amp, resPot, disposicion.distanciaEscuchaM, nivelTexto, picoObjetivo, estado.genero, idiomaActual);
   pintarPotencia(mPot, idiomaActual);
 
   const resCarga = evaluarCarga(parlanteM, ampM);
@@ -211,6 +230,10 @@ function renderizarResultado(): void {
   const mModos = modeloModos(resModos, idiomaActual);
   pintarModos(mModos);
   pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
+
+  const resReverb = evaluarReverberacion(sala, estado.tipoSala);
+  const mReverb = modeloReverberacion(resReverb, estado.tipoSala, idiomaActual);
+  pintarReverberacion(mReverb);
 
   const items = [
     { categoria: t.resultado.itemParlantes, nombre: spk.nombre, espec: especParlante(spk, idiomaActual), comentario: mCarga.verdictoTexto },
@@ -262,6 +285,12 @@ function renderizarResultado(): void {
     },
     { nombre: nombreComponente.carga, verdictoClase: mCarga.verdictoClase, verdictoTexto: mCarga.verdictoTexto, avisoHtml: mCarga.avisoHtml },
     { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
+    {
+      nombre: t.motor.reverberacion.nombreCorto,
+      verdictoClase: mReverb.verdictoClase,
+      verdictoTexto: mReverb.verdictoTexto,
+      avisoHtml: null,
+    },
   ];
   if (mPuenteStreamer && resPuenteStreamer) {
     componentesResumen.push({
@@ -371,6 +400,14 @@ function wireEventos(): void {
 
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-lvl]').forEach((b) => {
     b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-tiposala]').forEach((b) => {
+    b.addEventListener('click', () => setTipoSala(b.dataset.tiposala as TipoSala));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-genero]').forEach((b) => {
+    b.addEventListener('click', () => setGenero(b.dataset.genero as Genero));
   });
 
   document.getElementById('btn-an')?.addEventListener('click', analizar);

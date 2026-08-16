@@ -63,6 +63,8 @@ packages/engine/   TypeScript puro, CERO dependencias de runtime.
   src/carga.ts     Regla de carga / impedancia
   src/sala.ts      Geometría: disposición, distancia, reflexiones
   src/modos.ts     Modos axiales de sala (resonancias de graves) + detección de agrupamiento
+  src/reverberacion.ts  RT60 (ecuación de Sabine) según tipo de sala declarado (moderna/balanceada/tratada)
+  src/genero.ts    Crest factor típico por género musical — informativo, sin severidad propia
   src/ganancia.ts  Ganancia de cadena: puente de impedancias + recorrido de volumen (fuente→ampli)
   src/puntaje.ts   Puntaje 1-10 del match — CAPA CRITERIO-EDITORIAL, no física (pesos declarados)
 packages/data/     Catálogo curado de equipos, bilingüe (con fuente y confianza)
@@ -294,7 +296,29 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**155 tests totales** (69 motor + 11 catálogo + 75 frontend, estos últimos
+**Reverberación estimada (RT60) y crest factor por género.** Dos piezas
+nuevas del motor, ambas puramente informativas (ninguna toca el puntaje
+1-10 de `puntaje.ts`, cuyos pesos siguen sumando 1 sin un sexto
+componente). `reverberacion.ts` aplica la ecuación de Sabine (RT60 =
+0,161·V/A) sobre la geometría de la sala y un **tipo de sala** que el
+usuario elige (`moderna`/`balanceada`/`tratada`, coeficiente de absorción
+0,08/0,20/0,35 — criterio del sitio, valores típicos de literatura de
+acústica arquitectónica, no medición real); mismo techo de severidad
+`warn` que el resto de las reglas de sala (`docs/motor-mvp.md` sección
+4ter). Se pinta como una tercera sección dentro de la tarjeta Geometría ya
+fusionada (después de plano y modos) y aparece en "En resumen"
+(fortaleza/debilidad) sin sumar ni restar puntaje. `genero.ts` traduce el
+pico objetivo de la tarjeta de potencia (`crestFactorHtml`) al nivel
+promedio de escucha que implica, según el crest factor típico del género
+elegido (`rockpop`=10 dB, `jazzvocal`=14 dB, `clasica`=18 dB —
+sección 2bis). Ambos selectores (tipo de sala, género) viven en
+`estado.ts` junto al resto de la configuración. De paso, la sugerencia de
+`modos.ts` cuando hay agrupamiento ahora menciona un filtro paramétrico
+(EQ activo) como alternativa a reposicionar, con la misma salvedad de
+siempre: se ajusta midiendo la sala real, el motor no tiene la
+amplitud/fase medida como para proponer un Q o una atenuación en dB.
+
+**172 tests totales** (80 motor + 11 catálogo + 81 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 
@@ -334,3 +358,10 @@ Falta:
 - **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
   de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
   parte del alcance actual.
+- **Factor de amortiguamiento real** (necesita impedancia de salida de
+  amplificador, dato que el catálogo no tiene todavía para ningún ampli) y
+  **audibilidad del piso de ruido** (necesita SNR de streamers/DACs, ídem):
+  deferidas a una ronda de catálogo futura, no de motor.
+- **Ubicación de parlantes: regla de Cardas vs. tercios**, como alternativa
+  a la disposición de referencia única que calcula hoy `sala.ts`: sin
+  diseñar, sesión aparte.

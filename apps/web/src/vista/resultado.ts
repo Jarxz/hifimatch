@@ -11,11 +11,15 @@
  * formateados por formato/numeros.ts según ese mismo idioma.
  */
 import type { ResultadoPotencia } from '../../../../packages/engine/src/potencia.ts';
+import type { Genero } from '../../../../packages/engine/src/genero.ts';
+import { nivelPromedioEstimadoDb, CREST_FACTOR_DB } from '../../../../packages/engine/src/genero.ts';
 import type { ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
 import type { ResultadoModos } from '../../../../packages/engine/src/modos.ts';
 import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages/engine/src/modos.ts';
+import type { ResultadoReverberacion, TipoSala } from '../../../../packages/engine/src/reverberacion.ts';
+import { COEFICIENTE_ABSORCION, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ResultadoPuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
@@ -33,7 +37,14 @@ export interface ModeloTarjetaPotencia {
   calcHtml: string;
   avisoHtml: string | null;
   fuenteHtml: string;
+  crestFactorHtml: string;
 }
+
+const GENERO_LABEL: Record<Genero, (t: ReturnType<typeof textosDe>) => string> = {
+  rockpop: (t) => t.config.generoRockPop,
+  jazzvocal: (t) => t.config.generoJazzVocal,
+  clasica: (t) => t.config.generoClasica,
+};
 
 export function modeloPotencia(
   spk: ParlanteCat,
@@ -42,6 +53,7 @@ export function modeloPotencia(
   distM: number,
   nivelTexto: string,
   picoObjetivoDb: number,
+  genero: Genero,
   idioma: Idioma
 ): ModeloTarjetaPotencia {
   const t = textosDe(idioma);
@@ -88,6 +100,12 @@ export function modeloPotencia(
     potConf: t.catalogo.confianza[amp.potencia8OhmW.confianza],
   });
 
+  const crestFactorHtml = t.motor.potencia.crestFactor({
+    genero: GENERO_LABEL[genero](t),
+    crestFactorDb: String(CREST_FACTOR_DB[genero]),
+    nivelPromedio: num(nivelPromedioEstimadoDb(picoObjetivoDb, genero), 0, idioma),
+  });
+
   return {
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.potencia.verdicto[r.codigo],
@@ -97,6 +115,7 @@ export function modeloPotencia(
     calcHtml,
     avisoHtml,
     fuenteHtml,
+    crestFactorHtml,
   };
 }
 
@@ -345,6 +364,43 @@ export function modeloModos(r: ResultadoModos, idioma: Idioma): ModeloTarjetaMod
     avisoHtml,
     sugerenciaHtml: r.agrupados.length > 0 ? t.motor.modos.sugerencia : null,
     fuenteHtml: t.motor.modos.fuente({ techo: techoFmt, umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)) }),
+  };
+}
+
+export interface ModeloTarjetaReverberacion {
+  verdictoClase: ClaseVerdicto; // 'ok' | 'warn' — nunca 'alert'/'dim': techo de severidad de sala, ver CLAUDE.md
+  verdictoTexto: string;
+  simpleHtml: string;
+  textoHtml: string;
+  fuenteHtml: string;
+}
+
+const TIPO_SALA_LABEL: Record<TipoSala, (t: ReturnType<typeof textosDe>) => string> = {
+  moderna: (t) => t.config.tipoSalaModerna,
+  balanceada: (t) => t.config.tipoSalaBalanceada,
+  tratada: (t) => t.config.tipoSalaTratada,
+};
+
+export function modeloReverberacion(r: ResultadoReverberacion, tipoSala: TipoSala, idioma: Idioma): ModeloTarjetaReverberacion {
+  const t = textosDe(idioma);
+
+  const textoHtml = t.motor.reverberacion.texto({
+    rt60: num(r.rt60S, 2, idioma),
+    min: num(RT60_MIN_OK_S, 1, idioma),
+    max: num(RT60_MAX_OK_S, 1, idioma),
+  });
+
+  const fuenteHtml = t.motor.reverberacion.fuente({
+    alpha: num(COEFICIENTE_ABSORCION[tipoSala], 2, idioma),
+    tipoSala: TIPO_SALA_LABEL[tipoSala](t),
+  });
+
+  return {
+    verdictoClase: r.severidad,
+    verdictoTexto: t.motor.reverberacion.verdicto[r.codigo],
+    simpleHtml: t.motor.reverberacion.simple[r.codigo],
+    textoHtml,
+    fuenteHtml,
   };
 }
 

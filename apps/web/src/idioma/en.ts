@@ -46,10 +46,18 @@ export const en: Textos = {
     ancho: 'Width (front)',
     largo: 'Length (depth)',
     alto: 'Height',
+    tipoSala: 'Room type',
+    tipoSalaModerna: 'Modern',
+    tipoSalaBalanceada: 'Balanced',
+    tipoSalaTratada: 'Treated',
     nivelEscucha: 'Listening level',
     nivelModerado: 'Moderate',
     nivelAlto: 'Loud',
     nivelReferencia: 'Reference',
+    genero: 'Music genre',
+    generoRockPop: 'Rock/Pop',
+    generoJazzVocal: 'Jazz/Vocal',
+    generoClasica: 'Classical',
     distanciaResultante: 'Resulting listening distance',
     volumenPrefix: 'volume',
     proximamente: 'Coming soon',
@@ -138,6 +146,8 @@ export const en: Textos = {
       fuente: (p) =>
         `<b>Sensitivity source:</b> ${p.sensFuente}${p.sensNota} <span class="conf">${p.sensConf} confidence</span><br>` +
         `<b>Power source:</b> ${p.potFuente} (RMS, 8 Ω) <span class="conf">${p.potConf} confidence</span>`,
+      crestFactor: (p) =>
+        `With the typical crest factor for <b>${p.genero}</b> (~${p.crestFactorDb} dB peak-to-average), the peak above implies listening at an average of around <b>${p.nivelPromedio} dB</b>. This is a typical genre value, not the specific recording you're playing.`,
     },
 
     carga: {
@@ -257,10 +267,29 @@ export const en: Textos = {
       fuente: (p) =>
         `<b>Criterion:</b> rigid, rectangular room model, axial modes only. Clustering = two modes on different axes within ${p.umbral}% of each other, below ${p.techo} Hz — a site criterion, not a published convention; verified by measuring/listening.`,
       sugerencia:
-        'Try repositioning the speakers or the listening spot, or treat those frequencies acoustically — verified by listening and measuring in the real space.',
+        'Try repositioning the speakers or the listening spot, or treat those frequencies acoustically — verified by listening and measuring in the real space. A parametric filter (active EQ) centered near those frequencies can also attenuate the buildup, but tuning it well requires measuring the real room: this model doesn’t have measured amplitude or phase to propose a specific Q or dB cut.',
       curvaOrden: (p) => `order ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Relative pressure along each affected axis — only the lowest-frequency clusters (the most audible and hardest to treat). Independent 1D curves per axis, not a combined room map.',
+    },
+
+    reverberacion: {
+      titulo: 'Estimated reverberation time (RT60)',
+      nombreCorto: 'Reverberation',
+      verdicto: {
+        'rt60-corto': 'Too dry',
+        'rt60-ok': 'In range',
+        'rt60-largo': 'Too live',
+      },
+      simple: {
+        'rt60-corto': 'The room absorbs a lot — it can sound dull, airless.',
+        'rt60-ok': 'The reverberation time is in a comfortable range for listening.',
+        'rt60-largo': 'The room reflects a lot — it can sound echoey or smeared.',
+      },
+      texto: (p) =>
+        `Estimated RT60: <b>${p.rt60} s</b>. The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space).`,
+      fuente: (p) =>
+        `<b>Formula:</b> Sabine's equation, RT60 = 0.161·V/A (V = volume, A = total absorption in sabins). Average absorption coefficient for "${p.tipoSala}": <b>${p.alpha}</b> — a site criterion, a typical value from architectural acoustics literature for that finish, not a measurement of your real room. Verified by measuring with an SPL meter or an RT60 app.`,
     },
 
     puntaje: {
