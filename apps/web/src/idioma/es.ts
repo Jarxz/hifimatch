@@ -59,6 +59,7 @@ export const es = {
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',
     alto: 'Alto',
+    materialesTitulo: 'Materiales de la sala',
     muroFrontal: 'Muro frontal',
     muroPosterior: 'Muro posterior',
     muroIzquierdo: 'Muro izquierdo',
@@ -164,10 +165,13 @@ export const es = {
         insuficiente: 'Insuficiente',
       } satisfies Record<CodigoPotencia, string>,
       simple: {
-        'con-margen': 'Sobra potencia para tocar fuerte sin esfuerzo.',
-        justo: 'Llega justo — sin margen para los pasajes más dinámicos.',
-        insuficiente: 'No alcanza la potencia para el volumen que pediste.',
-      } satisfies Record<CodigoPotencia, string>,
+        'con-margen': (p: { porcentaje: string }): string =>
+          `Potencia superior a la necesaria: a este nivel, el amplificador usa sólo el ${p.porcentaje}% de su capacidad — queda margen de sobra para picos fuertes sin distorsión.`,
+        justo: (p: { porcentaje: string }): string =>
+          `Potencia ajustada: a este nivel, el amplificador ya usa cerca del ${p.porcentaje}% de su capacidad — los pasajes más dinámicos quedan al límite.`,
+        insuficiente: (p: { porcentaje: string }): string =>
+          `Potencia insuficiente: alcanzar este pico exigiría el ${p.porcentaje}% de la capacidad del amplificador, más de lo que tiene disponible — riesgo de recorte (clipping) en los picos.`,
+      } satisfies Record<CodigoPotencia, (p: { porcentaje: string }) => string>,
       conMargen: (p: { amp: string; nivel: string; margenDb: string; distM: string }): string =>
         `El ${p.amp} entrega los picos a nivel <b>${p.nivel}</b> con <b>${p.margenDb} dB</b> de margen a ${p.distM} m. Alcanza con holgura.`,
       justoTexto: (p: { nivel: string; margenDb: string }): string =>

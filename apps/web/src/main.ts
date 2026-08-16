@@ -168,46 +168,27 @@ function setNivel(lvl: NivelUI): void {
   });
 }
 
+// Los 6 selectores de material son <select> nativos (menú desplegable, ver
+// index.html #sel-murofrontal etc.) — el propio control ya muestra la
+// selección actual, así que estos setters sólo actualizan el estado, sin
+// el manejo de aria-pressed que sí necesitan los grupos de botones .segs.
 function setMuroFrontal(muro: MaterialMuro): void {
   estado.muroFrontal = muro;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-murofrontal]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.murofrontal === muro));
-  });
 }
-
 function setMuroPosterior(muro: MaterialMuro): void {
   estado.muroPosterior = muro;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroposterior]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.muroposterior === muro));
-  });
 }
-
 function setMuroIzquierdo(muro: MaterialMuro): void {
   estado.muroIzquierdo = muro;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroizquierdo]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.muroizquierdo === muro));
-  });
 }
-
 function setMuroDerecho(muro: MaterialMuro): void {
   estado.muroDerecho = muro;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroderecho]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.muroderecho === muro));
-  });
 }
-
 function setPiso(piso: MaterialPiso): void {
   estado.piso = piso;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-piso]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.piso === piso));
-  });
 }
-
 function setTecho(techo: MaterialTecho): void {
   estado.techo = techo;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-techo]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.techo === techo));
-  });
 }
 
 function setGenero(genero: Genero): void {
@@ -486,29 +467,12 @@ function wireEventos(): void {
     b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-murofrontal]').forEach((b) => {
-    b.addEventListener('click', () => setMuroFrontal(b.dataset.murofrontal as MaterialMuro));
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroposterior]').forEach((b) => {
-    b.addEventListener('click', () => setMuroPosterior(b.dataset.muroposterior as MaterialMuro));
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroizquierdo]').forEach((b) => {
-    b.addEventListener('click', () => setMuroIzquierdo(b.dataset.muroizquierdo as MaterialMuro));
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroderecho]').forEach((b) => {
-    b.addEventListener('click', () => setMuroDerecho(b.dataset.muroderecho as MaterialMuro));
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-piso]').forEach((b) => {
-    b.addEventListener('click', () => setPiso(b.dataset.piso as MaterialPiso));
-  });
-
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-techo]').forEach((b) => {
-    b.addEventListener('click', () => setTecho(b.dataset.techo as MaterialTecho));
-  });
+  document.getElementById('sel-murofrontal')?.addEventListener('change', (e) => setMuroFrontal((e.target as HTMLSelectElement).value as MaterialMuro));
+  document.getElementById('sel-muroposterior')?.addEventListener('change', (e) => setMuroPosterior((e.target as HTMLSelectElement).value as MaterialMuro));
+  document.getElementById('sel-muroizquierdo')?.addEventListener('change', (e) => setMuroIzquierdo((e.target as HTMLSelectElement).value as MaterialMuro));
+  document.getElementById('sel-muroderecho')?.addEventListener('change', (e) => setMuroDerecho((e.target as HTMLSelectElement).value as MaterialMuro));
+  document.getElementById('sel-piso')?.addEventListener('change', (e) => setPiso((e.target as HTMLSelectElement).value as MaterialPiso));
+  document.getElementById('sel-techo')?.addEventListener('change', (e) => setTecho((e.target as HTMLSelectElement).value as MaterialTecho));
 
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-genero]').forEach((b) => {
     b.addEventListener('click', () => setGenero(b.dataset.genero as Genero));

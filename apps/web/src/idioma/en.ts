@@ -46,6 +46,7 @@ export const en: Textos = {
     ancho: 'Width (front)',
     largo: 'Length (depth)',
     alto: 'Height',
+    materialesTitulo: 'Room materials',
     muroFrontal: 'Front wall',
     muroPosterior: 'Rear wall',
     muroIzquierdo: 'Left wall',
@@ -152,9 +153,12 @@ export const en: Textos = {
         insuficiente: 'Insufficient',
       },
       simple: {
-        'con-margen': 'Plenty of power to play loud without strain.',
-        justo: 'Just enough — no margin for the most dynamic passages.',
-        insuficiente: 'Not enough power for the volume you asked for.',
+        'con-margen': (p) =>
+          `More power than needed: at this level, the amplifier is only using ${p.porcentaje}% of its capacity — plenty of margin left for loud peaks without distortion.`,
+        justo: (p) =>
+          `Tight power margin: at this level, the amplifier is already using close to ${p.porcentaje}% of its capacity — the most dynamic passages run right at the limit.`,
+        insuficiente: (p) =>
+          `Not enough power: reaching this peak would require ${p.porcentaje}% of the amplifier's capacity, more than it has available — risk of clipping on peaks.`,
       },
       conMargen: (p) =>
         `The ${p.amp} delivers the peaks at <b>${p.nivel}</b> level with <b>${p.margenDb} dB</b> of margin at ${p.distM} m. Plenty of headroom.`,

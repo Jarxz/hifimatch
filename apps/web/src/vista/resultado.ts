@@ -107,10 +107,18 @@ export function modeloPotencia(
     nivelPromedio: num(nivelPromedioEstimadoDb(picoObjetivoDb, genero), 0, idioma),
   });
 
+  // % de la capacidad del amplificador que exige este pico — reexpresa
+  // margenDb (ya calculado por potencia.ts) como porcentaje en vez de dB,
+  // más intuitivo para quien no piensa en logaritmos: margenDb es una
+  // relación de potencia (dB = 10·log₁₀(ratio)), así que ratio=10^(margen/10)
+  // y "% de capacidad usada" = 100/ratio. Puede superar 100% cuando falta
+  // potencia (ratio<1) — el propio texto lo declara como "más de lo que tiene".
+  const porcentajeCapacidad = num(100 * Math.pow(10, -r.margenDb / 10), 0, idioma);
+
   return {
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.potencia.verdicto[r.codigo],
-    simpleHtml: t.motor.potencia.simple[r.codigo],
+    simpleHtml: t.motor.potencia.simple[r.codigo]({ porcentaje: porcentajeCapacidad }),
     margenDb: r.margenDb,
     textoHtml,
     calcHtml,

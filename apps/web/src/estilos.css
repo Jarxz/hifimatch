@@ -66,7 +66,11 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 @media (max-width:720px){ .split{grid-template-columns:1fr} }
 
 .room{border-top:1px solid var(--line); margin-top:8px; padding-top:24px}
-.room h3{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--label); margin:0 0 20px; font-weight:400}
+.room h3{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--label); margin:24px 0 16px; font-weight:400}
+.room h3:first-child{margin-top:0}
+.materiales-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:0 24px}
+@media (max-width:820px){ .materiales-grid{grid-template-columns:1fr 1fr} }
+@media (max-width:480px){ .materiales-grid{grid-template-columns:1fr} }
 .dims{display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px 26px}
 @media (max-width:640px){ .dims{grid-template-columns:1fr} }
 .dim .dl{display:flex; justify-content:space-between; font-size:12px; color:var(--dim); margin-bottom:8px}

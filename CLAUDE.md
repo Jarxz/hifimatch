@@ -339,7 +339,7 @@ para que la pantalla inicial luzca bien. La tarjeta ahora tiene un
 mismo patrón que las demás tarjetas con cálculo (potencia, puente).
 `estado.ts` guarda `muro`/`piso`/`techo` en vez de `tipoSala`.
 
-**193 tests totales** (90 motor + 11 catálogo + 92 frontend, estos últimos
+**197 tests totales** (90 motor + 11 catálogo + 96 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 
@@ -471,6 +471,53 @@ parlantes como volumen.** Ronda de pulido sobre el resultado completo:
   espacio de proyección interno). Cambiar de vista sólo re-dibuja
   (`main.ts` cachea `{sala, disposicion, murosVista}` del último
   análisis) — no recalcula ni renaviega.
+
+**Selectores de material como `<select>` desplegable, no botones.** Los 6
+selectores de material (muro frontal/posterior/izquierdo/derecho, piso,
+techo) pasaron de un `.segs` (fila de botones, uno por opción — hasta 6
+botones por muro) al mismo patrón `.picker` + `.rowlabel` + `.sel select`
+que ya usaban Parlantes/Amplificador/Streamer/DAC: la etiqueta arriba
+("Muro frontal"), el `<select>` abajo mostrando el material elegido con
+la flecha ya provista por `.sel::after`. Los 6 vivan en una grilla de 3
+columnas (`.materiales-grid`, bajo el nuevo encabezado "Materiales de la
+sala") en vez de 6 filas completas apiladas — más compacto, y reusa CSS
+existente en vez de inventar un componente nuevo. `main.ts` cambió los
+listeners de `click` en botones a `change` en selects; los `set*` de cada
+material se simplificaron (ya no gestionan `aria-pressed`, el propio
+`<select>` lo resuelve nativamente).
+
+**Etiquetas del plano isométrico alineadas a su arista, no flotando
+fuera del área.** Las etiquetas IZQUIERDO/DERECHO (y las dimensiones
+largo/alto) usaban `text-anchor="middle"` horizontal con un offset fijo
+— para las palabras más largas ("IZQUIERDO"/"POSTERIOR"), el texto se
+extendía ~50-60px a cada lado del punto de anclaje, lo bastante como
+para superar el padding del viewBox (64px) y quedar recortado por el
+propio `<svg>`. Se resolvió rotando esas 4 etiquetas -90° (`texto(...,
+rotar=true)`, `transform="rotate(-90 x y)"`, mismo truco que ya usaba el
+plano 2D original para su dimensión vertical): rotado, el texto ocupa el
+ancho de su altura de fuente (~10px) en vez del de su longitud, así que
+encaja con margen de sobra y además queda visualmente pegado a la arista
+vertical de su lado — que es lo que se pidió ("alineado con la línea...
+de su lado"). Verificado con una captura de página completa (no
+recortada): las etiquetas más largas ("IZQUIERDO"/"POSTERIOR") ya no se
+salen del área de la tarjeta en ninguna de las 4 vistas.
+
+**`simpleHtml` de potencia reexpresa el margen en % de capacidad usada,
+no sólo en dB.** La frase corta bajo el veredicto (ej. antes "Sobra
+potencia para tocar fuerte sin esfuerzo") ahora declara qué porcentaje
+de la capacidad del amplificador exige el pico calculado — más intuitivo
+que un número en dB para quien no piensa en logaritmos. Fórmula (en
+`modeloPotencia`, `resultado.ts`): `margenDb` ya lo calculó
+`potencia.ts` como una relación de potencia en dB
+(`dB = 10·log₁₀(ratio)`), así que `ratio = 10^(margenDb/10)` y
+`% de capacidad usada = 100/ratio = 100·10^(−margenDb/10)` — no es un
+dato nuevo, es el mismo margen ya calculado, re-expresado. Puede superar
+100 % cuando falta potencia (`ratio<1`, `codigo:'insuficiente'`); el
+texto lo declara explícitamente ("más de lo que tiene disponible") en
+vez de mostrar un porcentaje >100 % sin explicar qué significa.
+`motor.potencia.simple` pasó de `Record<Codigo,string>` a
+`Record<Codigo,(p:{porcentaje:string})=>string>` en los tres códigos
+(`con-margen`/`justo`/`insuficiente`).
 
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root

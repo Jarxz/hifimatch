@@ -131,9 +131,12 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
     const c = XY(p);
     return `<circle cx="${c.X}" cy="${c.Y}" r="${coord(r, 1)}" ${extra}/>`;
   };
-  const texto = (p: Pt3, contenido: string, extra: string, dx = 0, dy = 0): string => {
+  const texto = (p: Pt3, contenido: string, extra: string, dx = 0, dy = 0, rotar = false): string => {
     const c = px(p);
-    return `<text x="${coord(c.x + dx, 1)}" y="${coord(c.y + dy, 1)}" ${extra}>${contenido}</text>`;
+    const x = coord(c.x + dx, 1);
+    const y = coord(c.y + dy, 1);
+    const transform = rotar ? ` transform="rotate(-90 ${x} ${y})"` : '';
+    return `<text x="${x}" y="${y}" ${extra}${transform}>${contenido}</text>`;
   };
 
   let s = `<svg viewBox="0 0 ${coord(sw, 0)} ${coord(sh, 0)}" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,Consolas,monospace">`;
@@ -171,10 +174,19 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   // superponen en la vista "frontal" y "lateral" deja caer izquierdo/
   // derecho en "lateral") — se omiten en vez de mostrar texto ilegible
   // amontonado; isométrica y superior sí distinguen los 4 muros.
+  //
+  // Izquierdo/derecho van rotadas -90° (leen de abajo hacia arriba,
+  // pegadas a la arista vertical de su lado) en vez de horizontales: un
+  // texto horizontal centrado ("IZQUIERDO"/"POSTERIOR", las palabras más
+  // largas) con `text-anchor="middle"` se extiende ~50-60px a cada lado
+  // del punto de anclaje, que podía superar el padding del viewBox y
+  // salirse del área visible del gráfico — rotado, el texto ocupa el
+  // ancho de su altura de fuente (~10px), no el de su longitud, así que
+  // encaja con un margen mucho más chico y sin riesgo de recorte.
   const LABEL = 'fill="#6E6E75" font-size="10.5" letter-spacing="1.2" text-anchor="middle"';
   const LABEL_ABIERTO = 'fill="#5A5A61" font-size="10.5" letter-spacing="1.2" text-anchor="middle" font-style="italic"';
-  const etiquetaMuro = (p: Pt3, nombre: string, vacio: boolean, dx: number, dy: number): string =>
-    texto(p, vacio ? nombre + t.aberturaSufijo : nombre, vacio ? LABEL_ABIERTO : LABEL, dx, dy);
+  const etiquetaMuro = (p: Pt3, nombre: string, vacio: boolean, dx: number, dy: number, rotar = false): string =>
+    texto(p, vacio ? nombre + t.aberturaSufijo : nombre, vacio ? LABEL_ABIERTO : LABEL, dx, dy, rotar);
   const ejeYVisible = vista !== 'frontal';
   const ejeXVisible = vista !== 'lateral';
   if (ejeYVisible) {
@@ -182,8 +194,8 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
     s += etiquetaMuro({ x: W / 2, y: L, z: H }, t.muroPosteriorCorto, muros.posterior === 'vacio', 0, -16);
   }
   if (ejeXVisible) {
-    s += etiquetaMuro({ x: 0, y: L / 2, z: H }, t.muroIzquierdoCorto, muros.izquierdo === 'vacio', -10, -12);
-    s += etiquetaMuro({ x: W, y: L / 2, z: H }, t.muroDerechoCorto, muros.derecho === 'vacio', 10, -12);
+    s += etiquetaMuro({ x: 0, y: L / 2, z: H }, t.muroIzquierdoCorto, muros.izquierdo === 'vacio', -14, 0, true);
+    s += etiquetaMuro({ x: W, y: L / 2, z: H }, t.muroDerechoCorto, muros.derecho === 'vacio', 14, 0, true);
   }
 
   // triángulo de escucha
@@ -262,10 +274,13 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   s += circulo(dulce3, 3.5, 'fill="#ECECEE"');
   s += texto(dulce3, t.puntoDulce, 'fill="#ECECEE" font-size="10" text-anchor="middle"', 0, 18);
 
-  // dimensiones (ancho, largo, alto) a lo largo de las aristas del piso/vertical
+  // dimensiones (ancho, largo, alto) a lo largo de las aristas del piso/
+  // vertical — largo y alto rotadas -90° por la misma razón que
+  // izquierdo/derecho arriba: pegadas a su arista, sin extenderse fuera
+  // del área visible del gráfico.
   s += texto({ x: W / 2, y: 0, z: 0 }, num(W, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', 0, 20);
-  s += texto({ x: 0, y: L / 2, z: 0 }, num(L, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="end"', -10, 6);
-  s += texto({ x: 0, y: 0, z: H / 2 }, num(H, 2, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="end"', -10, 2);
+  s += texto({ x: 0, y: L / 2, z: 0 }, num(L, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, true);
+  s += texto({ x: 0, y: 0, z: H / 2 }, num(H, 2, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, true);
 
   s += '</svg>';
   return s;

@@ -54,7 +54,9 @@ test('modeloPotencia: severidad "ok" → verdictoClase "ok", nunca "alert"/"dim"
   assert.equal(r.codigo, 'con-margen');
   assert.equal(m.verdictoTexto, 'Con margen');
   assert.match(m.textoHtml, /Alcanza con holgura/);
-  assert.match(m.simpleHtml, /Sobra potencia/);
+  // margen +6,07 dB → ratio=10^0,607≈4,05× → % de capacidad usada = 100/4,05≈24,7 → 25
+  assert.match(m.simpleHtml, /Potencia superior a la necesaria/);
+  assert.match(m.simpleHtml, /25%/);
 });
 
 test('modeloPotencia: severidad "alert" → texto de insuficiencia, no de sobra', () => {
@@ -105,6 +107,56 @@ test('modeloPotencia: crestFactorHtml refleja el crest factor del género y el n
   assert.match(mClasica.crestFactorHtml, /18/); // crest factor clásica = 18 dB
   assert.match(mClasica.crestFactorHtml, /82/); // 100 − 18
   assert.notEqual(mRock.crestFactorHtml, mClasica.crestFactorHtml);
+});
+
+// ---- % de capacidad del amplificador usada (simpleHtml de potencia) ----
+
+/** % de capacidad = 100/ratio, con ratio = 10^(margenDb/10) — misma fórmula
+ * que resultado.ts, para no hardcodear el número esperado en cada vector. */
+function porcentajeEsperado(margenDb: number): string {
+  return String(Math.round(100 * Math.pow(10, -margenDb / 10)));
+}
+
+test('modeloPotencia: simpleHtml de "con-margen" declara el % de capacidad usada, coherente con margenDb', () => {
+  const spk = parlanteCat('klipsch-rp600m-ii');
+  const amp = ampCat('cambridge-cxa81');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto');
+  const m = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
+  assert.equal(r.codigo, 'con-margen');
+  assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
+  assert.match(m.simpleHtml, /margen de sobra/);
+});
+
+test('modeloPotencia: simpleHtml de "justo" declara un % de capacidad cercano al límite (70-99%)', () => {
+  const spk = parlanteCat('kef-ls50-meta');
+  const amp = ampCat('rega-brio');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'alto');
+  const m = modeloPotencia(spk, amp, r, 3.0, 'Alto', 100, 'rockpop', 'es');
+  assert.equal(r.codigo, 'justo');
+  assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
+  assert.match(m.simpleHtml, /al límite/);
+});
+
+test('modeloPotencia: simpleHtml de "insuficiente" declara un % de capacidad por encima de 100 — más de lo que el ampli tiene', () => {
+  const spk = parlanteCat('kef-ls50-meta');
+  const amp = ampCat('rega-brio');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia');
+  const m = modeloPotencia(spk, amp, r, 3.0, 'Referencia', 105, 'rockpop', 'es');
+  assert.equal(r.codigo, 'insuficiente');
+  const pct = Number(porcentajeEsperado(r.margenDb));
+  assert.ok(pct > 100, `esperaba >100%, dio ${pct}%`);
+  assert.match(m.simpleHtml, new RegExp(`${pct}%`));
+  assert.match(m.simpleHtml, /más de lo que tiene disponible/);
+});
+
+test('modeloPotencia en inglés: simpleHtml con el mismo % de capacidad, texto en inglés', () => {
+  const spk = parlanteCat('klipsch-rp600m-ii');
+  const amp = ampCat('cambridge-cxa81');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 2.5, 'alto');
+  const m = modeloPotencia(spk, amp, r, 2.5, 'Loud', 100, 'rockpop', 'en');
+  assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
+  assert.match(m.simpleHtml, /More power than needed/);
+  assert.doesNotMatch(m.simpleHtml, /Potencia/);
 });
 
 // ---- carga ----
