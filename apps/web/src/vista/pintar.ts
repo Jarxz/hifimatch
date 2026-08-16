@@ -76,11 +76,24 @@ export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma): void {
   actualizarMedidor(m.margenDb, idioma);
 }
 
+/**
+ * "sin-datos" ya no se publica como tarjeta propia en el análisis
+ * principal — se saca de acá y queda como nota en "En resumen"
+ * (modeloResumenFinal/pintarResumenFinal). La tarjeta se oculta entera en
+ * vez de mostrar un veredicto "Sin dato" que ocupa lugar sin decir nada
+ * evaluable.
+ */
 export function pintarCarga(m: ModeloTarjetaCarga): void {
-  pintarVerdict('z-verdict', m.sinDatos, m.verdictoClase, m.verdictoTexto);
+  const card = el('card-carga');
+  if (m.sinDatos) {
+    card.classList.add('hidden');
+    return;
+  }
+  card.classList.remove('hidden');
+  pintarVerdict('z-verdict', false, m.verdictoClase, m.verdictoTexto);
   el('z-simple').textContent = m.simpleHtml;
   el('z-text').innerHTML = m.textoHtml;
-  pintarFlag('z-flag', m.avisoHtml, m.avisoEsSinDatos);
+  pintarFlag('z-flag', m.avisoHtml, false);
   el('z-src').innerHTML = m.fuenteHtml;
 }
 
@@ -90,7 +103,9 @@ export function pintarCarga(m: ModeloTarjetaCarga): void {
  * tarjetas (card-puente-streamer/card-recorrido-streamer,
  * card-puente-dac/card-recorrido-dac) para no mezclar dos evaluaciones de
  * ganancia distintas en una sola tarjeta. `null` oculta el par de esa
- * categoría sin tocar su contenido.
+ * categoría sin tocar su contenido; lo mismo si el resultado es
+ * "sin-datos" — no se publica como tarjeta, sólo como nota en el resumen
+ * final (ver pintarCarga).
  */
 export function pintarGanancia(
   categoria: 'streamer' | 'dac',
@@ -100,28 +115,29 @@ export function pintarGanancia(
   const cardPuente = el('card-puente-' + categoria);
   const cardRecorrido = el('card-recorrido-' + categoria);
 
-  if (!puente || !recorrido) {
+  if (!puente || puente.sinDatos) {
     cardPuente.classList.add('hidden');
-    cardRecorrido.classList.add('hidden');
-    return;
+  } else {
+    cardPuente.classList.remove('hidden');
+    pintarVerdict('pz-verdict-' + categoria, false, puente.verdictoClase, puente.verdictoTexto);
+    el('pz-simple-' + categoria).textContent = puente.simpleHtml;
+    el('pz-text-' + categoria).innerHTML = puente.textoHtml;
+    el('pz-calc-' + categoria).innerHTML = puente.calcHtml;
+    pintarFlag('pz-flag-' + categoria, puente.avisoHtml, false);
+    el('pz-src-' + categoria).innerHTML = puente.fuenteHtml;
   }
 
-  cardPuente.classList.remove('hidden');
-  cardRecorrido.classList.remove('hidden');
-
-  pintarVerdict('pz-verdict-' + categoria, puente.sinDatos, puente.verdictoClase, puente.verdictoTexto);
-  el('pz-simple-' + categoria).textContent = puente.simpleHtml;
-  el('pz-text-' + categoria).innerHTML = puente.textoHtml;
-  el('pz-calc-' + categoria).innerHTML = puente.calcHtml;
-  pintarFlag('pz-flag-' + categoria, puente.avisoHtml, puente.avisoEsSinDatos);
-  el('pz-src-' + categoria).innerHTML = puente.fuenteHtml;
-
-  pintarVerdict('pv-verdict-' + categoria, recorrido.sinDatos, recorrido.verdictoClase, recorrido.verdictoTexto);
-  el('pv-simple-' + categoria).textContent = recorrido.simpleHtml;
-  el('pv-text-' + categoria).innerHTML = recorrido.textoHtml;
-  el('pv-calc-' + categoria).innerHTML = recorrido.calcHtml;
-  pintarFlag('pv-flag-' + categoria, recorrido.avisoHtml, recorrido.avisoEsSinDatos);
-  el('pv-src-' + categoria).innerHTML = recorrido.fuenteHtml;
+  if (!recorrido || recorrido.sinDatos) {
+    cardRecorrido.classList.add('hidden');
+  } else {
+    cardRecorrido.classList.remove('hidden');
+    pintarVerdict('pv-verdict-' + categoria, false, recorrido.verdictoClase, recorrido.verdictoTexto);
+    el('pv-simple-' + categoria).textContent = recorrido.simpleHtml;
+    el('pv-text-' + categoria).innerHTML = recorrido.textoHtml;
+    el('pv-calc-' + categoria).innerHTML = recorrido.calcHtml;
+    pintarFlag('pv-flag-' + categoria, recorrido.avisoHtml, false);
+    el('pv-src-' + categoria).innerHTML = recorrido.fuenteHtml;
+  }
 }
 
 export function pintarPlano(svg: string): void {
@@ -167,5 +183,6 @@ export function pintarResumenFinal(m: ModeloResumenFinal): void {
   el('rf-resumen').textContent = m.resumenHtml;
   el('rf-fortalezas').innerHTML = m.fortalezasHtml;
   el('rf-debilidades').innerHTML = m.debilidadesHtml;
+  el('rf-sindatos').innerHTML = m.sinDatosHtml;
   el('rf-recomendaciones').innerHTML = m.recomendacionesHtml;
 }

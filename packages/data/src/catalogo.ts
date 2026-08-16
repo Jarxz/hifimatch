@@ -467,8 +467,8 @@ export const CATALOGO: Catalogo = {
       nombre: 'NAD C 316BEE V2',
       tipo: { es: 'Integrado Clase AB, con phono MM', en: 'Class AB integrated amplifier, with MM phono' },
       descripcion: {
-        es: '40 W tanto en 8 Ω como en 4 Ω — NAD no dobla potencia entre ambas cargas, a diferencia de otros integrados de este rango. Reserva de corriente dinámica (IHF) hasta 2 Ω.',
-        en: '40 W into both 8 Ω and 4 Ω — NAD does not double power between the two loads, unlike other integrated amps in this range. Dynamic (IHF) current reserve down to 2 Ω.',
+        es: '40 W tanto en 8 Ω como en 4 Ω — NAD no dobla potencia entre ambas cargas, a diferencia de otros integrados de este rango. El propio panel trasero declara <b>4 Ω como impedancia mínima de parlante</b>.',
+        en: '40 W into both 8 Ω and 4 Ω — NAD does not double power between the two loads, unlike other integrated amps in this range. The rear panel itself declares <b>4 Ω as the minimum speaker impedance</b>.',
       },
       potencia8OhmW: {
         valor: 40,
@@ -484,14 +484,14 @@ export const CATALOGO: Catalogo = {
           en: 'NAD publishes the same continuous power at 8 and 4 Ω (it does not double); the 4 Ω reserve shows up only as IHF dynamic power (120 W), a different metric',
         },
       },
-      cargaMinOhm: 2,
+      cargaMinOhm: 4,
       sensEntradaMv: 200,
       impedanciaEntradaOhm: null,
       chipsExtra: [{ es: 'phono MM', en: 'MM phono' }],
-      fuentes: ['NAD (ficha oficial)'],
+      fuentes: ['NAD (ficha oficial, data sheet)'],
       pendiente: {
-        es: 'impedancia de entrada de línea — no encontrada en la ficha pública',
-        en: 'line input impedance — not found in the public spec sheet',
+        es: 'carga mínima corregida a 4 Ω: la etiqueta de seguridad del panel trasero, visible en la ficha oficial, declara explícitamente "MINIMUM SPEAKER IMPEDANCE 4 Ω" — un valor anterior de 2 Ω en este catálogo confundía esto con la potencia dinámica IHF (120 W), que es una métrica distinta y no una carga continua soportada. Impedancia de entrada de línea sigue sin encontrarse en la ficha pública',
+        en: 'minimum load corrected to 4 Ω: the rear-panel safety label, visible in the official spec sheet, explicitly states "MINIMUM SPEAKER IMPEDANCE 4 Ω" — an earlier 2 Ω figure in this catalog conflated this with the IHF dynamic power rating (120 W), a different metric and not a supported continuous load. Line input impedance is still not found in the public spec sheet',
       },
     },
     {
@@ -756,7 +756,7 @@ export const CATALOGO: Catalogo = {
           en: 'no measurement conditions (THD, frequency) are published for either power figure',
         },
       },
-      cargaMinOhm: null,
+      cargaMinOhm: 2.66,
       sensEntradaMv: 300,
       impedanciaEntradaOhm: 47000,
       chipsExtra: [
@@ -764,10 +764,10 @@ export const CATALOGO: Catalogo = {
         { es: 'DAC ESS9018', en: 'ESS9018 DAC' },
         { es: 'XLR balanceado', en: 'Balanced XLR' },
       ],
-      fuentes: ['Advance Paris (ficha oficial)', 'ecoustics.com', 'Dedicated Audio'],
+      fuentes: ['Advance Paris (ficha oficial, techsheet PDF)', 'lowbeats.de (corrobora de forma independiente)', 'ecoustics.com', 'Dedicated Audio'],
       pendiente: {
-        es: 'sensibilidad de entrada declarada como "<300 mV" (no un valor puntual exacto); carga mínima y factor de amortiguación no publicados por el fabricante',
-        en: 'input sensitivity is declared as "<300 mV" (not an exact point value); minimum load and damping factor are not published by the manufacturer',
+        es: 'carga mínima (2,66 Ω) es el tercer punto de la misma tabla de potencia del fabricante (130 W/8 Ω, 190 W/4 Ω, 250 W/2,66 Ω) — no una cifra de "mínimo soportado" separada. Sensibilidad de entrada declarada como "<300 mV" (no un valor puntual exacto); factor de amortiguación no publicado por el fabricante',
+        en: 'minimum load (2.66 Ω) is the third point of the same manufacturer power table (130 W/8 Ω, 190 W/4 Ω, 250 W/2.66 Ω) — not a separate "minimum supported" figure. Input sensitivity is declared as "<300 mV" (not an exact point value); damping factor is not published by the manufacturer',
       },
     },
     {

@@ -281,6 +281,21 @@ test('modeloResumenFinal: "dim" (sin-datos) no cuenta ni como fortaleza ni como 
   assert.doesNotMatch(m.debilidadesHtml, /Puente/);
 });
 
+test('modeloResumenFinal: "dim" aparece en sinDatosHtml — ya no se publica como tarjeta propia, esta es su única mención visible', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
+    { nombre: 'Puente de impedancias (Streamer)', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
+  ];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.match(m.sinDatosHtml, /Puente de impedancias \(Streamer\): no se evaluó/);
+});
+
+test('modeloResumenFinal: sin ningún componente "dim", sinDatosHtml muestra el mensaje de "todo tenía dato"', () => {
+  const componentes: ComponenteResumen[] = [{ nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null }];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.match(m.sinDatosHtml, /Todos los componentes elegidos tenían dato suficiente/);
+});
+
 test('modeloResumenFinal: con "detalle" numérico, se agrega entre paréntesis junto al veredicto', () => {
   const componentes: ComponenteResumen[] = [
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', detalle: '+4,8 dB', avisoHtml: null },

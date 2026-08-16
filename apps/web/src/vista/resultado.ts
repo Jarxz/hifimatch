@@ -403,6 +403,7 @@ export interface ModeloResumenFinal {
   resumenHtml: string;
   fortalezasHtml: string;
   debilidadesHtml: string;
+  sinDatosHtml: string;
   recomendacionesHtml: string;
 }
 
@@ -411,9 +412,13 @@ export interface ModeloResumenFinal {
  * arriba — no evalúa nada nuevo, sólo reorganiza y detalla. "dim"
  * (sin-datos) no cuenta ni como fortaleza ni como debilidad: un dato
  * faltante no es ni bueno ni malo, es desconocido (misma doctrina que el
- * resto del proyecto). Cada recomendación reusa el `avisoHtml` que la
- * regla correspondiente ya redactó — una por cada debilidad encontrada,
- * no sólo la peor, para que el detalle físico quede completo.
+ * resto del proyecto) — pero tampoco desaparece: el componente ya no se
+ * publica como tarjeta propia en el análisis principal (ver
+ * pintarCarga/pintarGanancia), así que esta es la única mención visible de
+ * que ese componente no se pudo evaluar. Cada recomendación reusa el
+ * `avisoHtml` que la regla correspondiente ya redactó — una por cada
+ * debilidad encontrada, no sólo la peor, para que el detalle físico quede
+ * completo.
  */
 export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idioma): ModeloResumenFinal {
   const t = textosDe(idioma).motor.resumen;
@@ -435,6 +440,10 @@ export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idi
 
   const fortalezasHtml = fortalezas.length > 0 ? fortalezas.map(itemHtml).join('') : `<li>${t.sinFortalezas}</li>`;
   const debilidadesHtml = debilidades.length > 0 ? debilidades.map(itemHtml).join('') : `<li>${t.sinDebilidades}</li>`;
+  const sinDatosHtml =
+    sinDatos.length > 0
+      ? sinDatos.map((c) => `<li>${t.itemSinDatos({ nombre: c.nombre })}</li>`).join('')
+      : `<li>${t.sinPendientes}</li>`;
 
   const conAviso = debilidades.filter((c): c is ComponenteResumen & { avisoHtml: string } => c.avisoHtml !== null);
   const recomendacionesHtml =
@@ -442,5 +451,5 @@ export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idi
       ? conAviso.map((c) => `<li>${t.recomendacionConAviso({ nombre: c.nombre, aviso: c.avisoHtml })}</li>`).join('')
       : `<li>${t.recomendacionTodoOk}</li>`;
 
-  return { resumenHtml, fortalezasHtml, debilidadesHtml, recomendacionesHtml };
+  return { resumenHtml, fortalezasHtml, debilidadesHtml, sinDatosHtml, recomendacionesHtml };
 }

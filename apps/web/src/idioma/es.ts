@@ -300,14 +300,17 @@ export const es = {
       titulo: 'En resumen',
       fortalezasTitulo: 'Lo que funciona bien',
       debilidadesTitulo: 'Lo que conviene revisar',
+      sinDatosTitulo: 'Sin datos suficientes',
       recomendacionTitulo: 'Recomendaciones',
       resumenConteo: (p: { evaluados: string; fortalezas: string; debilidades: string }): string =>
         `De ${p.evaluados} componentes evaluados: ${p.fortalezas} sin observaciones y ${p.debilidades} con algo para revisar.`,
       itemFortaleza: (p: { nombre: string; verdicto: string }): string => `${p.nombre}: ${p.verdicto}`,
       itemConDetalle: (p: { nombre: string; verdicto: string; detalle: string }): string =>
         `${p.nombre}: ${p.verdicto} (${p.detalle})`,
+      itemSinDatos: (p: { nombre: string }): string => `${p.nombre}: no se evaluó — falta el dato del fabricante que esta regla necesita.`,
       sinFortalezas: 'Ningún componente evaluado quedó sin observaciones.',
       sinDebilidades: 'Ningún componente evaluado quedó con algo para revisar.',
+      sinPendientes: 'Todos los componentes elegidos tenían dato suficiente para evaluarse.',
       recomendacionConAviso: (p: { nombre: string; aviso: string }): string => `<b>${p.nombre}:</b> ${p.aviso}`,
       recomendacionTodoOk:
         'No hay ningún punto pendiente entre lo evaluado, con los datos disponibles. Igual conviene escuchar y medir en el espacio real: la predicción no reemplaza esa verificación.',

@@ -167,7 +167,7 @@
           <div class="src" id="pw-src"></div>
         </div>
 
-        <div class="card">
+        <div class="card" id="card-carga">
           <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="z-verdict">—</span></div>
           <h3 data-i18n="motor.carga.titulo">La carga que ve el amplificador</h3>
           <p class="simple" id="z-simple">—</p>
@@ -227,10 +227,8 @@
             <span><i style="border-top:2px solid var(--text)"></i> <span data-i18n="resultado.plano.leyendaParlante">parlante / escucha</span></span>
           </div>
           <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
-        </div>
 
-        <div class="card">
-          <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="mo-verdict">—</span></div>
+          <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="mo-verdict">—</span></div>
           <h3 data-i18n="motor.modos.titulo">Modos de sala (graves)</h3>
           <p class="simple" id="mo-simple">—</p>
           <p id="mo-text">—</p>
@@ -246,6 +244,8 @@
           <ul id="rf-fortalezas"></ul>
           <h4 data-i18n="motor.resumen.debilidadesTitulo">Lo que conviene revisar</h4>
           <ul id="rf-debilidades"></ul>
+          <h4 data-i18n="motor.resumen.sinDatosTitulo">Sin datos suficientes</h4>
+          <ul id="rf-sindatos"></ul>
           <h4 data-i18n="motor.resumen.recomendacionTitulo">Recomendaciones</h4>
           <ul class="rf-recomendaciones" id="rf-recomendaciones"></ul>
         </div>

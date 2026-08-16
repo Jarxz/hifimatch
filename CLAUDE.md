@@ -185,6 +185,33 @@ patrón visual que "Más parlantes · próximamente" — sin `href` ni
 `onclick`. Pensado para cuando una tienda quiera linkear su ficha de
 producto real; hoy el catálogo no tiene una URL curada por equipo.
 
+**"sin-datos" ya no se publica como tarjeta propia.** Cuando carga, puente
+o recorrido devuelven severidad `sin-datos`, `pintarCarga`/
+`pintarGanancia` (`vista/pintar.ts`) ocultan la tarjeta entera (`.hidden`)
+en vez de mostrar un veredicto "Sin dato" sin nada evaluable — decisión
+explícita del usuario ("no puede seguir generando análisis con
+componentes sin su información"). La ausencia **no desaparece**: queda
+como su única mención visible en la sección "Sin datos suficientes" del
+resumen final (`sinDatosHtml` en `modeloResumenFinal`), con una nota corta
+por componente. Se evaluó y se descartó la alternativa de rellenar estos
+huecos con un "estándar de mercado" — el propio catálogo ya tiene
+demasiada dispersión real en los mismos campos (impedancia de salida de
+fuentes: 10 Ω a 500 Ω; sensibilidad de entrada: 110 mV a 1600 mV) como
+para que un valor único no sea, en la práctica, un dato inventado con una
+nota que no lo salva.
+
+**El número del puntaje es visualmente grande** (`#pt-puntaje`, 26px) para
+que se reconozca de un vistazo — la escala sigue siendo 1-10, sólo cambió
+la tipografía.
+
+**Plano y modos de sala comparten una sola tarjeta.** Las dos son capa
+"Geometría" y no dependen de qué equipos se elijan (sólo de las
+dimensiones de la sala), así que viven en un único `.card` con dos
+secciones internas separadas por un borde (`.geo-split`) — cada una con
+su propio `.ct`/veredicto, mismos ids que antes (`plan`, `mo-*`), sin
+cambios en `pintarPlano`/`pintarModos`/`pintarCurvasModales`. Es un cambio
+puramente de estructura HTML.
+
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
 datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 4 streamers +
 4 DACs, 3 cables curados sin regla todavía), bilingüe desde el origen
@@ -267,7 +294,7 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**153 tests totales** (69 motor + 11 catálogo + 73 frontend, estos últimos
+**155 tests totales** (69 motor + 11 catálogo + 75 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 
@@ -282,6 +309,19 @@ aproximaciones ("~2 V") — exactamente el tipo de dato que la doctrina
 prohíbe copiar sin confirmar. Es también el vector E de la sección 6 de
 `docs/motor-mvp.md`: preserva el caso demostrativo de que un dato faltante
 nunca es verde.
+
+**Tercera ronda de huecos (amplificadores).** Advance Paris A10 Classic:
+`cargaMinOhm` cerrado en 2,66 Ω — es el tercer punto de la misma tabla de
+potencia del fabricante (130 W/8 Ω · 190 W/4 Ω · 250 W/2,66 Ω), no una
+cifra de "mínimo soportado" separada. NAD C 316BEE V2: `cargaMinOhm`
+**corregido** de 2 Ω a 4 Ω — la etiqueta de seguridad del panel trasero en
+la propia ficha oficial declara "MINIMUM SPEAKER IMPEDANCE 4 Ω"; el valor
+anterior de 2 Ω confundía esto con la potencia dinámica IHF (120 W), una
+métrica distinta que no es una carga continua soportada. El resto de los
+huecos reintentados en esta ronda (Hegel H95, Cambridge CXN V2, Arcam A5,
+Cayin LA-34 Plus, Marantz SR6008, y `maxSplDb`/`impedanciaMinOhm` de varios
+parlantes) se reconfirmaron ausentes con fuentes nuevas — quedan en `null`
+por segunda o tercera vez, no por falta de búsqueda.
 
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
