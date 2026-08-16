@@ -297,28 +297,46 @@ extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
 **Reverberación estimada (RT60) y crest factor por género.** Dos piezas
-nuevas del motor, ambas puramente informativas (ninguna toca el puntaje
-1-10 de `puntaje.ts`, cuyos pesos siguen sumando 1 sin un sexto
-componente). `reverberacion.ts` aplica la ecuación de Sabine (RT60 =
-0,161·V/A) sobre la geometría de la sala y un **tipo de sala** que el
-usuario elige (`moderna`/`balanceada`/`tratada`, coeficiente de absorción
-0,08/0,20/0,35 — criterio del sitio, valores típicos de literatura de
-acústica arquitectónica, no medición real); mismo techo de severidad
-`warn` que el resto de las reglas de sala (`docs/motor-mvp.md` sección
-4ter). Se pinta como una tercera sección dentro de la tarjeta Geometría ya
-fusionada (después de plano y modos) y aparece en "En resumen"
-(fortaleza/debilidad) sin sumar ni restar puntaje. `genero.ts` traduce el
-pico objetivo de la tarjeta de potencia (`crestFactorHtml`) al nivel
-promedio de escucha que implica, según el crest factor típico del género
-elegido (`rockpop`=10 dB, `jazzvocal`=14 dB, `clasica`=18 dB —
-sección 2bis). Ambos selectores (tipo de sala, género) viven en
-`estado.ts` junto al resto de la configuración. De paso, la sugerencia de
-`modos.ts` cuando hay agrupamiento ahora menciona un filtro paramétrico
+del motor, ambas puramente informativas (ninguna toca el puntaje 1-10 de
+`puntaje.ts`, cuyos pesos siguen sumando 1 sin un sexto componente).
+`reverberacion.ts` aplica la ecuación de Sabine (RT60 = 0,161·V/A) sobre
+la geometría de la sala; mismo techo de severidad `warn` que el resto de
+las reglas de sala (`docs/motor-mvp.md` sección 4ter). Se pinta como una
+tercera sección dentro de la tarjeta Geometría ya fusionada (después de
+plano y modos) y aparece en "En resumen" (fortaleza/debilidad) sin sumar
+ni restar puntaje. `genero.ts` traduce el pico objetivo de la tarjeta de
+potencia (`crestFactorHtml`) al nivel promedio de escucha que implica,
+según el crest factor típico del género elegido (`rockpop`=10 dB,
+`jazzvocal`=14 dB, `clasica`=18 dB — sección 2bis). De paso, la sugerencia
+de `modos.ts` cuando hay agrupamiento ahora menciona un filtro paramétrico
 (EQ activo) como alternativa a reposicionar, con la misma salvedad de
 siempre: se ajusta midiendo la sala real, el motor no tiene la
 amplitud/fase medida como para proponer un Q o una atenuación en dB.
 
-**172 tests totales** (80 motor + 11 catálogo + 81 frontend, estos últimos
+**Reverberación por materiales de superficie, no por "tipo de sala".** La
+primera versión de `reverberacion.ts` usaba un único selector
+`moderna`/`balanceada`/`tratada` con un coeficiente de absorción promedio
+para toda la sala. Se reemplazó por completo: ahora el usuario elige un
+**material por superficie** (muro/piso/techo) en tres selectores
+independientes, y la absorción total se suma superficie por superficie —
+`A = α_muro·S_muros + α_piso·S_piso + α_techo·S_techo` — con un
+coeficiente de Sabine declarado por material (hormigón/vidrio/madera/
+placa yeso cartón/panel acústico en muros; hormigón/madera laminado/
+porcelanato/alfombra en piso; hormigón/madera/placa yeso cartón/panel
+acústico en techo), mismo criterio del sitio de siempre: valores típicos
+de literatura de acústica arquitectónica, no medición real
+(`docs/motor-mvp.md` sección 4ter tiene la tabla completa). Panel acústico
+y alfombra se agregaron por iniciativa propia — sin ellos, una sala
+realmente tratada quedaba mal representada con sólo los materiales
+"de obra" que el usuario pidió inicialmente. El default del sitio (yeso
+cartón + madera laminado, sin alfombra ni panel) da a propósito una sala
+bastante viva (`warn`, "Muy viva") — no se fuerza un "ok" de fábrica sólo
+para que la pantalla inicial luzca bien. La tarjeta ahora tiene un
+`calcHtml` con el desglose por superficie (m² × α = sabines de cada una),
+mismo patrón que las demás tarjetas con cálculo (potencia, puente).
+`estado.ts` guarda `muro`/`piso`/`techo` en vez de `tipoSala`.
+
+**173 tests totales** (81 motor + 11 catálogo + 81 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 

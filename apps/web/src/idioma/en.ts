@@ -46,10 +46,19 @@ export const en: Textos = {
     ancho: 'Width (front)',
     largo: 'Length (depth)',
     alto: 'Height',
-    tipoSala: 'Room type',
-    tipoSalaModerna: 'Modern',
-    tipoSalaBalanceada: 'Balanced',
-    tipoSalaTratada: 'Treated',
+    muro: 'Wall material',
+    piso: 'Floor material',
+    techo: 'Ceiling material',
+    materiales: {
+      hormigon: 'Concrete',
+      vidrio: 'Glass / window',
+      madera: 'Wood',
+      yesoCarton: 'Drywall',
+      panelAcustico: 'Acoustic panel',
+      maderaLaminado: 'Laminate wood',
+      porcelanato: 'Porcelain tile',
+      alfombra: 'Carpet',
+    },
     nivelEscucha: 'Listening level',
     nivelModerado: 'Moderate',
     nivelAlto: 'Loud',
@@ -288,8 +297,14 @@ export const en: Textos = {
       },
       texto: (p) =>
         `Estimated RT60: <b>${p.rt60} s</b>. The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space).`,
-      fuente: (p) =>
-        `<b>Formula:</b> Sabine's equation, RT60 = 0.161·V/A (V = volume, A = total absorption in sabins). Average absorption coefficient for "${p.tipoSala}": <b>${p.alpha}</b> — a site criterion, a typical value from architectural acoustics literature for that finish, not a measurement of your real room. Verified by measuring with an SPL meter or an RT60 app.`,
+      calc: (p) =>
+        `Walls (${p.muroLabel}): ${p.superficieMuros} m² × ${p.muroAlpha} = ${p.absorcionMuros} sabins<br>` +
+        `Floor (${p.pisoLabel}): ${p.superficiePiso} m² × ${p.pisoAlpha} = ${p.absorcionPiso} sabins<br>` +
+        `Ceiling (${p.techoLabel}): ${p.superficieTecho} m² × ${p.techoAlpha} = ${p.absorcionTecho} sabins<br>` +
+        `Total absorption: <b>${p.absorcionTotal} sabins</b><br>` +
+        `RT60 = 0.161 × ${p.volumen} / ${p.absorcionTotal} = <b>${p.rt60} s</b>`,
+      fuente:
+        "<b>Formula:</b> Sabine's equation, RT60 = 0.161·V/A (V = volume, A = total absorption in sabins), summed surface by surface — not a single coefficient for the whole room. Per-material absorption coefficients are a site criterion: typical values from architectural acoustics literature (mid-band, ~500 Hz–1 kHz), not a measurement of your real room. Verified by measuring with an SPL meter or an RT60 app.",
     },
 
     puntaje: {

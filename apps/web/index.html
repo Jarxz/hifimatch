@@ -90,11 +90,31 @@
       </div>
 
       <div class="rline">
-        <span class="rl" data-i18n="config.tipoSala">Tipo de sala</span>
-        <div class="segs" role="group" data-i18n-aria="config.tipoSala">
-          <button data-tiposala="moderna" data-i18n="config.tipoSalaModerna">Moderna</button>
-          <button data-tiposala="balanceada" aria-pressed="true" data-i18n="config.tipoSalaBalanceada">Balanceada</button>
-          <button data-tiposala="tratada" data-i18n="config.tipoSalaTratada">Tratada</button>
+        <span class="rl" data-i18n="config.muro">Material de los muros</span>
+        <div class="segs" role="group" data-i18n-aria="config.muro">
+          <button data-muro="hormigon" data-i18n="config.materiales.hormigon">Hormigón</button>
+          <button data-muro="vidrio" data-i18n="config.materiales.vidrio">Vidrio / ventanal</button>
+          <button data-muro="madera" data-i18n="config.materiales.madera">Madera</button>
+          <button data-muro="yesoCarton" aria-pressed="true" data-i18n="config.materiales.yesoCarton">Placa yeso cartón</button>
+          <button data-muro="panelAcustico" data-i18n="config.materiales.panelAcustico">Panel acústico</button>
+        </div>
+      </div>
+      <div class="rline">
+        <span class="rl" data-i18n="config.piso">Material del piso</span>
+        <div class="segs" role="group" data-i18n-aria="config.piso">
+          <button data-piso="hormigon" data-i18n="config.materiales.hormigon">Hormigón</button>
+          <button data-piso="maderaLaminado" aria-pressed="true" data-i18n="config.materiales.maderaLaminado">Madera laminado</button>
+          <button data-piso="porcelanato" data-i18n="config.materiales.porcelanato">Porcelanato</button>
+          <button data-piso="alfombra" data-i18n="config.materiales.alfombra">Alfombra</button>
+        </div>
+      </div>
+      <div class="rline">
+        <span class="rl" data-i18n="config.techo">Material del cielo</span>
+        <div class="segs" role="group" data-i18n-aria="config.techo">
+          <button data-techo="hormigon" data-i18n="config.materiales.hormigon">Hormigón</button>
+          <button data-techo="madera" data-i18n="config.materiales.madera">Madera</button>
+          <button data-techo="yesoCarton" aria-pressed="true" data-i18n="config.materiales.yesoCarton">Placa yeso cartón</button>
+          <button data-techo="panelAcustico" data-i18n="config.materiales.panelAcustico">Panel acústico</button>
         </div>
       </div>
       <div class="rline">
@@ -257,6 +277,7 @@
           <h3 data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3>
           <p class="simple" id="rt-simple">—</p>
           <p id="rt-text">—</p>
+          <div class="calc" id="rt-calc"></div>
           <div class="src" id="rt-src"></div>
         </div>
 

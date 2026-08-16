@@ -7,7 +7,7 @@ import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../pack
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
-import type { TipoSala } from '../../../packages/engine/src/reverberacion.ts';
+import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
 import { calcularPuntaje, peorSeveridad, PESOS_DECLARADOS } from '../../../packages/engine/src/puntaje.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
@@ -154,10 +154,24 @@ function setNivel(lvl: NivelUI): void {
   });
 }
 
-function setTipoSala(tipoSala: TipoSala): void {
-  estado.tipoSala = tipoSala;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-tiposala]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.tiposala === tipoSala));
+function setMuro(muro: MaterialMuro): void {
+  estado.muro = muro;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muro]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.muro === muro));
+  });
+}
+
+function setPiso(piso: MaterialPiso): void {
+  estado.piso = piso;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-piso]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.piso === piso));
+  });
+}
+
+function setTecho(techo: MaterialTecho): void {
+  estado.techo = techo;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-techo]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.techo === techo));
   });
 }
 
@@ -231,8 +245,9 @@ function renderizarResultado(): void {
   pintarModos(mModos);
   pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
 
-  const resReverb = evaluarReverberacion(sala, estado.tipoSala);
-  const mReverb = modeloReverberacion(resReverb, estado.tipoSala, idiomaActual);
+  const materiales = { muro: estado.muro, piso: estado.piso, techo: estado.techo };
+  const resReverb = evaluarReverberacion(sala, materiales);
+  const mReverb = modeloReverberacion(resReverb, materiales, idiomaActual);
   pintarReverberacion(mReverb);
 
   const items = [
@@ -402,8 +417,16 @@ function wireEventos(): void {
     b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-tiposala]').forEach((b) => {
-    b.addEventListener('click', () => setTipoSala(b.dataset.tiposala as TipoSala));
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muro]').forEach((b) => {
+    b.addEventListener('click', () => setMuro(b.dataset.muro as MaterialMuro));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-piso]').forEach((b) => {
+    b.addEventListener('click', () => setPiso(b.dataset.piso as MaterialPiso));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-techo]').forEach((b) => {
+    b.addEventListener('click', () => setTecho(b.dataset.techo as MaterialTecho));
   });
 
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-genero]').forEach((b) => {

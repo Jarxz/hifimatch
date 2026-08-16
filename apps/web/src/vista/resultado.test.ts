@@ -5,6 +5,7 @@ import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
+import type { Materiales } from '../../../../packages/engine/src/reverberacion.ts';
 import { calcularPuntaje, PESOS_DECLARADOS } from '../../../../packages/engine/src/puntaje.ts';
 import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Parlante, Amplificador } from '../../../../packages/engine/src/tipos.ts';
@@ -232,37 +233,43 @@ test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas'
   assert.doesNotMatch(m.textoHtml, /par\(es\)/);
 });
 
-// ---- reverberación (RT60) ----
+// ---- reverberación (RT60, materiales por superficie) ----
 
-test('modeloReverberacion: sala por defecto, tipo "balanceada" → "ok", RT60 formateado en el texto', () => {
-  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
-  const r = evaluarReverberacion(sala, 'balanceada');
-  const m = modeloReverberacion(r, 'balanceada', 'es');
-  assert.equal(m.verdictoClase, 'ok');
-  assert.equal(m.verdictoTexto, 'En rango');
-  assert.match(m.textoHtml, new RegExp(num(r.rt60S, 2, 'es')));
-  assert.match(m.fuenteHtml, /Sabine/);
-  assert.match(m.fuenteHtml, /Balanceada/);
-});
+const SALA_REVERB = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+const MATERIALES_TIPICOS: Materiales = { muro: 'yesoCarton', piso: 'maderaLaminado', techo: 'yesoCarton' };
+const MATERIALES_MUY_TRATADOS: Materiales = { muro: 'panelAcustico', piso: 'alfombra', techo: 'panelAcustico' };
+const MATERIALES_INTERMEDIOS: Materiales = { muro: 'madera', piso: 'alfombra', techo: 'panelAcustico' };
 
-test('modeloReverberacion: misma sala, tipo "moderna" (poca absorción) → "warn", veredicto "Muy viva"', () => {
-  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
-  const r = evaluarReverberacion(sala, 'moderna');
-  const m = modeloReverberacion(r, 'moderna', 'es');
+test('modeloReverberacion: muros/techo yeso cartón + piso madera laminado → "warn" ("Muy viva"), calc muestra el desglose por superficie', () => {
+  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS);
+  const m = modeloReverberacion(r, MATERIALES_TIPICOS, 'es');
   assert.equal(r.codigo, 'rt60-largo');
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Muy viva');
   assert.match(m.simpleHtml, /refleja mucho/);
+  assert.match(m.textoHtml, new RegExp(num(r.rt60S, 2, 'es')));
+  assert.match(m.calcHtml, /Placa yeso cartón/);
+  assert.match(m.calcHtml, /Madera laminado/);
+  assert.match(m.calcHtml, new RegExp(num(r.absorcionTotalSabines, 2, 'es')));
 });
 
-test('modeloReverberacion: misma sala, tipo "tratada" (mucha absorción) → "warn", veredicto "Muy seca"', () => {
-  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
-  const r = evaluarReverberacion(sala, 'tratada');
-  const m = modeloReverberacion(r, 'tratada', 'es');
+test('modeloReverberacion: paneles acústicos en muro/techo + alfombra en piso → "warn" ("Muy seca", demasiado absorbente)', () => {
+  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_MUY_TRATADOS);
+  const m = modeloReverberacion(r, MATERIALES_MUY_TRATADOS, 'es');
   assert.equal(r.codigo, 'rt60-corto');
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Muy seca');
   assert.match(m.simpleHtml, /absorbe mucho/);
+  assert.match(m.calcHtml, /Panel acústico/);
+  assert.match(m.calcHtml, /Alfombra/);
+});
+
+test('modeloReverberacion: combinación intermedia (madera + alfombra + panel acústico) → "ok"', () => {
+  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_INTERMEDIOS);
+  const m = modeloReverberacion(r, MATERIALES_INTERMEDIOS, 'es');
+  assert.equal(r.codigo, 'rt60-ok');
+  assert.equal(m.verdictoClase, 'ok');
+  assert.equal(m.verdictoTexto, 'En rango');
 });
 
 test('modeloReverberacion nunca es "alert" ni "dim" — el techo de severidad de sala es "warn" (CLAUDE.md)', () => {
@@ -271,22 +278,25 @@ test('modeloReverberacion nunca es "alert" ni "dim" — el techo de severidad de
     { anchoM: 3.6, largoM: 5.0, altoM: 2.4 },
     { anchoM: 7, largoM: 9, altoM: 3.5 },
   ];
-  const tipos = ['moderna', 'balanceada', 'tratada'] as const;
+  const combos: Materiales[] = [MATERIALES_TIPICOS, MATERIALES_MUY_TRATADOS, MATERIALES_INTERMEDIOS];
   for (const sala of salas) {
-    for (const tipo of tipos) {
-      const clase = modeloReverberacion(evaluarReverberacion(sala, tipo), tipo, 'es').verdictoClase;
+    for (const materiales of combos) {
+      const clase = modeloReverberacion(evaluarReverberacion(sala, materiales), materiales, 'es').verdictoClase;
       assert.ok(clase === 'ok' || clase === 'warn', `clase inesperada: ${clase}`);
     }
   }
 });
 
-test('modeloReverberacion en inglés: veredicto y texto en inglés, sin mezclar idiomas', () => {
-  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
-  const r = evaluarReverberacion(sala, 'balanceada');
-  const m = modeloReverberacion(r, 'balanceada', 'en');
-  assert.notEqual(m.verdictoTexto, 'En rango');
+test('modeloReverberacion en inglés: veredicto, texto y calc en inglés, sin mezclar idiomas', () => {
+  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS);
+  const m = modeloReverberacion(r, MATERIALES_TIPICOS, 'en');
+  assert.notEqual(m.verdictoTexto, 'Muy viva');
+  assert.equal(m.verdictoTexto, 'Too live');
   assert.match(m.fuenteHtml, /Sabine/);
+  assert.match(m.calcHtml, /Drywall/);
+  assert.match(m.calcHtml, /Laminate wood/);
   assert.doesNotMatch(m.textoHtml, /sala doméstica/);
+  assert.doesNotMatch(m.calcHtml, /Placa yeso cartón/);
 });
 
 // ---- puntaje (capa criterio-editorial) ----

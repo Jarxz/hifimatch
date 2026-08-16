@@ -59,10 +59,19 @@ export const es = {
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',
     alto: 'Alto',
-    tipoSala: 'Tipo de sala',
-    tipoSalaModerna: 'Moderna',
-    tipoSalaBalanceada: 'Balanceada',
-    tipoSalaTratada: 'Tratada',
+    muro: 'Material de los muros',
+    piso: 'Material del piso',
+    techo: 'Material del cielo',
+    materiales: {
+      hormigon: 'Hormigón',
+      vidrio: 'Vidrio / ventanal',
+      madera: 'Madera',
+      yesoCarton: 'Placa yeso cartón',
+      panelAcustico: 'Panel acústico',
+      maderaLaminado: 'Madera laminado',
+      porcelanato: 'Porcelanato',
+      alfombra: 'Alfombra',
+    },
     nivelEscucha: 'Nivel de escucha',
     nivelModerado: 'Moderado',
     nivelAlto: 'Alto',
@@ -304,8 +313,30 @@ export const es = {
       } satisfies Record<CodigoReverberacion, string>,
       texto: (p: { rt60: string; min: string; max: string }): string =>
         `RT60 estimado: <b>${p.rt60} s</b>. El rango cómodo declarado para escucha crítica en una sala doméstica es ${p.min}–${p.max} s (una sala de concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de espacio).`,
-      fuente: (p: { alpha: string; tipoSala: string }): string =>
-        `<b>Fórmula:</b> ecuación de Sabine, RT60 = 0,161·V/A (V = volumen, A = absorción total en sabines). Coeficiente de absorción promedio para "${p.tipoSala}": <b>${p.alpha}</b> — criterio del sitio, valor típico de literatura de acústica arquitectónica para ese tipo de terminación, no una medición de tu sala real. Se verifica midiendo con un decibelímetro o una app de RT60.`,
+      calc: (p: {
+        muroLabel: string;
+        superficieMuros: string;
+        muroAlpha: string;
+        absorcionMuros: string;
+        pisoLabel: string;
+        superficiePiso: string;
+        pisoAlpha: string;
+        absorcionPiso: string;
+        techoLabel: string;
+        superficieTecho: string;
+        techoAlpha: string;
+        absorcionTecho: string;
+        absorcionTotal: string;
+        volumen: string;
+        rt60: string;
+      }): string =>
+        `Muros (${p.muroLabel}): ${p.superficieMuros} m² × ${p.muroAlpha} = ${p.absorcionMuros} sabines<br>` +
+        `Piso (${p.pisoLabel}): ${p.superficiePiso} m² × ${p.pisoAlpha} = ${p.absorcionPiso} sabines<br>` +
+        `Techo (${p.techoLabel}): ${p.superficieTecho} m² × ${p.techoAlpha} = ${p.absorcionTecho} sabines<br>` +
+        `Absorción total: <b>${p.absorcionTotal} sabines</b><br>` +
+        `RT60 = 0,161 × ${p.volumen} / ${p.absorcionTotal} = <b>${p.rt60} s</b>`,
+      fuente:
+        '<b>Fórmula:</b> ecuación de Sabine, RT60 = 0,161·V/A (V = volumen, A = absorción total en sabines), sumada superficie por superficie — no un coeficiente único para toda la sala. Los coeficientes de absorción por material son criterio del sitio: valores típicos de literatura de acústica arquitectónica (banda media, ~500 Hz–1 kHz), no una medición de tu sala real. Se verifica midiendo con un decibelímetro o una app de RT60.',
     },
 
     puntaje: {

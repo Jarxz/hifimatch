@@ -162,6 +162,7 @@ export function pintarReverberacion(m: ModeloTarjetaReverberacion): void {
   pintarVerdict('rt-verdict', false, m.verdictoClase, m.verdictoTexto);
   el('rt-simple').textContent = m.simpleHtml;
   el('rt-text').innerHTML = m.textoHtml;
+  el('rt-calc').innerHTML = m.calcHtml;
   el('rt-src').innerHTML = m.fuenteHtml;
 }
 

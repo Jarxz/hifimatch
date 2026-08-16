@@ -79,7 +79,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .rline .rl{font-size:14px; color:var(--dim)}
 .derived{font-family:var(--mono); font-size:13px; color:var(--dim)}
 .derived b{color:var(--text)}
-.segs{display:inline-flex; border:1px solid var(--line); border-radius:3px; overflow:hidden}
+.segs{display:inline-flex; flex-wrap:wrap; border:1px solid var(--line); border-radius:3px; overflow:hidden}
 .segs button{font:inherit; font-size:13px; background:transparent; color:var(--dim); border:0; border-left:1px solid var(--line); padding:9px 16px; cursor:pointer}
 .segs button:first-child{border-left:0}
 .segs button[aria-pressed=true]{background:var(--text); color:var(--bg)}

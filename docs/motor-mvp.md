@@ -284,30 +284,46 @@ atenuación en dB.
 ## 4ter. Reverberación estimada — RT60 (`reverberacion.ts`)
 
 **Estado: implementada.** Igual que `modos.ts`, depende sólo de la
-geometría de la sala (más un tipo de terminación declarado por el
-usuario) — nunca de los equipos elegidos, y por eso nunca es
-`sin-datos`.
+geometría de la sala (más los materiales declarados por el usuario) —
+nunca de los equipos elegidos, y por eso nunca es `sin-datos`.
 
-**Fórmula — ecuación de Sabine:**
+**Fórmula — ecuación de Sabine, sumada superficie por superficie** (no un
+coeficiente único para toda la sala, a diferencia de la primera versión de
+esta regla — ver más abajo):
 ```
 RT60 = 0,161 · V / A
 
-V = anchoM · largoM · altoM                                    (volumen, m³)
-S = 2·(anchoM·largoM) + 2·(anchoM·altoM) + 2·(largoM·altoM)     (superficie total, m²)
-A = α · S                                                       (absorción, sabines)
+V = anchoM · largoM · altoM                              (volumen, m³)
+S_muros = 2·(anchoM·altoM) + 2·(largoM·altoM)             (superficie de muros, m²)
+S_piso  = anchoM · largoM                                 (m²)
+S_techo = anchoM · largoM                                 (m²)
+
+A = α_muro·S_muros + α_piso·S_piso + α_techo·S_techo      (absorción total, sabines)
 ```
 
-`α` es el coeficiente de absorción promedio de la sala, y depende del
-**tipo de sala** que el usuario elige en el selector de configuración —
-**criterio del sitio**, valores típicos de literatura de acústica
-arquitectónica para ese tipo de terminación, no una medición real:
+El usuario elige un **material por superficie** (muro, piso, techo) en tres
+selectores independientes de la pantalla de configuración. Cada material
+tiene un coeficiente de absorción de Sabine declarado — **criterio del
+sitio**, valores típicos de literatura de acústica arquitectónica (banda
+media, ~500 Hz–1 kHz), no una medición real:
 
 ```
-TipoSala      α       Descripción
-moderna       0,08    piso de porcelanato, pocos muebles — poca absorción
-balanceada    0,20    alfombra y cortinas — absorción media (default del sitio)
-tratada       0,35    tratamiento acústico — mucha absorción
+MaterialMuro    α       MaterialPiso        α       MaterialTecho   α
+hormigón        0,02    hormigón            0,02    hormigón        0,02
+vidrio/ventanal 0,03    madera laminado     0,05    madera          0,11
+madera          0,11    porcelanato         0,01    yeso cartón     0,06
+yeso cartón     0,08    alfombra            0,28    panel acústico  0,75
+panel acústico  0,75
 ```
+
+Hormigón/vidrio/porcelanato son muy reflectantes (superficies duras, no
+porosas); madera y placas sobre bastidor absorben algo más por resonancia
+de panel; panel acústico dedicado y alfombra son los únicos materiales de
+absorción alta. El default del sitio es yeso cartón (muro y techo) +
+madera laminado (piso) — terminaciones residenciales comunes, sin
+alfombra ni tratamiento — y da, a propósito, una sala bastante viva: no se
+fuerza un resultado "ok" de fábrica sólo para que la pantalla inicial se
+vea bien.
 
 **Rango cómodo declarado** para escucha crítica en una sala doméstica:
 `RT60_MIN_OK_S = 0,3` a `RT60_MAX_OK_S = 0,6` segundos (una sala de
@@ -327,18 +343,30 @@ Aparece en "En resumen" (fortaleza si `ok`, debilidad si `warn`) pero
 que el plano de reflexiones; los pesos declarados en la sección 7 no
 cambian.
 
-### Vector de prueba (sala por defecto, 3,6×5,0×2,4 m)
+### Vectores de prueba (sala por defecto, 3,6×5,0×2,4 m)
 ```
-V = 43,2 m³; S = 2·18 + 2·8,64 + 2·12 = 77,28 m²
+V = 43,2 m³; S_muros = 41,28 m²; S_piso = S_techo = 18,00 m²
 
-balanceada (α=0,20): A=15,456   RT60 = 0,161·43,2/15,456 ≈ 0,450 s → "ok" ("En rango")
-moderna    (α=0,08): A=6,1824   RT60 = 6,9552/6,1824      ≈ 1,125 s → "warn" ("Muy viva")
-tratada    (α=0,35): A=27,048   RT60 = 6,9552/27,048       ≈ 0,257 s → "warn" ("Muy seca")
+muro=yesoCarton, piso=maderaLaminado, techo=yesoCarton (default del sitio)
+  A = 0,08·41,28 + 0,05·18 + 0,06·18 = 5,2824   RT60 ≈ 1,317 s → "warn" ("Muy viva")
+
+muro=panelAcustico, piso=alfombra, techo=panelAcustico (muy tratada)
+  A = 0,75·41,28 + 0,28·18 + 0,75·18 = 49,50    RT60 ≈ 0,141 s → "warn" ("Muy seca")
+
+muro=madera, piso=alfombra, techo=panelAcustico (combinación intermedia)
+  A = 0,11·41,28 + 0,28·18 + 0,75·18 = 23,0808  RT60 ≈ 0,301 s → "ok" ("En rango")
 ```
+
+**Historia de la regla:** la primera versión (Fase 6) usaba un solo
+selector "tipo de sala" (moderna/balanceada/tratada) con un coeficiente
+promedio único para toda la sala. Se reemplazó por completo por el modelo
+de materiales por superficie de arriba — más granular y más defendible
+(el número sale de un material que el usuario puede señalar en su sala
+real, no de una etiqueta abstracta como "balanceada").
 
 **Selector de tipo de música (género):** ver sección 2bis — comparte
-pantalla de configuración con el tipo de sala, pero informa la tarjeta de
-potencia, no ésta.
+pantalla de configuración con los materiales de sala, pero informa la
+tarjeta de potencia, no ésta.
 
 ---
 

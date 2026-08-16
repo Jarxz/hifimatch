@@ -1,5 +1,5 @@
 /** El `st` del prototipo, tipado. Estado mutable de la pantalla de configuración. */
-import type { TipoSala } from '../../../packages/engine/src/reverberacion.ts';
+import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
 
 export type NivelUI = 'mod' | 'alto' | 'ref';
@@ -13,7 +13,9 @@ export interface Estado {
   L: number; // largo de sala, m
   H: number; // alto de sala, m
   lvl: NivelUI;
-  tipoSala: TipoSala; // terminación de la sala, para el coeficiente de absorción de reverberacion.ts
+  muro: MaterialMuro; // material de los muros, para reverberacion.ts (absorción por superficie)
+  piso: MaterialPiso; // material del piso, para reverberacion.ts
+  techo: MaterialTecho; // material del cielo, para reverberacion.ts
   genero: Genero; // género musical, para el crest factor informativo de genero.ts
 }
 
@@ -26,6 +28,8 @@ export const estado: Estado = {
   L: 5.0,
   H: 2.4,
   lvl: 'alto',
-  tipoSala: 'balanceada',
+  muro: 'yesoCarton',
+  piso: 'maderaLaminado',
+  techo: 'yesoCarton',
   genero: 'rockpop',
 };

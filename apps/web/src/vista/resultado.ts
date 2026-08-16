@@ -18,8 +18,8 @@ import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../.
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
 import type { ResultadoModos } from '../../../../packages/engine/src/modos.ts';
 import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages/engine/src/modos.ts';
-import type { ResultadoReverberacion, TipoSala } from '../../../../packages/engine/src/reverberacion.ts';
-import { COEFICIENTE_ABSORCION, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
+import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
+import { ABSORCION_MURO, ABSORCION_PISO, ABSORCION_TECHO, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ResultadoPuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
@@ -372,16 +372,17 @@ export interface ModeloTarjetaReverberacion {
   verdictoTexto: string;
   simpleHtml: string;
   textoHtml: string;
+  calcHtml: string;
   fuenteHtml: string;
 }
 
-const TIPO_SALA_LABEL: Record<TipoSala, (t: ReturnType<typeof textosDe>) => string> = {
-  moderna: (t) => t.config.tipoSalaModerna,
-  balanceada: (t) => t.config.tipoSalaBalanceada,
-  tratada: (t) => t.config.tipoSalaTratada,
-};
+type MaterialCualquiera = MaterialMuro | MaterialPiso | MaterialTecho;
 
-export function modeloReverberacion(r: ResultadoReverberacion, tipoSala: TipoSala, idioma: Idioma): ModeloTarjetaReverberacion {
+function materialLabel(material: MaterialCualquiera, t: ReturnType<typeof textosDe>): string {
+  return t.config.materiales[material];
+}
+
+export function modeloReverberacion(r: ResultadoReverberacion, materiales: Materiales, idioma: Idioma): ModeloTarjetaReverberacion {
   const t = textosDe(idioma);
 
   const textoHtml = t.motor.reverberacion.texto({
@@ -390,9 +391,22 @@ export function modeloReverberacion(r: ResultadoReverberacion, tipoSala: TipoSal
     max: num(RT60_MAX_OK_S, 1, idioma),
   });
 
-  const fuenteHtml = t.motor.reverberacion.fuente({
-    alpha: num(COEFICIENTE_ABSORCION[tipoSala], 2, idioma),
-    tipoSala: TIPO_SALA_LABEL[tipoSala](t),
+  const calcHtml = t.motor.reverberacion.calc({
+    muroLabel: materialLabel(materiales.muro, t),
+    superficieMuros: num(r.superficieMurosM2, 2, idioma),
+    muroAlpha: num(ABSORCION_MURO[materiales.muro], 2, idioma),
+    absorcionMuros: num(r.absorcionMurosSabines, 2, idioma),
+    pisoLabel: materialLabel(materiales.piso, t),
+    superficiePiso: num(r.superficiePisoM2, 2, idioma),
+    pisoAlpha: num(ABSORCION_PISO[materiales.piso], 2, idioma),
+    absorcionPiso: num(r.absorcionPisoSabines, 2, idioma),
+    techoLabel: materialLabel(materiales.techo, t),
+    superficieTecho: num(r.superficieTechoM2, 2, idioma),
+    techoAlpha: num(ABSORCION_TECHO[materiales.techo], 2, idioma),
+    absorcionTecho: num(r.absorcionTechoSabines, 2, idioma),
+    absorcionTotal: num(r.absorcionTotalSabines, 2, idioma),
+    volumen: num(r.volumenM3, 1, idioma),
+    rt60: num(r.rt60S, 2, idioma),
   });
 
   return {
@@ -400,7 +414,8 @@ export function modeloReverberacion(r: ResultadoReverberacion, tipoSala: TipoSal
     verdictoTexto: t.motor.reverberacion.verdicto[r.codigo],
     simpleHtml: t.motor.reverberacion.simple[r.codigo],
     textoHtml,
-    fuenteHtml,
+    calcHtml,
+    fuenteHtml: t.motor.reverberacion.fuente,
   };
 }
 
