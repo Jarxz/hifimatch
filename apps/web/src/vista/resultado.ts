@@ -20,7 +20,8 @@ import type { ResultadoModos } from '../../../../packages/engine/src/modos.ts';
 import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages/engine/src/modos.ts';
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
 import { ABSORCION_MURO, ABSORCION_PISO, ABSORCION_TECHO, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
-import type { ResultadoPuntaje } from '../../../../packages/engine/src/puntaje.ts';
+import type { ResultadoPuntaje, ClasePuntaje } from '../../../../packages/engine/src/puntaje.ts';
+import type { DisposicionSala } from '../../../../packages/engine/src/sala.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { num, numConSigno } from '../formato/numeros.ts';
@@ -422,17 +423,38 @@ export function modeloReverberacion(r: ResultadoReverberacion, materiales: Mater
   };
 }
 
+/** Narra la disposición de referencia que sala.ts ya calculó (no evalúa
+ * nada nuevo): distancia a la pared frontal, a cada pared lateral —
+ * simétrica por construcción, `parlanteIzq.x` y `anchoM − parlanteDer.x`
+ * dan el mismo valor — y separación entre parlantes. Es la misma
+ * geometría que alimenta potencia.ts (`distanciaEscuchaM`) y el plano
+ * isométrico; esto sólo la pone en palabras. */
+export function modeloUbicacionParlantes(disp: DisposicionSala, idioma: Idioma): string {
+  const t = textosDe(idioma).resultado.plano;
+  return t.ubicacion({
+    frontal: num(disp.offsetFrenteM, 2, idioma),
+    lateral: num(disp.parlanteIzq.x, 2, idioma),
+    separacion: num(disp.separacionM, 2, idioma),
+  });
+}
+
 export interface ModeloPuntaje {
   puntaje: number;
   puntajeTexto: string;
+  /** 'ok'/'warn'/'alert' según los umbrales declarados en puntaje.ts
+   * (clasificarPuntaje) — colorea el número, pero nunca como un pill de
+   * veredicto (pintarVerdict): sigue siendo capa criterio-editorial, no
+   * física, y se mantiene rotulado como tal en pantalla. */
+  clase: ClasePuntaje;
   detalleHtml: string;
   avisoHtml: string | null;
   criterioHtml: string;
 }
 
-/** CAPA CRITERIO-EDITORIAL — ver puntaje.ts. Nunca se pinta con las clases
- * ok/warn/alert de la capa física (ClaseVerdicto); es un número simple, no
- * un veredicto. */
+/** CAPA CRITERIO-EDITORIAL — ver puntaje.ts. El número lleva color (ok/warn/
+ * alert) para que se lea de un vistazo, pero nunca se pinta con el mismo
+ * componente de pill que un veredicto de capa física (pintarVerdict) — la
+ * distinción sigue siendo de layout/rotulado, no de si hay o no color. */
 export function modeloPuntaje(r: ResultadoPuntaje, idioma: Idioma): ModeloPuntaje {
   const t = textosDe(idioma);
   const nombreLabel = t.motor.puntaje.componente;
@@ -453,6 +475,7 @@ export function modeloPuntaje(r: ResultadoPuntaje, idioma: Idioma): ModeloPuntaj
   return {
     puntaje: r.puntaje,
     puntajeTexto: `${r.puntaje}/10`,
+    clase: r.clase,
     detalleHtml,
     avisoHtml,
     criterioHtml: t.motor.puntaje.criterio,
@@ -474,9 +497,13 @@ export interface ComponenteResumen {
 }
 
 export interface ModeloResumenFinal {
+  comportamientoHtml: string;
   resumenHtml: string;
   fortalezasHtml: string;
   debilidadesHtml: string;
+  /** '' cuando no hay ningún componente "dim" — la sección entera se oculta
+   * en pintar.ts en vez de mostrar un "todos tenían dato" que nadie pidió
+   * leer. Sólo se menciona cuando hay algo real que declarar. */
   sinDatosHtml: string;
   recomendacionesHtml: string;
 }
@@ -489,17 +516,27 @@ export interface ModeloResumenFinal {
  * resto del proyecto) — pero tampoco desaparece: el componente ya no se
  * publica como tarjeta propia en el análisis principal (ver
  * pintarCarga/pintarGanancia), así que esta es la única mención visible de
- * que ese componente no se pudo evaluar. Cada recomendación reusa el
- * `avisoHtml` que la regla correspondiente ya redactó — una por cada
- * debilidad encontrada, no sólo la peor, para que el detalle físico quede
- * completo.
+ * que ese componente no se pudo evaluar, y sólo aparece cuando hay al menos
+ * uno — nunca como confirmación vacía de que "todo estaba bien". Cada
+ * recomendación reusa el `avisoHtml` que la regla correspondiente ya
+ * redactó — una por cada debilidad encontrada, no sólo la peor, para que
+ * el detalle físico quede completo. `comportamientoHtml` es la sola
+ * oración que resume "cómo se comporta el match completo" — reusa el
+ * puntaje 1-10 ya calculado (capa criterio-editorial, ver puntaje.ts), no
+ * inventa una evaluación nueva.
  */
-export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idioma): ModeloResumenFinal {
+export function modeloResumenFinal(
+  componentes: ComponenteResumen[],
+  puntaje: { valor: number; clase: ClasePuntaje },
+  idioma: Idioma
+): ModeloResumenFinal {
   const t = textosDe(idioma).motor.resumen;
 
   const fortalezas = componentes.filter((c) => c.verdictoClase === 'ok');
   const debilidades = componentes.filter((c) => c.verdictoClase === 'warn' || c.verdictoClase === 'alert');
   const sinDatos = componentes.filter((c) => c.verdictoClase === 'dim');
+
+  const comportamientoHtml = t.comportamiento[puntaje.clase]({ puntaje: String(puntaje.valor) });
 
   const resumenHtml = t.resumenConteo({
     evaluados: String(componentes.length - sinDatos.length),
@@ -514,10 +551,7 @@ export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idi
 
   const fortalezasHtml = fortalezas.length > 0 ? fortalezas.map(itemHtml).join('') : `<li>${t.sinFortalezas}</li>`;
   const debilidadesHtml = debilidades.length > 0 ? debilidades.map(itemHtml).join('') : `<li>${t.sinDebilidades}</li>`;
-  const sinDatosHtml =
-    sinDatos.length > 0
-      ? sinDatos.map((c) => `<li>${t.itemSinDatos({ nombre: c.nombre })}</li>`).join('')
-      : `<li>${t.sinPendientes}</li>`;
+  const sinDatosHtml = sinDatos.length > 0 ? sinDatos.map((c) => `<li>${t.itemSinDatos({ nombre: c.nombre })}</li>`).join('') : '';
 
   const conAviso = debilidades.filter((c): c is ComponenteResumen & { avisoHtml: string } => c.avisoHtml !== null);
   const recomendacionesHtml =
@@ -525,5 +559,5 @@ export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idi
       ? conAviso.map((c) => `<li>${t.recomendacionConAviso({ nombre: c.nombre, aviso: c.avisoHtml })}</li>`).join('')
       : `<li>${t.recomendacionTodoOk}</li>`;
 
-  return { resumenHtml, fortalezasHtml, debilidadesHtml, sinDatosHtml, recomendacionesHtml };
+  return { comportamientoHtml, resumenHtml, fortalezasHtml, debilidadesHtml, sinDatosHtml, recomendacionesHtml };
 }

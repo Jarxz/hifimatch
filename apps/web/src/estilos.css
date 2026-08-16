@@ -109,6 +109,9 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .rr{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--dim); padding:5px 0}
 .rr b{font-family:var(--mono); color:var(--text); font-weight:500}
 .rr b#pt-puntaje{font-size:26px; font-weight:600; letter-spacing:.01em}
+.rr b#pt-puntaje.puntaje-ok{color:var(--ok)}
+.rr b#pt-puntaje.puntaje-warn{color:var(--warn)}
+.rr b#pt-puntaje.puntaje-alert{color:var(--alert)}
 
 .card{border:1px solid var(--line); border-radius:4px; padding:22px 22px; margin-bottom:16px}
 .card .ct{display:flex; align-items:center; gap:12px; margin-bottom:4px}
@@ -145,7 +148,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .flag.sindato{border-left-color:var(--faint)}
 
 .plan-wrap{display:flex; justify-content:center; margin:6px 0 4px}
-.plan-wrap svg{width:100%; height:auto; max-width:520px}
+.plan-wrap svg{width:100%; height:auto; max-width:640px}
 .legend{display:flex; flex-wrap:wrap; gap:14px 20px; justify-content:center; margin-top:14px; font-size:11.5px; color:var(--dim)}
 .legend span{display:inline-flex; align-items:center; gap:7px}
 .legend i{width:16px; height:0; display:inline-block}

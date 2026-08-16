@@ -257,6 +257,28 @@ techo/piso: punto medio (parlanteIzq, puntoDulce) = (1,305, 1,938)
           (simétrico en el canal derecho)
 ```
 
+### Renderer (`apps/web/src/vista/plano.ts`) — 4 vistas, parlantes como volumen
+
+El renderer isométrico acepta una `Vista = 'isometrica'|'frontal'|'lateral'|
+'superior'`: misma geometría, sólo cambia la fórmula de proyección
+(`proyectar(p, vista)`) — botones de vista preestablecida, no arrastre
+libre con mouse (decisión explícita: no agregar el primer widget
+interactivo-con-mouse del sitio; el cambio de vista sólo re-dibuja, no
+recalcula nada, `main.ts` cachea la última `{sala, disposicion,
+murosVista}` para eso). En vistas ortográficas (frontal/lateral/superior)
+dos etiquetas de muro caen exactamente superpuestas cuando la vista deja
+caer el eje que las distingue — se omiten en vez de mostrar texto
+amontonado (`frontal` oculta frontal/posterior; `lateral` oculta
+izquierdo/derecho; `superior` e `isometrica` muestran las 4).
+
+Los parlantes se dibujan como una caja de alambre (12 aristas), no un
+punto — `ANCHO_PARLANTE_M`/`PROFUNDIDAD_PARLANTE_M`/`ALTO_PARLANTE_M`
+(0,20 / 0,25 / 0,34 m) son un tamaño **ilustrativo**, no físico: el
+catálogo no tiene dimensiones por equipo, así que esto no alimenta ningún
+cálculo, sólo hace que el ícono se lea como un volumen. Centrada en
+`alturaM` (el mismo eje acústico asumido para las reflexiones de techo/
+piso), sin modelar específicamente parlante de piso vs. de estante.
+
 ---
 
 ## 4bis. Modos de sala (`modos.ts`)
@@ -661,6 +683,25 @@ M componentes").
 
 **Piso de 1, nunca 0** (`Math.max(1, Math.round(promedio))`): la escala
 declarada es 1-10.
+
+### Color del número (`clasificarPuntaje`)
+
+El número en pantalla lleva color — verde/naranjo/rojo — según umbrales
+declarados junto a los pesos (mismo criterio del sitio, no un dato físico):
+
+```
+puntaje ≥ UMBRAL_PUNTAJE_VERDE (8)      clase 'ok'     verde  (--ok)
+UMBRAL_PUNTAJE_NARANJO (5) ≤ puntaje < 8 clase 'warn'   naranjo (--warn)
+puntaje < UMBRAL_PUNTAJE_NARANJO (5)     clase 'alert'  rojo   (--alert)
+```
+
+Alineados a los puntos por severidad de arriba: "todo ok" da 10 (verde),
+"todo warn" da 5 (justo en el borde naranjo), "todo alert" da 1 (rojo). El
+color vive en el número mismo (`<b id="pt-puntaje">`, clases CSS
+`puntaje-ok/warn/alert`), **nunca** con el componente `pintarVerdict` que
+usan los veredictos de capa física (el mismo pill/badge) — sigue rotulado
+"Criterio editorial, no física" y en su propia tarjeta; la distinción de
+capas es de layout y rotulado, no de si hay o no color.
 
 ### Streamer + DAC simultáneos
 

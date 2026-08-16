@@ -61,8 +61,26 @@ export interface DetallePuntaje {
   puntos: number | null;
 }
 
+/**
+ * Umbrales para colorear el número del puntaje — criterio del sitio, no un
+ * dato físico (mismo espíritu que PESOS_DECLARADOS): alineados a la escala
+ * de puntos por severidad de arriba (ok=10, warn=5, alert=0), así que "todo
+ * ok" da verde, "algo warn" da naranjo, "algo alert" tira a rojo.
+ */
+export const UMBRAL_PUNTAJE_VERDE = 8;
+export const UMBRAL_PUNTAJE_NARANJO = 5;
+
+export type ClasePuntaje = 'ok' | 'warn' | 'alert';
+
+export function clasificarPuntaje(puntaje: number): ClasePuntaje {
+  if (puntaje >= UMBRAL_PUNTAJE_VERDE) return 'ok';
+  if (puntaje >= UMBRAL_PUNTAJE_NARANJO) return 'warn';
+  return 'alert';
+}
+
 export interface ResultadoPuntaje {
   puntaje: number; // 1-10, redondeado — nunca 0: ver puntaje.test.ts
+  clase: ClasePuntaje;
   componentesEvaluados: number;
   componentesTotales: number;
   detalle: DetallePuntaje[];
@@ -96,6 +114,7 @@ export function calcularPuntaje(componentes: ComponentePuntaje[]): ResultadoPunt
 
   return {
     puntaje,
+    clase: clasificarPuntaje(puntaje),
     componentesEvaluados: detalle.filter((d) => d.incluido).length,
     componentesTotales: componentes.length,
     detalle,

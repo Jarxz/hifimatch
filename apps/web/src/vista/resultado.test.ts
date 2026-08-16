@@ -4,6 +4,7 @@ import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
+import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
 import { evaluarReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import type { Materiales } from '../../../../packages/engine/src/reverberacion.ts';
 import { calcularPuntaje, PESOS_DECLARADOS } from '../../../../packages/engine/src/puntaje.ts';
@@ -19,6 +20,7 @@ import {
   modeloRecorrido,
   modeloModos,
   modeloReverberacion,
+  modeloUbicacionParlantes,
   modeloPuntaje,
   modeloResumenFinal,
 } from './resultado.ts';
@@ -328,6 +330,24 @@ test('modeloReverberacion en inglés: veredicto, texto y calc en inglés, sin me
   assert.doesNotMatch(m.calcHtml, /Placa yeso cartón/);
 });
 
+// ---- ubicación de referencia de los parlantes ----
+
+test('modeloUbicacionParlantes: narra las distancias ya calculadas por sala.ts (vector motor-mvp.md sección 4)', () => {
+  const disp = calcularDisposicion(SALA_REVERB); // W=3,6 L=5,0 H=2,4 → offsetFrenteM=0,75 parlanteIzq.x=0,81 separacionM=1,98
+  const html = modeloUbicacionParlantes(disp, 'es');
+  assert.match(html, /0,75 m/); // distancia a la pared frontal
+  assert.match(html, /0,81 m/); // distancia a cada pared lateral (parlanteIzq.x)
+  assert.match(html, /1,98 m/); // separación entre parlantes
+});
+
+test('modeloUbicacionParlantes en inglés: mismos números, punto decimal', () => {
+  const disp = calcularDisposicion(SALA_REVERB);
+  const html = modeloUbicacionParlantes(disp, 'en');
+  assert.match(html, /0\.75 m/);
+  assert.match(html, /0\.81 m/);
+  assert.match(html, /1\.98 m/);
+});
+
 // ---- puntaje (capa criterio-editorial) ----
 
 test('modeloPuntaje: todo "ok" da 10/10, detalle con los 5 componentes incluidos, sin aviso', () => {
@@ -341,9 +361,24 @@ test('modeloPuntaje: todo "ok" da 10/10, detalle con los 5 componentes incluidos
   const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
   assert.equal(m.puntaje, 10);
   assert.equal(m.puntajeTexto, '10/10');
+  assert.equal(m.clase, 'ok');
   assert.equal(m.avisoHtml, null);
   assert.match(m.detalleHtml, /Potencia: 10\/10/);
   assert.match(m.criterioHtml, /Criterio editorial/);
+});
+
+test('modeloPuntaje: clase sigue los umbrales de clasificarPuntaje (warn/alert), no siempre "ok"', () => {
+  const mezcla: ComponentePuntaje[] = [
+    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'warn' },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'warn' },
+    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: 'warn' },
+    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: 'warn' },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'warn' },
+  ];
+  assert.equal(modeloPuntaje(calcularPuntaje(mezcla), 'es').clase, 'warn');
+
+  const todoMal: ComponentePuntaje[] = mezcla.map((c) => ({ ...c, severidad: 'alert' as const }));
+  assert.equal(modeloPuntaje(calcularPuntaje(todoMal), 'es').clase, 'alert');
 });
 
 test('modeloPuntaje: sin streamer ni dac, el detalle marca puente/recorrido excluidos y avisa que no se evaluaron los 5', () => {
@@ -376,6 +411,10 @@ test('modeloPuntaje en inglés: etiquetas de componente y criterio en inglés, s
 
 // ---- resumen final ----
 
+const PUNTAJE_OK = { valor: 9, clase: 'ok' as const };
+const PUNTAJE_WARN = { valor: 6, clase: 'warn' as const };
+const PUNTAJE_ALERT = { valor: 3, clase: 'alert' as const };
+
 test('modeloResumenFinal: componentes "ok" van a fortalezas, "warn"/"alert" a debilidades; "dim" no cuenta en ninguna', () => {
   const componentes: ComponenteResumen[] = [
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
@@ -383,7 +422,7 @@ test('modeloResumenFinal: componentes "ok" van a fortalezas, "warn"/"alert" a de
     { nombre: 'Puente de impedancias', verdictoClase: 'alert', verdictoTexto: 'Puente insuficiente', avisoHtml: '<b>Aviso de puente</b>' },
     { nombre: 'Modos de sala', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, 'es');
+  const m = modeloResumenFinal(componentes, PUNTAJE_WARN, 'es');
   assert.match(m.fortalezasHtml, /Potencia: Con margen/);
   assert.doesNotMatch(m.fortalezasHtml, /Carga|Puente|Modos/);
   assert.match(m.debilidadesHtml, /Carga: Exige corriente/);
@@ -397,7 +436,7 @@ test('modeloResumenFinal: "dim" (sin-datos) no cuenta ni como fortaleza ni como 
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
     { nombre: 'Puente de impedancias', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, 'es');
+  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
   assert.match(m.resumenHtml, /De 1 componentes evaluados: 1 sin observaciones y 0 con algo para revisar/);
   assert.doesNotMatch(m.fortalezasHtml, /Puente/);
   assert.doesNotMatch(m.debilidadesHtml, /Puente/);
@@ -408,21 +447,21 @@ test('modeloResumenFinal: "dim" aparece en sinDatosHtml — ya no se publica com
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
     { nombre: 'Puente de impedancias (Streamer)', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, 'es');
+  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
   assert.match(m.sinDatosHtml, /Puente de impedancias \(Streamer\): no se evaluó/);
 });
 
-test('modeloResumenFinal: sin ningún componente "dim", sinDatosHtml muestra el mensaje de "todo tenía dato"', () => {
+test('modeloResumenFinal: sin ningún componente "dim", sinDatosHtml queda vacío — no se menciona cuando todo tenía dato', () => {
   const componentes: ComponenteResumen[] = [{ nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null }];
-  const m = modeloResumenFinal(componentes, 'es');
-  assert.match(m.sinDatosHtml, /Todos los componentes elegidos tenían dato suficiente/);
+  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
+  assert.equal(m.sinDatosHtml, '');
 });
 
 test('modeloResumenFinal: con "detalle" numérico, se agrega entre paréntesis junto al veredicto', () => {
   const componentes: ComponenteResumen[] = [
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', detalle: '+4,8 dB', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, 'es');
+  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
   assert.match(m.fortalezasHtml, /Potencia: Con margen \(\+4,8 dB\)/);
 });
 
@@ -431,7 +470,7 @@ test('modeloResumenFinal: las recomendaciones incluyen TODAS las debilidades con
     { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: '<b>Aviso de carga</b>' },
     { nombre: 'Puente de impedancias', verdictoClase: 'alert', verdictoTexto: 'Puente insuficiente', avisoHtml: '<b>Aviso de puente</b>' },
   ];
-  const m = modeloResumenFinal(componentes, 'es');
+  const m = modeloResumenFinal(componentes, PUNTAJE_ALERT, 'es');
   assert.match(m.recomendacionesHtml, /Aviso de puente/);
   assert.match(m.recomendacionesHtml, /Aviso de carga/);
   assert.equal((m.recomendacionesHtml.match(/<li>/g) ?? []).length, 2);
@@ -441,7 +480,7 @@ test('modeloResumenFinal: debilidad sin avisoHtml no genera una recomendación v
   const componentes: ComponenteResumen[] = [
     { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, 'es');
+  const m = modeloResumenFinal(componentes, PUNTAJE_WARN, 'es');
   assert.equal((m.recomendacionesHtml.match(/<li>/g) ?? []).length, 1);
   assert.match(m.recomendacionesHtml, /No hay ningún punto pendiente/);
 });
@@ -451,17 +490,41 @@ test('modeloResumenFinal: todo "ok" → recomendación de cierre positivo, sin f
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
     { nombre: 'Carga', verdictoClase: 'ok', verdictoTexto: 'Cubierto', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, 'es');
+  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
   assert.match(m.debilidadesHtml, /Ningún componente evaluado quedó con algo para revisar/);
   assert.match(m.recomendacionesHtml, /No hay ningún punto pendiente/);
 });
 
 test('modeloResumenFinal en inglés: textos en inglés, sin mezclar idiomas', () => {
   const componentes: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
-  const m = modeloResumenFinal(componentes, 'en');
+  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'en');
   assert.match(m.fortalezasHtml, /Power: With margin/);
   assert.match(m.debilidadesHtml, /No evaluated component came out with something worth checking/);
   assert.match(m.recomendacionesHtml, /Nothing pending/);
+});
+
+// ---- modeloResumenFinal: comportamientoHtml (párrafo holístico) ----
+
+test('modeloResumenFinal: comportamientoHtml varía según la clase del puntaje (ok/warn/alert), siempre incluye el número', () => {
+  const componentes: ComponenteResumen[] = [{ nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null }];
+  const mOk = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
+  const mWarn = modeloResumenFinal(componentes, PUNTAJE_WARN, 'es');
+  const mAlert = modeloResumenFinal(componentes, PUNTAJE_ALERT, 'es');
+  assert.match(mOk.comportamientoHtml, /funciona bien/);
+  assert.match(mOk.comportamientoHtml, /9\/10/);
+  assert.match(mWarn.comportamientoHtml, /conviene revisar/);
+  assert.match(mWarn.comportamientoHtml, /6\/10/);
+  assert.match(mAlert.comportamientoHtml, /varios puntos que conviene resolver/);
+  assert.match(mAlert.comportamientoHtml, /3\/10/);
+  assert.notEqual(mOk.comportamientoHtml, mWarn.comportamientoHtml);
+  assert.notEqual(mWarn.comportamientoHtml, mAlert.comportamientoHtml);
+});
+
+test('modeloResumenFinal en inglés: comportamientoHtml en inglés, sin mezclar idiomas', () => {
+  const componentes: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
+  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'en');
+  assert.match(m.comportamientoHtml, /works well/);
+  assert.doesNotMatch(m.comportamientoHtml, /funciona bien/);
 });
 
 // ---- idioma 'en': mismos números, texto en inglés ----

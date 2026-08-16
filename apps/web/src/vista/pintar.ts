@@ -179,10 +179,14 @@ export function pintarCurvasModales(svg: string, caption: string): void {
   cont.innerHTML = svg + `<div class="src">${caption}</div>`;
 }
 
-/** Capa criterio-editorial (puntaje.ts) — nunca usa pintarVerdict/las clases
- * ok/warn/alert de la capa física; es un número simple en un <b>. */
+/** Capa criterio-editorial (puntaje.ts) — nunca usa pintarVerdict (el pill
+ * de veredicto de capa física); el número lleva color (clase puntaje-ok/
+ * warn/alert) pero sigue siendo un <b> simple, no un pill, y sigue
+ * rotulado "Criterio editorial, no física" en el marcado estático. */
 export function pintarPuntaje(m: ModeloPuntaje): void {
-  el('pt-puntaje').textContent = m.puntajeTexto;
+  const puntajeEl = el('pt-puntaje');
+  puntajeEl.textContent = m.puntajeTexto;
+  puntajeEl.className = 'puntaje-' + m.clase;
   el('pt-detalle').innerHTML = m.detalleHtml;
   pintarFlag('pt-flag', m.avisoHtml, true);
   el('pt-criterio').innerHTML = m.criterioHtml;
@@ -192,9 +196,16 @@ export function pintarPuntaje(m: ModeloPuntaje): void {
  * detalla lo que ya mostraron las tarjetas de arriba (ver
  * modeloResumenFinal). */
 export function pintarResumenFinal(m: ModeloResumenFinal): void {
+  el('rf-comportamiento').textContent = m.comportamientoHtml;
   el('rf-resumen').textContent = m.resumenHtml;
   el('rf-fortalezas').innerHTML = m.fortalezasHtml;
   el('rf-debilidades').innerHTML = m.debilidadesHtml;
-  el('rf-sindatos').innerHTML = m.sinDatosHtml;
+  const sinDatosWrap = el('rf-sindatos-wrap');
+  if (m.sinDatosHtml) {
+    sinDatosWrap.classList.remove('hidden');
+    el('rf-sindatos').innerHTML = m.sinDatosHtml;
+  } else {
+    sinDatosWrap.classList.add('hidden');
+  }
   el('rf-recomendaciones').innerHTML = m.recomendacionesHtml;
 }

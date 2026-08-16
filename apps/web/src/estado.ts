@@ -1,6 +1,7 @@
 /** El `st` del prototipo, tipado. Estado mutable de la pantalla de configuración. */
 import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
+import type { Vista } from './vista/plano.ts';
 
 export type NivelUI = 'mod' | 'alto' | 'ref';
 
@@ -20,6 +21,7 @@ export interface Estado {
   piso: MaterialPiso; // material del piso, para reverberacion.ts
   techo: MaterialTecho; // material del cielo, para reverberacion.ts
   genero: Genero; // género musical, para el crest factor informativo de genero.ts
+  vistaPlano: Vista; // ángulo de cámara del plano isométrico — sólo re-dibuja, no recalcula nada
 }
 
 export const estado: Estado = {
@@ -38,4 +40,5 @@ export const estado: Estado = {
   piso: 'maderaLaminado',
   techo: 'yesoCarton',
   genero: 'rockpop',
+  vistaPlano: 'isometrica',
 };

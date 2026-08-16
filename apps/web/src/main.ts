@@ -1,6 +1,7 @@
 import './estilos.css';
 import { CATALOGO } from '../../../packages/data/src/catalogo.ts';
 import { calcularDisposicion } from '../../../packages/engine/src/sala.ts';
+import type { Sala, DisposicionSala } from '../../../packages/engine/src/sala.ts';
 import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
@@ -20,6 +21,7 @@ import { ir } from './vista/pantallas.ts';
 import { poblarSelectores, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
+import type { MurosVista, Vista } from './vista/plano.ts';
 import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
 import {
   modeloPotencia,
@@ -28,6 +30,7 @@ import {
   modeloRecorrido,
   modeloModos,
   modeloReverberacion,
+  modeloUbicacionParlantes,
   modeloPuntaje,
   modeloResumenFinal,
 } from './vista/resultado.ts';
@@ -53,6 +56,17 @@ import { idiomaInicial, guardarIdioma, aplicarCromoEstatico, textosDe } from './
 const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alto', ref: 'referencia' };
 
 let idiomaActual: Idioma = idiomaInicial();
+
+/** Geometría del último análisis pintado — sólo para poder re-dibujar el
+ * plano isométrico cuando el usuario cambia de vista (isométrica/frontal/
+ * lateral/superior) sin recalcular ni renavegar. `null` antes del primer
+ * "Analizar". */
+let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista } | null = null;
+
+function repintarPlano(): void {
+  if (!ultimoPlano) return;
+  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual));
+}
 
 function nivelTextoDe(lvl: NivelUI, idioma: Idioma): string {
   const t = textosDe(idioma).config;
@@ -203,6 +217,18 @@ function setGenero(genero: Genero): void {
   });
 }
 
+/** A diferencia de los demás `set*`, esto vive en la pantalla de resultado
+ * (no en configurar): sólo cambia el ángulo de cámara del plano ya
+ * calculado, así que repinta directo en vez de esperar un nuevo
+ * "Analizar". */
+function setVistaPlano(vista: Vista): void {
+  estado.vistaPlano = vista;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-vista]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.vista === vista));
+  });
+  repintarPlano();
+}
+
 /** El núcleo de "Analizar": calcula y pinta las cuatro tarjetas de resultado
  * más el plano. Separado de analizar() para poder llamarlo de nuevo al
  * cambiar de idioma sin forzar la navegación a la pantalla de resultado. */
@@ -274,7 +300,8 @@ function renderizarResultado(): void {
     izquierdo: materiales.muroIzquierdo,
     derecho: materiales.muroDerecho,
   };
-  pintarPlano(construirPlanoSvg(sala, disposicion, murosVista, idiomaActual));
+  ultimoPlano = { sala, disposicion, murosVista };
+  repintarPlano();
   const resModos = evaluarModos(sala);
   const mModos = modeloModos(resModos, idiomaActual);
   pintarModos(mModos);
@@ -283,6 +310,14 @@ function renderizarResultado(): void {
   const resReverb = evaluarReverberacion(sala, materiales);
   const mReverb = modeloReverberacion(resReverb, materiales, idiomaActual);
   pintarReverberacion(mReverb);
+
+  const murosVacios = (['muroFrontal', 'muroPosterior', 'muroIzquierdo', 'muroDerecho'] as const)
+    .filter((k) => materiales[k] === 'vacio')
+    .map((k) => t.config[k]);
+  const avisoReverb = murosVacios.length > 0 ? t.motor.reverberacion.avisoVacio({ muros: murosVacios.join(', ') }) : null;
+
+  const ubicacionEl = document.getElementById('plan-ubicacion');
+  if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(disposicion, idiomaActual);
 
   const items = [
     { categoria: t.resultado.itemParlantes, nombre: spk.nombre, espec: especParlante(spk, idiomaActual), comentario: mCarga.verdictoTexto },
@@ -338,7 +373,7 @@ function renderizarResultado(): void {
       nombre: t.motor.reverberacion.nombreCorto,
       verdictoClase: mReverb.verdictoClase,
       verdictoTexto: mReverb.verdictoTexto,
-      avisoHtml: null,
+      avisoHtml: avisoReverb,
     },
   ];
   if (mPuenteStreamer && resPuenteStreamer) {
@@ -377,7 +412,7 @@ function renderizarResultado(): void {
       avisoHtml: mRecorridoDac.avisoHtml,
     });
   }
-  pintarResumenFinal(modeloResumenFinal(componentesResumen, idiomaActual));
+  pintarResumenFinal(modeloResumenFinal(componentesResumen, { valor: puntaje.puntaje, clase: puntaje.clase }, idiomaActual));
 }
 
 /**
@@ -477,6 +512,10 @@ function wireEventos(): void {
 
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-genero]').forEach((b) => {
     b.addEventListener('click', () => setGenero(b.dataset.genero as Genero));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-vista]').forEach((b) => {
+    b.addEventListener('click', () => setVistaPlano(b.dataset.vista as Vista));
   });
 
   document.getElementById('btn-an')?.addEventListener('click', analizar);

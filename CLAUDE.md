@@ -339,7 +339,7 @@ para que la pantalla inicial luzca bien. La tarjeta ahora tiene un
 mismo patrón que las demás tarjetas con cálculo (potencia, puente).
 `estado.ts` guarda `muro`/`piso`/`techo` en vez de `tipoSala`.
 
-**182 tests totales** (86 motor + 11 catálogo + 85 frontend, estos últimos
+**193 tests totales** (90 motor + 11 catálogo + 92 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 
@@ -426,6 +426,51 @@ porcentajes, nunca con `getBoundingClientRect`).
 **Plano isométrico 3D, reemplaza el plano 2D top-down.** `apps/web/src/vista/plano.ts` (PURO, sigue sin tocar `document`) ahora dibuja un cubo de alambre isométrico (proyección de 30°, sin ocultamiento de superficies — deliberadamente wireframe transparente, mismo criterio de honestidad que las curvas modales de la sección anterior: mejor mostrar geometría exacta sin fingir opacidad que este modelo no calcula) en vez del plano 2D top-down. `packages/engine/src/sala.ts` ganó geometría 3D nueva: además de las 2 reflexiones laterales que ya existían, calcula 6 más (trasera×2, techo×2, piso×2 — una por canal), todas por el mismo método de imagen especular generalizado a cualquier eje (`reflexionEnPlano(parlante, escucha, eje, valorPlano)`), con la distancia total del camino parlante→superficie→escucha para cada una. Las reflexiones de techo/piso exigieron declarar un supuesto nuevo — `ALTURA_ESCUCHA_M = 1,0` (oído y parlante a la misma altura, la recomendación estándar de instalación) — porque el catálogo no tiene altura por equipo; sin ese supuesto no hay geometría vertical que calcular. El plano muestra cada reflexión con su distancia en metros junto al punto.
 
 **Materiales de sala por muro orientado, no un "muro" único.** `reverberacion.ts` pasó de un selector de material compartido para toda la superficie de muros a **4 selectores independientes** (frontal/posterior/izquierdo/derecho), cada uno con su propia área (`anchoM·altoM` para frontal/posterior, `largoM·altoM` para izquierdo/derecho) y su propio término en la suma de Sabine — ninguna superficie fuerza el mismo material que otra. Se agregó una opción nueva, **`vacio`** (α=1,0, sólo disponible en muros): representa una abertura real — vano, pasillo, ambiente integrado — y usa el coeficiente de referencia histórico de Sabine para "ventana abierta", no una estimación del sitio. Cuando un muro es `vacio`, dos cosas pasan a la vez: la absorción de RT60 sube (el sonido se escapa, no vuelve) y el plano isométrico **no dibuja la reflexión de ese muro** — verificado end-to-end (headless Chrome): marcar el muro izquierdo como vacío en la sala por defecto baja los círculos del plano de 10 a 9 y cambia el veredicto de RT60 de "Muy viva" a "En rango", ambos a la vez, con un solo clic. `estado.ts` guarda `muroFrontal`/`muroPosterior`/`muroIzquierdo`/`muroDerecho` en vez de `muro`.
+
+**Puntaje coloreado, "En resumen" desarrollado, plano con 4 vistas y
+parlantes como volumen.** Ronda de pulido sobre el resultado completo:
+
+- **Puntaje del match** ahora sube arriba de "La cadena" en el sidebar
+  (era el segundo bloque) y su número lleva color — verde/naranjo/rojo
+  según `clasificarPuntaje()` (`packages/engine/src/puntaje.ts`,
+  `UMBRAL_PUNTAJE_VERDE=8`/`UMBRAL_PUNTAJE_NARANJO=5`) — sin usar el
+  componente `pintarVerdict` de capa física: sigue siendo un `<b>` simple
+  con clase CSS (`puntaje-ok/warn/alert`), no un pill, y sigue rotulado
+  "Criterio editorial, no física".
+- **"Sin datos suficientes" ya no se menciona cuando no aplica.** Antes
+  mostraba "Todos los componentes tenían dato suficiente" como
+  confirmación vacía; ahora, si no hay ningún componente `dim`, la
+  sección entera (título + lista) se oculta (`rf-sindatos-wrap`) — sólo
+  aparece cuando hay algo real que declarar.
+- **"En resumen" gana un párrafo holístico** (`comportamientoHtml`,
+  primera línea de la tarjeta): una frase que resume cómo se comporta el
+  match completo según la clase del puntaje (`ok`/`warn`/`alert`),
+  reusando el número ya calculado — no inventa una evaluación nueva.
+- **Recomendación de ubicación de parlantes** (`modeloUbicacionParlantes`
+  en `resultado.ts`, tarjeta del plano): narra en palabras la disposición
+  de referencia que `sala.ts` ya calculaba (distancia a la pared frontal,
+  a cada pared lateral, separación entre parlantes) — no es una regla
+  nueva, es la misma geometría que ya alimentaba `distanciaEscuchaM` y el
+  plano, puesta en una oración.
+- **Muro "vacío" ahora se declara en "En resumen".** Cuando algún muro
+  está marcado como abertura, la tarjeta de Reverberación en el resumen
+  lleva un aviso (`motor.reverberacion.avisoVacio`) explicando que no
+  refleja sonido (por eso baja el RT60 calculado) **y**, honestamente,
+  que los modos de sala de la tarjeta de arriba no se recalculan para una
+  abertura — siguen asumiendo paredes rígidas en los dos extremos de cada
+  eje. Se optó por declarar esta limitación en vez de intentar una
+  corrección de modos con condición de borde abierta: eso exigiría un
+  modelo acústico nuevo y no verificado, más allá del alcance de esta
+  ronda.
+- **El plano isométrico gana 4 vistas** (`Vista =
+  'isometrica'|'frontal'|'lateral'|'superior'`, botones preestablecidos,
+  no arrastre con mouse — ver `docs/motor-mvp.md` sección 4) y dibuja los
+  parlantes como una **caja de alambre** (volumen ilustrativo, no físico:
+  el catálogo no tiene dimensiones por equipo) en vez de un punto. El
+  gráfico también creció (`max-width` de 520px a 640px en CSS, más
+  espacio de proyección interno). Cambiar de vista sólo re-dibuja
+  (`main.ts` cachea `{sala, disposicion, murosVista}` del último
+  análisis) — no recalcula ni renaviega.
 
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root

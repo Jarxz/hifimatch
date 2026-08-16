@@ -130,6 +130,14 @@ export const es = {
       puntoDulce: 'punto dulce',
       fuente:
         'Predicción desde geometría de sala rígida y rectangular, método de imagen especular. Las reflexiones de techo y piso asumen parlante y oído a la misma altura (1,0 m, criterio del sitio) — no una medición de tu instalación real. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.',
+      vista: 'Vista',
+      vistaIsometrica: 'Isométrica',
+      vistaFrontal: 'Frontal',
+      vistaLateral: 'Lateral',
+      vistaSuperior: 'Superior',
+      ubicacionTitulo: 'Ubicación de referencia de los parlantes',
+      ubicacion: (p: { frontal: string; lateral: string; separacion: string }): string =>
+        `Distancia a la pared frontal: <b>${p.frontal} m</b>. Distancia a cada pared lateral: <b>${p.lateral} m</b>. Separación entre parlantes: <b>${p.separacion} m</b>. Es la disposición de referencia que usa el resto del análisis (potencia, modos, reflexiones) — se afina moviendo los parlantes y escuchando en el espacio real.`,
     },
     footer: {
       html:
@@ -340,6 +348,8 @@ export const es = {
         `RT60 = 0,161 × ${p.volumen} / ${p.absorcionTotal} = <b>${p.rt60} s</b>`,
       fuente:
         '<b>Fórmula:</b> ecuación de Sabine, RT60 = 0,161·V/A (V = volumen, A = absorción total en sabines), sumada superficie por superficie — no un coeficiente único para toda la sala, ni siquiera un único valor de "muro": cada muro se orienta y se declara aparte. Los coeficientes de absorción por material son criterio del sitio: valores típicos de literatura de acústica arquitectónica (banda media, ~500 Hz–1 kHz), no una medición de tu sala real. "Vacío" usa el coeficiente de referencia histórico de Sabine para una abertura (α=1,0: nada de lo que llega ahí vuelve a la sala). Se verifica midiendo con un decibelímetro o una app de RT60.',
+      avisoVacio: (p: { muros: string }): string =>
+        `<b>Muro(s) declarado(s) abertura:</b> ${p.muros}. No reflejan sonido — por eso baja la reverberación calculada arriba, y el plano isométrico no dibuja la reflexión de ese muro. Los modos de sala (resonancias) de la tarjeta de arriba <b>no se ajustan</b> para una abertura: siguen asumiendo paredes rígidas en los dos extremos de cada eje, así que la resonancia calculada en el eje de ese muro es menos representativa que en una sala cerrada.`,
     },
 
     puntaje: {
@@ -362,6 +372,14 @@ export const es = {
 
     resumen: {
       titulo: 'En resumen',
+      comportamiento: {
+        ok: (p: { puntaje: string }): string =>
+          `El sistema en conjunto funciona bien: la mayoría de los aspectos evaluados están resueltos, con un puntaje de ${p.puntaje}/10.`,
+        warn: (p: { puntaje: string }): string =>
+          `El sistema funciona, pero conviene revisar algunos puntos antes de darlo por cerrado — puntaje ${p.puntaje}/10.`,
+        alert: (p: { puntaje: string }): string =>
+          `El sistema tiene varios puntos que conviene resolver antes de considerarlo un buen match — puntaje ${p.puntaje}/10.`,
+      },
       fortalezasTitulo: 'Lo que funciona bien',
       debilidadesTitulo: 'Lo que conviene revisar',
       sinDatosTitulo: 'Sin datos suficientes',
@@ -374,7 +392,6 @@ export const es = {
       itemSinDatos: (p: { nombre: string }): string => `${p.nombre}: no se evaluó — falta el dato del fabricante que esta regla necesita.`,
       sinFortalezas: 'Ningún componente evaluado quedó sin observaciones.',
       sinDebilidades: 'Ningún componente evaluado quedó con algo para revisar.',
-      sinPendientes: 'Todos los componentes elegidos tenían dato suficiente para evaluarse.',
       recomendacionConAviso: (p: { nombre: string; aviso: string }): string => `<b>${p.nombre}:</b> ${p.aviso}`,
       recomendacionTodoOk:
         'No hay ningún punto pendiente entre lo evaluado, con los datos disponibles. Igual conviene escuchar y medir en el espacio real: la predicción no reemplaza esa verificación.',

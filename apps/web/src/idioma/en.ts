@@ -117,6 +117,14 @@ export const en: Textos = {
       puntoDulce: 'sweet spot',
       fuente:
         "Prediction from a rigid, rectangular room geometry, mirror-image method. Ceiling and floor reflections assume the speaker and the listener's ears are at the same height (1.0 m, a site criterion) — not a measurement of your actual setup. It gets refined by listening and measuring in the real space; it does not replace that verification.",
+      vista: 'View',
+      vistaIsometrica: 'Isometric',
+      vistaFrontal: 'Front',
+      vistaLateral: 'Side',
+      vistaSuperior: 'Top',
+      ubicacionTitulo: 'Reference speaker placement',
+      ubicacion: (p: { frontal: string; lateral: string; separacion: string }): string =>
+        `Distance to the front wall: <b>${p.frontal} m</b>. Distance to each side wall: <b>${p.lateral} m</b>. Distance between speakers: <b>${p.separacion} m</b>. This is the reference layout the rest of the analysis uses (power, modes, reflections) — it gets refined by moving the speakers and listening in the real space.`,
     },
     footer: {
       html:
@@ -319,6 +327,8 @@ export const en: Textos = {
         `RT60 = 0.161 × ${p.volumen} / ${p.absorcionTotal} = <b>${p.rt60} s</b>`,
       fuente:
         "<b>Formula:</b> Sabine's equation, RT60 = 0.161·V/A (V = volume, A = total absorption in sabins), summed surface by surface — not a single coefficient for the whole room, not even a single \"wall\" value: each wall is oriented and declared separately. Per-material absorption coefficients are a site criterion: typical values from architectural acoustics literature (mid-band, ~500 Hz–1 kHz), not a measurement of your real room. \"Open\" uses Sabine's historical reference coefficient for an opening (α=1.0: nothing that reaches it comes back into the room). Verified by measuring with an SPL meter or an RT60 app.",
+      avisoVacio: (p) =>
+        `<b>Wall(s) declared open:</b> ${p.muros}. They don't reflect sound — that's why the reverberation calculated above drops, and the isometric view draws no reflection for that wall. The room modes (resonances) in the card above are <b>not adjusted</b> for an opening: they still assume rigid walls at both ends of each axis, so the resonance calculated on that wall's axis is less representative than in a closed room.`,
     },
 
     puntaje: {
@@ -340,6 +350,11 @@ export const en: Textos = {
 
     resumen: {
       titulo: 'In summary',
+      comportamiento: {
+        ok: (p) => `The system as a whole works well: most of the evaluated aspects are resolved, with a score of ${p.puntaje}/10.`,
+        warn: (p) => `The system works, but a few points are worth checking before calling it done — score ${p.puntaje}/10.`,
+        alert: (p) => `The system has several points worth resolving before considering it a good match — score ${p.puntaje}/10.`,
+      },
       fortalezasTitulo: 'What works well',
       debilidadesTitulo: 'What’s worth checking',
       sinDatosTitulo: 'Not enough data',
@@ -350,7 +365,6 @@ export const en: Textos = {
       itemSinDatos: (p) => `${p.nombre}: not evaluated — missing the manufacturer data this rule needs.`,
       sinFortalezas: 'No evaluated component came out with no concerns.',
       sinDebilidades: 'No evaluated component came out with something worth checking.',
-      sinPendientes: 'Every chosen component had enough data to be evaluated.',
       recomendacionConAviso: (p) => `<b>${p.nombre}:</b> ${p.aviso}`,
       recomendacionTodoOk:
         'Nothing pending among what was evaluated, given the available data. Still worth listening and measuring in the real space — the prediction doesn’t replace that check.',
