@@ -560,6 +560,25 @@ CSS propio (`.info-item`) porque acá el título completo hace de
 disparador (con chevron a la derecha), no una etiqueta chica tipo "Ver
 detalle técnico".
 
+**Botón "i" por tarjeta, atajo contextual a la misma explicación de la
+guía — no la reemplaza.** Cada tarjeta de evaluación (potencia, carga,
+puente×2, recorrido×2, modos, reverberación, plano, y el bloque
+"Puntaje del match" del sidebar — 10 botones en total) lleva un botón
+circular `.infobtn` junto a su veredicto que abre un `<dialog>` nativo
+(`#info-popup`, uno solo, reusado — el contenido se reemplaza en JS,
+`main.ts` función `abrirInfoPopup(clave)`) con el mismo título y cuerpo
+(`info.<clave>.titulo`/`cuerpoHtml`) que ya vive en la pantalla "Guía
+del análisis". `<dialog>` nativo en vez de un componente propio: cierra
+con Escape solo, con el botón "×", o clickeando el fondo oscurecido
+(`::backdrop`) — sin librería, sin gestión manual de foco. Streamer y
+DAC comparten la misma clave `ganancia` en sus 4 tarjetas (puente y
+recorrido evalúan la misma pregunta de cadena de ganancia, ya lo
+explica junto en la guía). Las claves `capas`/`confianza` de la guía no
+tienen botón propio — son conceptos transversales, no atados a una sola
+tarjeta — así que la pantalla completa sigue siendo el único lugar
+donde se explican. El botón invierte a fondo claro en hover (mismo
+patrón de contraste que `.segs button[aria-pressed=true]`).
+
 **Guardar configuraciones con login queda diferido, no implementado.**
 Se pidió una función para guardar la configuración actual detrás de un
 inicio de sesión, con una pantalla de configuraciones guardadas y

@@ -172,6 +172,21 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .detalle[open] summary::after{transform:rotate(225deg)}
 .detalle > :not(summary){margin-top:2px}
 
+.infobtn{width:20px; height:20px; border-radius:50%; border:1px solid var(--line2); background:transparent; color:var(--dim); font-size:11px; font-style:italic; font-family:Georgia,'Times New Roman',serif; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; flex:0 0 auto; transition:color .15s,border-color .15s,background-color .15s}
+.infobtn:hover{color:var(--bg); background:var(--text); border-color:var(--text)}
+.infobtn:focus-visible{outline:2px solid var(--line2); outline-offset:2px}
+.blkhead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 14px}
+.blkhead h2{margin:0}
+
+dialog.info-popup{max-width:480px; width:calc(100% - 40px); border:1px solid var(--line2); border-radius:6px; background:var(--panel2); color:var(--text); padding:20px 22px; box-shadow:0 20px 60px rgba(0,0,0,.55)}
+dialog.info-popup::backdrop{background:rgba(0,0,0,.6)}
+.info-popup-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:10px}
+.info-popup-head h3{font-weight:400; font-size:18px; margin:0; letter-spacing:.01em}
+.info-popup p{color:var(--dim); font-size:14px; line-height:1.7; margin:0}
+.info-popup p b{color:var(--text); font-weight:500}
+.infoclose{background:transparent; border:0; color:var(--faint); font-size:20px; line-height:1; cursor:pointer; padding:0 2px; flex:0 0 auto}
+.infoclose:hover{color:var(--text)}
+
 .info-item summary{cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:16px; user-select:none}
 .info-item summary::-webkit-details-marker{display:none}
 .info-item summary h3{margin:0}

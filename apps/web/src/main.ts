@@ -438,6 +438,23 @@ function cambiarIdioma(idioma: Idioma): void {
   renderizarResultado();
 }
 
+type InfoClave = 'capas' | 'confianza' | 'potencia' | 'carga' | 'ganancia' | 'modos' | 'reverberacion' | 'plano' | 'puntaje';
+
+/** Popup con la misma explicación de la pantalla "Guía del análisis"
+ * (`info.*`), abierta desde el botón "i" de cada tarjeta — atajo
+ * contextual, no reemplaza la guía completa (que además cubre capas y
+ * confianza, sin tarjeta propia a la que atarse). */
+function abrirInfoPopup(clave: InfoClave): void {
+  const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
+  const tituloEl = document.getElementById('info-popup-titulo');
+  const cuerpoEl = document.getElementById('info-popup-cuerpo');
+  if (!dialog || !tituloEl || !cuerpoEl) return;
+  const info = textosDe(idiomaActual).info[clave];
+  tituloEl.textContent = info.titulo;
+  cuerpoEl.innerHTML = info.cuerpoHtml;
+  dialog.showModal();
+}
+
 function inicializarSplash(): void {
   const ticks = document.getElementById('splash-ticks');
   if (!ticks) return;
@@ -456,6 +473,15 @@ function wireEventos(): void {
   document.getElementById('btn-info')?.addEventListener('click', () => ir('info'));
   document.getElementById('btn-info-volver')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
+
+  document.querySelectorAll<HTMLButtonElement>('.infobtn[data-info]').forEach((b) => {
+    b.addEventListener('click', () => abrirInfoPopup(b.dataset.info as InfoClave));
+  });
+  const infoPopup = document.getElementById('info-popup') as HTMLDialogElement | null;
+  document.getElementById('info-popup-cerrar')?.addEventListener('click', () => infoPopup?.close());
+  infoPopup?.addEventListener('click', (e) => {
+    if (e.target === infoPopup) infoPopup.close();
+  });
 
   document.getElementById('sel-spk')?.addEventListener('change', (e) => pick('spk', (e.target as HTMLSelectElement).value));
   document.getElementById('sel-amp')?.addEventListener('change', (e) => pick('amp', (e.target as HTMLSelectElement).value));

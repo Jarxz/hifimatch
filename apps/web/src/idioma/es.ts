@@ -27,6 +27,8 @@ export const es = {
 
   comun: {
     idiomaAria: 'Cambiar idioma',
+    infoAria: 'Ver información',
+    cerrarAria: 'Cerrar',
   },
 
   splash: {

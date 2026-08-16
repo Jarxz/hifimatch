@@ -14,6 +14,8 @@ export const en: Textos = {
 
   comun: {
     idiomaAria: 'Change language',
+    infoAria: 'View information',
+    cerrarAria: 'Close',
   },
 
   splash: {

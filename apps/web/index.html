@@ -207,7 +207,10 @@
     <div class="grid">
       <aside class="rail">
         <div class="blk">
-          <h2 data-i18n="motor.puntaje.titulo">Puntaje del match</h2>
+          <div class="blkhead">
+            <h2 data-i18n="motor.puntaje.titulo">Puntaje del match</h2>
+            <button type="button" class="infobtn" data-info="puntaje" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </div>
           <div class="rr"><span data-i18n="motor.puntaje.rotulo">Criterio editorial, no física</span><b id="pt-puntaje">—</b></div>
           <div class="src" id="pt-detalle"></div>
           <div class="flag hidden" id="pt-flag"></div>
@@ -228,7 +231,7 @@
         <h2 data-i18n="resultado.evaluacion">Evaluación</h2>
 
         <div class="card">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pw-verdict">—</span></div>
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pw-verdict">—</span><button type="button" class="infobtn" data-info="potencia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</h3>
           <p class="simple" id="pw-simple">—</p>
           <p id="pw-text">—</p>
@@ -246,7 +249,7 @@
         </div>
 
         <div class="card" id="card-carga">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="z-verdict">—</span></div>
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="z-verdict">—</span><button type="button" class="infobtn" data-info="carga" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.carga.titulo">La carga que ve el amplificador</h3>
           <p class="simple" id="z-simple">—</p>
           <p id="z-text">—</p>
@@ -258,7 +261,7 @@
         </div>
 
         <div class="card hidden" id="card-puente-streamer">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-streamer">—</span></div>
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-streamer">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</h3>
           <p class="simple" id="pz-simple-streamer">—</p>
           <p id="pz-text-streamer">—</p>
@@ -271,7 +274,7 @@
         </div>
 
         <div class="card hidden" id="card-recorrido-streamer">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-streamer">—</span></div>
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-streamer">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</h3>
           <p class="simple" id="pv-simple-streamer">—</p>
           <p id="pv-text-streamer">—</p>
@@ -284,7 +287,7 @@
         </div>
 
         <div class="card hidden" id="card-puente-dac">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-dac">—</span></div>
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-dac">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</h3>
           <p class="simple" id="pz-simple-dac">—</p>
           <p id="pz-text-dac">—</p>
@@ -297,7 +300,7 @@
         </div>
 
         <div class="card hidden" id="card-recorrido-dac">
-          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-dac">—</span></div>
+          <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-dac">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</h3>
           <p class="simple" id="pv-simple-dac">—</p>
           <p id="pv-text-dac">—</p>
@@ -310,7 +313,7 @@
         </div>
 
         <div class="card">
-          <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" style="color:var(--dim)" data-i18n="resultado.disposicionReferencia">Disposición de referencia</span></div>
+          <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" style="color:var(--dim)" data-i18n="resultado.disposicionReferencia">Disposición de referencia</span><button type="button" class="infobtn" data-info="plano" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="resultado.plano.titulo">Plano, escucha y reflexiones</h3>
           <p data-i18n="resultado.plano.texto">Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
           <div class="rline" style="margin-top:14px">
@@ -332,7 +335,7 @@
           <h4 data-i18n="resultado.plano.ubicacionTitulo">Ubicación de referencia de los parlantes</h4>
           <p id="plan-ubicacion">—</p>
 
-          <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="mo-verdict">—</span></div>
+          <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="mo-verdict">—</span><button type="button" class="infobtn" data-info="modos" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.modos.titulo">Modos de sala (graves)</h3>
           <p class="simple" id="mo-simple">—</p>
           <p id="mo-text">—</p>
@@ -343,7 +346,7 @@
             <div class="src" id="mo-src"></div>
           </details>
 
-          <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="rt-verdict">—</span></div>
+          <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="rt-verdict">—</span><button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
           <h3 data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3>
           <p class="simple" id="rt-simple">—</p>
           <p id="rt-text">—</p>
@@ -412,6 +415,14 @@
     </div>
   </div>
 </section>
+
+<dialog id="info-popup" class="info-popup">
+  <div class="info-popup-head">
+    <h3 id="info-popup-titulo">—</h3>
+    <button type="button" id="info-popup-cerrar" class="infoclose" data-i18n-aria="comun.cerrarAria" aria-label="Cerrar">×</button>
+  </div>
+  <p id="info-popup-cuerpo">—</p>
+</dialog>
 
 <script type="module" src="/src/main.ts"></script>
 </body>
