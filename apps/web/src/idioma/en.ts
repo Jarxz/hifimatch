@@ -97,6 +97,7 @@ export const en: Textos = {
     capaFisica: 'Physical layer',
     geometria: 'Geometry',
     disposicionReferencia: 'Reference layout',
+    verDetalle: 'View technical detail',
     plano: {
       titulo: 'Layout, listening position and reflections',
       texto:

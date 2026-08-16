@@ -194,14 +194,17 @@
           <h3 data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</h3>
           <p class="simple" id="pw-simple">—</p>
           <p id="pw-text">—</p>
-          <div class="meter">
-            <div class="scale" id="pw-scale"></div>
-            <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
-          </div>
-          <div class="calc" id="pw-calc"></div>
-          <div class="flag hidden" id="pw-flag"></div>
-          <p class="src" id="pw-crest"></p>
-          <div class="src" id="pw-src"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="meter">
+              <div class="scale" id="pw-scale"></div>
+              <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
+            </div>
+            <div class="calc" id="pw-calc"></div>
+            <div class="flag hidden" id="pw-flag"></div>
+            <p class="src" id="pw-crest"></p>
+            <div class="src" id="pw-src"></div>
+          </details>
         </div>
 
         <div class="card" id="card-carga">
@@ -209,8 +212,11 @@
           <h3 data-i18n="motor.carga.titulo">La carga que ve el amplificador</h3>
           <p class="simple" id="z-simple">—</p>
           <p id="z-text">—</p>
-          <div class="flag hidden" id="z-flag"></div>
-          <div class="src" id="z-src"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="flag hidden" id="z-flag"></div>
+            <div class="src" id="z-src"></div>
+          </details>
         </div>
 
         <div class="card hidden" id="card-puente-streamer">
@@ -218,9 +224,12 @@
           <h3 data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</h3>
           <p class="simple" id="pz-simple-streamer">—</p>
           <p id="pz-text-streamer">—</p>
-          <div class="calc" id="pz-calc-streamer"></div>
-          <div class="flag hidden" id="pz-flag-streamer"></div>
-          <div class="src" id="pz-src-streamer"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="calc" id="pz-calc-streamer"></div>
+            <div class="flag hidden" id="pz-flag-streamer"></div>
+            <div class="src" id="pz-src-streamer"></div>
+          </details>
         </div>
 
         <div class="card hidden" id="card-recorrido-streamer">
@@ -228,9 +237,12 @@
           <h3 data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</h3>
           <p class="simple" id="pv-simple-streamer">—</p>
           <p id="pv-text-streamer">—</p>
-          <div class="calc" id="pv-calc-streamer"></div>
-          <div class="flag hidden" id="pv-flag-streamer"></div>
-          <div class="src" id="pv-src-streamer"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="calc" id="pv-calc-streamer"></div>
+            <div class="flag hidden" id="pv-flag-streamer"></div>
+            <div class="src" id="pv-src-streamer"></div>
+          </details>
         </div>
 
         <div class="card hidden" id="card-puente-dac">
@@ -238,9 +250,12 @@
           <h3 data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</h3>
           <p class="simple" id="pz-simple-dac">—</p>
           <p id="pz-text-dac">—</p>
-          <div class="calc" id="pz-calc-dac"></div>
-          <div class="flag hidden" id="pz-flag-dac"></div>
-          <div class="src" id="pz-src-dac"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="calc" id="pz-calc-dac"></div>
+            <div class="flag hidden" id="pz-flag-dac"></div>
+            <div class="src" id="pz-src-dac"></div>
+          </details>
         </div>
 
         <div class="card hidden" id="card-recorrido-dac">
@@ -248,9 +263,12 @@
           <h3 data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</h3>
           <p class="simple" id="pv-simple-dac">—</p>
           <p id="pv-text-dac">—</p>
-          <div class="calc" id="pv-calc-dac"></div>
-          <div class="flag hidden" id="pv-flag-dac"></div>
-          <div class="src" id="pv-src-dac"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="calc" id="pv-calc-dac"></div>
+            <div class="flag hidden" id="pv-flag-dac"></div>
+            <div class="src" id="pv-src-dac"></div>
+          </details>
         </div>
 
         <div class="card">
@@ -269,16 +287,22 @@
           <h3 data-i18n="motor.modos.titulo">Modos de sala (graves)</h3>
           <p class="simple" id="mo-simple">—</p>
           <p id="mo-text">—</p>
-          <div class="flag hidden" id="mo-flag"></div>
-          <div class="curvas hidden" id="mo-curvas"></div>
-          <div class="src" id="mo-src"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="flag hidden" id="mo-flag"></div>
+            <div class="curvas hidden" id="mo-curvas"></div>
+            <div class="src" id="mo-src"></div>
+          </details>
 
           <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="rt-verdict">—</span></div>
           <h3 data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3>
           <p class="simple" id="rt-simple">—</p>
           <p id="rt-text">—</p>
-          <div class="calc" id="rt-calc"></div>
-          <div class="src" id="rt-src"></div>
+          <details class="detalle">
+            <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+            <div class="calc" id="rt-calc"></div>
+            <div class="src" id="rt-src"></div>
+          </details>
         </div>
 
         <div class="card">

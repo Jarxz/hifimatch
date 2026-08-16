@@ -110,6 +110,7 @@ export const es = {
     capaFisica: 'Capa física',
     geometria: 'Geometría',
     disposicionReferencia: 'Disposición de referencia',
+    verDetalle: 'Ver detalle técnico',
     plano: {
       titulo: 'Plano, escucha y reflexiones',
       texto:

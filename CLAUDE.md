@@ -406,6 +406,23 @@ equipos tienen output stages inusuales que un solo campo `salidaV`/
   (6,0 V/10 Ω) en vez de mezclar el voltaje RCA (3,0 V, sin impedancia
   medida) con una impedancia de otro conector.
 
+**Las 8 tarjetas de evaluación son colapsables** (`<details class="detalle">
+<summary>`, HTML nativo, sin JS propio). Siempre visible: el badge de capa
+(física/geometría) + veredicto, el título, la frase `simple` en itálica y
+el párrafo principal (`textoHtml`) — ese resumen ya cuenta la historia
+completa en lenguaje simple. Detrás del toggle "Ver detalle técnico"
+(colapsado por defecto): el medidor visual, la caja `calc` con la fórmula
+y los números, el `flag`/aviso, el crest factor (sólo potencia), las
+curvas modales (sólo modos) y la caja `src` de fuentes — la evidencia
+técnica que sostiene el veredicto, no la primera lectura. Aplica a
+potencia, carga, puente×2 (streamer/dac), recorrido×2 (streamer/dac),
+modos y reverberación; el plano de reflexiones, "Puntaje del match" y "En
+resumen" quedan fuera a propósito porque no siguen el mismo patrón
+simple+técnico. `<details>` nativo no necesita `main.ts`/`pintar.ts`:
+`getElementById`/`innerHTML` funcionan igual con el contenido colapsado
+(confirmado que `medidor.ts` no rompe porque posiciona la aguja con
+porcentajes, nunca con `getBoundingClientRect`).
+
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
