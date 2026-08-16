@@ -551,7 +551,14 @@ isométrico, puntaje — cada una con un título y un cuerpo con `<b>`
 explicativo, no una regla nueva del motor: describe en prosa lo que cada
 tarjeta del resultado ya calcula y por qué, para que el veredicto se
 pueda leer con criterio propio. `idioma.test.ts` (`CLAVES_HTML`) ahora
-espera los 9 `info.*.cuerpoHtml` además del footer.
+espera los 9 `info.*.cuerpoHtml` además del footer. Las 9 tarjetas son
+además **desplegables**: cada una es un `<details class="card
+info-item">` con el título dentro de `<summary><h3>` y el cuerpo debajo
+— colapsadas por defecto, mismo patrón `<details>` nativo (sin JS
+propio) que ya usa `.detalle` en las tarjetas de evaluación, pero con
+CSS propio (`.info-item`) porque acá el título completo hace de
+disparador (con chevron a la derecha), no una etiqueta chica tipo "Ver
+detalle técnico".
 
 **Guardar configuraciones con login queda diferido, no implementado.**
 Se pidió una función para guardar la configuración actual detrás de un
