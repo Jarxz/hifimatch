@@ -156,6 +156,7 @@
         <div class="card">
           <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pw-verdict">—</span></div>
           <h3 data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</h3>
+          <p class="simple" id="pw-simple">—</p>
           <p id="pw-text">—</p>
           <div class="meter">
             <div class="scale" id="pw-scale"></div>
@@ -169,6 +170,7 @@
         <div class="card">
           <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="z-verdict">—</span></div>
           <h3 data-i18n="motor.carga.titulo">La carga que ve el amplificador</h3>
+          <p class="simple" id="z-simple">—</p>
           <p id="z-text">—</p>
           <div class="flag hidden" id="z-flag"></div>
           <div class="src" id="z-src"></div>
@@ -177,6 +179,7 @@
         <div class="card hidden" id="card-puente-streamer">
           <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-streamer">—</span></div>
           <h3 data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</h3>
+          <p class="simple" id="pz-simple-streamer">—</p>
           <p id="pz-text-streamer">—</p>
           <div class="calc" id="pz-calc-streamer"></div>
           <div class="flag hidden" id="pz-flag-streamer"></div>
@@ -186,6 +189,7 @@
         <div class="card hidden" id="card-recorrido-streamer">
           <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-streamer">—</span></div>
           <h3 data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</h3>
+          <p class="simple" id="pv-simple-streamer">—</p>
           <p id="pv-text-streamer">—</p>
           <div class="calc" id="pv-calc-streamer"></div>
           <div class="flag hidden" id="pv-flag-streamer"></div>
@@ -195,6 +199,7 @@
         <div class="card hidden" id="card-puente-dac">
           <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-dac">—</span></div>
           <h3 data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</h3>
+          <p class="simple" id="pz-simple-dac">—</p>
           <p id="pz-text-dac">—</p>
           <div class="calc" id="pz-calc-dac"></div>
           <div class="flag hidden" id="pz-flag-dac"></div>
@@ -204,6 +209,7 @@
         <div class="card hidden" id="card-recorrido-dac">
           <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-dac">—</span></div>
           <h3 data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</h3>
+          <p class="simple" id="pv-simple-dac">—</p>
           <p id="pv-text-dac">—</p>
           <div class="calc" id="pv-calc-dac"></div>
           <div class="flag hidden" id="pv-flag-dac"></div>
@@ -226,11 +232,20 @@
         <div class="card">
           <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="mo-verdict">—</span></div>
           <h3 data-i18n="motor.modos.titulo">Modos de sala (graves)</h3>
+          <p class="simple" id="mo-simple">—</p>
           <p id="mo-text">—</p>
-          <div class="calc" id="mo-lista"></div>
           <div class="flag hidden" id="mo-flag"></div>
           <div class="curvas hidden" id="mo-curvas"></div>
           <div class="src" id="mo-src"></div>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="motor.resumen.titulo">En resumen</h3>
+          <h4 data-i18n="motor.resumen.fortalezasTitulo">Lo que funciona bien</h4>
+          <ul id="rf-fortalezas"></ul>
+          <h4 data-i18n="motor.resumen.debilidadesTitulo">Lo que conviene revisar</h4>
+          <ul id="rf-debilidades"></ul>
+          <div class="flag" id="rf-recomendacion"></div>
         </div>
 
         <footer class="note" data-i18n-html="resultado.footer.html">

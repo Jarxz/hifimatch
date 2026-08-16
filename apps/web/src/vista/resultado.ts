@@ -27,6 +27,7 @@ export type ClaseVerdicto = 'ok' | 'warn' | 'alert' | 'dim';
 export interface ModeloTarjetaPotencia {
   verdictoClase: ClaseVerdicto;
   verdictoTexto: string;
+  simpleHtml: string;
   margenDb: number;
   textoHtml: string;
   calcHtml: string;
@@ -90,6 +91,7 @@ export function modeloPotencia(
   return {
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.potencia.verdicto[r.codigo],
+    simpleHtml: t.motor.potencia.simple[r.codigo],
     margenDb: r.margenDb,
     textoHtml,
     calcHtml,
@@ -102,6 +104,7 @@ export interface ModeloTarjetaCarga {
   sinDatos: boolean;
   verdictoClase: ClaseVerdicto;
   verdictoTexto: string;
+  simpleHtml: string;
   textoHtml: string;
   avisoHtml: string | null;
   avisoEsSinDatos: boolean;
@@ -116,6 +119,7 @@ export function modeloCarga(spk: ParlanteCat, amp: AmplificadorCat, r: Resultado
       sinDatos: true,
       verdictoClase: 'dim',
       verdictoTexto: t.motor.carga.verdicto[r.codigo],
+      simpleHtml: t.motor.carga.simple[r.codigo],
       textoHtml: t.motor.carga.sinDatosTexto,
       avisoHtml: t.motor.carga.sinDatosAviso,
       avisoEsSinDatos: true,
@@ -150,6 +154,7 @@ export function modeloCarga(spk: ParlanteCat, amp: AmplificadorCat, r: Resultado
     sinDatos: false,
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.carga.verdicto[r.codigo],
+    simpleHtml: t.motor.carga.simple[r.codigo],
     textoHtml,
     avisoHtml,
     avisoEsSinDatos: false,
@@ -161,6 +166,7 @@ export interface ModeloTarjetaPuente {
   sinDatos: boolean;
   verdictoClase: ClaseVerdicto;
   verdictoTexto: string;
+  simpleHtml: string;
   textoHtml: string;
   calcHtml: string;
   avisoHtml: string | null;
@@ -181,6 +187,7 @@ export function modeloPuente(
       sinDatos: true,
       verdictoClase: 'dim',
       verdictoTexto: t.motor.puente.verdicto[r.codigo],
+      simpleHtml: t.motor.puente.simple[r.codigo],
       textoHtml: t.motor.puente.sinDatosTexto({ fuente: fuente.nombre, amp: amp.nombre }),
       calcHtml: '',
       avisoHtml: t.motor.puente.sinDatosAviso,
@@ -216,6 +223,7 @@ export function modeloPuente(
     sinDatos: false,
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.puente.verdicto[r.codigo],
+    simpleHtml: t.motor.puente.simple[r.codigo],
     textoHtml,
     calcHtml,
     avisoHtml,
@@ -228,6 +236,7 @@ export interface ModeloTarjetaRecorrido {
   sinDatos: boolean;
   verdictoClase: ClaseVerdicto;
   verdictoTexto: string;
+  simpleHtml: string;
   textoHtml: string;
   calcHtml: string;
   avisoHtml: string | null;
@@ -248,6 +257,7 @@ export function modeloRecorrido(
       sinDatos: true,
       verdictoClase: 'dim',
       verdictoTexto: t.motor.recorrido.verdicto[r.codigo],
+      simpleHtml: t.motor.recorrido.simple[r.codigo],
       textoHtml: t.motor.recorrido.sinDatosTexto({ fuente: fuente.nombre, amp: amp.nombre }),
       calcHtml: '',
       avisoHtml: t.motor.recorrido.sinDatosAviso,
@@ -283,6 +293,7 @@ export function modeloRecorrido(
     sinDatos: false,
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.recorrido.verdicto[r.codigo],
+    simpleHtml: t.motor.recorrido.simple[r.codigo],
     textoHtml,
     calcHtml,
     avisoHtml,
@@ -294,9 +305,10 @@ export function modeloRecorrido(
 export interface ModeloTarjetaModos {
   verdictoClase: ClaseVerdicto; // 'ok' | 'warn' — nunca 'alert'/'dim': ver CLAUDE.md, techo de severidad de sala
   verdictoTexto: string;
+  simpleHtml: string;
   textoHtml: string;
-  listaHtml: string;
-  avisoHtml: string | null;
+  avisoHtml: string | null; // lista de pares agrupados — dato, no consejo
+  sugerenciaHtml: string | null; // consejo accionable (para la tarjeta y para el resumen final)
   fuenteHtml: string;
 }
 
@@ -305,10 +317,6 @@ export function modeloModos(r: ResultadoModos, idioma: Idioma): ModeloTarjetaMod
   const eje = t.motor.modos.eje;
 
   const techoFmt = String(TECHO_AGRUPAMIENTO_HZ);
-
-  const listaHtml = r.modos
-    .map((m) => t.motor.modos.filaModo({ eje: eje[m.eje], orden: String(m.orden), frecuencia: num(m.frecuenciaHz, 1, idioma) }))
-    .join('<br>');
 
   const textoHtml =
     r.severidad === 'ok'
@@ -332,9 +340,10 @@ export function modeloModos(r: ResultadoModos, idioma: Idioma): ModeloTarjetaMod
   return {
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.modos.verdicto[r.codigo],
+    simpleHtml: t.motor.modos.simple[r.codigo],
     textoHtml,
-    listaHtml,
     avisoHtml,
+    sugerenciaHtml: r.agrupados.length > 0 ? t.motor.modos.sugerencia : null,
     fuenteHtml: t.motor.modos.fuente({ techo: techoFmt, umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)) }),
   };
 }
@@ -374,4 +383,56 @@ export function modeloPuntaje(r: ResultadoPuntaje, idioma: Idioma): ModeloPuntaj
     avisoHtml,
     criterioHtml: t.motor.puntaje.criterio,
   };
+}
+
+/** Un componente ya evaluado (potencia, carga, puente de una fuente,
+ * recorrido de una fuente, o modos), con su nombre ya traducido y listo
+ * para mostrar en el resumen — reusa exactamente lo que ya calculó su
+ * modeloX correspondiente, no inventa una evaluación nueva. */
+export interface ComponenteResumen {
+  nombre: string;
+  verdictoClase: ClaseVerdicto;
+  verdictoTexto: string;
+  avisoHtml: string | null;
+}
+
+export interface ModeloResumenFinal {
+  fortalezasHtml: string;
+  debilidadesHtml: string;
+  recomendacionHtml: string;
+}
+
+/**
+ * Recapitulación en lenguaje simple de lo que ya mostraron las tarjetas de
+ * arriba — no evalúa nada nuevo. "dim" (sin-datos) no cuenta ni como
+ * fortaleza ni como debilidad: un dato faltante no es ni bueno ni malo, es
+ * desconocido (misma doctrina que el resto del proyecto). La recomendación
+ * reusa el `avisoHtml` que la regla correspondiente ya redactó — prioriza
+ * "alert" sobre "warn" si hay varios.
+ */
+export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idioma): ModeloResumenFinal {
+  const t = textosDe(idioma).motor.resumen;
+
+  const fortalezas = componentes.filter((c) => c.verdictoClase === 'ok');
+  const debilidades = componentes.filter((c) => c.verdictoClase === 'warn' || c.verdictoClase === 'alert');
+
+  const fortalezasHtml =
+    fortalezas.length > 0
+      ? fortalezas.map((c) => `<li>${t.itemFortaleza({ nombre: c.nombre, verdicto: c.verdictoTexto })}</li>`).join('')
+      : `<li>${t.sinFortalezas}</li>`;
+
+  const debilidadesHtml =
+    debilidades.length > 0
+      ? debilidades.map((c) => `<li>${t.itemDebilidad({ nombre: c.nombre, verdicto: c.verdictoTexto })}</li>`).join('')
+      : `<li>${t.sinDebilidades}</li>`;
+
+  const peorAlert = componentes.find((c) => c.verdictoClase === 'alert' && c.avisoHtml);
+  const peorWarn = componentes.find((c) => c.verdictoClase === 'warn' && c.avisoHtml);
+  const elegido = peorAlert ?? peorWarn;
+
+  const recomendacionHtml = elegido
+    ? t.recomendacionConAviso({ nombre: elegido.nombre, aviso: elegido.avisoHtml! })
+    : t.recomendacionTodoOk;
+
+  return { fortalezasHtml, debilidadesHtml, recomendacionHtml };
 }

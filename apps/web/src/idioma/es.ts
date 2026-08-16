@@ -128,6 +128,11 @@ export const es = {
         justo: 'Justo',
         insuficiente: 'Insuficiente',
       } satisfies Record<CodigoPotencia, string>,
+      simple: {
+        'con-margen': 'Sobra potencia para tocar fuerte sin esfuerzo.',
+        justo: 'Llega justo — sin margen para los pasajes más dinámicos.',
+        insuficiente: 'No alcanza la potencia para el volumen que pediste.',
+      } satisfies Record<CodigoPotencia, string>,
       conMargen: (p: { amp: string; nivel: string; margenDb: string; distM: string }): string =>
         `El ${p.amp} entrega los picos a nivel <b>${p.nivel}</b> con <b>${p.margenDb} dB</b> de margen a ${p.distM} m. Alcanza con holgura.`,
       justoTexto: (p: { nivel: string; margenDb: string }): string =>
@@ -152,6 +157,12 @@ export const es = {
         'exige-corriente': 'Exige corriente',
         cubierto: 'Cubierto',
         'carga-benigna': 'Carga benigna',
+      } satisfies Record<CodigoCarga, string>,
+      simple: {
+        'sin-dato': 'No hay dato suficiente para evaluar esta carga.',
+        'exige-corriente': 'Esta combinación pide más corriente de la que este amplificador reserva.',
+        cubierto: 'El amplificador maneja bien esta carga.',
+        'carga-benigna': 'Una carga fácil, sin riesgo para el amplificador.',
       } satisfies Record<CodigoCarga, string>,
       sinDatosTexto:
         'No hay una medición precisa de la impedancia mínima de este parlante. Las mediciones independientes no reportan caídas críticas, pero <b>sin el dato no se afirma que sea una carga fácil</b>.',
@@ -183,6 +194,12 @@ export const es = {
         'puente-ajustado': 'Puente ajustado',
         'puente-insuficiente': 'Puente insuficiente',
       } satisfies Record<CodigoPuenteImpedancias, string>,
+      simple: {
+        'sin-dato': 'Falta dato para evaluar este empalme.',
+        'puente-correcto': 'La señal pasa bien de la fuente al amplificador.',
+        'puente-ajustado': 'El empalme funciona, pero con menos margen del ideal.',
+        'puente-insuficiente': 'Se pierde señal entre la fuente y el amplificador.',
+      } satisfies Record<CodigoPuenteImpedancias, string>,
       sinDatosTexto: (p: { fuente: string; amp: string }): string =>
         `Falta la impedancia de salida de <b>${p.fuente}</b> o la de entrada de <b>${p.amp}</b>. Sin ambos datos no se afirma que el puente sea correcto.`,
       sinDatosAviso:
@@ -211,6 +228,12 @@ export const es = {
         'recorrido-sano': 'Recorrido de volumen sano',
         'recorrido-corto': 'Recorrido corto',
       } satisfies Record<CodigoRecorridoVolumen, string>,
+      simple: {
+        'sin-dato': 'Falta dato para evaluar el recorrido de volumen.',
+        insuficiente: 'El volumen no va a alcanzar el nivel que necesitás.',
+        'recorrido-sano': 'Vas a usar un rango cómodo del dial de volumen.',
+        'recorrido-corto': 'Vas a mover el volumen en un rango muy chico del dial.',
+      } satisfies Record<CodigoRecorridoVolumen, string>,
       sinDatosTexto: (p: { fuente: string; amp: string }): string =>
         `Falta el voltaje de salida de <b>${p.fuente}</b> o la sensibilidad de entrada de <b>${p.amp}</b>.`,
       sinDatosAviso:
@@ -234,20 +257,24 @@ export const es = {
         'modos-distribuidos': 'Bien distribuidos',
         'modos-agrupados': 'Modos agrupados',
       } satisfies Record<CodigoModos, string>,
+      simple: {
+        'modos-distribuidos': 'Los graves de la sala están razonablemente parejos.',
+        'modos-agrupados': 'Hay frecuencias graves que probablemente sonarán reforzadas.',
+      } satisfies Record<CodigoModos, string>,
       eje: { ancho: 'ancho', largo: 'largo', alto: 'alto' } satisfies Record<EjeSala, string>,
       textoOk: (p: { techo: string }): string =>
         `Las resonancias de graves de la sala están razonablemente distribuidas por debajo de ${p.techo} Hz — no se detectan coincidencias que refuercen una frecuencia en particular.`,
       textoWarn: (p: { n: string; techo: string }): string =>
         `${p.n} par(es) de modos caen dentro del umbral de agrupamiento por debajo de ${p.techo} Hz — señal de refuerzo de graves en esas frecuencias.`,
-      filaModo: (p: { eje: string; orden: string; frecuencia: string }): string =>
-        `${p.eje} · orden ${p.orden} · <b>${p.frecuencia} Hz</b>`,
       parAgrupado: (p: { a: string; b: string; frecuenciaA: string; frecuenciaB: string }): string =>
         `${p.a} (${p.frecuenciaA} Hz) y ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p: { techo: string; umbral: string }): string =>
         `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
+      sugerencia:
+        'Probá reposicionar los parlantes o el punto de escucha, o tratar acústicamente esas frecuencias — se verifica escuchando y midiendo en el espacio real.',
       curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
-        'Presión relativa a lo largo de cada eje afectado — curvas 1D independientes por eje, no un mapa combinado de la sala.',
+        'Presión relativa a lo largo de cada eje afectado — sólo los agrupamientos de menor frecuencia (los más audibles y difíciles de tratar). Curvas 1D independientes por eje, no un mapa combinado de la sala.',
     },
 
     puntaje: {
@@ -266,6 +293,20 @@ export const es = {
         `Calculado sobre ${p.evaluados} de ${p.total} componentes — el resto no tenía dato suficiente y no se incluyó (ni suma ni resta).`,
       criterio:
         '<b>Criterio editorial, no un dato medido:</b> combina las severidades de arriba con pesos que este sitio declara — potencia 30 % · carga 25 % · puente de impedancias 17 % · recorrido de volumen 13 % · modos de sala 15 %. Otro criterio razonable pesaría distinto.',
+    },
+
+    resumen: {
+      titulo: 'En resumen',
+      fortalezasTitulo: 'Lo que funciona bien',
+      debilidadesTitulo: 'Lo que conviene revisar',
+      recomendacionTitulo: 'Recomendación',
+      itemFortaleza: (p: { nombre: string; verdicto: string }): string => `${p.nombre}: ${p.verdicto}`,
+      itemDebilidad: (p: { nombre: string; verdicto: string }): string => `${p.nombre}: ${p.verdicto}`,
+      sinFortalezas: 'Ningún componente evaluado quedó en verde.',
+      sinDebilidades: 'Ningún componente evaluado quedó en amarillo o rojo.',
+      recomendacionConAviso: (p: { nombre: string; aviso: string }): string => `Por <b>${p.nombre}</b>: ${p.aviso}`,
+      recomendacionTodoOk:
+        'No hay ningún punto pendiente entre lo evaluado — el sistema calza bien con los datos disponibles. Igual conviene escuchar y medir en el espacio real.',
     },
   },
 

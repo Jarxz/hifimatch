@@ -10,7 +10,8 @@ import type { Parlante, Amplificador } from '../../../../packages/engine/src/tip
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from '../datos/adaptadores.ts';
-import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos, modeloPuntaje } from './resultado.ts';
+import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos, modeloPuntaje, modeloResumenFinal } from './resultado.ts';
+import type { ComponenteResumen } from './resultado.ts';
 
 function parlanteCat(id: string): ParlanteCat {
   const p = CATALOGO.parlantes.find((x) => x.id === id);
@@ -39,6 +40,7 @@ test('modeloPotencia: severidad "ok" → verdictoClase "ok", nunca "alert"/"dim"
   assert.equal(r.codigo, 'con-margen');
   assert.equal(m.verdictoTexto, 'Con margen');
   assert.match(m.textoHtml, /Alcanza con holgura/);
+  assert.match(m.simpleHtml, /Sobra potencia/);
 });
 
 test('modeloPotencia: severidad "alert" → texto de insuficiencia, no de sobra', () => {
@@ -169,15 +171,19 @@ test('modeloModos: sala 3,6×5,0×2,4 (razón 3:2 ancho/alto) → "warn", con el
   assert.ok(m.avisoHtml !== null);
   assert.match(m.avisoHtml!, /ancho/);
   assert.match(m.avisoHtml!, /alto/);
-  assert.ok(m.listaHtml.length > 0);
+  assert.match(m.simpleHtml, /reforzad/);
+  assert.ok(m.sugerenciaHtml !== null);
+  assert.match(m.sugerenciaHtml!, /reposicionar/);
+  assert.notEqual(m.sugerenciaHtml, m.avisoHtml); // consejo accionable, no la lista de pares
 });
 
-test('modeloModos: sala 2,5×3,0×2,2 sin agrupamiento → "ok", sin aviso', () => {
+test('modeloModos: sala 2,5×3,0×2,2 sin agrupamiento → "ok", sin aviso ni sugerencia', () => {
   const r = evaluarModos({ anchoM: 2.5, largoM: 3.0, altoM: 2.2 });
   const m = modeloModos(r, 'es');
   assert.equal(m.verdictoClase, 'ok');
   assert.equal(m.verdictoTexto, 'Bien distribuidos');
   assert.equal(m.avisoHtml, null);
+  assert.equal(m.sugerenciaHtml, null);
 });
 
 test('modeloModos nunca es "alert" ni "dim" — el techo de severidad de sala es "warn" (CLAUDE.md)', () => {
@@ -244,6 +250,52 @@ test('modeloPuntaje en inglés: etiquetas de componente y criterio en inglés, s
   assert.match(m.detalleHtml, /Power: 10\/10/);
   assert.match(m.criterioHtml, /Editorial criterion/);
   assert.doesNotMatch(m.detalleHtml, /Potencia/);
+});
+
+// ---- resumen final ----
+
+test('modeloResumenFinal: componentes "ok" van a fortalezas, "warn"/"alert" a debilidades; "dim" no cuenta en ninguna', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
+    { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: '<b>Aviso de carga</b>' },
+    { nombre: 'Puente de impedancias', verdictoClase: 'alert', verdictoTexto: 'Puente insuficiente', avisoHtml: '<b>Aviso de puente</b>' },
+    { nombre: 'Modos de sala', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
+  ];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.match(m.fortalezasHtml, /Potencia: Con margen/);
+  assert.doesNotMatch(m.fortalezasHtml, /Carga|Puente|Modos/);
+  assert.match(m.debilidadesHtml, /Carga: Exige corriente/);
+  assert.match(m.debilidadesHtml, /Puente de impedancias: Puente insuficiente/);
+  assert.doesNotMatch(m.debilidadesHtml, /Modos de sala/);
+});
+
+test('modeloResumenFinal: la recomendación prioriza "alert" sobre "warn" cuando hay varias debilidades', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: '<b>Aviso de carga</b>' },
+    { nombre: 'Puente de impedancias', verdictoClase: 'alert', verdictoTexto: 'Puente insuficiente', avisoHtml: '<b>Aviso de puente</b>' },
+  ];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.match(m.recomendacionHtml, /Puente de impedancias/);
+  assert.match(m.recomendacionHtml, /Aviso de puente/);
+  assert.doesNotMatch(m.recomendacionHtml, /Aviso de carga/);
+});
+
+test('modeloResumenFinal: todo "ok" → recomendación de cierre positivo, sin fortalezas ni debilidades vacías', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
+    { nombre: 'Carga', verdictoClase: 'ok', verdictoTexto: 'Cubierto', avisoHtml: null },
+  ];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.match(m.debilidadesHtml, /Ningún componente evaluado quedó en amarillo o rojo/);
+  assert.match(m.recomendacionHtml, /No hay ningún punto pendiente/);
+});
+
+test('modeloResumenFinal en inglés: textos en inglés, sin mezclar idiomas', () => {
+  const componentes: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
+  const m = modeloResumenFinal(componentes, 'en');
+  assert.match(m.fortalezasHtml, /Power: With margin/);
+  assert.match(m.debilidadesHtml, /No evaluated component came out yellow or red/);
+  assert.match(m.recomendacionHtml, /Nothing pending/);
 });
 
 // ---- idioma 'en': mismos números, texto en inglés ----

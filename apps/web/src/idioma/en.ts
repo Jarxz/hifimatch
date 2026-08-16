@@ -117,6 +117,11 @@ export const en: Textos = {
         justo: 'Tight',
         insuficiente: 'Insufficient',
       },
+      simple: {
+        'con-margen': 'Plenty of power to play loud without strain.',
+        justo: 'Just enough — no margin for the most dynamic passages.',
+        insuficiente: 'Not enough power for the volume you asked for.',
+      },
       conMargen: (p) =>
         `The ${p.amp} delivers the peaks at <b>${p.nivel}</b> level with <b>${p.margenDb} dB</b> of margin at ${p.distM} m. Plenty of headroom.`,
       justoTexto: (p) =>
@@ -141,6 +146,12 @@ export const en: Textos = {
         'exige-corriente': 'Demands current',
         cubierto: 'Covered',
         'carga-benigna': 'Benign load',
+      },
+      simple: {
+        'sin-dato': 'Not enough data to assess this load.',
+        'exige-corriente': 'This pairing demands more current than this amplifier has in reserve.',
+        cubierto: 'The amplifier handles this load well.',
+        'carga-benigna': 'An easy load, no risk to the amplifier.',
       },
       sinDatosTexto:
         'There is no precise measurement of this speaker’s minimum impedance. Independent measurements do not report critical dips, but <b>a missing data point is never counted as a pass</b>.',
@@ -171,6 +182,12 @@ export const en: Textos = {
         'puente-ajustado': 'Bridge tight',
         'puente-insuficiente': 'Bridge insufficient',
       },
+      simple: {
+        'sin-dato': 'Missing data to assess this pairing.',
+        'puente-correcto': 'The signal passes well from the source to the amplifier.',
+        'puente-ajustado': 'The pairing works, but with less margin than ideal.',
+        'puente-insuficiente': 'Signal is lost between the source and the amplifier.',
+      },
       sinDatosTexto: (p) =>
         `The output impedance of <b>${p.fuente}</b> or the input impedance of <b>${p.amp}</b> is missing. Without both data points the bridge cannot be asserted as correct.`,
       sinDatosAviso:
@@ -198,6 +215,12 @@ export const en: Textos = {
         'recorrido-sano': 'Healthy headroom',
         'recorrido-corto': 'Short headroom',
       },
+      simple: {
+        'sin-dato': 'Missing data to assess volume headroom.',
+        insuficiente: 'Volume won’t reach the level you need.',
+        'recorrido-sano': 'You’ll use a comfortable range of the volume dial.',
+        'recorrido-corto': 'You’ll move the volume within a very small range of the dial.',
+      },
       sinDatosTexto: (p) =>
         `The output voltage of <b>${p.fuente}</b> or the input sensitivity of <b>${p.amp}</b> is missing.`,
       sinDatosAviso:
@@ -220,17 +243,23 @@ export const en: Textos = {
         'modos-distribuidos': 'Well distributed',
         'modos-agrupados': 'Clustered modes',
       },
+      simple: {
+        'modos-distribuidos': 'The room’s bass is reasonably even.',
+        'modos-agrupados': 'Some bass frequencies will likely sound reinforced.',
+      },
       eje: { ancho: 'width', largo: 'length', alto: 'height' },
       textoOk: (p) =>
         `The room's bass resonances are reasonably distributed below ${p.techo} Hz — no coincidences reinforcing a particular frequency were found.`,
       textoWarn: (p) =>
         `${p.n} mode pair(s) fall within the clustering threshold below ${p.techo} Hz — a sign of bass reinforcement at those frequencies.`,
-      filaModo: (p) => `${p.eje} · order ${p.orden} · <b>${p.frecuencia} Hz</b>`,
       parAgrupado: (p) => `${p.a} (${p.frecuenciaA} Hz) and ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p) =>
         `<b>Criterion:</b> rigid, rectangular room model, axial modes only. Clustering = two modes on different axes within ${p.umbral}% of each other, below ${p.techo} Hz — a site criterion, not a published convention; verified by measuring/listening.`,
+      sugerencia:
+        'Try repositioning the speakers or the listening spot, or treat those frequencies acoustically — verified by listening and measuring in the real space.',
       curvaOrden: (p) => `order ${p.orden} (${p.frecuencia} Hz)`,
-      curvasCaption: 'Relative pressure along each affected axis — independent 1D curves per axis, not a combined room map.',
+      curvasCaption:
+        'Relative pressure along each affected axis — only the lowest-frequency clusters (the most audible and hardest to treat). Independent 1D curves per axis, not a combined room map.',
     },
 
     puntaje: {
@@ -248,6 +277,20 @@ export const en: Textos = {
       aviso: (p) => `Calculated over ${p.evaluados} of ${p.total} components — the rest lacked enough data and were not included (neither added nor subtracted).`,
       criterio:
         '<b>Editorial criterion, not a measured figure:</b> combines the severities above with weights this site declares — power 30% · load 25% · impedance bridge 17% · volume headroom 13% · room modes 15%. Another reasonable criterion would weigh things differently.',
+    },
+
+    resumen: {
+      titulo: 'In summary',
+      fortalezasTitulo: 'What works well',
+      debilidadesTitulo: 'What’s worth checking',
+      recomendacionTitulo: 'Recommendation',
+      itemFortaleza: (p) => `${p.nombre}: ${p.verdicto}`,
+      itemDebilidad: (p) => `${p.nombre}: ${p.verdicto}`,
+      sinFortalezas: 'No evaluated component came out green.',
+      sinDebilidades: 'No evaluated component came out yellow or red.',
+      recomendacionConAviso: (p) => `For <b>${p.nombre}</b>: ${p.aviso}`,
+      recomendacionTodoOk:
+        'Nothing pending among what was evaluated — the system pairs well with the available data. Still worth listening and measuring in the real space.',
     },
   },
 

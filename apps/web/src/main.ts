@@ -18,7 +18,16 @@ import { poblarSelectores, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuent
 import { construirEscala } from './vista/medidor.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
 import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
-import { modeloPotencia, modeloCarga, modeloPuente, modeloRecorrido, modeloModos, modeloPuntaje } from './vista/resultado.ts';
+import {
+  modeloPotencia,
+  modeloCarga,
+  modeloPuente,
+  modeloRecorrido,
+  modeloModos,
+  modeloPuntaje,
+  modeloResumenFinal,
+} from './vista/resultado.ts';
+import type { ComponenteResumen } from './vista/resultado.ts';
 import {
   pintarCadena,
   pintarSala,
@@ -29,6 +38,7 @@ import {
   pintarModos,
   pintarCurvasModales,
   pintarPuntaje,
+  pintarResumenFinal,
 } from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
@@ -158,12 +168,70 @@ function renderizarResultado(): void {
   const nivelTexto = nivelTextoDe(estado.lvl, idiomaActual);
   const picoObjetivo = PICO_OBJETIVO_DB[NIVEL_MOTOR[estado.lvl]];
 
+  const resPot = evaluarPotencia(parlanteM, ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl]);
+  const mPot = modeloPotencia(spk, amp, resPot, disposicion.distanciaEscuchaM, nivelTexto, picoObjetivo, idiomaActual);
+  pintarPotencia(mPot, idiomaActual);
+
+  const resCarga = evaluarCarga(parlanteM, ampM);
+  const mCarga = modeloCarga(spk, amp, resCarga, idiomaActual);
+  pintarCarga(mCarga);
+
+  let resPuenteStreamer: ResultadoPuenteImpedancias | null = null;
+  let resRecorridoStreamer: ResultadoRecorridoVolumen | null = null;
+  let mPuenteStreamer: ReturnType<typeof modeloPuente> | null = null;
+  let mRecorridoStreamer: ReturnType<typeof modeloRecorrido> | null = null;
+  if (streamer) {
+    const streamerM = fuenteDelCatalogo(streamer, idiomaActual);
+    resPuenteStreamer = evaluarPuenteImpedancias(streamerM, ampM);
+    resRecorridoStreamer = evaluarRecorridoVolumen(streamerM, ampM);
+    mPuenteStreamer = modeloPuente(streamer, amp, resPuenteStreamer, idiomaActual);
+    mRecorridoStreamer = modeloRecorrido(streamer, amp, resRecorridoStreamer, idiomaActual);
+    pintarGanancia('streamer', mPuenteStreamer, mRecorridoStreamer);
+  } else {
+    pintarGanancia('streamer', null, null);
+  }
+
+  let resPuenteDac: ResultadoPuenteImpedancias | null = null;
+  let resRecorridoDac: ResultadoRecorridoVolumen | null = null;
+  let mPuenteDac: ReturnType<typeof modeloPuente> | null = null;
+  let mRecorridoDac: ReturnType<typeof modeloRecorrido> | null = null;
+  if (dac) {
+    const dacM = fuenteDelCatalogo(dac, idiomaActual);
+    resPuenteDac = evaluarPuenteImpedancias(dacM, ampM);
+    resRecorridoDac = evaluarRecorridoVolumen(dacM, ampM);
+    mPuenteDac = modeloPuente(dac, amp, resPuenteDac, idiomaActual);
+    mRecorridoDac = modeloRecorrido(dac, amp, resRecorridoDac, idiomaActual);
+    pintarGanancia('dac', mPuenteDac, mRecorridoDac);
+  } else {
+    pintarGanancia('dac', null, null);
+  }
+
+  pintarPlano(construirPlanoSvg(sala, disposicion, idiomaActual));
+  const resModos = evaluarModos(sala);
+  const mModos = modeloModos(resModos, idiomaActual);
+  pintarModos(mModos);
+  pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
+
   const items = [
-    { categoria: t.resultado.itemParlantes, nombre: spk.nombre, espec: especParlante(spk, idiomaActual) },
-    { categoria: t.resultado.itemAmplificador, nombre: amp.nombre, espec: especAmplificador(amp, idiomaActual) },
+    { categoria: t.resultado.itemParlantes, nombre: spk.nombre, espec: especParlante(spk, idiomaActual), comentario: mCarga.verdictoTexto },
+    { categoria: t.resultado.itemAmplificador, nombre: amp.nombre, espec: especAmplificador(amp, idiomaActual), comentario: mPot.verdictoTexto },
   ];
-  if (streamer) items.push({ categoria: t.resultado.itemStreamer, nombre: streamer.nombre, espec: especFuente(streamer, idiomaActual) });
-  if (dac) items.push({ categoria: t.resultado.itemDac, nombre: dac.nombre, espec: especFuente(dac, idiomaActual) });
+  if (streamer) {
+    items.push({
+      categoria: t.resultado.itemStreamer,
+      nombre: streamer.nombre,
+      espec: especFuente(streamer, idiomaActual),
+      comentario: `${mPuenteStreamer!.verdictoTexto} · ${mRecorridoStreamer!.verdictoTexto}`,
+    });
+  }
+  if (dac) {
+    items.push({
+      categoria: t.resultado.itemDac,
+      nombre: dac.nombre,
+      espec: especFuente(dac, idiomaActual),
+      comentario: `${mPuenteDac!.verdictoTexto} · ${mRecorridoDac!.verdictoTexto}`,
+    });
+  }
   pintarCadena(items);
 
   pintarSala(
@@ -174,49 +242,6 @@ function renderizarResultado(): void {
     `${num(picoObjetivo, 0, idiomaActual)} dB`
   );
 
-  const resPot = evaluarPotencia(parlanteM, ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl]);
-  pintarPotencia(
-    modeloPotencia(spk, amp, resPot, disposicion.distanciaEscuchaM, nivelTexto, picoObjetivo, idiomaActual),
-    idiomaActual
-  );
-
-  const resCarga = evaluarCarga(parlanteM, ampM);
-  pintarCarga(modeloCarga(spk, amp, resCarga, idiomaActual));
-
-  let resPuenteStreamer: ResultadoPuenteImpedancias | null = null;
-  let resRecorridoStreamer: ResultadoRecorridoVolumen | null = null;
-  if (streamer) {
-    const streamerM = fuenteDelCatalogo(streamer, idiomaActual);
-    resPuenteStreamer = evaluarPuenteImpedancias(streamerM, ampM);
-    resRecorridoStreamer = evaluarRecorridoVolumen(streamerM, ampM);
-    pintarGanancia(
-      'streamer',
-      modeloPuente(streamer, amp, resPuenteStreamer, idiomaActual),
-      modeloRecorrido(streamer, amp, resRecorridoStreamer, idiomaActual)
-    );
-  } else {
-    pintarGanancia('streamer', null, null);
-  }
-
-  let resPuenteDac: ResultadoPuenteImpedancias | null = null;
-  let resRecorridoDac: ResultadoRecorridoVolumen | null = null;
-  if (dac) {
-    const dacM = fuenteDelCatalogo(dac, idiomaActual);
-    resPuenteDac = evaluarPuenteImpedancias(dacM, ampM);
-    resRecorridoDac = evaluarRecorridoVolumen(dacM, ampM);
-    pintarGanancia('dac', modeloPuente(dac, amp, resPuenteDac, idiomaActual), modeloRecorrido(dac, amp, resRecorridoDac, idiomaActual));
-  } else {
-    pintarGanancia('dac', null, null);
-  }
-
-  pintarPlano(construirPlanoSvg(sala, disposicion, idiomaActual));
-  const resModos = evaluarModos(sala);
-  pintarModos(modeloModos(resModos, idiomaActual));
-  pintarCurvasModales(
-    construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual),
-    textosDe(idiomaActual).motor.modos.curvasCaption
-  );
-
   const puntaje = calcularPuntaje([
     { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
     { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: resCarga.severidad },
@@ -225,6 +250,46 @@ function renderizarResultado(): void {
     { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: resModos.severidad },
   ]);
   pintarPuntaje(modeloPuntaje(puntaje, idiomaActual));
+
+  const nombreComponente = t.motor.puntaje.componente;
+  const componentesResumen: ComponenteResumen[] = [
+    { nombre: nombreComponente.potencia, verdictoClase: mPot.verdictoClase, verdictoTexto: mPot.verdictoTexto, avisoHtml: mPot.avisoHtml },
+    { nombre: nombreComponente.carga, verdictoClase: mCarga.verdictoClase, verdictoTexto: mCarga.verdictoTexto, avisoHtml: mCarga.avisoHtml },
+    { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
+  ];
+  if (mPuenteStreamer) {
+    componentesResumen.push({
+      nombre: `${nombreComponente.puente} (${t.config.streamer})`,
+      verdictoClase: mPuenteStreamer.verdictoClase,
+      verdictoTexto: mPuenteStreamer.verdictoTexto,
+      avisoHtml: mPuenteStreamer.avisoHtml,
+    });
+  }
+  if (mRecorridoStreamer) {
+    componentesResumen.push({
+      nombre: `${nombreComponente.recorrido} (${t.config.streamer})`,
+      verdictoClase: mRecorridoStreamer.verdictoClase,
+      verdictoTexto: mRecorridoStreamer.verdictoTexto,
+      avisoHtml: mRecorridoStreamer.avisoHtml,
+    });
+  }
+  if (mPuenteDac) {
+    componentesResumen.push({
+      nombre: `${nombreComponente.puente} (${t.config.dac})`,
+      verdictoClase: mPuenteDac.verdictoClase,
+      verdictoTexto: mPuenteDac.verdictoTexto,
+      avisoHtml: mPuenteDac.avisoHtml,
+    });
+  }
+  if (mRecorridoDac) {
+    componentesResumen.push({
+      nombre: `${nombreComponente.recorrido} (${t.config.dac})`,
+      verdictoClase: mRecorridoDac.verdictoClase,
+      verdictoTexto: mRecorridoDac.verdictoTexto,
+      avisoHtml: mRecorridoDac.avisoHtml,
+    });
+  }
+  pintarResumenFinal(modeloResumenFinal(componentesResumen, idiomaActual));
 }
 
 /**

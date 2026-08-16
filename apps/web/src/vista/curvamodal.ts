@@ -21,6 +21,12 @@ import { textosDe } from '../idioma/idioma.ts';
 const ORDEN_EJES: EjeSala[] = ['ancho', 'largo', 'alto'];
 const COLORES = ['#C7AD7C', '#8FB8DE', '#D98080', '#9BD98A'];
 
+/** Cuántos agrupamientos graficar — los de menor frecuencia, que son los
+ * más audibles y los más difíciles de tratar acústicamente. El resto de
+ * los agrupamientos sigue contando en el texto de la tarjeta (el "N
+ * par(es)..."), sólo no se grafican, para no saturar de curvas. */
+export const TOP_N_AGRUPADOS = 2;
+
 const ANCHO_CHART = 380;
 const ALTO_CHART = 64;
 const PAD = 8;
@@ -46,8 +52,12 @@ export function construirCurvasModalesSvg(sala: Sala, agrupados: ModoAgrupado[],
   const t = textosDe(idioma).motor.modos;
   const longitudPorEje: Record<EjeSala, number> = { ancho: sala.anchoM, largo: sala.largoM, alto: sala.altoM };
 
+  const masImportantes = [...agrupados]
+    .sort((a, b) => (a.modoA.frecuenciaHz + a.modoB.frecuenciaHz) / 2 - (b.modoA.frecuenciaHz + b.modoB.frecuenciaHz) / 2)
+    .slice(0, TOP_N_AGRUPADOS);
+
   const modosPorEje = new Map<EjeSala, Map<number, number>>(); // eje -> (orden -> frecuenciaHz)
-  for (const a of agrupados) {
+  for (const a of masImportantes) {
     for (const modo of [a.modoA, a.modoB]) {
       if (!modosPorEje.has(modo.eje)) modosPorEje.set(modo.eje, new Map());
       modosPorEje.get(modo.eje)!.set(modo.orden, modo.frecuenciaHz);

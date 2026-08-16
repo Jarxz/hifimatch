@@ -103,6 +103,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .chainitem .ci-cat{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
 .chainitem .ci-name{font-size:14.5px; color:var(--text); margin-top:2px}
 .chainitem .ci-spec{font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:3px}
+.chainitem .ci-comment{font-size:11.5px; color:var(--faint); margin-top:4px; font-style:italic}
 .rr{display:flex; justify-content:space-between; font-size:13px; color:var(--dim); padding:5px 0}
 .rr b{font-family:var(--mono); color:var(--text); font-weight:500}
 
@@ -114,6 +115,11 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .card h3{font-weight:400; font-size:21px; margin:10px 0 4px; letter-spacing:.01em}
 .card p{color:var(--dim); font-size:14px; margin:8px 0}
 .card p b{color:var(--text); font-weight:500}
+.card p.simple{color:var(--text); font-size:15px; font-style:italic; margin:4px 0 10px}
+.card h4{font-weight:500; font-size:13px; letter-spacing:.02em; color:var(--dim); margin:18px 0 6px}
+.card ul{margin:0 0 4px; padding-left:18px}
+.card li{color:var(--dim); font-size:13.5px; line-height:1.7}
+.card li b{color:var(--text); font-weight:500}
 
 .meter{margin:22px 0 6px}
 .scale{position:relative; height:64px}

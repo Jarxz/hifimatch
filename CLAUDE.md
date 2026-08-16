@@ -146,6 +146,27 @@ en su propio bloque, nunca junto a un veredicto de capa física. Con
 streamer y dac elegidos a la vez, cada uno de puente/recorrido se combina
 con `peorSeveridad()` (mismo idioma que `peorConfianza()`).
 
+**Lenguaje simple sobre la capa física, sin reemplazarla.** Cada tarjeta de
+evaluación (potencia/carga/puente/recorrido/modos) tiene un `simpleHtml`:
+una frase corta en itálica, además del párrafo técnico con la fórmula — el
+motor sigue devolviendo códigos (`codigo`), y `resultado.ts` mapea cada
+código a esa frase vía diccionario, mismo patrón que `verdictoTexto`. Los
+items de "La cadena" (parlante/amplificador/streamer/dac) muestran un
+comentario reusando el `verdictoTexto` ya calculado para ese equipo — no
+inventan una evaluación nueva. Al final de la pantalla de resultado, una
+tarjeta "En resumen" (`modeloResumenFinal`) recapitula: qué componentes
+salieron "ok" (fortalezas), cuáles "warn"/"alert" (debilidades, con el
+`avisoHtml` que esa regla ya redactó) y una recomendación final que
+prioriza el peor "alert" sobre cualquier "warn" — `sin-datos`/`dim` no
+cuenta como fortaleza ni como debilidad, mismo principio de "dato faltante
+nunca es aprobado". Modos de sala tiene además `sugerenciaHtml`, distinto
+de `avisoHtml` (la lista de pares agrupados): un consejo accionable
+("probá reposicionar...") para que la recomendación final no repita datos
+crudos. La lista completa de todos los modos (hasta 300 Hz) se sacó de la
+tarjeta — sólo quedan las curvas de los 2 agrupamientos de menor
+frecuencia (`TOP_N_AGRUPADOS` en `curvamodal.ts`), los más audibles y
+difíciles de tratar; el resto sigue contando en el texto ("N par(es)...").
+
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
 datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 4 streamers +
 4 DACs, 3 cables curados sin regla todavía), bilingüe desde el origen
@@ -228,7 +249,7 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**146 tests totales** (69 motor + 11 catálogo + 66 frontend, estos últimos
+**150 tests totales** (69 motor + 11 catálogo + 70 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 

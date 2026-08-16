@@ -1,9 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
+import type { ModoAgrupado } from '../../../../packages/engine/src/modos.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
-import { construirCurvasModalesSvg } from './curvamodal.ts';
+import { construirCurvasModalesSvg, TOP_N_AGRUPADOS } from './curvamodal.ts';
+
+/** Mismo criterio de curación que curvamodal.ts: los TOP_N_AGRUPADOS de
+ * menor frecuencia promedio — reproducido acá para no depender de que la
+ * implementación exponga el paso intermedio. */
+function masImportantes(agrupados: ModoAgrupado[]): ModoAgrupado[] {
+  return [...agrupados]
+    .sort((a, b) => (a.modoA.frecuenciaHz + a.modoB.frecuenciaHz) / 2 - (b.modoA.frecuenciaHz + b.modoB.frecuenciaHz) / 2)
+    .slice(0, TOP_N_AGRUPADOS);
+}
 
 const SALA_CON_AGRUPAMIENTO: Sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // motor-mvp.md sección 4bis
 const SALA_SIN_AGRUPAMIENTO: Sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
@@ -17,13 +27,18 @@ test('sin modos agrupados: devuelve string vacío — no hay nada que explicar v
   }
 });
 
-test('sala con agrupamiento (3,6×5,0×2,4): un <svg> por cada eje afectado (ancho, largo y alto los tres agrupan), un <polyline> por orden distinto', () => {
+test('sala con agrupamiento (3,6×5,0×2,4): se curan sólo los 2 pares de menor frecuencia — un <svg> por eje afectado por esos 2, un <polyline> por orden distinto', () => {
   const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
-  const ordenesDistintosPorEje = new Set(r.agrupados.flatMap((a) => [`${a.modoA.eje}-${a.modoA.orden}`, `${a.modoB.eje}-${a.modoB.orden}`]));
+  assert.ok(r.agrupados.length > TOP_N_AGRUPADOS, 'este vector necesita más pares de los que se curan, para probar que efectivamente recorta');
+
+  const curados = masImportantes(r.agrupados);
+  const ejesAfectados = new Set(curados.flatMap((a) => [a.modoA.eje, a.modoB.eje]));
+  const ordenesDistintosPorEje = new Set(curados.flatMap((a) => [`${a.modoA.eje}-${a.modoA.orden}`, `${a.modoB.eje}-${a.modoB.orden}`]));
+
   for (const idioma of IDIOMAS) {
     const svg = construirCurvasModalesSvg(SALA_CON_AGRUPAMIENTO, r.agrupados, idioma);
-    assert.equal((svg.match(/<svg /g) ?? []).length, 3, idioma);
-    assert.equal((svg.match(/<\/svg>/g) ?? []).length, 3, idioma);
+    assert.equal((svg.match(/<svg /g) ?? []).length, ejesAfectados.size, idioma);
+    assert.equal((svg.match(/<\/svg>/g) ?? []).length, ejesAfectados.size, idioma);
     assert.equal((svg.match(/<polyline/g) ?? []).length, ordenesDistintosPorEje.size, idioma);
   }
 });

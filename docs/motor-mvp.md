@@ -234,6 +234,14 @@ sumar fase y amplitud relativa de cada modo, dato que este motor no tiene y
 no inventa. Son curvas independientes, una por eje, con esa salvedad
 explícita en el texto de la tarjeta.
 
+Sólo se grafican los `TOP_N_AGRUPADOS` (= 2) pares de menor frecuencia
+promedio — los más audibles y más difíciles de tratar acústicamente. El
+resto de los agrupamientos sigue contando en el texto de la tarjeta ("N
+par(es)..."), sólo no se dibujan, para no saturar de curvas cuando hay
+varios pares (la sala por defecto tiene 4). La tarjeta ya no lista todos
+los modos individuales (hasta 300 Hz) — sólo el veredicto, la frase simple,
+el aviso de agrupamiento y estas curvas curadas.
+
 ---
 
 ## 5. Lo que el motor todavía NO hace

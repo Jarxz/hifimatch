@@ -9,6 +9,7 @@ import type {
   ModeloTarjetaRecorrido,
   ModeloTarjetaModos,
   ModeloPuntaje,
+  ModeloResumenFinal,
 } from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { actualizarMedidor } from './medidor.ts';
@@ -45,13 +46,14 @@ export interface ItemCadena {
   categoria: string;
   nombre: string;
   espec: string;
+  comentario: string;
 }
 
 export function pintarCadena(items: ItemCadena[]): void {
   el('chain').innerHTML = items
     .map(
       (it) =>
-        `<div class="chainitem"><div class="ci-cat">${it.categoria}</div><div class="ci-name">${it.nombre}</div><div class="ci-spec">${it.espec}</div></div>`
+        `<div class="chainitem"><div class="ci-cat">${it.categoria}</div><div class="ci-name">${it.nombre}</div><div class="ci-spec">${it.espec}</div><div class="ci-comment">${it.comentario}</div></div>`
     )
     .join('');
 }
@@ -66,6 +68,7 @@ export function pintarSala(anchoLargo: string, alto: string, distancia: string, 
 
 export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma): void {
   pintarVerdict('pw-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('pw-simple').textContent = m.simpleHtml;
   el('pw-text').innerHTML = m.textoHtml;
   el('pw-calc').innerHTML = m.calcHtml;
   pintarFlag('pw-flag', m.avisoHtml, false);
@@ -75,6 +78,7 @@ export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma): void {
 
 export function pintarCarga(m: ModeloTarjetaCarga): void {
   pintarVerdict('z-verdict', m.sinDatos, m.verdictoClase, m.verdictoTexto);
+  el('z-simple').textContent = m.simpleHtml;
   el('z-text').innerHTML = m.textoHtml;
   pintarFlag('z-flag', m.avisoHtml, m.avisoEsSinDatos);
   el('z-src').innerHTML = m.fuenteHtml;
@@ -106,12 +110,14 @@ export function pintarGanancia(
   cardRecorrido.classList.remove('hidden');
 
   pintarVerdict('pz-verdict-' + categoria, puente.sinDatos, puente.verdictoClase, puente.verdictoTexto);
+  el('pz-simple-' + categoria).textContent = puente.simpleHtml;
   el('pz-text-' + categoria).innerHTML = puente.textoHtml;
   el('pz-calc-' + categoria).innerHTML = puente.calcHtml;
   pintarFlag('pz-flag-' + categoria, puente.avisoHtml, puente.avisoEsSinDatos);
   el('pz-src-' + categoria).innerHTML = puente.fuenteHtml;
 
   pintarVerdict('pv-verdict-' + categoria, recorrido.sinDatos, recorrido.verdictoClase, recorrido.verdictoTexto);
+  el('pv-simple-' + categoria).textContent = recorrido.simpleHtml;
   el('pv-text-' + categoria).innerHTML = recorrido.textoHtml;
   el('pv-calc-' + categoria).innerHTML = recorrido.calcHtml;
   pintarFlag('pv-flag-' + categoria, recorrido.avisoHtml, recorrido.avisoEsSinDatos);
@@ -126,8 +132,8 @@ export function pintarPlano(svg: string): void {
  * (sólo depende de las dimensiones, nunca de equipos) — nunca "sin-datos". */
 export function pintarModos(m: ModeloTarjetaModos): void {
   pintarVerdict('mo-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('mo-simple').textContent = m.simpleHtml;
   el('mo-text').innerHTML = m.textoHtml;
-  el('mo-lista').innerHTML = m.listaHtml;
   pintarFlag('mo-flag', m.avisoHtml, false);
   el('mo-src').innerHTML = m.fuenteHtml;
 }
@@ -152,4 +158,13 @@ export function pintarPuntaje(m: ModeloPuntaje): void {
   el('pt-detalle').innerHTML = m.detalleHtml;
   pintarFlag('pt-flag', m.avisoHtml, true);
   el('pt-criterio').innerHTML = m.criterioHtml;
+}
+
+/** Recapitulación en lenguaje simple — no evalúa nada nuevo, reorganiza lo
+ * que ya mostraron las tarjetas de arriba (ver modeloResumenFinal). */
+export function pintarResumenFinal(m: ModeloResumenFinal): void {
+  el('rf-fortalezas').innerHTML = m.fortalezasHtml;
+  el('rf-debilidades').innerHTML = m.debilidadesHtml;
+  el('rf-recomendacion').innerHTML = m.recomendacionHtml;
+  el('rf-recomendacion').className = 'flag';
 }
