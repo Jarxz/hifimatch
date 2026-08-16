@@ -111,6 +111,7 @@ export const es = {
     masStreamers: 'Más streamers · próximamente',
     masDacs: 'Más DACs · próximamente',
     verFicha: 'Ficha del producto · próximamente',
+    verDescripcion: 'Ver descripción',
     dimensionesTitulo: 'Dimensiones de la sala',
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',

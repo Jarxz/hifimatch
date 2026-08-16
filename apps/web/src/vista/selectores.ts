@@ -52,24 +52,24 @@ export function poblarSelectores(idioma: Idioma): void {
  * href ni onclick, para que quede claro que es una opción futura — pensado
  * para cuando una tienda quiera linkear su ficha de producto real.
  */
-function infoHtml(tipo: string, chips: string[], descripcion: string, verFicha: string): string {
+function infoHtml(tipo: string, chips: string[], descripcion: string, verDescripcion: string, verFicha: string): string {
   const chipsHtml = chips.map((c) => `<span>${c}</span>`).join('');
   return (
     `<div class="info"><div class="info-type">${tipo}</div><div class="chips">${chipsHtml}</div>` +
-    `<div class="info-desc">${descripcion}</div>` +
+    `<details class="detalle"><summary>${verDescripcion}</summary><div class="info-desc">${descripcion}</div></details>` +
     `<div class="info-linkwrap"><span class="info-link">${verFicha}</span></div></div>`
   );
 }
 
 export function infoHtmlParlante(p: ParlanteCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma], t.verFicha);
+  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma], t.verDescripcion, t.verFicha);
 }
 export function infoHtmlAmplificador(a: AmplificadorCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma], t.verFicha);
+  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma], t.verDescripcion, t.verFicha);
 }
 export function infoHtmlFuente(f: FuenteCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma], t.verFicha);
+  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma], t.verDescripcion, t.verFicha);
 }

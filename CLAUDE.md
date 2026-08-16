@@ -579,6 +579,31 @@ tarjeta — así que la pantalla completa sigue siendo el único lugar
 donde se explican. El botón invierte a fondo claro en hover (mismo
 patrón de contraste que `.segs button[aria-pressed=true]`).
 
+**Títulos de tarjeta en dorado, un solo punto de cambio.** `.card h3`
+(el título grande de cada tarjeta — potencia, carga, puente/recorrido,
+modos, RT60, plano, "En resumen", y los 9 títulos desplegables de la
+guía, que heredan la misma regla vía `.info-item summary h3`) ahora usa
+`color:var(--dorado)`, variable nueva (`#C9A24B`) agregada a `:root`
+junto a `--ok`/`--warn`/`--alert` — deliberadamente un tono distinto al
+de `--warn` (`#C7AD7C`) aunque ambos sean "dorados": comparten familia
+de color por estética, pero uno es severidad y el otro es sólo
+tipografía, y no deben leerse como lo mismo. El hover que atenúa a
+`--dim` en la guía (`.info-item summary:hover h3`) sigue funcionando
+porque es más específico que la regla nueva.
+
+**Tarjeta de equipo elegido (config): sólo chips + descripción
+desplegable, no descripción siempre visible.** Al elegir un parlante,
+amplificador, streamer o DAC, la tarjeta `.info` mostraba tipo + chips
+(Ω/dB/W) + un párrafo de descripción siempre visible + el placeholder
+de ficha. La descripción larga ahora vive detrás de un `<details
+class="detalle">` con resumen "Ver descripción" (`config.verDescripcion`,
+mismo patrón `<details>` que "Ver detalle técnico" en las tarjetas de
+evaluación) — colapsada por defecto. Los chips (los datos concretos:
+impedancia, sensibilidad, potencia) se quedan siempre visibles, sin
+tocar; sólo la prosa entra al desplegable. `vista/selectores.ts`
+(`infoHtml`) es quien arma este HTML — no toca `document` directo, así
+que sigue sin necesitar test con DOM.
+
 **Guardar configuraciones con login queda diferido, no implementado.**
 Se pidió una función para guardar la configuración actual detrás de un
 inicio de sesión, con una pantalla de configuraciones guardadas y

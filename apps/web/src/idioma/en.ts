@@ -98,6 +98,7 @@ export const en: Textos = {
     masStreamers: 'More streamers · coming soon',
     masDacs: 'More DACs · coming soon',
     verFicha: 'Product page · coming soon',
+    verDescripcion: 'View description',
     dimensionesTitulo: 'Room dimensions',
     ancho: 'Width (front)',
     largo: 'Length (depth)',

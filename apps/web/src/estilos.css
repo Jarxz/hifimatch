@@ -2,7 +2,7 @@
   --bg:#0A0A0B; --panel:#101012; --panel2:#141417;
   --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.20);
   --text:#ECECEE; --dim:#8C8C93; --faint:#5A5A61; --label:#6E6E75;
-  --ok:#96B6A2; --warn:#C7AD7C; --alert:#C58474;
+  --ok:#96B6A2; --warn:#C7AD7C; --alert:#C58474; --dorado:#C9A24B;
   --sans:'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif;
   --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
 }
@@ -122,7 +122,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .layer{font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); border:1px solid var(--line); border-radius:20px; padding:3px 9px}
 .verdict{margin-left:auto; font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:600}
 .verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.alert{color:var(--alert)}
-.card h3{font-weight:400; font-size:21px; margin:10px 0 4px; letter-spacing:.01em}
+.card h3{font-weight:400; font-size:21px; margin:10px 0 4px; letter-spacing:.01em; color:var(--dorado)}
 .card p{color:var(--dim); font-size:14px; margin:8px 0}
 .card p b{color:var(--text); font-weight:500}
 .card p.simple{color:var(--text); font-size:15px; font-style:italic; margin:4px 0 10px}
