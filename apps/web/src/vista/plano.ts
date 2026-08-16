@@ -131,11 +131,11 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
     const c = XY(p);
     return `<circle cx="${c.X}" cy="${c.Y}" r="${coord(r, 1)}" ${extra}/>`;
   };
-  const texto = (p: Pt3, contenido: string, extra: string, dx = 0, dy = 0, rotar = false): string => {
+  const texto = (p: Pt3, contenido: string, extra: string, dx = 0, dy = 0, anguloDeg = 0): string => {
     const c = px(p);
     const x = coord(c.x + dx, 1);
     const y = coord(c.y + dy, 1);
-    const transform = rotar ? ` transform="rotate(-90 ${x} ${y})"` : '';
+    const transform = anguloDeg !== 0 ? ` transform="rotate(${coord(anguloDeg, 1)} ${x} ${y})"` : '';
     return `<text x="${x}" y="${y}" ${extra}${transform}>${contenido}</text>`;
   };
 
@@ -175,27 +175,39 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   // derecho en "lateral") — se omiten en vez de mostrar texto ilegible
   // amontonado; isométrica y superior sí distinguen los 4 muros.
   //
-  // Izquierdo/derecho van rotadas -90° (leen de abajo hacia arriba,
-  // pegadas a la arista vertical de su lado) en vez de horizontales: un
-  // texto horizontal centrado ("IZQUIERDO"/"POSTERIOR", las palabras más
-  // largas) con `text-anchor="middle"` se extiende ~50-60px a cada lado
-  // del punto de anclaje, que podía superar el padding del viewBox y
-  // salirse del área visible del gráfico — rotado, el texto ocupa el
-  // ancho de su altura de fuente (~10px), no el de su longitud, así que
-  // encaja con un margen mucho más chico y sin riesgo de recorte.
+  // En la vista isométrica, las etiquetas se rotan para quedar alineadas
+  // con la arista diagonal de su lado — no verticales ni horizontales a
+  // secas: en la proyección isométrica de 30°, una arista que recorre el
+  // eje X en el mundo 3D se dibuja en pantalla a +30° de la horizontal
+  // (sx=(x−y)·cos30, sy=(x+y)·sin30−z ⇒ pendiente = sin30/cos30 = tan30),
+  // y una que recorre el eje Y se dibuja a −30° (mismo cálculo, con signo
+  // opuesto en x). En las vistas ortográficas (frontal/lateral/superior)
+  // no hay diagonales — ahí frontal/posterior quedan horizontales e
+  // izquierdo/derecho verticales (-90°, leen de abajo hacia arriba),
+  // igual que antes. Rotado o no, el texto sigue ocupando mucho menos
+  // ancho que su longitud horizontal, así que tampoco se sale del área
+  // visible del gráfico (razón original de por qué esto se rotaba).
+  const ANGULO_ARISTA_ANCHO_ISO = 30;
+  const ANGULO_ARISTA_LARGO_ISO = -30;
+  const anguloMuro = (eje: 'ancho' | 'largo'): number => {
+    if (vista !== 'isometrica') return eje === 'ancho' ? 0 : -90;
+    return eje === 'ancho' ? ANGULO_ARISTA_ANCHO_ISO : ANGULO_ARISTA_LARGO_ISO;
+  };
   const LABEL = 'fill="#6E6E75" font-size="10.5" letter-spacing="1.2" text-anchor="middle"';
   const LABEL_ABIERTO = 'fill="#5A5A61" font-size="10.5" letter-spacing="1.2" text-anchor="middle" font-style="italic"';
-  const etiquetaMuro = (p: Pt3, nombre: string, vacio: boolean, dx: number, dy: number, rotar = false): string =>
-    texto(p, vacio ? nombre + t.aberturaSufijo : nombre, vacio ? LABEL_ABIERTO : LABEL, dx, dy, rotar);
+  const etiquetaMuro = (p: Pt3, nombre: string, vacio: boolean, dx: number, dy: number, angulo: number): string =>
+    texto(p, vacio ? nombre + t.aberturaSufijo : nombre, vacio ? LABEL_ABIERTO : LABEL, dx, dy, angulo);
   const ejeYVisible = vista !== 'frontal';
   const ejeXVisible = vista !== 'lateral';
   if (ejeYVisible) {
-    s += etiquetaMuro({ x: W / 2, y: 0, z: H }, t.muroFrontalCorto, muros.frontal === 'vacio', 0, -16);
-    s += etiquetaMuro({ x: W / 2, y: L, z: H }, t.muroPosteriorCorto, muros.posterior === 'vacio', 0, -16);
+    const angulo = anguloMuro('ancho');
+    s += etiquetaMuro({ x: W / 2, y: 0, z: H }, t.muroFrontalCorto, muros.frontal === 'vacio', 0, -16, angulo);
+    s += etiquetaMuro({ x: W / 2, y: L, z: H }, t.muroPosteriorCorto, muros.posterior === 'vacio', 0, -16, angulo);
   }
   if (ejeXVisible) {
-    s += etiquetaMuro({ x: 0, y: L / 2, z: H }, t.muroIzquierdoCorto, muros.izquierdo === 'vacio', -14, 0, true);
-    s += etiquetaMuro({ x: W, y: L / 2, z: H }, t.muroDerechoCorto, muros.derecho === 'vacio', 14, 0, true);
+    const angulo = anguloMuro('largo');
+    s += etiquetaMuro({ x: 0, y: L / 2, z: H }, t.muroIzquierdoCorto, muros.izquierdo === 'vacio', -14, 0, angulo);
+    s += etiquetaMuro({ x: W, y: L / 2, z: H }, t.muroDerechoCorto, muros.derecho === 'vacio', 14, 0, angulo);
   }
 
   // triángulo de escucha
@@ -275,12 +287,15 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   s += texto(dulce3, t.puntoDulce, 'fill="#ECECEE" font-size="10" text-anchor="middle"', 0, 18);
 
   // dimensiones (ancho, largo, alto) a lo largo de las aristas del piso/
-  // vertical — largo y alto rotadas -90° por la misma razón que
-  // izquierdo/derecho arriba: pegadas a su arista, sin extenderse fuera
-  // del área visible del gráfico.
+  // vertical. "largo" comparte arista con la etiqueta "izquierdo" de
+  // arriba, así que usa el mismo ángulo (diagonal en isométrica, vertical
+  // en el resto) para quedar alineada con ella. "alto" es siempre un eje
+  // Z: en la proyección isométrica el eje Z nunca tiene componente
+  // horizontal, así que su arista es vertical en cualquier vista donde se
+  // vea (-90° fijo).
   s += texto({ x: W / 2, y: 0, z: 0 }, num(W, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', 0, 20);
-  s += texto({ x: 0, y: L / 2, z: 0 }, num(L, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, true);
-  s += texto({ x: 0, y: 0, z: H / 2 }, num(H, 2, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, true);
+  s += texto({ x: 0, y: L / 2, z: 0 }, num(L, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, anguloMuro('largo'));
+  s += texto({ x: 0, y: 0, z: H / 2 }, num(H, 2, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, -90);
 
   s += '</svg>';
   return s;

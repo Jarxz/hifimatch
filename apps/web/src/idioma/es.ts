@@ -36,6 +36,60 @@ export const es = {
     pie: 'basado en física · specs medidos · sin opiniones de gusto',
   },
 
+  info: {
+    hs: 'Guía del análisis',
+    boton: 'Info',
+    volver: '← Volver al análisis',
+    titulo: 'Cómo leer este análisis',
+    intro:
+      'Esta página explica qué significa cada tarjeta del resultado y de dónde sale cada número — para que el análisis se pueda leer con criterio propio, no sólo confiando en el veredicto final.',
+    capas: {
+      titulo: 'Dos tipos de afirmación: física y criterio editorial',
+      cuerpoHtml:
+        'Todo lo que este sitio afirma pertenece a una de dos categorías, y siempre se declara cuál. <b>Capa física:</b> tiene fórmula, umbral, fuente del dato y nivel de confianza — es refutable, alguien puede discutir un umbral con argumentos. Es casi todo lo que ves (potencia, carga, puente de impedancias, modos de sala, reverberación). <b>Capa criterio editorial:</b> preferencias que este sitio declara desde su propio criterio, no una medición — hoy es sólo el puntaje 1-10, que combina las severidades de arriba con pesos que este sitio eligió. Otro sitio razonable pesaría distinto, y eso no lo haría "menos correcto": es una opinión declarada, no un dato. Las dos capas nunca se mezclan visualmente — cada tarjeta dice de cuál se trata.',
+    },
+    confianza: {
+      titulo: 'Fuente y confianza de cada dato',
+      cuerpoHtml:
+        'Los fabricantes publican mal algunos datos — la impedancia de salida de streamers/DACs casi nunca está en la ficha, la sensibilidad de parlantes a veces se mide en condiciones optimistas. Por eso cada dato del catálogo lleva de dónde salió y una confianza (<b>alta/media/baja</b>): alta cuando viene de la ficha oficial o de una medición independiente que la confirma; media o baja cuando hay que inferirlo o sólo hay una fuente. <b>Un dato faltante nunca se muestra como si el equipo estuviera "bien"</b> — si falta el dato que una regla necesita, esa tarjeta se oculta del análisis principal y aparece declarada en "Sin datos suficientes", al final. Nunca se rellena un hueco con un "estándar de mercado" inventado: la dispersión real de specs entre equipos (por ejemplo, impedancia de salida de fuentes entre 10 Ω y 500 Ω) hace que cualquier valor único sea, en la práctica, un dato inventado.',
+    },
+    potencia: {
+      titulo: 'Potencia frente a los picos de la sala',
+      cuerpoHtml:
+        'La pregunta que responde esta tarjeta: ¿el amplificador entrega el nivel de pico (SPL) que la sala pide, a la distancia real de escucha? Se calcula desde la sensibilidad del parlante, la potencia del amplificador y la distancia, sumando un refuerzo típico por par de parlantes (+6 dB) y por sala pequeña (+3 dB) — dos supuestos declarados, no datos del equipo, que se verifican midiendo. El resultado es un <b>margen en dB</b> sobre el pico objetivo del nivel de escucha elegido (moderado/alto/referencia). La frase simple de la tarjeta reexpresa ese margen como <b>% de la capacidad del amplificador</b> que exige ese pico — más intuitivo que un número en dB: si el margen es de +6 dB, el amplificador está usando apenas una fracción de lo que tiene; si el margen es negativo, exigiría más del 100% de su capacidad, es decir, recortaría la señal (clipping) en los picos.',
+    },
+    carga: {
+      titulo: 'La carga que ve el amplificador',
+      cuerpoHtml:
+        'La impedancia de un parlante no es un número fijo — baja en ciertas frecuencias, y esa caída (impedancia mínima) es la que realmente exige corriente al amplificador, no la impedancia nominal de la ficha. Esta tarjeta compara esa impedancia mínima contra lo que el amplificador puede sostener: si la carga es exigente (impedancia mínima baja), el resultado depende de si el amplificador tiene <b>reserva de corriente</b> (duplica su potencia al bajar a la mitad la impedancia, señal de una fuente de alimentación robusta) o simplemente <b>potencia bruta</b> de sobra. Cuando el fabricante no publica la impedancia mínima del parlante, la tarjeta no se muestra en el análisis principal — aparece declarada en "Sin datos suficientes".',
+    },
+    ganancia: {
+      titulo: 'Puente de impedancias y recorrido de volumen',
+      cuerpoHtml:
+        'Cuando eliges un streamer o un DAC, hay dos preguntas de "cadena de ganancia" que la fuente y el amplificador tienen que resolver entre sí. <b>Puente de impedancias:</b> la convención de la industria pide que la impedancia de entrada del amplificador sea al menos 10 veces la impedancia de salida de la fuente (ratioZ ≥ 10:1) — si no se cumple, se pierden graves y se satura el estéreo separación de canales. <b>Recorrido de volumen:</b> compara el voltaje de salida de la fuente contra lo que el amplificador necesita para llegar a máxima potencia — si la fuente entrega mucho más voltaje del necesario, el control de volumen del amplificador queda "corto", usable en un rango muy chico antes de llegar al tope. Streamer y DAC se evalúan cada uno por separado, en su propio par de tarjetas.',
+    },
+    modos: {
+      titulo: 'Modos de sala (resonancias de graves)',
+      cuerpoHtml:
+        'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. Cuando dos modos de ejes distintos caen muy cerca en frecuencia (menos de 5%, por debajo de 150 Hz — ambos umbrales declarados por este sitio, no una convención publicada), ese refuerzo se nota más: es una frecuencia donde la sala probablemente sonará más "gorda" o resonante que el resto del rango grave. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real.',
+    },
+    reverberacion: {
+      titulo: 'Tiempo de reverberación estimado (RT60)',
+      cuerpoHtml:
+        'El RT60 es cuánto tarda el sonido en apagarse 60 dB después de que la fuente se corta — una sala con mucha reverberación suena "viva", con eco; una con muy poca suena "seca", apagada. Se calcula con la ecuación de Sabine a partir del volumen de la sala y la absorción de cada superficie (los 4 muros por separado, piso y techo), cada una con el material que elijas — hormigón y vidrio reflejan mucho, panel acústico y alfombra absorben mucho, y un muro declarado "vacío" (una abertura real) absorbe como una ventana abierta: nada de lo que llega ahí vuelve a la sala. El rango cómodo declarado para escucha crítica es 0,3–0,6 segundos.',
+    },
+    plano: {
+      titulo: 'Vista isométrica y reflexiones tempranas',
+      cuerpoHtml:
+        'El diagrama dibuja la sala a escala, con la disposición de referencia de los parlantes (triángulo simétrico) y el <b>punto dulce</b> — el vértice de ese triángulo, la posición de escucha que ese cálculo asume. Cada punto marcado sobre una pared, el techo o el piso es una <b>primera reflexión</b>: el camino que recorre el sonido desde el parlante, rebotando en esa superficie, hasta llegar al punto dulce — calculado con el método de imagen especular (el mismo que usan los estudios de acústica para ubicar puntos de tratamiento). Cada reflexión muestra su distancia total en metros. Un muro declarado "vacío" no dibuja su reflexión, porque no hay pared de la que rebotar. El botón "Vista" cambia el ángulo de cámara (isométrica/frontal/lateral/superior) sin recalcular nada — es la misma geometría, mirada desde otro lado.',
+    },
+    puntaje: {
+      titulo: 'Puntaje del match (1-10)',
+      cuerpoHtml:
+        'Es la única pieza del sitio que vive en la capa de <b>criterio editorial</b>, no física — un número que combina las severidades de potencia, carga, puente de impedancias, recorrido de volumen y modos de sala, con pesos que este sitio declara (potencia 30% · carga 25% · puente 17% · recorrido 13% · modos 15%). Un componente sin dato suficiente no se incluye — ni suma ni resta, y el sitio declara cuántos de los componentes posibles sí se pudieron evaluar. El número lleva color (verde/naranjo/rojo) para que se lea de un vistazo, pero sigue siendo una opinión declarada sobre cómo ponderar los hallazgos físicos de arriba, no un dato medido nuevo.',
+    },
+  },
+
   config: {
     hs: 'Configurar',
     volver: '← Volver',

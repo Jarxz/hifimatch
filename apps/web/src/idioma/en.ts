@@ -23,6 +23,60 @@ export const en: Textos = {
     pie: 'based on physics · measured specs · no taste opinions',
   },
 
+  info: {
+    hs: 'Analysis guide',
+    boton: 'Info',
+    volver: '← Back to the analysis',
+    titulo: 'How to read this analysis',
+    intro:
+      "This page explains what each result card means and where each number comes from — so the analysis can be read with your own judgment, not just by trusting the final verdict.",
+    capas: {
+      titulo: 'Two kinds of claim: physical and editorial criterion',
+      cuerpoHtml:
+        "Everything this site states belongs to one of two categories, and it always declares which. <b>Physical layer:</b> has a formula, a threshold, a data source, and a confidence level — it's refutable, someone can argue a threshold with evidence. It's almost everything you see (power, load, impedance bridge, room modes, reverberation). <b>Editorial-criterion layer:</b> preferences this site declares from its own judgment, not a measurement — today it's just the 1-10 score, which combines the severities above with weights this site chose. Another reasonable site would weigh things differently, and that wouldn't make it \"less correct\": it's a declared opinion, not a fact. The two layers are never mixed visually — every card states which one it is.",
+    },
+    confianza: {
+      titulo: 'Source and confidence of every data point',
+      cuerpoHtml:
+        "Manufacturers publish some specs poorly — a streamer/DAC's output impedance is almost never on the spec sheet, speaker sensitivity is sometimes measured under optimistic conditions. That's why every catalog entry carries where it came from and a confidence level (<b>high/medium/low</b>): high when it comes from the official spec sheet or an independent measurement that confirms it; medium or low when it has to be inferred or only one source exists. <b>A missing data point is never shown as if the gear were \"fine\"</b> — if a rule is missing the data it needs, that card is hidden from the main analysis and listed under \"Not enough data\" at the end. A gap is never filled with an invented \"market standard\": the real spread of specs across gear (e.g. source output impedance ranging from 10 Ω to 500 Ω) means any single value would, in practice, be a made-up number.",
+    },
+    potencia: {
+      titulo: 'Power versus the room\'s peaks',
+      cuerpoHtml:
+        "The question this card answers: does the amplifier deliver the peak level (SPL) the room asks for, at the real listening distance? It's calculated from speaker sensitivity, amplifier power, and distance, adding a typical boost for a stereo pair (+6 dB) and for a small room (+3 dB) — two declared assumptions, not equipment data, verified by measuring. The result is a <b>margin in dB</b> over the target peak of the chosen listening level (moderate/loud/reference). The card's short line re-expresses that margin as the <b>% of the amplifier's capacity</b> that peak demands — more intuitive than a dB figure: at +6 dB margin, the amplifier is only using a fraction of what it has; a negative margin would demand over 100% of its capacity, meaning it would clip on peaks.",
+    },
+    carga: {
+      titulo: 'The load the amplifier sees',
+      cuerpoHtml:
+        "A speaker's impedance isn't one fixed number — it dips at certain frequencies, and that dip (minimum impedance) is what actually demands current from the amplifier, not the nominal impedance on the spec sheet. This card compares that minimum impedance against what the amplifier can sustain: if the load is demanding (low minimum impedance), the result depends on whether the amplifier has <b>current reserve</b> (doubles its power when impedance halves, a sign of a robust power supply) or simply has <b>raw power</b> to spare. When the manufacturer doesn't publish the speaker's minimum impedance, the card is hidden from the main analysis — it's listed under \"Not enough data\".",
+    },
+    ganancia: {
+      titulo: 'Impedance bridge and volume headroom',
+      cuerpoHtml:
+        "When you pick a streamer or a DAC, there are two \"gain chain\" questions the source and the amplifier have to resolve between them. <b>Impedance bridge:</b> industry convention asks for the amplifier's input impedance to be at least 10 times the source's output impedance (ratioZ ≥ 10:1) — if that's not met, bass rolls off and channel separation suffers. <b>Volume headroom:</b> compares the source's output voltage against what the amplifier needs to reach full power — if the source delivers far more voltage than needed, the amplifier's volume control ends up \"short\", usable across only a small range before hitting the top. Streamer and DAC are each evaluated separately, in their own pair of cards.",
+    },
+    modos: {
+      titulo: 'Room modes (bass resonances)',
+      cuerpoHtml:
+        "Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room's width, length, and height \"fit\" certain wavelengths. When two modes on different axes land very close in frequency (within 5%, below 150 Hz — both thresholds declared by this site, not a published convention), that reinforcement stands out more: it's a frequency where the room will likely sound \"fatter\" or more resonant than the rest of the bass range. This rule never returns \"error\" severity — it's a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space.",
+    },
+    reverberacion: {
+      titulo: 'Estimated reverberation time (RT60)',
+      cuerpoHtml:
+        "RT60 is how long sound takes to decay 60 dB after the source cuts off — a room with a lot of reverberation sounds \"live\", echoey; one with too little sounds \"dry\", dull. It's calculated with Sabine's equation from the room's volume and the absorption of each surface (the 4 walls separately, floor, and ceiling), each with whatever material you pick — concrete and glass reflect a lot, acoustic panel and carpet absorb a lot, and a wall declared \"open\" (a real opening) absorbs like an open window: nothing that reaches it comes back into the room. The declared comfortable range for critical listening is 0.3–0.6 seconds.",
+    },
+    plano: {
+      titulo: 'Isometric view and early reflections',
+      cuerpoHtml:
+        "The diagram draws the room to scale, with the speakers' reference layout (a symmetric triangle) and the <b>sweet spot</b> — that triangle's apex, the listening position that calculation assumes. Every point marked on a wall, the ceiling, or the floor is a <b>first reflection</b>: the path sound travels from the speaker, bouncing off that surface, to the sweet spot — calculated with the mirror-image method (the same one acoustics studios use to place treatment). Each reflection shows its total distance in meters. A wall declared \"open\" draws no reflection there, because there's no wall to bounce off. The \"View\" button changes the camera angle (isometric/front/side/top) without recalculating anything — it's the same geometry, seen from another angle.",
+    },
+    puntaje: {
+      titulo: 'Match score (1-10)',
+      cuerpoHtml:
+        "It's the only piece of the site that lives in the <b>editorial-criterion</b> layer, not physics — a number combining the severities of power, load, impedance bridge, volume headroom, and room modes, with weights this site declares (power 30% · load 25% · bridge 17% · headroom 13% · modes 15%). A component without enough data isn't included — it neither adds nor subtracts, and the site states how many of the possible components could actually be evaluated. The number is colored (green/orange/red) so it reads at a glance, but it's still a declared opinion about how to weigh the physical findings above, not a new measured fact.",
+    },
+  },
+
   config: {
     hs: 'Configure',
     volver: '← Back',

@@ -340,8 +340,9 @@ mismo patrón que las demás tarjetas con cálculo (potencia, puente).
 `estado.ts` guarda `muro`/`piso`/`techo` en vez de `tipoSala`.
 
 **197 tests totales** (90 motor + 11 catálogo + 96 frontend, estos últimos
-con vectores propios en inglés además de los de español). Correlato de cada
-fase en el historial de commits, no en este documento.
+con vectores propios en inglés además de los de español; el frontend ya
+incluía el ajuste de `idioma.test.ts` de la pantalla de guía). Correlato
+de cada fase en el historial de commits, no en este documento.
 
 **Huecos de `fuentes` (streamers/DACs) revisados.** La impedancia de salida
 del WiiM Pro Plus estaba en `null`; se cerró en 10 Ω con una medición
@@ -519,6 +520,53 @@ vez de mostrar un porcentaje >100 % sin explicar qué significa.
 `Record<Codigo,(p:{porcentaje:string})=>string>` en los tres códigos
 (`con-margen`/`justo`/`insuficiente`).
 
+**Etiquetas del plano isométrico alineadas a la arista diagonal, no
+verticales.** La rotación -90° de las 4 etiquetas de muro (párrafo
+anterior) resolvía el recorte, pero en la vista isométrica el texto
+quedaba vertical mientras la arista del cubo a la que describe corre en
+diagonal (±30° respecto a la horizontal, según la propia fórmula de
+proyección: `sx=(x-y)·cos30, sy=(x+y)·sin30-z`). `plano.ts` deriva ahora
+el ángulo exacto de cada arista — +30° para las aristas en dirección X
+(muro izquierdo/derecho), −30° para las de dirección Y (muro
+frontal/posterior) — y sólo aplica esos ángulos cuando `vista ===
+'isometrica'`; las 3 vistas ortográficas (frontal/lateral/superior)
+siguen con el ángulo recto de antes, que ahí sí es el correcto. Mismo
+tratamiento para la etiqueta de la dimensión "largo" (eje Y). Verificado
+con capturas Chrome headless: las 4 etiquetas de muro y la cota de largo
+quedan pegadas a su arista en isométrica, sin regresión en las otras 3
+vistas.
+
+**Pantalla "Guía del análisis" — tutorial de conceptos, no ayuda
+contextual por tarjeta.** Un botón "Info" en el header de resultado abre
+una pantalla nueva (`#s-info`, mismo patrón `Pantalla`/`ir()` que
+splash/config/results — no una ventana de navegador real, para no romper
+la compatibilidad `file://`) con un botón "← Volver al análisis"
+(arriba y abajo de la pantalla, misma acción) que regresa sin
+recalcular nada. El contenido son 9 tarjetas `.card` (mismo componente
+visual que las tarjetas de evaluación), una por concepto — capas
+física/criterio-editorial, fuente y confianza, potencia, carga, puente
+de impedancias + recorrido de volumen, modos de sala, RT60, plano
+isométrico, puntaje — cada una con un título y un cuerpo con `<b>`
+(`data-i18n-html`, mismo mecanismo que ya usaba el footer). Texto
+explicativo, no una regla nueva del motor: describe en prosa lo que cada
+tarjeta del resultado ya calcula y por qué, para que el veredicto se
+pueda leer con criterio propio. `idioma.test.ts` (`CLAVES_HTML`) ahora
+espera los 9 `info.*.cuerpoHtml` además del footer.
+
+**Guardar configuraciones con login queda diferido, no implementado.**
+Se pidió una función para guardar la configuración actual detrás de un
+inicio de sesión, con una pantalla de configuraciones guardadas y
+comparación entre ellas — explícitamente como algo "para después"
+("después podrías desarrollar..."). No se tocó: exige backend, cuentas
+de usuario y una base de datos, lo que rompe la doctrina actual del
+sitio (cero dependencias de runtime, se abre por doble clic vía
+`file://`, todo el estado vive en memoria/`localStorage` del propio
+navegador). Queda listado en "Falta" más abajo hasta que haya una
+sesión dedicada a decidir la arquitectura (¿backend propio? ¿Vercel
+KV/Postgres? ¿auth de terceros?) — la misma razón por la que otras
+piezas grandes de este documento (Cardas vs. tercios, factor de
+amortiguamiento real) están ahí y no implementadas a medias.
+
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
@@ -527,6 +575,10 @@ build`, así que una regresión de tests o de typecheck bloquea el deploy antes
 de publicar nada.
 
 Falta:
+- **Guardar configuraciones con login**, pantalla de configuraciones
+  guardadas y comparación entre ellas: pedido explícitamente como
+  trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos
+  — arquitectura nueva, sin diseñar todavía.
 - **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
   de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
   parte del alcance actual.

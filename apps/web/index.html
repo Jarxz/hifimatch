@@ -199,6 +199,7 @@
           <button type="button" data-idioma="es" aria-pressed="true">ES</button>
           <button type="button" data-idioma="en" aria-pressed="false">EN</button>
         </div>
+        <button class="back" id="btn-info" data-i18n="info.boton">Info</button>
         <button class="back" id="btn-volver-config" data-i18n="resultado.volver">← Cambiar sistema</button>
       </div>
     </div>
@@ -375,6 +376,39 @@
           Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide en media-espacio y sobreestima, se usa la medición anecoica independiente.
         </footer>
       </main>
+    </div>
+  </div>
+</section>
+
+<!-- INFO -->
+<section class="screen" id="s-info">
+  <div class="wrap">
+    <div class="head">
+      <div><div class="hm">CA<b>DENA</b></div><div class="hs" data-i18n="info.hs">Guía del análisis</div></div>
+      <div class="hright">
+        <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+          <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+          <button type="button" data-idioma="en" aria-pressed="false">EN</button>
+        </div>
+        <button class="back" id="btn-info-volver" data-i18n="info.volver">← Volver al análisis</button>
+      </div>
+    </div>
+
+    <h1 class="lead" data-i18n="info.titulo">Cómo leer este análisis</h1>
+    <p class="lead-note" data-i18n="info.intro">—</p>
+
+    <div class="card"><h3 data-i18n="info.capas.titulo">—</h3><p data-i18n-html="info.capas.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.confianza.titulo">—</h3><p data-i18n-html="info.confianza.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.potencia.titulo">—</h3><p data-i18n-html="info.potencia.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.carga.titulo">—</h3><p data-i18n-html="info.carga.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.ganancia.titulo">—</h3><p data-i18n-html="info.ganancia.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.modos.titulo">—</h3><p data-i18n-html="info.modos.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.reverberacion.titulo">—</h3><p data-i18n-html="info.reverberacion.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.plano.titulo">—</h3><p data-i18n-html="info.plano.cuerpoHtml">—</p></div>
+    <div class="card"><h3 data-i18n="info.puntaje.titulo">—</h3><p data-i18n-html="info.puntaje.cuerpoHtml">—</p></div>
+
+    <div style="display:flex; justify-content:center; margin:30px 0 10px">
+      <button class="back" id="btn-info-volver-2" data-i18n="info.volver">← Volver al análisis</button>
     </div>
   </div>
 </section>

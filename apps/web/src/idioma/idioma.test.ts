@@ -43,6 +43,17 @@ test('leerRuta tira si la clave resuelve a un objeto o función, no a un string'
   assert.throws(() => leerRuta(es, 'motor.potencia.conMargen')); // función, no string
 });
 
-test('data-i18n-html sólo se usa donde el texto realmente lleva HTML (hoy sólo el footer)', () => {
-  assert.deepEqual(CLAVES_HTML, ['resultado.footer.html']);
+test('data-i18n-html sólo se usa donde el texto realmente lleva HTML (footer + guía de conceptos)', () => {
+  assert.deepEqual(CLAVES_HTML, [
+    'resultado.footer.html',
+    'info.capas.cuerpoHtml',
+    'info.confianza.cuerpoHtml',
+    'info.potencia.cuerpoHtml',
+    'info.carga.cuerpoHtml',
+    'info.ganancia.cuerpoHtml',
+    'info.modos.cuerpoHtml',
+    'info.reverberacion.cuerpoHtml',
+    'info.plano.cuerpoHtml',
+    'info.puntaje.cuerpoHtml',
+  ]);
 });

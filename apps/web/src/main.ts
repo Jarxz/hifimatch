@@ -453,6 +453,9 @@ function wireEventos(): void {
   document.getElementById('btn-entrar')?.addEventListener('click', () => ir('config'));
   document.getElementById('btn-volver-splash')?.addEventListener('click', () => ir('splash'));
   document.getElementById('btn-volver-config')?.addEventListener('click', () => ir('config'));
+  document.getElementById('btn-info')?.addEventListener('click', () => ir('info'));
+  document.getElementById('btn-info-volver')?.addEventListener('click', () => ir('results'));
+  document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
 
   document.getElementById('sel-spk')?.addEventListener('change', (e) => pick('spk', (e.target as HTMLSelectElement).value));
   document.getElementById('sel-amp')?.addEventListener('change', (e) => pick('amp', (e.target as HTMLSelectElement).value));
