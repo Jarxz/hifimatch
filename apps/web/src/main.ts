@@ -42,7 +42,7 @@ import {
 } from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
-import { num } from './formato/numeros.ts';
+import { num, numConSigno } from './formato/numeros.ts';
 import { idiomaInicial, guardarIdioma, aplicarCromoEstatico, textosDe } from './idioma/idioma.ts';
 
 const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alto', ref: 'referencia' };
@@ -253,39 +253,49 @@ function renderizarResultado(): void {
 
   const nombreComponente = t.motor.puntaje.componente;
   const componentesResumen: ComponenteResumen[] = [
-    { nombre: nombreComponente.potencia, verdictoClase: mPot.verdictoClase, verdictoTexto: mPot.verdictoTexto, avisoHtml: mPot.avisoHtml },
+    {
+      nombre: nombreComponente.potencia,
+      verdictoClase: mPot.verdictoClase,
+      verdictoTexto: mPot.verdictoTexto,
+      detalle: `${numConSigno(resPot.margenDb, 1, idiomaActual)} dB`,
+      avisoHtml: mPot.avisoHtml,
+    },
     { nombre: nombreComponente.carga, verdictoClase: mCarga.verdictoClase, verdictoTexto: mCarga.verdictoTexto, avisoHtml: mCarga.avisoHtml },
     { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
   ];
-  if (mPuenteStreamer) {
+  if (mPuenteStreamer && resPuenteStreamer) {
     componentesResumen.push({
       nombre: `${nombreComponente.puente} (${t.config.streamer})`,
       verdictoClase: mPuenteStreamer.verdictoClase,
       verdictoTexto: mPuenteStreamer.verdictoTexto,
+      detalle: resPuenteStreamer.ratioZ !== null ? `ratioZ ${num(resPuenteStreamer.ratioZ, 1, idiomaActual)}×` : undefined,
       avisoHtml: mPuenteStreamer.avisoHtml,
     });
   }
-  if (mRecorridoStreamer) {
+  if (mRecorridoStreamer && resRecorridoStreamer) {
     componentesResumen.push({
       nombre: `${nombreComponente.recorrido} (${t.config.streamer})`,
       verdictoClase: mRecorridoStreamer.verdictoClase,
       verdictoTexto: mRecorridoStreamer.verdictoTexto,
+      detalle: resRecorridoStreamer.margenV !== null ? `${num(resRecorridoStreamer.margenV, 1, idiomaActual)}×` : undefined,
       avisoHtml: mRecorridoStreamer.avisoHtml,
     });
   }
-  if (mPuenteDac) {
+  if (mPuenteDac && resPuenteDac) {
     componentesResumen.push({
       nombre: `${nombreComponente.puente} (${t.config.dac})`,
       verdictoClase: mPuenteDac.verdictoClase,
       verdictoTexto: mPuenteDac.verdictoTexto,
+      detalle: resPuenteDac.ratioZ !== null ? `ratioZ ${num(resPuenteDac.ratioZ, 1, idiomaActual)}×` : undefined,
       avisoHtml: mPuenteDac.avisoHtml,
     });
   }
-  if (mRecorridoDac) {
+  if (mRecorridoDac && resRecorridoDac) {
     componentesResumen.push({
       nombre: `${nombreComponente.recorrido} (${t.config.dac})`,
       verdictoClase: mRecorridoDac.verdictoClase,
       verdictoTexto: mRecorridoDac.verdictoTexto,
+      detalle: resRecorridoDac.margenV !== null ? `${num(resRecorridoDac.margenV, 1, idiomaActual)}×` : undefined,
       avisoHtml: mRecorridoDac.avisoHtml,
     });
   }

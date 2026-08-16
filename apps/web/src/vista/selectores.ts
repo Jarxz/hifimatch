@@ -45,17 +45,31 @@ export function poblarSelectores(idioma: Idioma): void {
     `<option value="" disabled data-i18n="config.masDacs">${t.masDacs}</option>`;
 }
 
-function infoHtml(tipo: string, chips: string[], descripcion: string): string {
+/**
+ * El link a la ficha/web del producto es un placeholder a propósito: no hay
+ * URL curada por equipo todavía (mismo estado que "Más parlantes ·
+ * próximamente"). Se ve en la esquina inferior derecha de la tarjeta, sin
+ * href ni onclick, para que quede claro que es una opción futura — pensado
+ * para cuando una tienda quiera linkear su ficha de producto real.
+ */
+function infoHtml(tipo: string, chips: string[], descripcion: string, verFicha: string): string {
   const chipsHtml = chips.map((c) => `<span>${c}</span>`).join('');
-  return `<div class="info"><div class="info-type">${tipo}</div><div class="chips">${chipsHtml}</div><div class="info-desc">${descripcion}</div></div>`;
+  return (
+    `<div class="info"><div class="info-type">${tipo}</div><div class="chips">${chipsHtml}</div>` +
+    `<div class="info-desc">${descripcion}</div>` +
+    `<div class="info-linkwrap"><span class="info-link">${verFicha}</span></div></div>`
+  );
 }
 
 export function infoHtmlParlante(p: ParlanteCat, idioma: Idioma): string {
-  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma]);
+  const t = textosDe(idioma).config;
+  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma], t.verFicha);
 }
 export function infoHtmlAmplificador(a: AmplificadorCat, idioma: Idioma): string {
-  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma]);
+  const t = textosDe(idioma).config;
+  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma], t.verFicha);
 }
 export function infoHtmlFuente(f: FuenteCat, idioma: Idioma): string {
-  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma]);
+  const t = textosDe(idioma).config;
+  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma], t.verFicha);
 }

@@ -267,17 +267,46 @@ test('modeloResumenFinal: componentes "ok" van a fortalezas, "warn"/"alert" a de
   assert.match(m.debilidadesHtml, /Carga: Exige corriente/);
   assert.match(m.debilidadesHtml, /Puente de impedancias: Puente insuficiente/);
   assert.doesNotMatch(m.debilidadesHtml, /Modos de sala/);
+  assert.match(m.resumenHtml, /De 3 componentes evaluados: 1 sin observaciones y 2 con algo para revisar/);
 });
 
-test('modeloResumenFinal: la recomendación prioriza "alert" sobre "warn" cuando hay varias debilidades', () => {
+test('modeloResumenFinal: "dim" (sin-datos) no cuenta ni como fortaleza ni como debilidad, pero sí se descuenta del total evaluado', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
+    { nombre: 'Puente de impedancias', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
+  ];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.match(m.resumenHtml, /De 1 componentes evaluados: 1 sin observaciones y 0 con algo para revisar/);
+  assert.doesNotMatch(m.fortalezasHtml, /Puente/);
+  assert.doesNotMatch(m.debilidadesHtml, /Puente/);
+});
+
+test('modeloResumenFinal: con "detalle" numérico, se agrega entre paréntesis junto al veredicto', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', detalle: '+4,8 dB', avisoHtml: null },
+  ];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.match(m.fortalezasHtml, /Potencia: Con margen \(\+4,8 dB\)/);
+});
+
+test('modeloResumenFinal: las recomendaciones incluyen TODAS las debilidades con aviso, no sólo la peor', () => {
   const componentes: ComponenteResumen[] = [
     { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: '<b>Aviso de carga</b>' },
     { nombre: 'Puente de impedancias', verdictoClase: 'alert', verdictoTexto: 'Puente insuficiente', avisoHtml: '<b>Aviso de puente</b>' },
   ];
   const m = modeloResumenFinal(componentes, 'es');
-  assert.match(m.recomendacionHtml, /Puente de impedancias/);
-  assert.match(m.recomendacionHtml, /Aviso de puente/);
-  assert.doesNotMatch(m.recomendacionHtml, /Aviso de carga/);
+  assert.match(m.recomendacionesHtml, /Aviso de puente/);
+  assert.match(m.recomendacionesHtml, /Aviso de carga/);
+  assert.equal((m.recomendacionesHtml.match(/<li>/g) ?? []).length, 2);
+});
+
+test('modeloResumenFinal: debilidad sin avisoHtml no genera una recomendación vacía', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: null },
+  ];
+  const m = modeloResumenFinal(componentes, 'es');
+  assert.equal((m.recomendacionesHtml.match(/<li>/g) ?? []).length, 1);
+  assert.match(m.recomendacionesHtml, /No hay ningún punto pendiente/);
 });
 
 test('modeloResumenFinal: todo "ok" → recomendación de cierre positivo, sin fortalezas ni debilidades vacías', () => {
@@ -286,16 +315,16 @@ test('modeloResumenFinal: todo "ok" → recomendación de cierre positivo, sin f
     { nombre: 'Carga', verdictoClase: 'ok', verdictoTexto: 'Cubierto', avisoHtml: null },
   ];
   const m = modeloResumenFinal(componentes, 'es');
-  assert.match(m.debilidadesHtml, /Ningún componente evaluado quedó en amarillo o rojo/);
-  assert.match(m.recomendacionHtml, /No hay ningún punto pendiente/);
+  assert.match(m.debilidadesHtml, /Ningún componente evaluado quedó con algo para revisar/);
+  assert.match(m.recomendacionesHtml, /No hay ningún punto pendiente/);
 });
 
 test('modeloResumenFinal en inglés: textos en inglés, sin mezclar idiomas', () => {
   const componentes: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
   const m = modeloResumenFinal(componentes, 'en');
   assert.match(m.fortalezasHtml, /Power: With margin/);
-  assert.match(m.debilidadesHtml, /No evaluated component came out yellow or red/);
-  assert.match(m.recomendacionHtml, /Nothing pending/);
+  assert.match(m.debilidadesHtml, /No evaluated component came out with something worth checking/);
+  assert.match(m.recomendacionesHtml, /Nothing pending/);
 });
 
 // ---- idioma 'en': mismos números, texto en inglés ----

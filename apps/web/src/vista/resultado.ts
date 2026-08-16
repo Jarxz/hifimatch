@@ -388,51 +388,59 @@ export function modeloPuntaje(r: ResultadoPuntaje, idioma: Idioma): ModeloPuntaj
 /** Un componente ya evaluado (potencia, carga, puente de una fuente,
  * recorrido de una fuente, o modos), con su nombre ya traducido y listo
  * para mostrar en el resumen — reusa exactamente lo que ya calculó su
- * modeloX correspondiente, no inventa una evaluación nueva. */
+ * modeloX correspondiente, no inventa una evaluación nueva. `detalle` es
+ * una anotación numérica corta opcional (ej. "+4,8 dB", "ratioZ 4300×"),
+ * ya formateada por formato/numeros.ts según el idioma activo. */
 export interface ComponenteResumen {
   nombre: string;
   verdictoClase: ClaseVerdicto;
   verdictoTexto: string;
+  detalle?: string;
   avisoHtml: string | null;
 }
 
 export interface ModeloResumenFinal {
+  resumenHtml: string;
   fortalezasHtml: string;
   debilidadesHtml: string;
-  recomendacionHtml: string;
+  recomendacionesHtml: string;
 }
 
 /**
  * Recapitulación en lenguaje simple de lo que ya mostraron las tarjetas de
- * arriba — no evalúa nada nuevo. "dim" (sin-datos) no cuenta ni como
- * fortaleza ni como debilidad: un dato faltante no es ni bueno ni malo, es
- * desconocido (misma doctrina que el resto del proyecto). La recomendación
- * reusa el `avisoHtml` que la regla correspondiente ya redactó — prioriza
- * "alert" sobre "warn" si hay varios.
+ * arriba — no evalúa nada nuevo, sólo reorganiza y detalla. "dim"
+ * (sin-datos) no cuenta ni como fortaleza ni como debilidad: un dato
+ * faltante no es ni bueno ni malo, es desconocido (misma doctrina que el
+ * resto del proyecto). Cada recomendación reusa el `avisoHtml` que la
+ * regla correspondiente ya redactó — una por cada debilidad encontrada,
+ * no sólo la peor, para que el detalle físico quede completo.
  */
 export function modeloResumenFinal(componentes: ComponenteResumen[], idioma: Idioma): ModeloResumenFinal {
   const t = textosDe(idioma).motor.resumen;
 
   const fortalezas = componentes.filter((c) => c.verdictoClase === 'ok');
   const debilidades = componentes.filter((c) => c.verdictoClase === 'warn' || c.verdictoClase === 'alert');
+  const sinDatos = componentes.filter((c) => c.verdictoClase === 'dim');
 
-  const fortalezasHtml =
-    fortalezas.length > 0
-      ? fortalezas.map((c) => `<li>${t.itemFortaleza({ nombre: c.nombre, verdicto: c.verdictoTexto })}</li>`).join('')
-      : `<li>${t.sinFortalezas}</li>`;
+  const resumenHtml = t.resumenConteo({
+    evaluados: String(componentes.length - sinDatos.length),
+    fortalezas: String(fortalezas.length),
+    debilidades: String(debilidades.length),
+  });
 
-  const debilidadesHtml =
-    debilidades.length > 0
-      ? debilidades.map((c) => `<li>${t.itemDebilidad({ nombre: c.nombre, verdicto: c.verdictoTexto })}</li>`).join('')
-      : `<li>${t.sinDebilidades}</li>`;
+  const itemHtml = (c: ComponenteResumen): string =>
+    c.detalle
+      ? `<li>${t.itemConDetalle({ nombre: c.nombre, verdicto: c.verdictoTexto, detalle: c.detalle })}</li>`
+      : `<li>${t.itemFortaleza({ nombre: c.nombre, verdicto: c.verdictoTexto })}</li>`;
 
-  const peorAlert = componentes.find((c) => c.verdictoClase === 'alert' && c.avisoHtml);
-  const peorWarn = componentes.find((c) => c.verdictoClase === 'warn' && c.avisoHtml);
-  const elegido = peorAlert ?? peorWarn;
+  const fortalezasHtml = fortalezas.length > 0 ? fortalezas.map(itemHtml).join('') : `<li>${t.sinFortalezas}</li>`;
+  const debilidadesHtml = debilidades.length > 0 ? debilidades.map(itemHtml).join('') : `<li>${t.sinDebilidades}</li>`;
 
-  const recomendacionHtml = elegido
-    ? t.recomendacionConAviso({ nombre: elegido.nombre, aviso: elegido.avisoHtml! })
-    : t.recomendacionTodoOk;
+  const conAviso = debilidades.filter((c): c is ComponenteResumen & { avisoHtml: string } => c.avisoHtml !== null);
+  const recomendacionesHtml =
+    conAviso.length > 0
+      ? conAviso.map((c) => `<li>${t.recomendacionConAviso({ nombre: c.nombre, aviso: c.avisoHtml })}</li>`).join('')
+      : `<li>${t.recomendacionTodoOk}</li>`;
 
-  return { fortalezasHtml, debilidadesHtml, recomendacionHtml };
+  return { resumenHtml, fortalezasHtml, debilidadesHtml, recomendacionesHtml };
 }

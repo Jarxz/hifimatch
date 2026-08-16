@@ -53,6 +53,7 @@ export const es = {
     masAmplificadores: 'Más amplificadores · próximamente',
     masStreamers: 'Más streamers · próximamente',
     masDacs: 'Más DACs · próximamente',
+    verFicha: 'Ficha del producto · próximamente',
     dimensionesTitulo: 'Dimensiones de la sala',
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',
@@ -109,7 +110,7 @@ export const es = {
         '<b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. ' +
         'El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se ' +
         'verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>' +
-        'Si agregás una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 ' +
+        'Si se agrega una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 ' +
         'de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para ' +
         'verificarse escuchando.<br>' +
         'Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide ' +
@@ -230,7 +231,7 @@ export const es = {
       } satisfies Record<CodigoRecorridoVolumen, string>,
       simple: {
         'sin-dato': 'Falta dato para evaluar el recorrido de volumen.',
-        insuficiente: 'El volumen no va a alcanzar el nivel que necesitás.',
+        insuficiente: 'El volumen no va a alcanzar el nivel necesario.',
         'recorrido-sano': 'Vas a usar un rango cómodo del dial de volumen.',
         'recorrido-corto': 'Vas a mover el volumen en un rango muy chico del dial.',
       } satisfies Record<CodigoRecorridoVolumen, string>,
@@ -271,7 +272,7 @@ export const es = {
       fuente: (p: { techo: string; umbral: string }): string =>
         `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
       sugerencia:
-        'Probá reposicionar los parlantes o el punto de escucha, o tratar acústicamente esas frecuencias — se verifica escuchando y midiendo en el espacio real.',
+        'Conviene reposicionar los parlantes o el punto de escucha, o tratar acústicamente esas frecuencias — se verifica escuchando y midiendo en el espacio real.',
       curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Presión relativa a lo largo de cada eje afectado — sólo los agrupamientos de menor frecuencia (los más audibles y difíciles de tratar). Curvas 1D independientes por eje, no un mapa combinado de la sala.',
@@ -299,14 +300,17 @@ export const es = {
       titulo: 'En resumen',
       fortalezasTitulo: 'Lo que funciona bien',
       debilidadesTitulo: 'Lo que conviene revisar',
-      recomendacionTitulo: 'Recomendación',
+      recomendacionTitulo: 'Recomendaciones',
+      resumenConteo: (p: { evaluados: string; fortalezas: string; debilidades: string }): string =>
+        `De ${p.evaluados} componentes evaluados: ${p.fortalezas} sin observaciones y ${p.debilidades} con algo para revisar.`,
       itemFortaleza: (p: { nombre: string; verdicto: string }): string => `${p.nombre}: ${p.verdicto}`,
-      itemDebilidad: (p: { nombre: string; verdicto: string }): string => `${p.nombre}: ${p.verdicto}`,
-      sinFortalezas: 'Ningún componente evaluado quedó en verde.',
-      sinDebilidades: 'Ningún componente evaluado quedó en amarillo o rojo.',
-      recomendacionConAviso: (p: { nombre: string; aviso: string }): string => `Por <b>${p.nombre}</b>: ${p.aviso}`,
+      itemConDetalle: (p: { nombre: string; verdicto: string; detalle: string }): string =>
+        `${p.nombre}: ${p.verdicto} (${p.detalle})`,
+      sinFortalezas: 'Ningún componente evaluado quedó sin observaciones.',
+      sinDebilidades: 'Ningún componente evaluado quedó con algo para revisar.',
+      recomendacionConAviso: (p: { nombre: string; aviso: string }): string => `<b>${p.nombre}:</b> ${p.aviso}`,
       recomendacionTodoOk:
-        'No hay ningún punto pendiente entre lo evaluado — el sistema calza bien con los datos disponibles. Igual conviene escuchar y medir en el espacio real.',
+        'No hay ningún punto pendiente entre lo evaluado, con los datos disponibles. Igual conviene escuchar y medir en el espacio real: la predicción no reemplaza esa verificación.',
     },
   },
 

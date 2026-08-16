@@ -160,11 +160,12 @@ export function pintarPuntaje(m: ModeloPuntaje): void {
   el('pt-criterio').innerHTML = m.criterioHtml;
 }
 
-/** Recapitulación en lenguaje simple — no evalúa nada nuevo, reorganiza lo
- * que ya mostraron las tarjetas de arriba (ver modeloResumenFinal). */
+/** Recapitulación en lenguaje simple — no evalúa nada nuevo, reorganiza y
+ * detalla lo que ya mostraron las tarjetas de arriba (ver
+ * modeloResumenFinal). */
 export function pintarResumenFinal(m: ModeloResumenFinal): void {
+  el('rf-resumen').textContent = m.resumenHtml;
   el('rf-fortalezas').innerHTML = m.fortalezasHtml;
   el('rf-debilidades').innerHTML = m.debilidadesHtml;
-  el('rf-recomendacion').innerHTML = m.recomendacionHtml;
-  el('rf-recomendacion').className = 'flag';
+  el('rf-recomendaciones').innerHTML = m.recomendacionesHtml;
 }

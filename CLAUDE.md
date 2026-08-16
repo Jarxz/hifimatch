@@ -155,17 +155,35 @@ items de "La cadena" (parlante/amplificador/streamer/dac) muestran un
 comentario reusando el `verdictoTexto` ya calculado para ese equipo — no
 inventan una evaluación nueva. Al final de la pantalla de resultado, una
 tarjeta "En resumen" (`modeloResumenFinal`) recapitula: qué componentes
-salieron "ok" (fortalezas), cuáles "warn"/"alert" (debilidades, con el
-`avisoHtml` que esa regla ya redactó) y una recomendación final que
-prioriza el peor "alert" sobre cualquier "warn" — `sin-datos`/`dim` no
-cuenta como fortaleza ni como debilidad, mismo principio de "dato faltante
-nunca es aprobado". Modos de sala tiene además `sugerenciaHtml`, distinto
-de `avisoHtml` (la lista de pares agrupados): un consejo accionable
-("probá reposicionar...") para que la recomendación final no repita datos
-crudos. La lista completa de todos los modos (hasta 300 Hz) se sacó de la
-tarjeta — sólo quedan las curvas de los 2 agrupamientos de menor
-frecuencia (`TOP_N_AGRUPADOS` en `curvamodal.ts`), los más audibles y
-difíciles de tratar; el resto sigue contando en el texto ("N par(es)...").
+salieron "ok" (fortalezas) y cuáles "warn"/"alert" (debilidades) —
+`sin-datos`/`dim` no cuenta como fortaleza ni como debilidad, mismo
+principio de "dato faltante nunca es aprobado". Cada componente lleva un
+`detalle` numérico opcional (`+2,8 dB`, `ratioZ 4700×`, `9,5×` — ya
+calculado por la regla, sólo re-mostrado) para que el resumen sea más
+específico que el solo veredicto. Las recomendaciones muestran **una por
+cada debilidad con `avisoHtml`**, no sólo la peor — cada regla ya redactó
+su propio consejo, el resumen las junta todas. Modos de sala tiene además
+`sugerenciaHtml`, distinto de `avisoHtml` (la lista de pares agrupados): un
+consejo accionable ("conviene reposicionar...") para que la recomendación
+no repita datos crudos. La lista completa de todos los modos (hasta
+300 Hz) se sacó de la tarjeta — sólo quedan las curvas de los 2
+agrupamientos de menor frecuencia (`TOP_N_AGRUPADOS` en `curvamodal.ts`),
+los más audibles y difíciles de tratar; el resto sigue contando en el
+texto ("N par(es)...").
+
+**Español neutro, no argentino.** Todo `apps/web/src/idioma/es.ts` evita
+voseo ("tenés"/"elegí"/"probá") — el registro por defecto usa formas
+impersonales ("conviene", "se verifica") o tú neutro, nunca vos. Cuidado
+al agregar texto nuevo: es fácil que se cuele voseo en frases más
+coloquiales como los `simpleHtml`/`sugerenciaHtml` del punto anterior —
+ya pasó una vez.
+
+**Link a la ficha del producto — placeholder, no funcional a propósito.**
+Cada tarjeta `.info` (parlante/amplificador/streamer/dac elegido) muestra
+"Ficha del producto · próximamente" en la esquina inferior derecha, mismo
+patrón visual que "Más parlantes · próximamente" — sin `href` ni
+`onclick`. Pensado para cuando una tienda quiera linkear su ficha de
+producto real; hoy el catálogo no tiene una URL curada por equipo.
 
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
 datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 4 streamers +
@@ -249,7 +267,7 @@ resultado sin forzar la navegación a esa pantalla. Verificado extremo a
 extremo con Chrome headless real (protocolo CDP crudo, sin Puppeteer) sobre
 `apps/web/dist/index.html` abierto por `file://`.
 
-**150 tests totales** (69 motor + 11 catálogo + 70 frontend, estos últimos
+**153 tests totales** (69 motor + 11 catálogo + 73 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 
