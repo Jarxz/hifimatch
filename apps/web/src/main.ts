@@ -154,10 +154,31 @@ function setNivel(lvl: NivelUI): void {
   });
 }
 
-function setMuro(muro: MaterialMuro): void {
-  estado.muro = muro;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muro]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.muro === muro));
+function setMuroFrontal(muro: MaterialMuro): void {
+  estado.muroFrontal = muro;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-murofrontal]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.murofrontal === muro));
+  });
+}
+
+function setMuroPosterior(muro: MaterialMuro): void {
+  estado.muroPosterior = muro;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroposterior]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.muroposterior === muro));
+  });
+}
+
+function setMuroIzquierdo(muro: MaterialMuro): void {
+  estado.muroIzquierdo = muro;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroizquierdo]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.muroizquierdo === muro));
+  });
+}
+
+function setMuroDerecho(muro: MaterialMuro): void {
+  estado.muroDerecho = muro;
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroderecho]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.muroderecho === muro));
   });
 }
 
@@ -239,13 +260,26 @@ function renderizarResultado(): void {
     pintarGanancia('dac', null, null);
   }
 
-  pintarPlano(construirPlanoSvg(sala, disposicion, idiomaActual));
+  const materiales = {
+    muroFrontal: estado.muroFrontal,
+    muroPosterior: estado.muroPosterior,
+    muroIzquierdo: estado.muroIzquierdo,
+    muroDerecho: estado.muroDerecho,
+    piso: estado.piso,
+    techo: estado.techo,
+  };
+  const murosVista = {
+    frontal: materiales.muroFrontal,
+    posterior: materiales.muroPosterior,
+    izquierdo: materiales.muroIzquierdo,
+    derecho: materiales.muroDerecho,
+  };
+  pintarPlano(construirPlanoSvg(sala, disposicion, murosVista, idiomaActual));
   const resModos = evaluarModos(sala);
   const mModos = modeloModos(resModos, idiomaActual);
   pintarModos(mModos);
   pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
 
-  const materiales = { muro: estado.muro, piso: estado.piso, techo: estado.techo };
   const resReverb = evaluarReverberacion(sala, materiales);
   const mReverb = modeloReverberacion(resReverb, materiales, idiomaActual);
   pintarReverberacion(mReverb);
@@ -417,8 +451,20 @@ function wireEventos(): void {
     b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));
   });
 
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muro]').forEach((b) => {
-    b.addEventListener('click', () => setMuro(b.dataset.muro as MaterialMuro));
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-murofrontal]').forEach((b) => {
+    b.addEventListener('click', () => setMuroFrontal(b.dataset.murofrontal as MaterialMuro));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroposterior]').forEach((b) => {
+    b.addEventListener('click', () => setMuroPosterior(b.dataset.muroposterior as MaterialMuro));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroizquierdo]').forEach((b) => {
+    b.addEventListener('click', () => setMuroIzquierdo(b.dataset.muroizquierdo as MaterialMuro));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('.segs button[data-muroderecho]').forEach((b) => {
+    b.addEventListener('click', () => setMuroDerecho(b.dataset.muroderecho as MaterialMuro));
   });
 
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-piso]').forEach((b) => {

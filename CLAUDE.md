@@ -339,7 +339,7 @@ para que la pantalla inicial luzca bien. La tarjeta ahora tiene un
 mismo patrón que las demás tarjetas con cálculo (potencia, puente).
 `estado.ts` guarda `muro`/`piso`/`techo` en vez de `tipoSala`.
 
-**173 tests totales** (81 motor + 11 catálogo + 81 frontend, estos últimos
+**182 tests totales** (86 motor + 11 catálogo + 85 frontend, estos últimos
 con vectores propios en inglés además de los de español). Correlato de cada
 fase en el historial de commits, no en este documento.
 
@@ -422,6 +422,10 @@ simple+técnico. `<details>` nativo no necesita `main.ts`/`pintar.ts`:
 `getElementById`/`innerHTML` funcionan igual con el contenido colapsado
 (confirmado que `medidor.ts` no rompe porque posiciona la aguja con
 porcentajes, nunca con `getBoundingClientRect`).
+
+**Plano isométrico 3D, reemplaza el plano 2D top-down.** `apps/web/src/vista/plano.ts` (PURO, sigue sin tocar `document`) ahora dibuja un cubo de alambre isométrico (proyección de 30°, sin ocultamiento de superficies — deliberadamente wireframe transparente, mismo criterio de honestidad que las curvas modales de la sección anterior: mejor mostrar geometría exacta sin fingir opacidad que este modelo no calcula) en vez del plano 2D top-down. `packages/engine/src/sala.ts` ganó geometría 3D nueva: además de las 2 reflexiones laterales que ya existían, calcula 6 más (trasera×2, techo×2, piso×2 — una por canal), todas por el mismo método de imagen especular generalizado a cualquier eje (`reflexionEnPlano(parlante, escucha, eje, valorPlano)`), con la distancia total del camino parlante→superficie→escucha para cada una. Las reflexiones de techo/piso exigieron declarar un supuesto nuevo — `ALTURA_ESCUCHA_M = 1,0` (oído y parlante a la misma altura, la recomendación estándar de instalación) — porque el catálogo no tiene altura por equipo; sin ese supuesto no hay geometría vertical que calcular. El plano muestra cada reflexión con su distancia en metros junto al punto.
+
+**Materiales de sala por muro orientado, no un "muro" único.** `reverberacion.ts` pasó de un selector de material compartido para toda la superficie de muros a **4 selectores independientes** (frontal/posterior/izquierdo/derecho), cada uno con su propia área (`anchoM·altoM` para frontal/posterior, `largoM·altoM` para izquierdo/derecho) y su propio término en la suma de Sabine — ninguna superficie fuerza el mismo material que otra. Se agregó una opción nueva, **`vacio`** (α=1,0, sólo disponible en muros): representa una abertura real — vano, pasillo, ambiente integrado — y usa el coeficiente de referencia histórico de Sabine para "ventana abierta", no una estimación del sitio. Cuando un muro es `vacio`, dos cosas pasan a la vez: la absorción de RT60 sube (el sonido se escapa, no vuelve) y el plano isométrico **no dibuja la reflexión de ese muro** — verificado end-to-end (headless Chrome): marcar el muro izquierdo como vacío en la sala por defecto baja los círculos del plano de 10 a 9 y cambia el veredicto de RT60 de "Muy viva" a "En rango", ambos a la vez, con un solo clic. `estado.ts` guarda `muroFrontal`/`muroPosterior`/`muroIzquierdo`/`muroDerecho` en vez de `muro`.
 
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root

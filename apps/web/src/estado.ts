@@ -13,7 +13,10 @@ export interface Estado {
   L: number; // largo de sala, m
   H: number; // alto de sala, m
   lvl: NivelUI;
-  muro: MaterialMuro; // material de los muros, para reverberacion.ts (absorción por superficie)
+  muroFrontal: MaterialMuro; // material del muro frontal (parlantes), para reverberacion.ts y el plano isométrico
+  muroPosterior: MaterialMuro; // material del muro trasero (detrás de la escucha)
+  muroIzquierdo: MaterialMuro; // material del muro lateral izquierdo
+  muroDerecho: MaterialMuro; // material del muro lateral derecho
   piso: MaterialPiso; // material del piso, para reverberacion.ts
   techo: MaterialTecho; // material del cielo, para reverberacion.ts
   genero: Genero; // género musical, para el crest factor informativo de genero.ts
@@ -28,7 +31,10 @@ export const estado: Estado = {
   L: 5.0,
   H: 2.4,
   lvl: 'alto',
-  muro: 'yesoCarton',
+  muroFrontal: 'yesoCarton',
+  muroPosterior: 'yesoCarton',
+  muroIzquierdo: 'yesoCarton',
+  muroDerecho: 'yesoCarton',
   piso: 'maderaLaminado',
   techo: 'yesoCarton',
   genero: 'rockpop',

@@ -236,9 +236,30 @@ test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas'
 // ---- reverberación (RT60, materiales por superficie) ----
 
 const SALA_REVERB = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
-const MATERIALES_TIPICOS: Materiales = { muro: 'yesoCarton', piso: 'maderaLaminado', techo: 'yesoCarton' };
-const MATERIALES_MUY_TRATADOS: Materiales = { muro: 'panelAcustico', piso: 'alfombra', techo: 'panelAcustico' };
-const MATERIALES_INTERMEDIOS: Materiales = { muro: 'madera', piso: 'alfombra', techo: 'panelAcustico' };
+const MATERIALES_TIPICOS: Materiales = {
+  muroFrontal: 'yesoCarton',
+  muroPosterior: 'yesoCarton',
+  muroIzquierdo: 'yesoCarton',
+  muroDerecho: 'yesoCarton',
+  piso: 'maderaLaminado',
+  techo: 'yesoCarton',
+};
+const MATERIALES_MUY_TRATADOS: Materiales = {
+  muroFrontal: 'panelAcustico',
+  muroPosterior: 'panelAcustico',
+  muroIzquierdo: 'panelAcustico',
+  muroDerecho: 'panelAcustico',
+  piso: 'alfombra',
+  techo: 'panelAcustico',
+};
+const MATERIALES_INTERMEDIOS: Materiales = {
+  muroFrontal: 'madera',
+  muroPosterior: 'madera',
+  muroIzquierdo: 'madera',
+  muroDerecho: 'madera',
+  piso: 'alfombra',
+  techo: 'panelAcustico',
+};
 
 test('modeloReverberacion: muros/techo yeso cartón + piso madera laminado → "warn" ("Muy viva"), calc muestra el desglose por superficie', () => {
   const r = evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS);
@@ -251,6 +272,14 @@ test('modeloReverberacion: muros/techo yeso cartón + piso madera laminado → "
   assert.match(m.calcHtml, /Placa yeso cartón/);
   assert.match(m.calcHtml, /Madera laminado/);
   assert.match(m.calcHtml, new RegExp(num(r.absorcionTotalSabines, 2, 'es')));
+});
+
+test('modeloReverberacion: muro frontal "vacío" (abertura) aparece en el calc con su propia fila y baja la absorción total', () => {
+  const conAbertura: Materiales = { ...MATERIALES_TIPICOS, muroFrontal: 'vacio' };
+  const r = evaluarReverberacion(SALA_REVERB, conAbertura);
+  const m = modeloReverberacion(r, conAbertura, 'es');
+  assert.match(m.calcHtml, /Vacío \(abertura\)/);
+  assert.ok(r.absorcionTotalSabines > evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS).absorcionTotalSabines);
 });
 
 test('modeloReverberacion: paneles acústicos en muro/techo + alfombra en piso → "warn" ("Muy seca", demasiado absorbente)', () => {

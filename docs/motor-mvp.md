@@ -212,6 +212,51 @@ t≈0,3103   rpy≈1,487
 reflexionIzq=(0, 1,487)   reflexionDer=(3,6, 1,487)   puntoDulce=(1,8, 3,126)
 ```
 
+### Reflexiones 3D: trasera, techo, piso
+
+Además de las dos reflexiones laterales de arriba, `sala.ts` calcula 6
+reflexiones más (trasera×2, techo×2, piso×2 — una por canal), con el mismo
+método de imagen especular generalizado a un eje cualquiera (`x`, `y` o
+`z`): reflejar el punto de escucha a través del plano de la superficie y
+trazar la recta desde el parlante; donde esa recta cruza el plano es el
+punto de reflexión, y la distancia parlante→espejo es igual a la
+distancia real del camino reflejado completo (parlante→reflexión→escucha).
+
+```
+ALTURA_ESCUCHA_M = 1,0   // altura de oído y de parlante, asumidas iguales — criterio del sitio
+
+reflexionEnPlano(parlante, escucha, eje, valorPlano):
+  espejo   = escucha con [eje] = 2·valorPlano − escucha[eje]
+  t        = (valorPlano − parlante[eje]) / (espejo[eje] − parlante[eje])
+  punto    = parlante + t·(espejo − parlante)          // en los 3 ejes
+  distancia = |parlante − espejo|                        // camino reflejado total
+```
+
+- **Trasera** (muro en `y = largoM`): mismo método que las laterales, sólo
+  que reflejando en el eje Y en vez de en X.
+- **Techo/piso** (`z = altoM` / `z = 0`): como parlante y oído comparten
+  altura, el punto de reflexión cae siempre en el punto medio horizontal
+  entre el parlante y el punto dulce — no es un caso especial, es lo que
+  da la misma fórmula cuando ambos extremos comparten altura (t=0,5 sale
+  algebraicamente, no se fuerza).
+
+**Por qué asumir `ALTURA_ESCUCHA_M`:** sin una altura de oído/parlante no
+hay geometría vertical que calcular, y el catálogo no tiene una altura por
+equipo. Se asume la recomendación estándar de instalación (tweeter a la
+altura del oído) para poder calcular algo, declarado como supuesto — igual
+disciplina que `GANANCIA_SALA` en la sección 2.
+
+### Vectores de prueba de las reflexiones 3D (misma sala, W=3.6, L=5.0, H=2.4)
+```
+trasera:  espejo de escucha (1,8, 3,126) a través de y=5,0 → (1,8, 6,874)
+          reflexionTraseraIzq ≈ (1,4971, 5,0)   reflexionTraseraDer ≈ (2,1029, 5,0)
+          distanciaTraseraIzqM = distanciaTraseraDerM ≈ 6,2035 m
+
+techo/piso: punto medio (parlanteIzq, puntoDulce) = (1,305, 1,938)
+          distanciaPisoIzqM ≈ 3,2597 m   distanciaTechoIzqM ≈ 3,8034 m
+          (simétrico en el canal derecho)
+```
+
 ---
 
 ## 4bis. Modos de sala (`modos.ts`)
@@ -288,24 +333,27 @@ geometría de la sala (más los materiales declarados por el usuario) —
 nunca de los equipos elegidos, y por eso nunca es `sin-datos`.
 
 **Fórmula — ecuación de Sabine, sumada superficie por superficie** (no un
-coeficiente único para toda la sala, a diferencia de la primera versión de
-esta regla — ver más abajo):
+coeficiente único para toda la sala, ni siquiera un único valor de
+"muro": cada muro se orienta y se declara aparte — ver "Historia de la
+regla" más abajo):
 ```
 RT60 = 0,161 · V / A
 
-V = anchoM · largoM · altoM                              (volumen, m³)
-S_muros = 2·(anchoM·altoM) + 2·(largoM·altoM)             (superficie de muros, m²)
-S_piso  = anchoM · largoM                                 (m²)
-S_techo = anchoM · largoM                                 (m²)
+V = anchoM · largoM · altoM                       (volumen, m³)
+S_frontal = S_posterior = anchoM · altoM          (m²)
+S_izquierdo = S_derecho = largoM · altoM          (m²)
+S_piso = S_techo = anchoM · largoM                (m²)
 
-A = α_muro·S_muros + α_piso·S_piso + α_techo·S_techo      (absorción total, sabines)
+A = α_frontal·S_frontal + α_posterior·S_posterior + α_izquierdo·S_izquierdo
+  + α_derecho·S_derecho + α_piso·S_piso + α_techo·S_techo    (sabines)
 ```
 
-El usuario elige un **material por superficie** (muro, piso, techo) en tres
-selectores independientes de la pantalla de configuración. Cada material
-tiene un coeficiente de absorción de Sabine declarado — **criterio del
-sitio**, valores típicos de literatura de acústica arquitectónica (banda
-media, ~500 Hz–1 kHz), no una medición real:
+El usuario elige un **material por cada muro orientado** (frontal,
+posterior, izquierdo, derecho) más piso y techo — 6 selectores
+independientes en la pantalla de configuración. Cada material tiene un
+coeficiente de absorción de Sabine declarado — **criterio del sitio**,
+valores típicos de literatura de acústica arquitectónica (banda media,
+~500 Hz–1 kHz), no una medición real:
 
 ```
 MaterialMuro    α       MaterialPiso        α       MaterialTecho   α
@@ -314,16 +362,26 @@ vidrio/ventanal 0,03    madera laminado     0,05    madera          0,11
 madera          0,11    porcelanato         0,01    yeso cartón     0,06
 yeso cartón     0,08    alfombra            0,28    panel acústico  0,75
 panel acústico  0,75
+vacío           1,00
 ```
 
 Hormigón/vidrio/porcelanato son muy reflectantes (superficies duras, no
 porosas); madera y placas sobre bastidor absorben algo más por resonancia
-de panel; panel acústico dedicado y alfombra son los únicos materiales de
-absorción alta. El default del sitio es yeso cartón (muro y techo) +
-madera laminado (piso) — terminaciones residenciales comunes, sin
-alfombra ni tratamiento — y da, a propósito, una sala bastante viva: no se
-fuerza un resultado "ok" de fábrica sólo para que la pantalla inicial se
-vea bien.
+de panel; panel acústico dedicado y alfombra son los únicos materiales
+"normales" de absorción alta. **`vacio`** (sólo disponible para muros, no
+para piso/techo) representa una abertura — vano, pasillo, ambiente
+integrado — y usa **α=1,0**, el coeficiente de referencia histórico de
+Sabine (1900): "ventana abierta", nada de lo que llega ahí vuelve a la
+sala. No es una estimación del sitio, es la convención estándar de toda
+tabla de coeficientes de absorción para una abertura. Cuando un muro es
+`vacio`, el plano isométrico (ver sección 4) tampoco dibuja su reflexión
+— el sonido se escapa, no rebota.
+
+El default del sitio es yeso cartón en los 4 muros + techo, madera
+laminado en el piso — terminaciones residenciales comunes, sin alfombra
+ni tratamiento — y da, a propósito, una sala bastante viva: no se fuerza
+un resultado "ok" de fábrica sólo para que la pantalla inicial se vea
+bien.
 
 **Rango cómodo declarado** para escucha crítica en una sala doméstica:
 `RT60_MIN_OK_S = 0,3` a `RT60_MAX_OK_S = 0,6` segundos (una sala de
@@ -345,24 +403,35 @@ cambian.
 
 ### Vectores de prueba (sala por defecto, 3,6×5,0×2,4 m)
 ```
-V = 43,2 m³; S_muros = 41,28 m²; S_piso = S_techo = 18,00 m²
+V = 43,2 m³; S_frontal=S_posterior=8,64 m²; S_izquierdo=S_derecho=12,00 m²; S_piso=S_techo=18,00 m²
 
-muro=yesoCarton, piso=maderaLaminado, techo=yesoCarton (default del sitio)
-  A = 0,08·41,28 + 0,05·18 + 0,06·18 = 5,2824   RT60 ≈ 1,317 s → "warn" ("Muy viva")
+los 4 muros=yesoCarton, piso=maderaLaminado, techo=yesoCarton (default del sitio)
+  A = 0,08·(8,64·2+12·2) + 0,05·18 + 0,06·18 = 5,2824   RT60 ≈ 1,317 s → "warn" ("Muy viva")
+  (mismo total que el modelo de un solo "muro": decomponer una superficie con el
+  mismo material en sub-superficies no cambia la absorción total)
 
-muro=panelAcustico, piso=alfombra, techo=panelAcustico (muy tratada)
-  A = 0,75·41,28 + 0,28·18 + 0,75·18 = 49,50    RT60 ≈ 0,141 s → "warn" ("Muy seca")
+muroFrontal=vacío, resto = default (abertura al frente, ej. living integrado)
+  A = 1,0·8,64 + 0,08·8,64 + 0,08·24 + 0,05·18 + 0,06·18 = 13,2312
+  RT60 ≈ 0,526 s → "ok" ("En rango") — la abertura por sí sola resuelve una sala
+  que sin ella era demasiado viva
 
-muro=madera, piso=alfombra, techo=panelAcustico (combinación intermedia)
-  A = 0,11·41,28 + 0,28·18 + 0,75·18 = 23,0808  RT60 ≈ 0,301 s → "ok" ("En rango")
+frontal=posterior=panelAcustico, izquierdo=derecho=madera, piso=alfombra, techo=panelAcustico (muy tratada)
+  A = 0,75·17,28 + 0,11·24 + 0,28·18 + 0,75·18 = 34,14   RT60 ≈ 0,204 s → "warn" ("Muy seca")
 ```
 
-**Historia de la regla:** la primera versión (Fase 6) usaba un solo
-selector "tipo de sala" (moderna/balanceada/tratada) con un coeficiente
-promedio único para toda la sala. Se reemplazó por completo por el modelo
-de materiales por superficie de arriba — más granular y más defendible
-(el número sale de un material que el usuario puede señalar en su sala
-real, no de una etiqueta abstracta como "balanceada").
+**Historia de la regla.** Primera versión (Fase 6): un solo selector "tipo
+de sala" (moderna/balanceada/tratada) con un coeficiente promedio único
+para toda la sala. Segunda versión: un solo selector "muro" aplicado a
+toda la superficie de muros combinada, más piso/techo separados —
+reemplazó el "tipo de sala" por ser más granular y defendible (el número
+sale de un material que el usuario puede señalar en su sala real, no de
+una etiqueta abstracta como "balanceada"). Versión actual: cada muro se
+orienta y se declara aparte (frontal/posterior/izquierdo/derecho), con la
+opción `vacio` para aberturas — motivado por el mismo criterio de
+granularidad: una sala real casi nunca tiene los 4 muros iguales (un
+ventanal al frente, una pared compartida al costado, un pasillo abierto
+atrás), y el plano isométrico (sección 4) necesita saber qué muro es cuál
+para no dibujar una reflexión donde no hay pared.
 
 **Selector de tipo de música (género):** ver sección 2bis — comparte
 pantalla de configuración con los materiales de sala, pero informa la

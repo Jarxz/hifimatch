@@ -46,7 +46,10 @@ export const en: Textos = {
     ancho: 'Width (front)',
     largo: 'Length (depth)',
     alto: 'Height',
-    muro: 'Wall material',
+    muroFrontal: 'Front wall',
+    muroPosterior: 'Rear wall',
+    muroIzquierdo: 'Left wall',
+    muroDerecho: 'Right wall',
     piso: 'Floor material',
     techo: 'Ceiling material',
     materiales: {
@@ -55,6 +58,7 @@ export const en: Textos = {
       madera: 'Wood',
       yesoCarton: 'Drywall',
       panelAcustico: 'Acoustic panel',
+      vacio: 'Open (no wall)',
       maderaLaminado: 'Laminate wood',
       porcelanato: 'Porcelain tile',
       alfombra: 'Carpet',
@@ -99,17 +103,20 @@ export const en: Textos = {
     disposicionReferencia: 'Reference layout',
     verDetalle: 'View technical detail',
     plano: {
-      titulo: 'Layout, listening position and reflections',
+      titulo: 'Isometric view, listening position and reflections',
       texto:
-        'Symmetric layout calculated from the room dimensions. The sweet spot is the apex of the triangle with the speakers; the points marked on the side walls are the first reflections worth treating.',
+        'Symmetric layout calculated from the room dimensions, drawn as a wireframe cube to scale. The sweet spot is the apex of the triangle with the speakers; each point marked on a surface is a first reflection (side, rear, ceiling, or floor), with the total path distance speaker→surface→listener. A wall declared "open" draws no reflection there — the sound does not come back, it escapes.',
       leyendaTriangulo: 'listening triangle',
-      leyendaReflexion: '1st reflection',
+      leyendaReflexion: 'reflection (with distance)',
       leyendaParlante: 'speaker / listening position',
-      muroFrontal: 'FRONT WALL',
+      muroFrontalCorto: 'FRONT',
+      muroPosteriorCorto: 'REAR',
+      muroIzquierdoCorto: 'LEFT',
+      muroDerechoCorto: 'RIGHT',
+      aberturaSufijo: ' (open)',
       puntoDulce: 'sweet spot',
-      primeraReflexionCorta: '1st refl.',
       fuente:
-        'Prediction from a rigid, rectangular room geometry. It gets refined by listening and measuring in the real space; it does not replace that verification.',
+        "Prediction from a rigid, rectangular room geometry, mirror-image method. Ceiling and floor reflections assume the speaker and the listener's ears are at the same height (1.0 m, a site criterion) — not a measurement of your actual setup. It gets refined by listening and measuring in the real space; it does not replace that verification.",
     },
     footer: {
       html:
@@ -298,14 +305,20 @@ export const en: Textos = {
       },
       texto: (p) =>
         `Estimated RT60: <b>${p.rt60} s</b>. The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space).`,
+      superficies: {
+        frontal: 'Front wall',
+        posterior: 'Rear wall',
+        izquierdo: 'Left wall',
+        derecho: 'Right wall',
+        piso: 'Floor',
+        techo: 'Ceiling',
+      },
       calc: (p) =>
-        `Walls (${p.muroLabel}): ${p.superficieMuros} m² × ${p.muroAlpha} = ${p.absorcionMuros} sabins<br>` +
-        `Floor (${p.pisoLabel}): ${p.superficiePiso} m² × ${p.pisoAlpha} = ${p.absorcionPiso} sabins<br>` +
-        `Ceiling (${p.techoLabel}): ${p.superficieTecho} m² × ${p.techoAlpha} = ${p.absorcionTecho} sabins<br>` +
-        `Total absorption: <b>${p.absorcionTotal} sabins</b><br>` +
+        p.filas.map((f) => `${f.nombre}: ${f.superficie} m² × ${f.alpha} = ${f.absorcion} sabins`).join('<br>') +
+        `<br>Total absorption: <b>${p.absorcionTotal} sabins</b><br>` +
         `RT60 = 0.161 × ${p.volumen} / ${p.absorcionTotal} = <b>${p.rt60} s</b>`,
       fuente:
-        "<b>Formula:</b> Sabine's equation, RT60 = 0.161·V/A (V = volume, A = total absorption in sabins), summed surface by surface — not a single coefficient for the whole room. Per-material absorption coefficients are a site criterion: typical values from architectural acoustics literature (mid-band, ~500 Hz–1 kHz), not a measurement of your real room. Verified by measuring with an SPL meter or an RT60 app.",
+        "<b>Formula:</b> Sabine's equation, RT60 = 0.161·V/A (V = volume, A = total absorption in sabins), summed surface by surface — not a single coefficient for the whole room, not even a single \"wall\" value: each wall is oriented and declared separately. Per-material absorption coefficients are a site criterion: typical values from architectural acoustics literature (mid-band, ~500 Hz–1 kHz), not a measurement of your real room. \"Open\" uses Sabine's historical reference coefficient for an opening (α=1.0: nothing that reaches it comes back into the room). Verified by measuring with an SPL meter or an RT60 app.",
     },
 
     puntaje: {

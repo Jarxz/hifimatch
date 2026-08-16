@@ -391,19 +391,22 @@ export function modeloReverberacion(r: ResultadoReverberacion, materiales: Mater
     max: num(RT60_MAX_OK_S, 1, idioma),
   });
 
+  const s = t.motor.reverberacion.superficies;
+  const fila = (nombre: string, superficieM2: number, alpha: number, absorcion: number) => ({
+    nombre,
+    superficie: num(superficieM2, 2, idioma),
+    alpha: num(alpha, 2, idioma),
+    absorcion: num(absorcion, 2, idioma),
+  });
   const calcHtml = t.motor.reverberacion.calc({
-    muroLabel: materialLabel(materiales.muro, t),
-    superficieMuros: num(r.superficieMurosM2, 2, idioma),
-    muroAlpha: num(ABSORCION_MURO[materiales.muro], 2, idioma),
-    absorcionMuros: num(r.absorcionMurosSabines, 2, idioma),
-    pisoLabel: materialLabel(materiales.piso, t),
-    superficiePiso: num(r.superficiePisoM2, 2, idioma),
-    pisoAlpha: num(ABSORCION_PISO[materiales.piso], 2, idioma),
-    absorcionPiso: num(r.absorcionPisoSabines, 2, idioma),
-    techoLabel: materialLabel(materiales.techo, t),
-    superficieTecho: num(r.superficieTechoM2, 2, idioma),
-    techoAlpha: num(ABSORCION_TECHO[materiales.techo], 2, idioma),
-    absorcionTecho: num(r.absorcionTechoSabines, 2, idioma),
+    filas: [
+      fila(`${s.frontal} (${materialLabel(materiales.muroFrontal, t)})`, r.superficieFrontalM2, ABSORCION_MURO[materiales.muroFrontal], r.absorcionFrontalSabines),
+      fila(`${s.posterior} (${materialLabel(materiales.muroPosterior, t)})`, r.superficiePosteriorM2, ABSORCION_MURO[materiales.muroPosterior], r.absorcionPosteriorSabines),
+      fila(`${s.izquierdo} (${materialLabel(materiales.muroIzquierdo, t)})`, r.superficieIzquierdaM2, ABSORCION_MURO[materiales.muroIzquierdo], r.absorcionIzquierdaSabines),
+      fila(`${s.derecho} (${materialLabel(materiales.muroDerecho, t)})`, r.superficieDerechaM2, ABSORCION_MURO[materiales.muroDerecho], r.absorcionDerechaSabines),
+      fila(`${s.piso} (${materialLabel(materiales.piso, t)})`, r.superficiePisoM2, ABSORCION_PISO[materiales.piso], r.absorcionPisoSabines),
+      fila(`${s.techo} (${materialLabel(materiales.techo, t)})`, r.superficieTechoM2, ABSORCION_TECHO[materiales.techo], r.absorcionTechoSabines),
+    ],
     absorcionTotal: num(r.absorcionTotalSabines, 2, idioma),
     volumen: num(r.volumenM3, 1, idioma),
     rt60: num(r.rt60S, 2, idioma),
