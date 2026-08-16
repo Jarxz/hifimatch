@@ -215,13 +215,16 @@ cambios en `pintarPlano`/`pintarModos`/`pintarCurvasModales`. Es un cambio
 puramente de estructura HTML.
 
 **El catálogo** (`packages/data/src/catalogo.ts`) es la **única** fuente de
-datos de equipos — 36 equipos (13 parlantes, 12 amplificadores, 4 streamers +
-4 DACs, 3 cables curados sin regla todavía), bilingüe desde el origen
-(`Localizado = {es, en}` en cada campo de presentación). Reemplaza lo que
-antes vivía duplicado entre `prototipo-frontend.html` y
+datos de equipos — 49 equipos (13 parlantes, 12 amplificadores, 11
+streamers + 10 DACs, 3 cables curados sin regla todavía), bilingüe desde
+el origen (`Localizado = {es, en}` en cada campo de presentación).
+Reemplaza lo que antes vivía duplicado entre `prototipo-frontend.html` y
 `data/equipos-seed.json` — ya habían divergido en 9 puntos antes de
-fusionarse acá. 11/11 tests (completitud es/en, ids únicos, lint de
-separador decimal).
+fusionarse acá. **Cada categoría está ordenada alfabéticamente por
+`nombre`** — no hay un criterio editorial de destacar unos equipos sobre
+otros, así que el orden alfabético es el único que no implica una
+opinión. 11/11 tests (completitud es/en, ids únicos, lint de separador
+decimal, conteo por categoría).
 
 **Streamers y DACs son dos categorías separadas** (`Catalogo.streamers` /
 `Catalogo.dacs`, dos `<select>` distintos en el sitio), no una sola lista
@@ -364,6 +367,44 @@ huecos reintentados en esta ronda (Hegel H95, Cambridge CXN V2, Arcam A5,
 Cayin LA-34 Plus, Marantz SR6008, y `maxSplDb`/`impedanciaMinOhm` de varios
 parlantes) se reconfirmaron ausentes con fuentes nuevas — quedan en `null`
 por segunda o tercera vez, no por falta de búsqueda.
+
+**Cuarta ronda: 13 streamers/DACs de gama alta.** 7 streamers (HiFi Rose
+RS151/RS250A, Lumin T3, Naim ND5 XS 2, Audiolab 9000N, Wadax Studio
+Player, McIntosh MS500) y 6 DACs (Chord Qutest, Hegel HD30, Mola Mola
+Tambaqui, PS Audio PerfectWave DAC Mk II/DirectStream DAC Mk2, RME ADI-2
+DAC FS), investigados con la misma disciplina de fuente + confianza que
+el resto — la mayoría con más de una fuente citada (ficha oficial +
+medición independiente de Stereophile/Hi-Fi News) porque varios de estos
+equipos tienen output stages inusuales que un solo campo `salidaV`/
+`impedanciaSalidaOhm` no representa del todo bien:
+
+- **Wadax Studio Player** tiene impedancia de salida **ajustable por el
+  usuario** entre 16 valores discretos (0,4 a 600 Ω, función deliberada de
+  "impedance matching" con el amplificador) — se registra `null` con
+  `pendiente` explicando por qué, en vez de inventar un "valor por
+  defecto" que el fabricante no declara.
+- **HiFi Rose RS151** tiene impedancia de salida dependiente de la
+  frecuencia (~3 Ω desde 500 Hz, sube a 935 Ω a 20 Hz) — se registra el
+  valor de banda media/alta, el relevante para el puente de impedancias.
+- **HiFi Rose RS250A**: la ficha oficial declara 100 Ω, pero es la misma
+  cifra del RS250 original (chip y etapa de salida distintos) — se
+  prefiere la medición independiente del modelo "A" (142 Ω), mismo
+  criterio que ya se aplicó con el WiiM Pro Plus.
+- **PS Audio PerfectWave DAC Mk II**: ni el manual oficial ni ninguna
+  medición independiente publican voltaje/impedancia de salida — vector
+  demostrativo más de que un dato faltante nunca es verde, igual que el
+  Cambridge CXN V2.
+- **Mola Mola Tambaqui**: dos laboratorios independientes (Stereophile,
+  Hi-Fi News) miden la impedancia de salida con una discrepancia exacta
+  de 2× (44 Ω vs. 22 Ω) — se registra la de Stereophile con la
+  discrepancia declarada en `pendiente`, en vez de promediar o elegir en
+  silencio. De paso, se corrigió la premisa original de que era un DAC
+  R2R: es un diseño PWM completamente discreto (Bruno Putzeys), sin R2R
+  ni chip comercial.
+- **Lumin T3**: la única impedancia de salida verificable es la de la
+  salida XLR balanceada (10 Ω); se registran los valores XLR juntos
+  (6,0 V/10 Ω) en vez de mezclar el voltaje RCA (3,0 V, sin impedancia
+  medida) con una impedancia de otro conector.
 
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
