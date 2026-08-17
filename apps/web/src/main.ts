@@ -440,19 +440,31 @@ function cambiarIdioma(idioma: Idioma): void {
 
 type InfoClave = 'capas' | 'confianza' | 'potencia' | 'carga' | 'ganancia' | 'modos' | 'reverberacion' | 'plano' | 'puntaje';
 
+function abrirPopup(titulo: string, cuerpoHtml: string): void {
+  const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
+  const tituloEl = document.getElementById('info-popup-titulo');
+  const cuerpoEl = document.getElementById('info-popup-cuerpo');
+  if (!dialog || !tituloEl || !cuerpoEl) return;
+  tituloEl.textContent = titulo;
+  cuerpoEl.innerHTML = cuerpoHtml;
+  dialog.showModal();
+}
+
 /** Popup con la misma explicación de la pantalla "Guía del análisis"
  * (`info.*`), abierta desde el botón "i" de cada tarjeta — atajo
  * contextual, no reemplaza la guía completa (que además cubre capas y
  * confianza, sin tarjeta propia a la que atarse). */
 function abrirInfoPopup(clave: InfoClave): void {
-  const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
-  const tituloEl = document.getElementById('info-popup-titulo');
-  const cuerpoEl = document.getElementById('info-popup-cuerpo');
-  if (!dialog || !tituloEl || !cuerpoEl) return;
   const info = textosDe(idiomaActual).info[clave];
-  tituloEl.textContent = info.titulo;
-  cuerpoEl.innerHTML = info.cuerpoHtml;
-  dialog.showModal();
+  abrirPopup(info.titulo, info.cuerpoHtml);
+}
+
+/** "Guardar" queda diferido (necesita backend/auth) — el botón sólo
+ * declara la limitación, mismo patrón que "Ficha del producto ·
+ * próximamente". */
+function abrirGuardarPopup(): void {
+  const t = textosDe(idiomaActual).resultado;
+  abrirPopup(t.guardarPopupTitulo, t.guardarPopupCuerpo);
 }
 
 function inicializarSplash(): void {
@@ -473,6 +485,7 @@ function wireEventos(): void {
   document.getElementById('btn-info')?.addEventListener('click', () => ir('info'));
   document.getElementById('btn-info-volver')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
+  document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
 
   document.querySelectorAll<HTMLButtonElement>('.infobtn[data-info]').forEach((b) => {
     b.addEventListener('click', () => abrirInfoPopup(b.dataset.info as InfoClave));

@@ -45,7 +45,8 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .segs.idioma button{padding:7px 12px; font-size:11.5px; letter-spacing:.1em}
 
 /* HEAD */
-.head{display:flex; align-items:center; justify-content:space-between; gap:20px; padding-bottom:18px; border-bottom:1px solid var(--line); flex-wrap:wrap}
+.head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px 22px; border-bottom:1px solid var(--line); flex-wrap:wrap}
+#s-config .wrap, #s-results .wrap, #s-info .wrap{padding-top:112px}
 .head .hm{font-weight:300; letter-spacing:.12em; font-size:19px; padding-left:.12em}
 .head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}

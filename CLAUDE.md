@@ -744,7 +744,38 @@ para compensar el espacio que el tracking deja después del último
 carácter). Además, "THE" del header gana una clase propia
 (`.hm-the`) con `color:var(--dorado)` **permanente** — no depende de
 `:hover` como en la portada; es un resaltado fijo, ya que el header
-no es un botón clickeable como el `.enter` de la portada. Producción en
+no es un botón clickeable como el `.enter` de la portada.
+
+**Header fijo (no portada) + botón "Guardar" placeholder.** `.head`
+(wordmark + botones ES/EN/Info/etc.) pasa de estar en el flujo normal
+de `.wrap` a `position:fixed; top:0`, centrado con `left:50%;
+transform:translateX(-50%)` y el mismo `max-width:1120px` que
+`.wrap`, para que la barra quede pegada arriba mientras el resto de
+la pantalla scrollea debajo — verificado con una captura scrolleada
+400px, el header no se mueve. La portada queda afuera a propósito
+(no tiene `.head`, ya usa su propio `.idioma-splash` fijo, patrón que
+ya existía). Como un elemento `position:fixed` sale del flujo,
+`.wrap` ya no le "hace espacio" automáticamente: los 3 `.wrap` de
+configurar/resultado/guía llevan `padding-top:112px` (calculado
+midiendo `.head.getBoundingClientRect().height` ≈ 86,5 px + los
+26 px que ya tenía `.wrap` de padding-top original) para que el
+contenido de abajo arranque en la misma posición que antes, no tapado
+por la barra.
+
+En el header de la pantalla de resultado se agregó un botón
+**"Guardar"** entre "Info" y "← Cambiar sistema". Al clickear abre el
+mismo `<dialog>` que ya usan los botones "i" de cada tarjeta
+(`abrirPopup(titulo, cuerpoHtml)`, extraído de `abrirInfoPopup` para
+reusar el mismo diálogo con contenido distinto) con el mensaje
+`resultado.guardarPopupTitulo`/`guardarPopupCuerpo`: "Debe iniciar
+sesión" / "Pronto disponible." — mismo patrón que "Ficha del producto
+· próximamente": declara la limitación en vez de fingir una función
+que no existe. Sigue siendo parte de lo que "Falta" al final de este
+documento (guardar configuraciones con login, arquitectura de
+backend/auth sin diseñar); este botón es sólo la entrada visible que
+hoy explica por qué todavía no se puede guardar.
+
+**Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
 resolución de workspaces); `buildCommand` corre `npm run verify && npm run

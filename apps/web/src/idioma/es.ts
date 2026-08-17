@@ -158,6 +158,9 @@ export const es = {
   resultado: {
     hs: 'Resultado',
     volver: '← Cambiar sistema',
+    guardarBoton: 'Guardar',
+    guardarPopupTitulo: 'Debe iniciar sesión',
+    guardarPopupCuerpo: 'Pronto disponible.',
     cadena: 'La cadena',
     itemParlantes: 'Parlantes',
     itemAmplificador: 'Amplificador',

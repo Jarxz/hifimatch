@@ -145,6 +145,9 @@ export const en: Textos = {
   resultado: {
     hs: 'Result',
     volver: '← Change system',
+    guardarBoton: 'Save',
+    guardarPopupTitulo: 'You need to sign in',
+    guardarPopupCuerpo: 'Coming soon.',
     cadena: 'The chain',
     itemParlantes: 'Speakers',
     itemAmplificador: 'Amplifier',
