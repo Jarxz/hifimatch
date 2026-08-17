@@ -731,7 +731,20 @@ documento (el motor nunca emite juicios de gusto/tonales — acá se lo
 dice también en la portada, antes de entrar). `idioma.test.ts`
 (`CLAVES_HTML`) suma `splash.cierreHtml` a la lista esperada.
 
-**Desplegado en Vercel.** Producción en
+**Header (no portada): tracking más apretado, "THE" resaltado en
+dorado permanente.** `.head .hm` (wordmark chico de
+configurar/resultado/guía — la portada queda fuera a propósito)
+bajó `letter-spacing` de `.28em` a `.12em` — a `.28em` las 3 palabras
+del nombre completo ("THE HIFI MATCH", desde la ronda anterior) se
+leían demasiado separadas entre sí, porque el `letter-spacing` de un
+nodo de texto plano también estira el espacio literal entre
+palabras, no sólo entre letras. `padding-left` baja en la misma
+proporción (mismo valor que `letter-spacing`, ya era la convención
+para compensar el espacio que el tracking deja después del último
+carácter). Además, "THE" del header gana una clase propia
+(`.hm-the`) con `color:var(--dorado)` **permanente** — no depende de
+`:hover` como en la portada; es un resaltado fijo, ya que el header
+no es un botón clickeable como el `.enter` de la portada. Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
 resolución de workspaces); `buildCommand` corre `npm run verify && npm run

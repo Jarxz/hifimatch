@@ -46,7 +46,8 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 
 /* HEAD */
 .head{display:flex; align-items:center; justify-content:space-between; gap:20px; padding-bottom:18px; border-bottom:1px solid var(--line); flex-wrap:wrap}
-.head .hm{font-weight:300; letter-spacing:.28em; font-size:19px; padding-left:.28em}
+.head .hm{font-weight:300; letter-spacing:.12em; font-size:19px; padding-left:.12em}
+.head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}
 .head .hs{color:var(--label); font-size:11px; letter-spacing:.2em; text-transform:uppercase; margin-top:3px}
 .head .hright{display:flex; align-items:center; gap:18px}
