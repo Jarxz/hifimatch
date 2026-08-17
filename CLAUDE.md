@@ -611,6 +611,32 @@ tocar; sólo la prosa entra al desplegable. `vista/selectores.ts`
 (`infoHtml`) es quien arma este HTML — no toca `document` directo, así
 que sigue sin necesitar test con DOM.
 
+**Materiales de la sala: selector al lado del nombre, no apilado.** Los
+6 `<select>` de material (muro frontal/posterior/izquierdo/derecho,
+piso, techo) dejaron el `.materiales-grid` de 3 columnas (etiqueta
+arriba, `<select>` abajo, patrón `.picker`) por 6 filas `.rline` — el
+mismo componente que ya usaban "Nivel de escucha" y "Género musical":
+el nombre a la izquierda (`.rl`, 14px) y el control a la derecha, en
+una sola línea. El `<select>` usa una clase nueva, `.sel-compact`
+(ancho automático con `min-width:190px` en vez de `width:100%`, texto a
+14px en vez de 15,5px) para no estirarse a todo el ancho de la fila. La
+clase `.materiales-grid` quedó sin uso y se borró de `estilos.css`.
+
+**Dorado: color menos brillante, y acotado en la guía a hover/abierto,
+no permanente.** `--dorado` pasó de `#C9A24B` a `#B8996A` — mismo tono,
+más apagado, menos saturado, para no competir tanto con el resto de la
+paleta ya desaturada del sitio (`--ok`/`--warn`/`--alert`). Además, en
+la pantalla "Guía del análisis" los 9 títulos desplegables dejaron de
+ser dorados de forma permanente: bajan a 16px (antes 21px, heredado de
+`.card h3` — se veían desproporcionados para una lista de ítems
+clicables) y su color por defecto vuelve a `--text` (blanco); sólo se
+ponen dorados con `:hover` o mientras están abiertos (`.info-item[open]
+summary h3`), como señal de qué ítem está activo o a punto de abrirse.
+Los títulos de las tarjetas de evaluación (`.card h3` fuera de
+`.info-item`) y los encabezados `.lead`/`.rail h2`/`.main h2` del resto
+del sitio siguen dorados de forma permanente — el cambio a
+hover/abierto es específico de la lista de la guía.
+
 **Guardar configuraciones con login queda diferido, no implementado.**
 Se pidió una función para guardar la configuración actual detrás de un
 inicio de sesión, con una pantalla de configuraciones guardadas y
