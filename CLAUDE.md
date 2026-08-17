@@ -611,16 +611,22 @@ tocar; sólo la prosa entra al desplegable. `vista/selectores.ts`
 (`infoHtml`) es quien arma este HTML — no toca `document` directo, así
 que sigue sin necesitar test con DOM.
 
-**Materiales de la sala: selector al lado del nombre, no apilado.** Los
-6 `<select>` de material (muro frontal/posterior/izquierdo/derecho,
-piso, techo) dejaron el `.materiales-grid` de 3 columnas (etiqueta
-arriba, `<select>` abajo, patrón `.picker`) por 6 filas `.rline` — el
-mismo componente que ya usaban "Nivel de escucha" y "Género musical":
-el nombre a la izquierda (`.rl`, 14px) y el control a la derecha, en
-una sola línea. El `<select>` usa una clase nueva, `.sel-compact`
-(ancho automático con `min-width:190px` en vez de `width:100%`, texto a
-14px en vez de 15,5px) para no estirarse a todo el ancho de la fila. La
-clase `.materiales-grid` quedó sin uso y se borró de `estilos.css`.
+**Materiales de la sala: selector al lado del nombre, en grilla
+horizontal de 3 columnas.** Primera vuelta: los 6 `<select>` de
+material dejaron el `.materiales-grid` original (etiqueta arriba,
+`<select>` abajo, patrón `.picker`) por 6 filas `.rline` apiladas
+verticalmente, una por línea — mismo componente que "Nivel de escucha"/
+"Género musical" (nombre a la izquierda con `.rl`, 14px; control a la
+derecha). El usuario pidió que, además de ir al lado del nombre, los 6
+volvieran a alinearse horizontalmente, no en una lista vertical larga:
+`.materiales-grid` volvió (3 columnas, `repeat(3,1fr)`, responsive a
+2/1 columnas), pero ahora cada celda es una fila `.rline` completa
+(nombre + `<select>`) en vez de sólo el `<select>`. Dentro de la
+grilla, `.rline` pierde su `margin-top` (el `gap` de la grilla ya separa
+las celdas) y no hace wrap; `.sel-compact` pasa de un `min-width:190px`
+fijo a `flex:1 1 auto` con `width:100%` — se estira para llenar el
+espacio que le queda a la derecha de la etiqueta dentro de cada columna,
+en vez de un ancho fijo que podía no encajar en 3 columnas.
 
 **Dorado: color menos brillante, y acotado en la guía a hover/abierto,
 no permanente.** `--dorado` pasó de `#C9A24B` a `#B8996A` — mismo tono,
