@@ -18,18 +18,21 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .splash{min-height:88vh; display:grid; place-items:center; text-align:center}
 .enter{background:transparent; border:0; cursor:pointer; color:inherit; font:inherit; display:inline-block; padding:8px}
 .enter:focus-visible{outline:2px solid var(--line2); outline-offset:8px}
-.mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .34em; font-weight:300; font-size:34px; color:var(--text); transition:color .2s}
+.mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .16em; font-weight:300; font-size:34px; color:var(--text)}
 .mark b{font-weight:600}
-.enter:hover .mark{color:var(--dorado)}
-.mword{display:inline-flex; gap:.05em}
-.mark-line{position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line2); transform:scaleX(0); transform-origin:center; opacity:1; animation:mark-line-grow .4s cubic-bezier(.65,0,.35,1) .3s forwards, mark-line-fade .3s ease .7s forwards}
-.mword span{display:inline-block; opacity:0; transform:translateY(7px); animation:mark-letter-in .48s cubic-bezier(.22,.61,.36,1) forwards}
-@keyframes mark-line-grow{ from{transform:scaleX(0)} to{transform:scaleX(1)} }
-@keyframes mark-line-fade{ from{opacity:1} to{opacity:0} }
-@keyframes mark-letter-in{ from{opacity:0; transform:translateY(7px)} to{opacity:1; transform:translateY(0)} }
+.mark .the{color:var(--dorado); opacity:0; animation:the-in .45s ease forwards}
+.hm-wrap{position:relative; display:inline-flex}
+.hm-base, .hm-fill{display:inline-flex; align-items:baseline; gap:.16em}
+.hm-base .mword, .hm-fill .mword{display:inline-flex; gap:.05em}
+.hm-base{opacity:0; transform:translateX(-22px); animation:hm-in .6s cubic-bezier(.22,.61,.36,1) .5s forwards}
+.hm-fill{position:absolute; left:0; top:0; color:var(--dorado); clip-path:inset(0 100% 0 0); transition:clip-path .5s cubic-bezier(.22,.61,.36,1); pointer-events:none}
+.enter:hover .hm-fill{clip-path:inset(0 0% 0 0)}
+@keyframes the-in{ from{opacity:0} to{opacity:1} }
+@keyframes hm-in{ from{opacity:0; transform:translateX(-22px)} to{opacity:1; transform:translateX(0)} }
 @media (prefers-reduced-motion:reduce){
-  .mark-line{animation:none; opacity:0}
-  .mword span{animation:none; opacity:1; transform:none}
+  .mark .the{animation:none; opacity:1}
+  .hm-base{animation:none; opacity:1; transform:none}
+  .hm-fill{transition:none}
 }
 .ticks{display:flex; justify-content:center; gap:6px; margin:20px 0 18px; height:22px; align-items:flex-end}
 .ticks i{display:block; width:1px; background:var(--line2)}
@@ -47,7 +50,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 /* HEAD */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px 22px; border-bottom:1px solid var(--line); flex-wrap:wrap}
 #s-config .wrap, #s-results .wrap, #s-info .wrap{padding-top:112px}
-.head .hm{font-weight:300; letter-spacing:.12em; font-size:19px; padding-left:.12em}
+.head .hm{font-weight:300; letter-spacing:.05em; font-size:19px; padding-left:.05em}
 .head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}
 .head .hs{color:var(--label); font-size:11px; letter-spacing:.2em; text-transform:uppercase; margin-top:3px}

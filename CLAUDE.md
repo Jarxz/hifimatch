@@ -671,37 +671,15 @@ abajo) y el wordmark chico del header en configurar/resultado/guía
 mismo criterio que muchas marcas usan un lockup completo en la
 portada y uno abreviado en la navegación).
 
-El logo de portada (`.mark`) es ahora una animación de entrada en
-CSS puro (sin JS, sin librería): una línea horizontal de 1px aparece
-en el centro (`scaleX(0)→scaleX(1)`, 0,3–0,7 s), se desvanece
-(0,7–1,0 s) mientras las letras de "THE HIFI **MATCH**" se despliegan
-—no todas a la vez: cada letra tiene su propio `animation-delay`
-calculado por distancia a la letra central (la costura entre "HIFI"
-sin negrita y "MATCH" en negrita), así el texto se "abre" desde el
-centro hacia los dos extremos en simultáneo, terminando alrededor de
-1,6 s. Cada palabra es un `.mword` (`display:inline-flex`) con sus
-letras como `<span>` individuales; el espacio entre palabras es
-`gap` de flexbox, no un carácter de espacio literal, para evitar el
-espacio-fantasma que deja `letter-spacing` al final de una palabra.
-Respeta `prefers-reduced-motion:reduce` (salta directo al estado
-final: línea invisible, letras visibles). El wordmark completo lleva
-`aria-hidden="true"` porque vive dentro de un `<button>` que ya tiene
-su propio `aria-label` (`splash.entrarAria`) — el texto animado es
-puramente decorativo para lectores de pantalla.
-
-Bug real encontrado y corregido durante la implementación: la regla
-inicial `.mark span{animation:mark-letter-in...}` también coincidía
-con `.mark-line` (que también es un `<span>`), y por mayor especificidad
-(`.mark span` = una clase + un tipo, vs. `.mark-line` = sólo una
-clase) **pisaba por completo** la animación propia de la línea — el
-`animation` shorthand no se combina entre reglas, la de mayor
-especificidad gana entera. Se corrigió acotando el selector a
-`.mword span` (sólo las letras reales, nunca la línea ni los
-contenedores de palabra) — verificado leyendo `getComputedStyle(...)
-.animationName` antes y después del fix, no sólo mirando capturas de
-pantalla, porque el bug no era visualmente obvio (la línea igual
-aparecía, sólo se quedaba pegada en `opacity:1` para siempre en vez
-de desvanecerse).
+La primera versión del logo animado (línea central que se desvanece +
+letras individuales escalonadas desde el centro, con un bug de
+especificidad CSS encontrado y corregido en el camino) quedó
+**reemplazada por completo** por el diseño de la ronda siguiente — ver
+más abajo el diseño vigente ("THE" primero, "HIFI MATCH" se desliza
+después). El wordmark completo lleva `aria-hidden="true"` porque vive
+dentro de un `<button>` que ya tiene su propio `aria-label`
+(`splash.entrarAria`) — el texto animado es puramente decorativo para
+lectores de pantalla, dato que sigue vigente en el diseño actual.
 
 **Ronda de pulido de marca: nombre completo siempre, "THE" también en
 negrita, hover dorado, y cierre de copy en la portada.** El wordmark
@@ -774,6 +752,42 @@ que no existe. Sigue siendo parte de lo que "Falta" al final de este
 documento (guardar configuraciones con login, arquitectura de
 backend/auth sin diseñar); este botón es sólo la entrada visible que
 hoy explica por qué todavía no se puede guardar.
+
+**Logo de portada rediseñado: "THE" primero, "HIFI MATCH" se desliza
+después, relleno dorado en hover.** Reemplaza por completo la
+animación de línea-central + letras escalonadas de la ronda anterior
+(esa versión y su bug de especificidad quedan documentados arriba
+sólo como historial). Secuencia nueva: **"THE"** (siempre dorado,
+`color:var(--dorado)` fijo, no depende de hover) aparece solo primero
+(fade de opacidad, `.the{animation:the-in}`); recién después, "HIFI
+**MATCH**" se desliza desde la izquierda hacia su posición final
+(`.hm-base{transform:translateX(-22px)→translateX(0)}` + fade,
+`animation-delay:.5s` para que empiece cuando "THE" ya está
+asentado) — la lectura es "sale de adentro de THE, se despliega hacia
+la derecha", no letra por letra como antes.
+
+El hover ya no es un cambio de color instantáneo: es un **barrido
+horizontal** que llena "HIFI MATCH" de dorado empezando del lado de
+"THE". Técnica: `.hm-wrap` (`position:relative`) contiene dos copias
+idénticas de "HIFI MATCH" superpuestas — `.hm-base` (blanca, la que
+ya se deslizó al cargar) y `.hm-fill` (dorada, `position:absolute`
+encima, oculta con `clip-path:inset(0 100% 0 0)` — recortada por
+completo desde la derecha). En `:hover` sobre el botón, `.hm-fill`
+anima a `clip-path:inset(0 0% 0 0)` en 0,5 s: el recorte retrocede de
+derecha a izquierda, así que la porción dorada visible **crece de
+izquierda a derecha** — un barrido, no un fundido parejo. Sin JS, dos
+copias de texto en vez de una (costo aceptado a cambio de un efecto
+que `transition:color` no puede lograr: color sólido no tiene
+"dirección").
+
+**Las 3 palabras del nombre, más juntas en todas partes.** El `gap`
+entre "THE"/"HIFI"/"MATCH" en el logo grande de portada bajó de
+`.34em` a `.16em` (mismo valor heredado también por el gap interno
+entre "HIFI" y "MATCH" dentro de `.hm-base`/`.hm-fill`). En el header
+chico (`.hm`, no-portada) el `letter-spacing` bajó de `.12em` (ya
+reducido en la ronda anterior) a `.05em` — pedido explícito de seguir
+acortando la separación entre palabras en las dos versiones del
+wordmark, grande y chica.
 
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
