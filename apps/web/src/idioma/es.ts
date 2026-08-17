@@ -35,7 +35,8 @@ export const es = {
     entrarAria: 'Entrar al análisis de compatibilidad',
     subtitulo: 'análisis de compatibilidad hi-fi',
     cta: 'Analizar un sistema',
-    pie: 'basado en física · specs medidos · sin opiniones de gusto',
+    pie: 'basado en física · specs medidos',
+    cierreHtml: '<b>The Hifi Match</b> te da la información.<br>Tú escuchas y decides.',
   },
 
   info: {

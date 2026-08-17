@@ -22,7 +22,8 @@ export const en: Textos = {
     entrarAria: 'Enter the compatibility analysis',
     subtitulo: 'hi-fi compatibility analysis',
     cta: 'Analyze a system',
-    pie: 'based on physics · measured specs · no taste opinions',
+    pie: 'based on physics · measured specs',
+    cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
   },
 
   info: {

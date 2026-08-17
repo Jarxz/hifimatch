@@ -18,8 +18,9 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .splash{min-height:88vh; display:grid; place-items:center; text-align:center}
 .enter{background:transparent; border:0; cursor:pointer; color:inherit; font:inherit; display:inline-block; padding:8px}
 .enter:focus-visible{outline:2px solid var(--line2); outline-offset:8px}
-.mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .34em; font-weight:300; font-size:34px; color:var(--text)}
+.mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .34em; font-weight:300; font-size:34px; color:var(--text); transition:color .2s}
 .mark b{font-weight:600}
+.enter:hover .mark{color:var(--dorado)}
 .mword{display:inline-flex; gap:.05em}
 .mark-line{position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line2); transform:scaleX(0); transform-origin:center; opacity:1; animation:mark-line-grow .4s cubic-bezier(.65,0,.35,1) .3s forwards, mark-line-fade .3s ease .7s forwards}
 .mword span{display:inline-block; opacity:0; transform:translateY(7px); animation:mark-letter-in .48s cubic-bezier(.22,.61,.36,1) forwards}
@@ -36,6 +37,8 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .enter .cta{margin-top:34px; display:inline-flex; align-items:center; gap:12px; font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--text); border:1px solid var(--line2); border-radius:2px; padding:14px 26px; transition:background .2s,color .2s}
 .enter:hover .cta{background:var(--text); color:var(--bg)}
 .splash .foot{margin-top:40px; color:var(--faint); font-size:11px; letter-spacing:.18em; text-transform:uppercase}
+.splash .cierre{margin-top:16px; color:var(--dim); font-size:13px; line-height:1.7; letter-spacing:.02em}
+.splash .cierre b{color:var(--text); font-weight:500}
 
 /* IDIOMA */
 .idioma-splash{position:fixed; top:20px; right:22px; z-index:1}

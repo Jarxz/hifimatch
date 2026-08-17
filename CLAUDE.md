@@ -703,6 +703,34 @@ pantalla, porque el bug no era visualmente obvio (la línea igual
 aparecía, sólo se quedaba pegada en `opacity:1` para siempre en vez
 de desvanecerse).
 
+**Ronda de pulido de marca: nombre completo siempre, "THE" también en
+negrita, hover dorado, y cierre de copy en la portada.** El wordmark
+chico del header (`.hm`, en configurar/resultado/guía) pasa de "HIFI
+**MATCH**" a "**THE** HIFI **MATCH**" — el nombre completo, siempre,
+en vez de una versión abreviada; y "THE" se suma a "MATCH" en
+negrita en los dos wordmarks (grande animado de portada y chico de
+header), dejando sólo "HIFI" en peso regular — un patrón de
+"bookend" (negrita-regular-negrita) en vez de negrita sólo al final.
+El wordmark grande de portada además cambia a `var(--dorado)` con
+`:hover` sobre el botón que envuelve toda la portada (`.enter:hover
+.mark`, con `transition:color .2s` para que el cambio no sea un salto
+brusco) — la misma variable ya usada en el resto del sitio para
+títulos, no un dorado nuevo.
+
+El pie de la portada se reescribió: la línea `.foot` ("basado en
+física · specs medidos") pierde el tercer ítem, "sin opiniones de
+gusto" — una negación no le agregaba nada al ya-declarado "basado en
+física". En su lugar, una frase nueva debajo (`.cierre`,
+`splash.cierreHtml`, `data-i18n-html` porque lleva `<b>` en el nombre
+de marca) la reemplaza con un cierre en positivo: "**The Hifi
+Match** te da la información.<br>Tú escuchas y decides." — mismo
+argumento que "sin opiniones de gusto" pero dicho como una división
+de trabajo (el sitio da datos, la persona decide con el oído) en vez
+de una negación, y coherente con la doctrina ya declarada en este
+documento (el motor nunca emite juicios de gusto/tonales — acá se lo
+dice también en la portada, antes de entrar). `idioma.test.ts`
+(`CLAVES_HTML`) suma `splash.cierreHtml` a la lista esperada.
+
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
