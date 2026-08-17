@@ -18,8 +18,18 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .splash{min-height:88vh; display:grid; place-items:center; text-align:center}
 .enter{background:transparent; border:0; cursor:pointer; color:inherit; font:inherit; display:inline-block; padding:8px}
 .enter:focus-visible{outline:2px solid var(--line2); outline-offset:8px}
-.mark{font-weight:300; letter-spacing:.42em; font-size:46px; padding-left:.42em; color:var(--text)}
+.mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .34em; font-weight:300; font-size:34px; color:var(--text)}
 .mark b{font-weight:600}
+.mword{display:inline-flex; gap:.05em}
+.mark-line{position:absolute; left:0; right:0; top:50%; height:1px; background:var(--line2); transform:scaleX(0); transform-origin:center; opacity:1; animation:mark-line-grow .4s cubic-bezier(.65,0,.35,1) .3s forwards, mark-line-fade .3s ease .7s forwards}
+.mword span{display:inline-block; opacity:0; transform:translateY(7px); animation:mark-letter-in .48s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes mark-line-grow{ from{transform:scaleX(0)} to{transform:scaleX(1)} }
+@keyframes mark-line-fade{ from{opacity:1} to{opacity:0} }
+@keyframes mark-letter-in{ from{opacity:0; transform:translateY(7px)} to{opacity:1; transform:translateY(0)} }
+@media (prefers-reduced-motion:reduce){
+  .mark-line{animation:none; opacity:0}
+  .mword span{animation:none; opacity:1; transform:none}
+}
 .ticks{display:flex; justify-content:center; gap:6px; margin:20px 0 18px; height:22px; align-items:flex-end}
 .ticks i{display:block; width:1px; background:var(--line2)}
 .splash .subm{color:var(--dim); font-size:14px; letter-spacing:.06em}

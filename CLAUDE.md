@@ -657,6 +657,52 @@ KV/Postgres? ¿auth de terceros?) — la misma razón por la que otras
 piezas grandes de este documento (Cardas vs. tercios, factor de
 amortiguamiento real) están ahí y no implementadas a medias.
 
+**Renombrado de marca: "The Hifi Match", logo animado en la portada.**
+El wordmark visible del sitio pasa de "CADENA" a "The Hifi Match" — el
+nombre interno del motor (`CADENA`, este documento, `packages/engine`,
+historial de commits) no cambia: sigue siendo la separación que ya
+declara la primera sección de este documento, "el motor es el
+producto; la interfaz es intercambiable". Cambian: el `<title>`
+(`meta.titulo` en `es.ts`/`en.ts` y el `<title>` estático de
+`index.html`, para que la pestaña del navegador coincida antes de que
+cargue JS), el wordmark grande de la portada (`.mark`, animado, ver
+abajo) y el wordmark chico del header en configurar/resultado/guía
+(`.hm`, estático, "HIFI **MATCH**" sin el "THE" — versión compacta,
+mismo criterio que muchas marcas usan un lockup completo en la
+portada y uno abreviado en la navegación).
+
+El logo de portada (`.mark`) es ahora una animación de entrada en
+CSS puro (sin JS, sin librería): una línea horizontal de 1px aparece
+en el centro (`scaleX(0)→scaleX(1)`, 0,3–0,7 s), se desvanece
+(0,7–1,0 s) mientras las letras de "THE HIFI **MATCH**" se despliegan
+—no todas a la vez: cada letra tiene su propio `animation-delay`
+calculado por distancia a la letra central (la costura entre "HIFI"
+sin negrita y "MATCH" en negrita), así el texto se "abre" desde el
+centro hacia los dos extremos en simultáneo, terminando alrededor de
+1,6 s. Cada palabra es un `.mword` (`display:inline-flex`) con sus
+letras como `<span>` individuales; el espacio entre palabras es
+`gap` de flexbox, no un carácter de espacio literal, para evitar el
+espacio-fantasma que deja `letter-spacing` al final de una palabra.
+Respeta `prefers-reduced-motion:reduce` (salta directo al estado
+final: línea invisible, letras visibles). El wordmark completo lleva
+`aria-hidden="true"` porque vive dentro de un `<button>` que ya tiene
+su propio `aria-label` (`splash.entrarAria`) — el texto animado es
+puramente decorativo para lectores de pantalla.
+
+Bug real encontrado y corregido durante la implementación: la regla
+inicial `.mark span{animation:mark-letter-in...}` también coincidía
+con `.mark-line` (que también es un `<span>`), y por mayor especificidad
+(`.mark span` = una clase + un tipo, vs. `.mark-line` = sólo una
+clase) **pisaba por completo** la animación propia de la línea — el
+`animation` shorthand no se combina entre reglas, la de mayor
+especificidad gana entera. Se corrigió acotando el selector a
+`.mword span` (sólo las letras reales, nunca la línea ni los
+contenedores de palabra) — verificado leyendo `getComputedStyle(...)
+.animationName` antes y después del fix, no sólo mirando capturas de
+pantalla, porque el bug no era visualmente obvio (la línea igual
+aparecía, sólo se quedaba pegada en `opacity:1` para siempre en vez
+de desvanecerse).
+
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la

@@ -21,7 +21,7 @@ import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 export const es = {
   meta: {
     lang: 'es-CL',
-    titulo: 'Cadena · compatibilidad hi-fi',
+    titulo: 'The Hifi Match · compatibilidad hi-fi',
     descripcion: 'Analiza si un sistema hi-fi es compatible entre sí y qué entrega en tu sala.',
   },
 

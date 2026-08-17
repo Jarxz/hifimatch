@@ -8,7 +8,7 @@ import type { Textos } from './es.ts';
 export const en: Textos = {
   meta: {
     lang: 'en',
-    titulo: 'Cadena · hi-fi compatibility',
+    titulo: 'The Hifi Match · hi-fi compatibility',
     descripcion: 'Analyzes whether a hi-fi system is compatible with itself and what it delivers in your room.',
   },
 
