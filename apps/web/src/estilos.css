@@ -13,6 +13,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .screen{display:none}
 .screen.active{display:block}
 .mono{font-family:var(--mono)}
+::view-transition-old(root), ::view-transition-new(root){animation-duration:.4s; animation-timing-function:cubic-bezier(.22,.61,.36,1)}
 
 /* SPLASH */
 .splash{min-height:88vh; display:grid; place-items:center; text-align:center}
@@ -33,6 +34,9 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .mark .the{animation:none; opacity:1}
   .hm-base{animation:none; opacity:1; transform:none}
   .hm-fill{transition:none}
+  ::view-transition-old(root), ::view-transition-new(root){animation:none !important}
+  dialog.info-popup, dialog.info-popup::backdrop{transition:none}
+  .detalle[open] > :not(summary), .info-item[open] p{animation:none}
 }
 .ticks{display:flex; justify-content:center; gap:6px; margin:20px 0 18px; height:22px; align-items:flex-end}
 .ticks i{display:block; width:1px; background:var(--line2)}
@@ -66,7 +70,8 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .picker{margin-bottom:22px}
 .sel{position:relative}
 .sel::after{content:''; position:absolute; right:16px; top:50%; width:7px; height:7px; border-right:1px solid var(--dim); border-bottom:1px solid var(--dim); transform:translateY(-70%) rotate(45deg); pointer-events:none}
-.sel select{width:100%; appearance:none; -webkit-appearance:none; font:inherit; font-size:15.5px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:14px 40px 14px 16px; cursor:pointer}
+.sel select{width:100%; appearance:none; -webkit-appearance:none; font:inherit; font-size:15.5px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:14px 40px 14px 16px; cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
+.sel select:hover{border-color:var(--line2)}
 .sel select.empty{color:var(--faint)}
 .sel select:focus-visible{outline:none; border-color:var(--line2)}
 .sel select option{background:#161619; color:var(--text)}
@@ -107,7 +112,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .derived{font-family:var(--mono); font-size:13px; color:var(--dim)}
 .derived b{color:var(--text)}
 .segs{display:inline-flex; flex-wrap:wrap; border:1px solid var(--line); border-radius:3px; overflow:hidden}
-.segs button{font:inherit; font-size:13px; background:transparent; color:var(--dim); border:0; border-left:1px solid var(--line); padding:9px 16px; cursor:pointer}
+.segs button{font:inherit; font-size:13px; background:transparent; color:var(--dim); border:0; border-left:1px solid var(--line); padding:9px 16px; cursor:pointer; transition:background-color .2s cubic-bezier(.22,.61,.36,1), color .2s cubic-bezier(.22,.61,.36,1)}
 .segs button:first-child{border-left:0}
 .segs button[aria-pressed=true]{background:var(--text); color:var(--bg)}
 .segs button:focus-visible{outline:2px solid var(--line2); outline-offset:-2px}
@@ -194,6 +199,8 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .detalle summary::after{content:''; flex:0 0 auto; width:7px; height:7px; border-right:1px solid var(--faint); border-bottom:1px solid var(--faint); transform:rotate(45deg); transition:transform .2s}
 .detalle[open] summary::after{transform:rotate(225deg)}
 .detalle > :not(summary){margin-top:2px}
+.detalle[open] > :not(summary){animation:detalle-in .3s cubic-bezier(.22,.61,.36,1)}
+@keyframes detalle-in{ from{opacity:0; transform:translateY(-5px)} to{opacity:1; transform:translateY(0)} }
 
 .infobtn{width:20px; height:20px; border-radius:50%; border:1px solid var(--line2); background:transparent; color:var(--dim); font-size:11px; font-style:italic; font-family:Georgia,'Times New Roman',serif; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; flex:0 0 auto; transition:color .15s,border-color .15s,background-color .15s}
 .infobtn:hover{color:var(--bg); background:var(--text); border-color:var(--text)}
@@ -201,8 +208,12 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .blkhead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 14px}
 .blkhead h2{margin:0}
 
-dialog.info-popup{max-width:480px; width:calc(100% - 40px); border:1px solid var(--line2); border-radius:6px; background:var(--panel2); color:var(--text); padding:20px 22px; box-shadow:0 20px 60px rgba(0,0,0,.55)}
-dialog.info-popup::backdrop{background:rgba(0,0,0,.6)}
+dialog.info-popup{max-width:480px; width:calc(100% - 40px); border:1px solid var(--line2); border-radius:6px; background:var(--panel2); color:var(--text); padding:20px 22px; box-shadow:0 20px 60px rgba(0,0,0,.55); opacity:0; transform:scale(.95) translateY(8px); transition:opacity .25s cubic-bezier(.22,.61,.36,1), transform .25s cubic-bezier(.22,.61,.36,1), overlay .25s allow-discrete, display .25s allow-discrete}
+dialog.info-popup[open]{opacity:1; transform:scale(1) translateY(0)}
+@starting-style{ dialog.info-popup[open]{opacity:0; transform:scale(.95) translateY(8px)} }
+dialog.info-popup::backdrop{background:rgba(0,0,0,.6); opacity:0; transition:opacity .25s ease, overlay .25s allow-discrete, display .25s allow-discrete}
+dialog.info-popup[open]::backdrop{opacity:1}
+@starting-style{ dialog.info-popup[open]::backdrop{opacity:0} }
 .info-popup-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:10px}
 .info-popup-head h3{font-weight:400; font-size:18px; margin:0; letter-spacing:.01em}
 .info-popup p{color:var(--dim); font-size:14px; line-height:1.7; margin:0}
@@ -218,6 +229,7 @@ dialog.info-popup::backdrop{background:rgba(0,0,0,.6)}
 .info-item summary:hover h3, .info-item[open] summary h3{color:var(--dorado)}
 .info-item summary:focus-visible{outline:2px solid var(--line2); outline-offset:-2px}
 .info-item p{margin-top:14px}
+.info-item[open] p{animation:detalle-in .3s cubic-bezier(.22,.61,.36,1)}
 
 .hidden{display:none !important}
 footer.note{margin-top:26px; padding-top:18px; border-top:1px solid var(--line); font-size:11.5px; color:var(--faint); line-height:1.8}

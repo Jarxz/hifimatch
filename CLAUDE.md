@@ -789,6 +789,60 @@ reducido en la ronda anterior) a `.05em` — pedido explícito de seguir
 acortando la separación entre palabras en las dos versiones del
 wordmark, grande y chica.
 
+**Animaciones "tipo Apple" en toda la interacción interactiva del
+sitio.** Pedido explícito de sumar movimiento suave a menús
+desplegables, barras, popups e "inicio de sesión" — cuatro piezas,
+todas en CSS puro (más un cambio mínimo de JS para las transiciones
+de pantalla), con la misma curva de easing (`cubic-bezier(.22,.61,
+.36,1)`) ya usada en el logo de portada, para que el sitio entero
+comparta un solo "lenguaje de movimiento" en vez de que cada pieza
+tenga su propio ritmo:
+
+- **Cambio de pantalla con View Transitions API.** `ir(pantalla)`
+  (`vista/pantallas.ts`) envuelve el cambio de clase `.active` en
+  `document.startViewTransition(...)` cuando el navegador lo soporta
+  — un fundido cruzado real entre pantallas (splash→configurar→
+  resultado→guía) en vez del corte instantáneo de antes.
+  `::view-transition-old(root), ::view-transition-new(root)` fija
+  duración y curva propias. Sin soporte del navegador, cae directo al
+  cambio de clase de siempre — la función tiene el mismo
+  comportamiento observable en cualquier navegador, sólo cambia si
+  hay fundido o no. Encontrado y corregido en el camino: navegar dos
+  veces seguido rápido (como un test automatizado, o un click
+  doble) aborta la transición anterior con `AbortError: Transition
+  was skipped` — comportamiento esperado de la API, pero sin capturar
+  la promesa `ready` quedaba como *unhandled rejection* en consola;
+  ahora se atrapa en silencio.
+- **`<dialog>` (info-popup y "Guardar") con entrada/salida animada.**
+  Técnica moderna con `@starting-style` + `transition-behavior:
+  allow-discrete`: el diálogo pasa de `opacity:0` + `scale(.95)
+  translateY(8px)` a su estado final en 0,25 s (mismo tratamiento
+  para el `::backdrop`), y la salida (`dialog.close()`) revierte
+  suave en vez de desaparecer de golpe — antes `showModal()`/`close()`
+  no tenían transición alguna.
+- **`<details>` (tarjetas colapsables y "Ver descripción") con
+  aparición suave del contenido.** `.detalle[open] > :not(summary)` y
+  `.info-item[open] p` llevan una animación corta
+  (`detalle-in`, fade + `translateY(-5px)→0`, 0,3 s) que se dispara
+  sola cuando el contenido pasa a visible — funciona sin
+  `@starting-style` porque una `animation` (a diferencia de
+  `transition`) arranca sola en cualquier elemento que empieza a
+  matchear el selector, sin depender del soporte más nuevo.
+- **Controles segmentados (`.segs`) y `<select>` con transición de
+  color/borde** en vez de cambio instantáneo — detalle menor pero
+  consistente con el resto.
+
+**Límite real, no una carencia del sitio: el menú desplegable nativo
+de `<select>` no se puede animar.** La lista de opciones que abre un
+`<select>` la dibuja el sistema operativo/navegador fuera del árbol
+de la página — ningún CSS del sitio llega ahí, en ningún navegador.
+Lo único animable es la caja del `<select>` mismo (ya lleva la
+transición de borde de arriba); es una limitación de la plataforma
+web, no algo pendiente de esta ronda.
+
+Todas las animaciones nuevas respetan `prefers-reduced-motion:reduce`
+(mismo bloque que ya neutralizaba el logo de portada, ampliado).
+
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
