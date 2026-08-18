@@ -334,8 +334,17 @@ export function construirPlanoSvg(
   // Z: en la proyección isométrica el eje Z nunca tiene componente
   // horizontal, así que su arista es vertical en cualquier vista donde se
   // vea (-90° fijo).
+  //
+  // En Superior, "largo" y la etiqueta "izquierdo" comparten exactamente
+  // el mismo (x,y) — Superior es la única proyección que descarta z, y es
+  // precisamente en z donde esas dos etiquetas normalmente se distinguen
+  // (izquierdo va a la altura del techo, "largo" a la del piso). Sin ese
+  // eje quedarían dibujadas una encima de la otra (texto ilegible,
+  // superpuesto); un offset horizontal mayor sólo en esta vista las separa
+  // en dos columnas de texto en vez de una.
+  const dxLargo = vista === 'superior' ? -34 : -14;
   s += texto({ x: W / 2, y: 0, z: 0 }, num(W, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', 0, 20);
-  s += texto({ x: 0, y: L / 2, z: 0 }, num(L, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, anguloMuro('largo'));
+  s += texto({ x: 0, y: L / 2, z: 0 }, num(L, 1, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', dxLargo, 0, anguloMuro('largo'));
   s += texto({ x: 0, y: 0, z: H / 2 }, num(H, 2, idioma) + ' m', 'fill="#8C8C93" font-size="10.5" text-anchor="middle"', -14, 0, -90);
 
   s += '</svg>';

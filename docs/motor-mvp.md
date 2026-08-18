@@ -276,6 +276,18 @@ caer el eje que las distingue — se omiten en vez de mostrar texto
 amontonado (`frontal` oculta frontal/posterior; `lateral` oculta
 izquierdo/derecho; `superior` e `isometrica` muestran las 4).
 
+**Colisión "izquierdo" / "largo" en Superior, corregida.** La etiqueta
+"largo" (dimensión, ancla en `z=0`) y la etiqueta de muro "izquierdo"
+(ancla en `z=altoM`) comparten el mismo `(x,y)` — se distinguen sólo por
+`z`. Superior es la única de las 4 proyecciones que descarta `z`
+(`sx=x, sy=y`), así que ahí las dos etiquetas caían exactamente
+superpuestas (texto ilegible). Se corrigió dándole a "largo" un offset
+horizontal mayor sólo cuando `vista==='superior'` (`dxLargo=-34` en vez
+de `-14`), separándolas en dos columnas de texto en vez de una — las
+otras 3 vistas no cambian, ahí `z` ya las distinguía. Detectado
+visualmente al agrandar el plano (ver más abajo): a 640px de ancho ya
+existía, sólo que era menos legible.
+
 Los parlantes se dibujan como una caja de alambre (12 aristas), no un
 punto — `ANCHO_PARLANTE_M`/`PROFUNDIDAD_PARLANTE_M`/`ALTO_PARLANTE_M`
 (0,20 / 0,25 / 0,34 m) son un tamaño **ilustrativo**, no físico: el
@@ -283,6 +295,17 @@ catálogo no tiene dimensiones por equipo, así que esto no alimenta ningún
 cálculo, sólo hace que el ícono se lea como un volumen. Centrada en
 `alturaM` (el mismo eje acústico asumido para las reflexiones de techo/
 piso), sin modelar específicamente parlante de piso vs. de estante.
+
+**Plano más grande dentro de su tarjeta.** `apps/web/src/estilos.css`
+tenía `.plan-wrap svg{max-width:640px}` — un tope fijo, no relacionado con
+el ancho real disponible de la columna de contenido (~770-800px en
+desktop). Se cambió a `max-width:100%`: el SVG llena el ancho de su
+`.plan-wrap` (que a su vez llena la tarjeta), limitado sólo por el padding
+del `.card`. Como el SVG escala por `viewBox` (proporciones internas
+intactas), este cambio de CSS no mueve ni un píxel de la geometría — sólo
+la agranda; cualquier problema de superposición de etiquetas que se nota
+más a este tamaño (ver el párrafo de la colisión Superior más arriba) ya
+existía proporcionalmente al tamaño anterior.
 
 ### Disposición manual (`calcularDisposicionManual`) — parlantes independientes
 

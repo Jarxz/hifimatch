@@ -976,6 +976,20 @@ ciclos de arrastre+Recalcular sin crear una tercera pestaña, el margen de
 muro recortando un arrastre extremo, y un "Analizar" nuevo reseteando
 todo.
 
+**Plano más grande, y una colisión de etiquetas real corregida de paso.**
+`.plan-wrap svg` pasó de `max-width:640px` a `max-width:100%` — llena el
+ancho real de la tarjeta (~770-800px en desktop) en vez de un tope fijo
+sin relación con el layout. Al verificar visualmente las 4 vistas a este
+tamaño se encontró un bug preexistente (no introducido por este cambio de
+CSS, sólo más visible con el gráfico más grande): en la vista Superior,
+la etiqueta de muro "izquierdo" y la etiqueta de dimensión "largo" se
+dibujan exactamente superpuestas — comparten el mismo `(x,y)` y sólo se
+distinguían por `z` en las otras 3 vistas, pero Superior es la única
+proyección que descarta `z`. Corregido con un offset horizontal mayor
+para "largo" sólo en esa vista (`plano.ts`), separándolas en dos columnas
+de texto — ver `docs/motor-mvp.md` sección 4 para el detalle. Confirmado
+con capturas de Chrome headless en las 4 vistas, antes y después.
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
