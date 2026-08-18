@@ -10,9 +10,9 @@ import { evaluarModos } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
-import { calcularPuntaje, peorSeveridad, PESOS_DECLARADOS } from '../../../packages/engine/src/puntaje.ts';
+import { calcularPuntaje, PESOS_DECLARADOS } from '../../../packages/engine/src/puntaje.ts';
+import type { ComponentePuntaje } from '../../../packages/engine/src/puntaje.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
-import type { Severidad } from '../../../packages/engine/src/tipos.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 
 import { estado } from './estado.ts';
@@ -330,13 +330,25 @@ function renderizarResultado(): void {
     `${num(picoObjetivo, 0, idiomaActual)} dB`
   );
 
-  const puntaje = calcularPuntaje([
+  const componentesPuntaje: ComponentePuntaje[] = [
     { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
     { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: resCarga.severidad },
-    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: severidadCombinada(resPuenteStreamer, resPuenteDac) },
-    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: severidadCombinada(resRecorridoStreamer, resRecorridoDac) },
     { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: resModos.severidad },
-  ]);
+    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: resReverb.severidad },
+  ];
+  if (streamer) {
+    componentesPuntaje.push(
+      { nombre: 'puenteStreamer', peso: PESOS_DECLARADOS.puenteStreamer, severidad: resPuenteStreamer!.severidad },
+      { nombre: 'recorridoStreamer', peso: PESOS_DECLARADOS.recorridoStreamer, severidad: resRecorridoStreamer!.severidad }
+    );
+  }
+  if (dac) {
+    componentesPuntaje.push(
+      { nombre: 'puenteDac', peso: PESOS_DECLARADOS.puenteDac, severidad: resPuenteDac!.severidad },
+      { nombre: 'recorridoDac', peso: PESOS_DECLARADOS.recorridoDac, severidad: resRecorridoDac!.severidad }
+    );
+  }
+  const puntaje = calcularPuntaje(componentesPuntaje);
   pintarPuntaje(modeloPuntaje(puntaje, idiomaActual));
 
   const nombreComponente = t.motor.puntaje.componente;
@@ -359,7 +371,7 @@ function renderizarResultado(): void {
   ];
   if (mPuenteStreamer && resPuenteStreamer) {
     componentesResumen.push({
-      nombre: `${nombreComponente.puente} (${t.config.streamer})`,
+      nombre: nombreComponente.puenteStreamer,
       verdictoClase: mPuenteStreamer.verdictoClase,
       verdictoTexto: mPuenteStreamer.verdictoTexto,
       detalle: resPuenteStreamer.ratioZ !== null ? `ratioZ ${num(resPuenteStreamer.ratioZ, 1, idiomaActual)}×` : undefined,
@@ -368,7 +380,7 @@ function renderizarResultado(): void {
   }
   if (mRecorridoStreamer && resRecorridoStreamer) {
     componentesResumen.push({
-      nombre: `${nombreComponente.recorrido} (${t.config.streamer})`,
+      nombre: nombreComponente.recorridoStreamer,
       verdictoClase: mRecorridoStreamer.verdictoClase,
       verdictoTexto: mRecorridoStreamer.verdictoTexto,
       detalle: resRecorridoStreamer.margenV !== null ? `${num(resRecorridoStreamer.margenV, 1, idiomaActual)}×` : undefined,
@@ -377,7 +389,7 @@ function renderizarResultado(): void {
   }
   if (mPuenteDac && resPuenteDac) {
     componentesResumen.push({
-      nombre: `${nombreComponente.puente} (${t.config.dac})`,
+      nombre: nombreComponente.puenteDac,
       verdictoClase: mPuenteDac.verdictoClase,
       verdictoTexto: mPuenteDac.verdictoTexto,
       detalle: resPuenteDac.ratioZ !== null ? `ratioZ ${num(resPuenteDac.ratioZ, 1, idiomaActual)}×` : undefined,
@@ -386,7 +398,7 @@ function renderizarResultado(): void {
   }
   if (mRecorridoDac && resRecorridoDac) {
     componentesResumen.push({
-      nombre: `${nombreComponente.recorrido} (${t.config.dac})`,
+      nombre: nombreComponente.recorridoDac,
       verdictoClase: mRecorridoDac.verdictoClase,
       verdictoTexto: mRecorridoDac.verdictoTexto,
       detalle: resRecorridoDac.margenV !== null ? `${num(resRecorridoDac.margenV, 1, idiomaActual)}×` : undefined,
@@ -394,21 +406,6 @@ function renderizarResultado(): void {
     });
   }
   pintarResumenFinal(modeloResumenFinal(componentesResumen, { valor: puntaje.puntaje, clase: puntaje.clase }, idiomaActual));
-}
-
-/**
- * Combina hasta dos resultados opcionales (streamer y dac) en una sola
- * severidad para el puntaje: si ninguno está elegido, el componente no
- * aplica (null); si alguno tiene una severidad real (no "sin-datos"), se
- * usa la peor de las reales; si los elegidos están todos en "sin-datos",
- * el componente entero queda "sin-datos" — nunca se inventa un valor.
- */
-function severidadCombinada(...resultados: Array<{ severidad: Severidad } | null>): Severidad | null {
-  const elegidos = resultados.filter((r): r is { severidad: Severidad } => r !== null);
-  if (elegidos.length === 0) return null;
-  const reales = elegidos.map((r) => r.severidad).filter((s): s is Exclude<Severidad, 'sin-datos'> => s !== 'sin-datos');
-  if (reales.length === 0) return 'sin-datos';
-  return peorSeveridad(...reales);
 }
 
 function analizar(): void {

@@ -653,20 +653,24 @@ capa física.
 
 `puntaje.ts` no decide severidades — sólo las combina. Recibe una lista de
 `{ nombre, peso, severidad }` por componente (`severidad: null` si el
-componente no aplica a este match, ej. sin streamer ni dac elegido).
+componente no aplica a este match, ej. sin streamer ni dac elegido). La
+lista tiene entre 4 y 8 elementos según cuántas fuentes se eligieron —
+ver "Streamer + DAC simultáneos" más abajo.
 
 ### Pesos declarados
 
 | Componente | Peso | Por qué |
 |---|---|---|
-| Potencia | 30 % | Riesgo real: recorte audible si no alcanza |
-| Carga | 25 % | Riesgo real: amplificador forzado en cargas duras |
-| Puente de impedancias | 17 % | Ajuste fino de ganancia, no un riesgo de falla |
-| Recorrido de volumen | 13 % | Ergonómico — el sistema funciona igual, sólo cambia la resolución del volumen |
-| Modos de sala | 15 % | De la sala, no de la combinación de equipos — el sitio eligió incluirlo igual |
+| Potencia | 24 % | Riesgo real: recorte audible si no alcanza |
+| Carga | 20 % | Riesgo real: amplificador forzado en cargas duras |
+| Modos de sala | 10 % | De la sala, no de la combinación de equipos — mismo techo de severidad que reverberación |
+| Reverberación (RT60) | 10 % | Ídem modos — hallazgo de sala, mismo peso por compartir el mismo techo de severidad |
+| Puente de impedancias (por fuente) | 10 % | Ajuste fino de ganancia, no un riesgo de falla — evaluado por separado para streamer y para DAC |
+| Recorrido de volumen (por fuente) | 8 % | Ergonómico — el sistema funciona igual, sólo cambia la resolución del volumen — evaluado por separado para streamer y para DAC |
 
-Suman 1 (`puntaje.test.ts` lo verifica). **Son un criterio, no un dato
-medido** — otro sitio razonable pesaría distinto.
+Potencia:carga mantiene la razón 1,2:1 de la tabla original de 5
+componentes. Suman 1 (`puntaje.test.ts` lo verifica). **Son un criterio,
+no un dato medido** — otro sitio razonable pesaría distinto.
 
 ### Puntos por severidad
 
@@ -679,10 +683,14 @@ hacia abajo simplemente por faltar.
 
 `componentesEvaluados`/`componentesTotales` viaja en el resultado para que,
 si faltó algo, el sitio lo declare (aviso explícito: "calculado sobre N de
-M componentes").
+M componentes"). `componentesTotales` es **variable** (4 sin ninguna fuente
+elegida, 6 con una, 8 con streamer y DAC a la vez) — refleja cuántos
+componentes son realmente aplicables a este match, no un máximo fijo con
+casilleros vacíos.
 
-**Piso de 1, nunca 0** (`Math.max(1, Math.round(promedio))`): la escala
-declarada es 1-10.
+**Piso de 1,0, nunca 0** (`Math.max(1, Math.round(promedio*10)/10)`): la
+escala declarada es 1-10, con **un decimal** (ej. `8,7`) — antes redondeaba
+a un entero.
 
 ### Color del número (`clasificarPuntaje`)
 
@@ -706,18 +714,24 @@ capas es de layout y rotulado, no de si hay o no color.
 ### Streamer + DAC simultáneos
 
 Desde que el sitio permite elegir streamer y DAC a la vez (ver CLAUDE.md),
-puente/recorrido pueden tener hasta dos resultados por match. Se combinan
-con `peorSeveridad()` (mismo idioma que `peorConfianza()` en tipos.ts): si
-cualquiera de las dos fuentes elegidas tiene un problema, el puntaje lo
-refleja. Si ambas están en `sin-datos`, el componente completo queda
-`sin-datos` (excluido); si al menos una tiene severidad real, se usa la
-peor de las reales.
+puente y recorrido se puntúan **por separado para cada fuente** —
+`puenteStreamer`/`recorridoStreamer`/`puenteDac`/`recorridoDac`, cuatro
+componentes en vez de dos, cada uno con su propio peso. Antes se combinaban
+con `peorSeveridad()` (si cualquiera de las dos fuentes tenía un problema,
+el puntaje entero lo reflejaba); ahora un problema en el puente del
+streamer no le baja la nota al puente del DAC — cada fuente vota por sí
+misma. `peorSeveridad()` se queda exportada en `puntaje.ts` (documentada,
+sin este call site) por si sirve para otra combinación a futuro.
 
 ### Vector de prueba
 
-Los 5 en `ok` → 10/10. Los 5 en `alert` (menos modos, que nunca es `alert`)
-→ 1/10. Sin streamer ni dac (puente=null, recorrido=null), potencia=ok,
-carga=warn, modos=ok → evaluados sobre 3 componentes:
-`(0,30·10 + 0,25·5 + 0,15·10) / 0,70 = 5,75/0,70 ≈ 8,21` → 8/10. Vectores
-completos en `packages/engine/src/puntaje.test.ts`.
+Los 8 componentes en `ok` → 10,0/10. Los 8 en `alert` → 1,0/10 (piso, nunca
+0). Sin streamer ni dac, sólo los 4 componentes base — potencia=ok,
+carga=`sin-datos`, modos=warn, reverberación=ok → evaluados sobre 3:
+`(0,24·10 + 0,10·5 + 0,10·10) / 0,44 = 3,9/0,44 ≈ 8,8636` → 8,9/10. Con
+streamer y dac elegidos a la vez, puenteStreamer=alert y puenteDac=ok
+simultáneamente en el mismo resultado (0/10 y 10/10 respectivamente, sin
+contagiarse) — el vector que prueba exactamente la diferencia con el
+`peorSeveridad()` combinado de antes. Vectores completos en
+`packages/engine/src/puntaje.test.ts`.
 ```

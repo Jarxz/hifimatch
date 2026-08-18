@@ -138,15 +138,21 @@ fase y amplitud relativa entre modos, dato que este motor no tiene.
 
 **Puntaje del match** (`puntaje.ts`) es la primera y única pieza del motor
 que vive en la **capa criterio-editorial**, no en la física — combina las
-severidades de potencia/carga/puente/recorrido/modos en un número 1-10 con
-pesos que el sitio declara (potencia 30 % · carga 25 % · puente 17 % ·
-recorrido 13 % · modos 15 %, `docs/motor-mvp.md` sección 7). `sin-datos` (o
-un componente no aplicable, ej. sin streamer ni dac elegido) se excluye del
-cálculo — no puntúa ni penaliza, y el sitio declara cuántos componentes sí
-se evaluaron. Se rotula en pantalla como "Criterio editorial, no física",
-en su propio bloque, nunca junto a un veredicto de capa física. Con
-streamer y dac elegidos a la vez, cada uno de puente/recorrido se combina
-con `peorSeveridad()` (mismo idioma que `peorConfianza()`).
+severidades de potencia/carga/modos/reverberación (siempre presentes) y
+puente/recorrido **por cada fuente elegida** (streamer y/o DAC, evaluados
+por separado) en un número **1-10 con un decimal** (ej. `8,7`), con pesos
+que el sitio declara (potencia 24 % · carga 20 % · modos 10 % ·
+reverberación 10 % · puente 10 % y recorrido 8 % por fuente,
+`docs/motor-mvp.md` sección 7). El total de criterios es variable: 4 sin
+streamer ni dac elegidos, 6 con uno, 8 con los dos a la vez. `sin-datos`
+(o un componente no aplicable) se excluye del cálculo — no puntúa ni
+penaliza, y el sitio declara cuántos de los aplicables sí se evaluaron. Se
+rotula en pantalla como "Criterio editorial, no física", en su propio
+bloque, nunca junto a un veredicto de capa física. Con streamer y dac
+elegidos a la vez, puente y recorrido **ya no se combinan** con
+`peorSeveridad()` (como hacían antes) — cada fuente puntúa por separado,
+así un problema en una no le baja la nota a la otra; `peorSeveridad()`
+sigue exportada en `puntaje.ts` por si sirve para otra combinación futura.
 
 **Lenguaje simple sobre la capa física, sin reemplazarla.** Cada tarjeta de
 evaluación (potencia/carga/puente/recorrido/modos) tiene un `simpleHtml`:
@@ -470,7 +476,9 @@ parlantes como volumen.** Ronda de pulido sobre el resultado completo:
   `UMBRAL_PUNTAJE_VERDE=8`/`UMBRAL_PUNTAJE_NARANJO=5`) — sin usar el
   componente `pintarVerdict` de capa física: sigue siendo un `<b>` simple
   con clase CSS (`puntaje-ok/warn/alert`), no un pill, y sigue rotulado
-  "Criterio editorial, no física".
+  "Criterio editorial, no física". (Ronda posterior: los umbrales de color
+  se quedaron iguales, pero el número pasó de entero a un decimal y de 5 a
+  hasta 8 criterios — ver el párrafo "Puntaje del match" más arriba.)
 - **"Sin datos suficientes" ya no se menciona cuando no aplica.** Antes
   mostraba "Todos los componentes tenían dato suficiente" como
   confirmación vacía; ahora, si no hay ningún componente `dim`, la

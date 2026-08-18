@@ -1,14 +1,16 @@
 /**
  * Puntaje de compatibilidad del match — CAPA CRITERIO-EDITORIAL, no física
  * (ver CLAUDE.md, "Las dos capas"). Combina las severidades ya calculadas
- * por las reglas físicas (potencia, carga, puente, recorrido, modos) en un
- * único número 1-10 mediante pesos que este sitio declara desde su
- * criterio — otro sitio razonable pesaría distinto, y eso está bien: no es
- * un dato medido, es una prioridad editorial. Se rotula como tal en
- * pantalla, nunca mezclado visualmente con un veredicto de capa física.
+ * por las reglas físicas (potencia, carga, puente×2, recorrido×2, modos,
+ * reverberación) en un único número 1-10 con un decimal, mediante pesos
+ * que este sitio declara desde su criterio — otro sitio razonable pesaría
+ * distinto, y eso está bien: no es un dato medido, es una prioridad
+ * editorial. Se rotula como tal en pantalla, nunca mezclado visualmente
+ * con un veredicto de capa física.
  *
  * Este módulo no decide QUÉ severidad tiene cada regla — eso ya lo hizo
- * potencia.ts/carga.ts/ganancia.ts/modos.ts. Sólo pondera y combina.
+ * potencia.ts/carga.ts/ganancia.ts/modos.ts/reverberacion.ts. Sólo pondera
+ * y combina.
  */
 import type { Severidad } from './tipos.ts';
 
@@ -16,9 +18,10 @@ const ORDEN_SEVERIDAD: Record<Exclude<Severidad, 'sin-datos'>, number> = { ok: 0
 
 /**
  * La severidad más grave de las dadas — mismo idioma que peorConfianza()
- * en tipos.ts, aplicado a severidad. Combina streamer+dac cuando el
- * usuario eligió los dos: si cualquiera de las dos fuentes tiene un
- * problema de puente/recorrido, el puntaje lo refleja.
+ * en tipos.ts, aplicado a severidad. Ya no se usa para combinar streamer+dac
+ * en el puntaje (puente/recorrido se puntúan por separado para cada fuente,
+ * ver PESOS_DECLARADOS) — se deja exportada y documentada por si sirve para
+ * otra combinación a futuro.
  */
 export function peorSeveridad(...severidades: Array<Exclude<Severidad, 'sin-datos'>>): Exclude<Severidad, 'sin-datos'> {
   if (severidades.length === 0) {
@@ -36,20 +39,37 @@ const PUNTOS_POR_SEVERIDAD: Record<Exclude<Severidad, 'sin-datos'>, number> = {
 /**
  * Pesos declarados por el sitio — criterio editorial, no física. Potencia y
  * carga pesan más porque son riesgos reales (recorte audible, amplificador
- * forzado); puente y recorrido son ajuste fino de ganancia; modos de sala
- * es un hallazgo de la sala, no de la combinación de equipos, pero el sitio
- * eligió incluirlo igual. Suman 1 — ver puntaje.test.ts.
+ * forzado) — mantienen la misma razón 1,2:1 entre ellas que la versión
+ * anterior de esta tabla (5 criterios). Modos y reverberación son
+ * hallazgos de la sala, no de la combinación de equipos, pero el sitio
+ * elige incluirlos igual — mismo peso entre sí, porque ambos comparten el
+ * mismo techo de severidad ('ok'/'warn', nunca 'alert'). Puente y
+ * recorrido son ajuste fino de ganancia, evaluados por separado para cada
+ * fuente elegida (streamer y DAC ya no comparten un solo casillero
+ * combinado por peorSeveridad — un problema en una fuente no le baja la
+ * nota a la otra). Suman 1 — ver puntaje.test.ts.
  */
 export const PESOS_DECLARADOS = {
-  potencia: 0.3,
-  carga: 0.25,
-  puente: 0.17,
-  recorrido: 0.13,
-  modos: 0.15,
+  potencia: 0.24,
+  carga: 0.2,
+  modos: 0.1,
+  reverberacion: 0.1,
+  puenteStreamer: 0.1,
+  recorridoStreamer: 0.08,
+  puenteDac: 0.1,
+  recorridoDac: 0.08,
 } as const;
 
 export interface ComponentePuntaje {
-  nombre: 'potencia' | 'carga' | 'puente' | 'recorrido' | 'modos';
+  nombre:
+    | 'potencia'
+    | 'carga'
+    | 'modos'
+    | 'reverberacion'
+    | 'puenteStreamer'
+    | 'recorridoStreamer'
+    | 'puenteDac'
+    | 'recorridoDac';
   peso: number;
   /** null = no aplica a este match (ej. sin streamer ni dac elegido). */
   severidad: Severidad | null;
@@ -79,7 +99,7 @@ export function clasificarPuntaje(puntaje: number): ClasePuntaje {
 }
 
 export interface ResultadoPuntaje {
-  puntaje: number; // 1-10, redondeado — nunca 0: ver puntaje.test.ts
+  puntaje: number; // 1-10, con un decimal — nunca 0: ver puntaje.test.ts
   clase: ClasePuntaje;
   componentesEvaluados: number;
   componentesTotales: number;
@@ -110,7 +130,7 @@ export function calcularPuntaje(componentes: ComponentePuntaje[]): ResultadoPunt
   }
 
   const promedio = sumaPesos > 0 ? sumaPonderada / sumaPesos : 0;
-  const puntaje = Math.max(1, Math.round(promedio));
+  const puntaje = Math.max(1, Math.round(promedio * 10) / 10);
 
   return {
     puntaje,

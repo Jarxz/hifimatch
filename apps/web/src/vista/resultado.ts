@@ -482,7 +482,7 @@ export function modeloPuntaje(r: ResultadoPuntaje, idioma: Idioma): ModeloPuntaj
 
   return {
     puntaje: r.puntaje,
-    puntajeTexto: `${r.puntaje}/10`,
+    puntajeTexto: `${num(r.puntaje, 1, idioma)}/10`,
     clase: r.clase,
     detalleHtml,
     avisoHtml,

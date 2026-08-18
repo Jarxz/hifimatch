@@ -402,17 +402,17 @@ test('modeloUbicacionParlantes en inglés: mismos números, punto decimal', () =
 
 // ---- puntaje (capa criterio-editorial) ----
 
-test('modeloPuntaje: todo "ok" da 10/10, detalle con los 5 componentes incluidos, sin aviso', () => {
-  const componentes: ComponentePuntaje[] = [
-    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
-    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: 'ok' },
-    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: 'ok' },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
-  ];
-  const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
+const COMPONENTES_BASE_OK: ComponentePuntaje[] = [
+  { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
+  { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
+  { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
+  { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: 'ok' },
+];
+
+test('modeloPuntaje: todo "ok" (sin fuentes) da 10/10, detalle con los 4 componentes incluidos, sin aviso', () => {
+  const m = modeloPuntaje(calcularPuntaje(COMPONENTES_BASE_OK), 'es');
   assert.equal(m.puntaje, 10);
-  assert.equal(m.puntajeTexto, '10/10');
+  assert.equal(m.puntajeTexto, '10,0/10');
   assert.equal(m.clase, 'ok');
   assert.equal(m.avisoHtml, null);
   assert.match(m.detalleHtml, /Potencia: 10\/10/);
@@ -420,42 +420,55 @@ test('modeloPuntaje: todo "ok" da 10/10, detalle con los 5 componentes incluidos
 });
 
 test('modeloPuntaje: clase sigue los umbrales de clasificarPuntaje (warn/alert), no siempre "ok"', () => {
-  const mezcla: ComponentePuntaje[] = [
-    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'warn' },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'warn' },
-    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: 'warn' },
-    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: 'warn' },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'warn' },
-  ];
+  const mezcla: ComponentePuntaje[] = COMPONENTES_BASE_OK.map((c) => ({ ...c, severidad: 'warn' as const }));
   assert.equal(modeloPuntaje(calcularPuntaje(mezcla), 'es').clase, 'warn');
 
-  const todoMal: ComponentePuntaje[] = mezcla.map((c) => ({ ...c, severidad: 'alert' as const }));
+  const todoMal: ComponentePuntaje[] = COMPONENTES_BASE_OK.map((c) => ({ ...c, severidad: 'alert' as const }));
   assert.equal(modeloPuntaje(calcularPuntaje(todoMal), 'es').clase, 'alert');
 });
 
-test('modeloPuntaje: sin streamer ni dac, el detalle marca puente/recorrido excluidos y avisa que no se evaluaron los 5', () => {
+test('modeloPuntaje: sin streamer ni dac, el aviso declara cuántos de los 4 componentes base se evaluaron', () => {
   const componentes: ComponentePuntaje[] = [
     { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
-    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: null },
-    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: null },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: null },
     { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
+    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: 'ok' },
   ];
   const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
-  assert.match(m.detalleHtml, /Puente de impedancias: sin dato suficiente, no cuenta/);
+  assert.match(m.detalleHtml, /Carga: sin dato suficiente, no cuenta/);
   assert.ok(m.avisoHtml !== null);
-  assert.match(m.avisoHtml!, /3 de 5/);
+  assert.match(m.avisoHtml!, /3 de 4/);
+});
+
+test('modeloPuntaje: con streamer y dac elegidos, el puente de cada fuente aparece con su propio puntaje — no se combinan', () => {
+  const componentes: ComponentePuntaje[] = [
+    ...COMPONENTES_BASE_OK,
+    { nombre: 'puenteStreamer', peso: PESOS_DECLARADOS.puenteStreamer, severidad: 'alert' },
+    { nombre: 'recorridoStreamer', peso: PESOS_DECLARADOS.recorridoStreamer, severidad: 'ok' },
+    { nombre: 'puenteDac', peso: PESOS_DECLARADOS.puenteDac, severidad: 'ok' },
+    { nombre: 'recorridoDac', peso: PESOS_DECLARADOS.recorridoDac, severidad: 'ok' },
+  ];
+  const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
+  assert.match(m.detalleHtml, /Puente de impedancias \(Streamer\): 0\/10/);
+  assert.match(m.detalleHtml, /Puente de impedancias \(DAC\): 10\/10/);
+});
+
+test('modeloPuntaje: puntajeTexto usa un decimal con el separador del idioma (coma en es, punto en en)', () => {
+  const componentes: ComponentePuntaje[] = [
+    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'warn' },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
+    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: 'ok' },
+  ];
+  // (0,24*10 + 0,20*5 + 0,10*10 + 0,10*10) / 0,64 = 5,4/0,64 = 8,4375 → redondea a 8,4
+  const r = calcularPuntaje(componentes);
+  assert.equal(r.puntaje, 8.4);
+  assert.equal(modeloPuntaje(r, 'es').puntajeTexto, '8,4/10');
+  assert.equal(modeloPuntaje(r, 'en').puntajeTexto, '8.4/10');
 });
 
 test('modeloPuntaje en inglés: etiquetas de componente y criterio en inglés, sin mezclar idiomas', () => {
-  const componentes: ComponentePuntaje[] = [
-    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
-    { nombre: 'puente', peso: PESOS_DECLARADOS.puente, severidad: 'ok' },
-    { nombre: 'recorrido', peso: PESOS_DECLARADOS.recorrido, severidad: 'ok' },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
-  ];
-  const m = modeloPuntaje(calcularPuntaje(componentes), 'en');
+  const m = modeloPuntaje(calcularPuntaje(COMPONENTES_BASE_OK), 'en');
   assert.match(m.detalleHtml, /Power: 10\/10/);
   assert.match(m.criterioHtml, /Editorial criterion/);
   assert.doesNotMatch(m.detalleHtml, /Potencia/);

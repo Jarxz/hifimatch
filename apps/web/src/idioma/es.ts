@@ -89,7 +89,7 @@ export const es = {
     puntaje: {
       titulo: 'Puntaje del match (1-10)',
       cuerpoHtml:
-        'Es la única pieza del sitio que vive en la capa de <b>criterio editorial</b>, no física — un número que combina las severidades de potencia, carga, puente de impedancias, recorrido de volumen y modos de sala, con pesos que este sitio declara (potencia 30% · carga 25% · puente 17% · recorrido 13% · modos 15%). Un componente sin dato suficiente no se incluye — ni suma ni resta, y el sitio declara cuántos de los componentes posibles sí se pudieron evaluar. El número lleva color (verde/naranjo/rojo) para que se lea de un vistazo, pero sigue siendo una opinión declarada sobre cómo ponderar los hallazgos físicos de arriba, no un dato medido nuevo.',
+        'Es la única pieza del sitio que vive en la capa de <b>criterio editorial</b>, no física — un número con un decimal que combina las severidades de potencia, carga, modos de sala, reverberación, y puente de impedancias + recorrido de volumen (evaluados por separado para streamer y para DAC, cuando hay ambos elegidos), con pesos que este sitio declara (potencia 24% · carga 20% · modos 10% · reverberación 10% · puente 10% y recorrido 8% por cada fuente). Un componente sin dato suficiente no se incluye — ni suma ni resta, y el sitio declara cuántos de hasta 8 componentes posibles sí se pudieron evaluar. El número lleva color (verde/naranjo/rojo) para que se lea de un vistazo, pero sigue siendo una opinión declarada sobre cómo ponderar los hallazgos físicos de arriba, no un dato medido nuevo.',
     },
   },
 
@@ -423,16 +423,19 @@ export const es = {
       componente: {
         potencia: 'Potencia',
         carga: 'Carga',
-        puente: 'Puente de impedancias',
-        recorrido: 'Recorrido de volumen',
         modos: 'Modos de sala',
+        reverberacion: 'Reverberación',
+        puenteStreamer: 'Puente de impedancias (Streamer)',
+        recorridoStreamer: 'Recorrido de volumen (Streamer)',
+        puenteDac: 'Puente de impedancias (DAC)',
+        recorridoDac: 'Recorrido de volumen (DAC)',
       } satisfies Record<ComponentePuntaje['nombre'], string>,
       filaIncluida: (p: { nombre: string; puntos: string }): string => `${p.nombre}: ${p.puntos}/10`,
       filaExcluida: (p: { nombre: string }): string => `${p.nombre}: sin dato suficiente, no cuenta`,
       aviso: (p: { evaluados: string; total: string }): string =>
         `Calculado sobre ${p.evaluados} de ${p.total} componentes — el resto no tenía dato suficiente y no se incluyó (ni suma ni resta).`,
       criterio:
-        '<b>Criterio editorial, no un dato medido:</b> combina las severidades de arriba con pesos que este sitio declara — potencia 30 % · carga 25 % · puente de impedancias 17 % · recorrido de volumen 13 % · modos de sala 15 %. Otro criterio razonable pesaría distinto.',
+        '<b>Criterio editorial, no un dato medido:</b> combina las severidades de arriba con pesos que este sitio declara — potencia 24 % · carga 20 % · modos de sala 10 % · reverberación 10 % · puente de impedancias 10 % y recorrido de volumen 8 % por cada fuente elegida (streamer y/o DAC, evaluados por separado). Otro criterio razonable pesaría distinto.',
     },
 
     resumen: {
