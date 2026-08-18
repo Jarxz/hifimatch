@@ -1011,6 +1011,27 @@ del DOM (`touchmove` nunca llegó a dispararse ahí, 0 veces, con o sin el
 fix) — una limitación conocida de esa herramienta de simulación, no del
 sitio. Pendiente de confirmar en un teléfono real.
 
+**Selectores de equipo en dos pasos: marca → modelo.** Las 4 categorías
+con selector (parlantes/amplificador/streamer/dac) pasaron de un único
+`<select>` con todos los modelos mezclados a dos `<select>` en cascada —
+elegir marca puebla el de modelo con sólo los equipos de esa marca.
+`packages/data/src/tipos-catalogo.ts` gana un campo `marca: string` en
+`ParlanteCat`/`AmplificadorCat`/`FuenteCat` (no en `CableCat`, que no
+tiene selector todavía) — separado de `nombre` a propósito, no se deriva
+por parseo de texto. `apps/web/src/vista/selectores.ts`
+(`poblarSelectores`/`poblarModelos`/`vaciarModelos`) arma la lista de
+marcas únicas (`Set` + `localeCompare`, no asume que el catálogo ya viene
+agrupado) y filtra modelos por marca elegida. El de modelo arranca
+deshabilitado con un placeholder ("Elige una marca primero") hasta que
+hay marca; cambiar de marca siempre limpia el modelo elegido (reusa
+`pick(kind, '')`, la misma limpieza de estado que ya usaba el `<select>`
+único). El aviso "Más X · próximamente" se movió al final de la lista de
+marcas — antes vivía duplicado al final de cada lista de modelos. CSS
+nuevo (`.marca-modelo`, marca 36% / modelo el resto, apilados en columna
+bajo 480px). `catalogo.test.ts` suma una prueba de que `nombre` siempre
+empieza con `marca`, para atajar errores de tipeo al cargar equipos
+nuevos.
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como

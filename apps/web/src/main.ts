@@ -18,7 +18,7 @@ import type { Idioma } from '../../../packages/data/src/idioma.ts';
 import { estado } from './estado.ts';
 import type { NivelUI } from './estado.ts';
 import { ir } from './vista/pantallas.ts';
-import { poblarSelectores, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
+import { poblarSelectores, poblarModelos, vaciarModelos, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
 import type { MurosVista, Vista } from './vista/plano.ts';
@@ -213,6 +213,17 @@ function pick(kind: 'spk' | 'amp' | 'streamer' | 'dac', valor: string): void {
     box.innerHTML = infoHTML(kind, valor);
   }
   refrescar();
+}
+
+/** Cambiar de marca (o volver al placeholder) siempre limpia el modelo
+ * elegido — no tiene sentido dejar seleccionado un modelo de otra marca
+ * mientras se repuebla el <select> de modelo. `pick(kind, '')` reusa
+ * exactamente la misma limpieza de estado/tarjeta .info que ya usa el
+ * <select> de modelo al volver a su placeholder. */
+function setMarca(kind: 'spk' | 'amp' | 'streamer' | 'dac', marca: string): void {
+  if (marca) poblarModelos(kind, marca, idiomaActual);
+  else vaciarModelos(kind, idiomaActual);
+  pick(kind, '');
 }
 
 function setDim(dim: 'W' | 'L' | 'H', valor: number): void {
@@ -678,6 +689,11 @@ function wireEventos(): void {
   infoPopup?.addEventListener('click', (e) => {
     if (e.target === infoPopup) infoPopup.close();
   });
+
+  document.getElementById('sel-spk-marca')?.addEventListener('change', (e) => setMarca('spk', (e.target as HTMLSelectElement).value));
+  document.getElementById('sel-amp-marca')?.addEventListener('change', (e) => setMarca('amp', (e.target as HTMLSelectElement).value));
+  document.getElementById('sel-streamer-marca')?.addEventListener('change', (e) => setMarca('streamer', (e.target as HTMLSelectElement).value));
+  document.getElementById('sel-dac-marca')?.addEventListener('change', (e) => setMarca('dac', (e.target as HTMLSelectElement).value));
 
   document.getElementById('sel-spk')?.addEventListener('change', (e) => pick('spk', (e.target as HTMLSelectElement).value));
   document.getElementById('sel-amp')?.addEventListener('change', (e) => pick('amp', (e.target as HTMLSelectElement).value));

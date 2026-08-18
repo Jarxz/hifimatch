@@ -88,6 +88,21 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .sel-compact select{width:100%; min-width:0; font-size:14px; padding:9px 32px 9px 14px}
 .sel-compact::after{right:12px}
 
+/* marca → modelo: dos <select> en cascada por categoría (parlante/ampli/
+   streamer/dac) — la marca es angosta (nombres cortos), el modelo ocupa
+   el resto (nombres de producto más largos). El de modelo arranca
+   deshabilitado hasta elegir marca (ver vaciarModelos en selectores.ts). */
+.marca-modelo{display:flex; gap:10px}
+.marca-modelo .sel-marca{flex:0 0 36%; min-width:0}
+.marca-modelo .sel-modelo{flex:1 1 auto; min-width:0}
+.marca-modelo select{font-size:14px; padding:12px 32px 12px 14px}
+.marca-modelo .sel::after{right:13px}
+.sel select:disabled{cursor:not-allowed; opacity:.5}
+@media (max-width:480px){
+  .marca-modelo{flex-direction:column}
+  .marca-modelo .sel-marca{flex:1 1 auto}
+}
+
 .info{margin-top:12px; border:1px solid var(--line); border-radius:4px; padding:14px 15px; background:var(--panel)}
 .info-type{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
 .chips{display:flex; flex-wrap:wrap; gap:6px; margin:9px 0}

@@ -1,48 +1,103 @@
-/** Puebla los <select> del catálogo y arma el HTML de la tarjeta .info de cada categoría. */
+/** Puebla los selectores marca→modelo del catálogo y arma el HTML de la tarjeta .info de cada categoría. */
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { chipsParlante, chipsAmplificador, chipsFuente } from '../datos/etiquetas.ts';
 import { textosDe } from '../idioma/idioma.ts';
 
-function opciones(items: readonly { id: string; nombre: string }[]): string {
-  return items.map((it) => `<option value="${it.id}">${it.nombre}</option>`).join('');
+type Kind = 'spk' | 'amp' | 'streamer' | 'dac';
+
+function catalogoDe(kind: Kind): readonly { id: string; marca: string; nombre: string }[] {
+  if (kind === 'spk') return CATALOGO.parlantes;
+  if (kind === 'amp') return CATALOGO.amplificadores;
+  if (kind === 'streamer') return CATALOGO.streamers;
+  return CATALOGO.dacs;
 }
 
+/** marca no se traduce — el orden alfabético (`localeCompare`) es estable
+ * entre idiomas. No asume que el catálogo ya viene agrupado por marca:
+ * junta únicas y ordena de forma explícita. */
+function marcasUnicas(items: readonly { marca: string }[]): string[] {
+  return [...new Set(items.map((it) => it.marca))].sort((a, b) => a.localeCompare(b));
+}
+
+function modelosDeMarca<T extends { marca: string }>(items: readonly T[], marca: string): readonly T[] {
+  return items.filter((it) => it.marca === marca);
+}
+
+function elSelect(id: string): HTMLSelectElement | null {
+  return document.getElementById(id) as HTMLSelectElement | null;
+}
+
+const SEL_MARCA: Record<Kind, string> = { spk: 'sel-spk-marca', amp: 'sel-amp-marca', streamer: 'sel-streamer-marca', dac: 'sel-dac-marca' };
+const SEL_MODELO: Record<Kind, string> = { spk: 'sel-spk', amp: 'sel-amp', streamer: 'sel-streamer', dac: 'sel-dac' };
+
 /**
- * Se llama una sola vez, al arrancar. Los <option> de equipos no necesitan
- * repoblarse al cambiar de idioma (`nombre` no se traduce); los tres
- * placeholders sí, y llevan su propio data-i18n para que el barrido
- * genérico de aplicarCromoEstatico() los actualice sin reconstruir el
- * <select> — reconstruirlo perdería la opción ya seleccionada.
+ * Placeholder de la marca: los dos requeridos (parlante/ampli) usan
+ * "— Marca —"; los dos opcionales (streamer/dac) reusan la misma clave de
+ * "Ninguno (opcional)" que ya usaban como placeholder del modelo — elegir
+ * ese primer valor sigue significando "sin fuente", ahora un paso antes.
+ */
+const MARCA_CLAVE: Record<Kind, 'marcaPlaceholder' | 'fuentePlaceholder'> = {
+  spk: 'marcaPlaceholder',
+  amp: 'marcaPlaceholder',
+  streamer: 'fuentePlaceholder',
+  dac: 'fuentePlaceholder',
+};
+
+const MAS_CLAVE: Record<Kind, 'masParlantes' | 'masAmplificadores' | 'masStreamers' | 'masDacs'> = {
+  spk: 'masParlantes',
+  amp: 'masAmplificadores',
+  streamer: 'masStreamers',
+  dac: 'masDacs',
+};
+
+/**
+ * Puebla los 4 selects de marca (una sola vez, al arrancar — la lista de
+ * marcas no cambia con el idioma) y deja los 4 de modelo deshabilitados,
+ * a la espera de que se elija una marca. El aviso "Más X · próximamente"
+ * vive acá, al final de la lista de marcas — antes vivía duplicado al
+ * final de cada lista de modelos.
  */
 export function poblarSelectores(idioma: Idioma): void {
   const t = textosDe(idioma).config;
-  const selSpk = document.getElementById('sel-spk') as HTMLSelectElement | null;
-  const selAmp = document.getElementById('sel-amp') as HTMLSelectElement | null;
-  const selStreamer = document.getElementById('sel-streamer') as HTMLSelectElement | null;
-  const selDac = document.getElementById('sel-dac') as HTMLSelectElement | null;
-  if (!selSpk || !selAmp || !selStreamer || !selDac) return;
+  (['spk', 'amp', 'streamer', 'dac'] as const).forEach((kind) => {
+    const selMarca = elSelect(SEL_MARCA[kind]);
+    if (!selMarca) return;
+    const marcas = marcasUnicas(catalogoDe(kind));
+    const claveMarca = MARCA_CLAVE[kind];
+    const claveMas = MAS_CLAVE[kind];
+    selMarca.innerHTML =
+      `<option value="" data-i18n="config.${claveMarca}">${t[claveMarca]}</option>` +
+      marcas.map((m) => `<option value="${m}">${m}</option>`).join('') +
+      `<option value="" disabled data-i18n="config.${claveMas}">${t[claveMas]}</option>`;
+    vaciarModelos(kind, idioma);
+  });
+}
 
-  selSpk.innerHTML =
-    `<option value="" data-i18n="config.selectPlaceholder">${t.selectPlaceholder}</option>` +
-    opciones(CATALOGO.parlantes) +
-    `<option value="" disabled data-i18n="config.masParlantes">${t.masParlantes}</option>`;
+/** Deja el select de modelo deshabilitado con un único option explicando
+ * que hace falta elegir marca primero — se llama al arrancar y cada vez
+ * que la marca vuelve al placeholder ("Ninguno"/sin elegir). */
+export function vaciarModelos(kind: Kind, idioma: Idioma): void {
+  const selModelo = elSelect(SEL_MODELO[kind]);
+  if (!selModelo) return;
+  const t = textosDe(idioma).config;
+  selModelo.innerHTML = `<option value="" data-i18n="config.modeloSinMarca">${t.modeloSinMarca}</option>`;
+  selModelo.disabled = true;
+  selModelo.classList.add('empty');
+}
 
-  selAmp.innerHTML =
-    `<option value="" data-i18n="config.selectPlaceholder">${t.selectPlaceholder}</option>` +
-    opciones(CATALOGO.amplificadores) +
-    `<option value="" disabled data-i18n="config.masAmplificadores">${t.masAmplificadores}</option>`;
-
-  selStreamer.innerHTML =
-    `<option value="" data-i18n="config.fuentePlaceholder">${t.fuentePlaceholder}</option>` +
-    opciones(CATALOGO.streamers) +
-    `<option value="" disabled data-i18n="config.masStreamers">${t.masStreamers}</option>`;
-
-  selDac.innerHTML =
-    `<option value="" data-i18n="config.fuentePlaceholder">${t.fuentePlaceholder}</option>` +
-    opciones(CATALOGO.dacs) +
-    `<option value="" disabled data-i18n="config.masDacs">${t.masDacs}</option>`;
+/** Puebla el select de modelo con los equipos de una marca — habilitado,
+ * con el placeholder "— Modelo —" seleccionado (nunca preselecciona un
+ * modelo real: cambiar de marca siempre vuelve a pedir elegir modelo). */
+export function poblarModelos(kind: Kind, marca: string, idioma: Idioma): void {
+  const selModelo = elSelect(SEL_MODELO[kind]);
+  if (!selModelo) return;
+  const t = textosDe(idioma).config;
+  const modelos = modelosDeMarca(catalogoDe(kind), marca);
+  selModelo.innerHTML = `<option value="" data-i18n="config.modeloPlaceholder">${t.modeloPlaceholder}</option>` + modelos.map((it) => `<option value="${it.id}">${it.nombre}</option>`).join('');
+  selModelo.disabled = false;
+  selModelo.classList.add('empty');
 }
 
 /**

@@ -15,6 +15,7 @@ export const CATALOGO: Catalogo = {
   parlantes: [
     {
       id: 'bw-606-s2-anniversary',
+      marca: 'Bowers & Wilkins',
       nombre: 'Bowers & Wilkins 606 S2 Anniversary Edition',
       tipo: {
         es: 'Monitor de 2 vías, puerto trasero, tweeter de domo',
@@ -43,6 +44,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'diatone-ds251-mk2',
+      marca: 'Diatone',
       nombre: 'Diatone DS-251MK2',
       tipo: {
         es: 'Monitor vintage de 3 vías, suspensión acústica sellada (1973)',
@@ -75,6 +77,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'dynaudio-emit-20',
+      marca: 'Dynaudio',
       nombre: 'Dynaudio Emit 20',
       tipo: { es: 'Monitor de 2 vías, puerto trasero', en: '2-way monitor, rear port' },
       descripcion: {
@@ -104,6 +107,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'elac-debut2-b62',
+      marca: 'ELAC',
       nombre: 'ELAC Debut 2.0 B6.2',
       tipo: {
         es: 'Monitor de 2 vías, puerto trasero, tweeter de domo de tela',
@@ -136,6 +140,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'focal-sopra-n2',
+      marca: 'Focal',
       nombre: 'Focal Sopra N°2',
       tipo: {
         es: 'Columna de piso de 3 vías, bass-reflex, tweeter Beryllium invertido',
@@ -171,6 +176,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'focal-vestia-n2',
+      marca: 'Focal',
       nombre: 'Focal Vestia N2',
       tipo: {
         es: 'Columna (piso) de 3 vías, doble puerto (frontal y trasero)',
@@ -203,6 +209,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'kef-ls50-meta',
+      marca: 'KEF',
       nombre: 'KEF LS50 Meta',
       tipo: {
         es: 'Monitor de 2 vías, puerto trasero, driver coaxial Uni-Q',
@@ -231,6 +238,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'klipsch-rp600m-ii',
+      marca: 'Klipsch',
       nombre: 'Klipsch RP-600M II',
       tipo: {
         es: 'Monitor de 2 vías, trompa Tractrix, puerto trasero',
@@ -264,6 +272,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'monitor-audio-silver-50-7g',
+      marca: 'Monitor Audio',
       nombre: 'Monitor Audio Silver 50 (7G)',
       tipo: { es: 'Monitor de 2 vías, estantería, puerto trasero', en: '2-way standmount monitor, rear port' },
       descripcion: {
@@ -293,6 +302,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'q-acoustics-3020i',
+      marca: 'Q Acoustics',
       nombre: 'Q Acoustics 3020i',
       tipo: { es: 'Monitor de 2 vías, puerto trasero', en: '2-way monitor, rear port' },
       descripcion: {
@@ -318,6 +328,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'revel-performa3-m106',
+      marca: 'Revel',
       nombre: 'Revel Performa3 M106',
       tipo: {
         es: 'Monitor de 2 vías, puerto trasero, tweeter de titanio',
@@ -350,6 +361,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'sonus-faber-lumina-ii',
+      marca: 'Sonus Faber',
       nombre: 'Sonus Faber Lumina II',
       tipo: { es: 'Monitor de 2 vías, estantería, puerto trasero', en: '2-way standmount monitor, rear port' },
       descripcion: {
@@ -379,6 +391,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'wharfedale-diamond-12-1',
+      marca: 'Wharfedale',
       nombre: 'Wharfedale Diamond 12.1',
       tipo: { es: 'Monitor de 2 vías, puerto trasero', en: '2-way monitor, rear port' },
       descripcion: {
@@ -408,6 +421,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'wharfedale-linton-heritage',
+      marca: 'Wharfedale',
       nombre: 'Wharfedale Linton Heritage',
       tipo: {
         es: 'Monitor de 3 vías, estantería, doble puerto trasero',
@@ -443,6 +457,7 @@ export const CATALOGO: Catalogo = {
   amplificadores: [
     {
       id: 'advance-paris-a10-classic',
+      marca: 'Advance Paris',
       nombre: 'Advance Paris A10 Classic',
       tipo: { es: 'Integrado Clase AB con previo a válvulas y DAC', en: 'Class AB integrated amplifier with tube preamp stage and DAC' },
       descripcion: {
@@ -479,6 +494,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'arcam-a5',
+      marca: 'Arcam',
       nombre: 'Arcam A5 (Radia)',
       tipo: { es: 'Integrado Clase AB, con phono MM', en: 'Class AB integrated amplifier, with MM phono' },
       descripcion: {
@@ -507,6 +523,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'cambridge-cxa81',
+      marca: 'Cambridge Audio',
       nombre: 'Cambridge Audio CXA81',
       tipo: { es: 'Integrado Clase AB, con DAC', en: 'Class AB integrated amplifier, with DAC' },
       descripcion: {
@@ -539,6 +556,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'cayin-la34-plus',
+      marca: 'Cayin',
       nombre: 'Cayin LA-34 Plus',
       tipo: {
         es: 'Integrado a válvulas, Clase AB1 push-pull, 4× EL34',
@@ -574,6 +592,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'denon-pma600ne',
+      marca: 'Denon',
       nombre: 'Denon PMA-600NE',
       tipo: {
         es: 'Integrado Clase AB, con DAC y phono MM',
@@ -604,6 +623,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'hegel-h30a',
+      marca: 'Hegel',
       nombre: 'Hegel H30A',
       tipo: {
         es: 'Amplificador de potencia de referencia, sin previo, mono/estéreo conmutable',
@@ -639,6 +659,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'hegel-h95',
+      marca: 'Hegel',
       nombre: 'Hegel H95',
       tipo: { es: 'Integrado Clase AB, con DAC', en: 'Class AB integrated amplifier, with DAC' },
       descripcion: {
@@ -675,6 +696,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'marantz-pm6007',
+      marca: 'Marantz',
       nombre: 'Marantz PM6007',
       tipo: {
         es: 'Integrado Clase AB, con DAC y phono MM',
@@ -705,6 +727,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'marantz-sr6008',
+      marca: 'Marantz',
       nombre: 'Marantz SR6008',
       tipo: {
         es: 'Receptor AV Clase AB, 7 canales + 2 subwoofer (ratings de 2 canales excitados)',
@@ -744,6 +767,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'mcintosh-mc252',
+      marca: 'McIntosh',
       nombre: 'McIntosh MC252',
       tipo: {
         es: 'Etapa de potencia estéreo Clase AB, con Output Autoformer',
@@ -783,6 +807,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'nad-c316bee-v2',
+      marca: 'NAD',
       nombre: 'NAD C 316BEE V2',
       tipo: { es: 'Integrado Clase AB, con phono MM', en: 'Class AB integrated amplifier, with MM phono' },
       descripcion: {
@@ -815,6 +840,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'rega-brio',
+      marca: 'Rega',
       nombre: 'Rega Brio',
       tipo: { es: 'Integrado Clase AB, con phono MM', en: 'Class AB integrated amplifier, with MM phono' },
       descripcion: {
@@ -839,6 +865,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'yamaha-as501',
+      marca: 'Yamaha',
       nombre: 'Yamaha A-S501',
       tipo: {
         es: 'Integrado Clase AB, con DAC y phono MM',
@@ -884,6 +911,7 @@ export const CATALOGO: Catalogo = {
   streamers: [
     {
       id: 'audiolab-9000n',
+      marca: 'Audiolab',
       nombre: 'Audiolab 9000N',
       tipo: {
         es: 'Streamer de red, DAC integrado, salida RCA y XLR (nivel variable)',
@@ -914,6 +942,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'bluesound-node-n130',
+      marca: 'Bluesound',
       nombre: 'Bluesound Node (N130, 2021)',
       tipo: {
         es: 'Streamer de red, DAC integrado (salida analógica)',
@@ -943,6 +972,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'cambridge-axn10',
+      marca: 'Cambridge Audio',
       nombre: 'Cambridge Audio AXN10',
       tipo: {
         es: 'Streamer de red, DAC integrado (salida analógica)',
@@ -969,6 +999,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'cambridge-cxn-v2',
+      marca: 'Cambridge Audio',
       nombre: 'Cambridge Audio CXN (V2)',
       tipo: {
         es: 'Streamer de red, DAC integrado, salida RCA y XLR',
@@ -994,6 +1025,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'hifirose-rs130',
+      marca: 'HiFi Rose',
       nombre: 'HiFi Rose RS130',
       tipo: {
         es: 'Transporte de red, sin DAC integrado — sólo salidas digitales',
@@ -1023,6 +1055,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'hifirose-rs151',
+      marca: 'HiFi Rose',
       nombre: 'HiFi Rose RS151',
       tipo: {
         es: 'Streamer de red, DAC integrado, salida RCA y XLR (nivel fijo o variable)',
@@ -1056,6 +1089,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'hifirose-rs250a',
+      marca: 'HiFi Rose',
       nombre: 'HiFi Rose RS250A',
       tipo: {
         es: 'Streamer de red, DAC integrado, sólo RCA (nivel fijo o variable)',
@@ -1088,6 +1122,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'lumin-t3',
+      marca: 'Lumin',
       nombre: 'Lumin T3',
       tipo: {
         es: 'Streamer de red, DAC integrado, salida RCA y XLR (volumen digital)',
@@ -1121,6 +1156,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'mcintosh-ms500',
+      marca: 'McIntosh',
       nombre: 'McIntosh MS500',
       tipo: {
         es: 'Music server de red, DAC integrado, salida RCA y XLR fija',
@@ -1147,6 +1183,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'naim-nd5-xs2',
+      marca: 'Naim',
       nombre: 'Naim ND5 XS 2',
       tipo: {
         es: 'Streamer de red, DAC integrado, salida fija (sin control de volumen)',
@@ -1180,6 +1217,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'wadax-studio-player',
+      marca: 'Wadax',
       nombre: 'Wadax Studio Player',
       tipo: {
         es: 'Streamer/DAC/reproductor de disco integrado, sólo XLR, impedancia de salida ajustable',
@@ -1209,6 +1247,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'wiim-pro-plus',
+      marca: 'WiiM',
       nombre: 'WiiM Pro Plus',
       tipo: {
         es: 'Streamer de red, DAC integrado (salida analógica)',
@@ -1240,6 +1279,7 @@ export const CATALOGO: Catalogo = {
   dacs: [
     {
       id: 'cambridge-dacmagic-200m',
+      marca: 'Cambridge Audio',
       nombre: 'Cambridge Audio DacMagic 200M',
       tipo: { es: 'DAC/preamp de escritorio, RCA y XLR', en: 'Desktop DAC/preamp, RCA and XLR' },
       descripcion: {
@@ -1258,6 +1298,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'chord-qutest',
+      marca: 'Chord',
       nombre: 'Chord Qutest',
       tipo: { es: 'DAC de escritorio, sólo RCA, salida conmutable en 3 niveles', en: 'Desktop DAC, RCA only, 3-level switchable output' },
       descripcion: {
@@ -1283,6 +1324,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'hegel-hd30',
+      marca: 'Hegel',
       nombre: 'Hegel HD30',
       tipo: { es: 'DAC/preamp de escritorio, RCA y XLR, con atenuador de volumen', en: 'Desktop DAC/preamp, RCA and XLR, with volume attenuator' },
       descripcion: {
@@ -1305,6 +1347,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'molamola-tambaqui',
+      marca: 'Mola Mola',
       nombre: 'Mola Mola Tambaqui',
       tipo: { es: 'DAC de escritorio, sólo XLR, volumen digital o nivel fijo', en: 'Desktop DAC, XLR only, digital volume or fixed level' },
       descripcion: {
@@ -1335,6 +1378,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'psaudio-directstream-mk2',
+      marca: 'PS Audio',
       nombre: 'PS Audio DirectStream DAC Mk2',
       tipo: { es: 'DAC/preamp de escritorio, RCA y XLR, volumen digital', en: 'Desktop DAC/preamp, RCA and XLR, digital volume control' },
       descripcion: {
@@ -1361,6 +1405,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'psaudio-perfectwave-mk2',
+      marca: 'PS Audio',
       nombre: 'PS Audio PerfectWave DAC Mk II',
       tipo: { es: 'DAC/preamp de escritorio, RCA y XLR, volumen digital', en: 'Desktop DAC/preamp, RCA and XLR, digital volume control' },
       descripcion: {
@@ -1384,6 +1429,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'rme-adi2-dac-fs',
+      marca: 'RME',
       nombre: 'RME ADI-2 DAC FS',
       tipo: { es: 'DAC/preamp profesional de escritorio, RCA y XLR, 4 niveles de referencia', en: 'Professional desktop DAC/preamp, RCA and XLR, 4 reference levels' },
       descripcion: {
@@ -1403,6 +1449,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'schiit-modi-plus',
+      marca: 'Schiit',
       nombre: 'Schiit Modi+',
       tipo: { es: 'DAC de escritorio, USB/coaxial/óptico', en: 'Desktop DAC, USB/coaxial/optical' },
       descripcion: {
@@ -1418,6 +1465,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'ta-dac-200',
+      marca: 'T+A',
       nombre: 'T+A DAC 200',
       tipo: {
         es: 'DAC/previo de referencia, RCA y XLR, salida fija o variable',
@@ -1440,6 +1488,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'topping-e30-ii',
+      marca: 'Topping',
       nombre: 'Topping E30 II',
       tipo: { es: 'DAC de escritorio, sólo RCA (sin XLR)', en: 'Desktop DAC, RCA only (no XLR)' },
       descripcion: {
@@ -1458,6 +1507,7 @@ export const CATALOGO: Catalogo = {
     },
     {
       id: 'wadia-121',
+      marca: 'Wadia',
       nombre: 'Wadia 121 Decoding Computer',
       tipo: {
         es: 'DAC/preamp de escritorio con etapa de audífonos, salida ajustable en 3 pasos',

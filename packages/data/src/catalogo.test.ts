@@ -74,6 +74,13 @@ test('nombre no está vacío en ningún equipo (no se traduce, así que no pasa 
   }
 });
 
+test('marca no está vacía y nombre empieza con marca, en las 4 categorías con selector marca→modelo (parlantes/amplis/streamers/dacs)', () => {
+  for (const eq of [...CATALOGO.parlantes, ...CATALOGO.amplificadores, ...CATALOGO.streamers, ...CATALOGO.dacs]) {
+    assert.ok(eq.marca.trim().length > 0, `marca vacía: ${eq.id}`);
+    assert.ok(eq.nombre.startsWith(eq.marca), `nombre "${eq.nombre}" no empieza con marca "${eq.marca}" (${eq.id})`);
+  }
+});
+
 test('fuentes[] bibliográficas no están vacías (no se traducen: son citas, no prosa)', () => {
   for (const eq of TODOS_LOS_EQUIPOS) {
     assert.ok(eq.fuentes.length > 0, `sin fuentes bibliográficas: ${eq.id}`);

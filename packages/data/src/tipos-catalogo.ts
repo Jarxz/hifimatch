@@ -22,6 +22,7 @@ export interface DatoCitado<T> {
 
 export interface ParlanteCat {
   id: string;
+  marca: string; // marca del fabricante — NO se traduce; separada de nombre para el selector marca→modelo
   nombre: string; // nombre de producto — NO se traduce
   tipo: Localizado;
   descripcion: Localizado; // admite <b>…</b>
@@ -38,6 +39,7 @@ export interface ParlanteCat {
 
 export interface AmplificadorCat {
   id: string;
+  marca: string;
   nombre: string;
   tipo: Localizado;
   descripcion: Localizado;
@@ -60,6 +62,7 @@ export interface AmplificadorCat {
  */
 export interface FuenteCat {
   id: string;
+  marca: string;
   nombre: string;
   tipo: Localizado;
   descripcion: Localizado;
