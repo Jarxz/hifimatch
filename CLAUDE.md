@@ -843,6 +843,33 @@ web, no algo pendiente de esta ronda.
 Todas las animaciones nuevas respetan `prefers-reduced-motion:reduce`
 (mismo bloque que ya neutralizaba el logo de portada, ampliado).
 
+**Header responsive: grilla en vez de flex, para controlar dónde
+rompe la línea en mobile.** En pantallas angostas (teléfono, ≤640px)
+el header fijo pasaba a dos filas con `flex-wrap`, pero la fila
+quedaba mal repartida: "Resultado"/"Configurar"/"Guía del análisis"
+(`.hs`) se quedaba pegado al logo en la primera fila, y los botones
+(ES/EN, Info, Guardar, Volver) caían solos a una segunda fila,
+visualmente desalineados del texto. Se cambió `.head` de
+`display:flex` a `display:grid` con `grid-template-areas` — en
+desktop sigue siendo "hm/hright" arriba y "hs/hright" abajo (mismo
+aspecto que antes, `.hright` centrado verticalmente contra todo el
+bloque); en mobile pasa a "hm hm" (el wordmark solo, ocupando toda la
+fila) seguido de "hs hright" (el subtítulo y los botones **en la
+misma fila**, que es lo que se pidió). Esto exigió sacar `.hm` y
+`.hs` de un `<div>` envolvente común a un nivel: ahora son hijos
+directos de `.head`, cada uno con su propio `grid-area`, así el
+punto de quiebre de la grilla cae entre el logo y el resto, no entre
+el bloque logo+subtítulo y los botones. En el mismo breakpoint,
+tipografía y padding bajan en bloque: `.hm` de 19px a 12px, `.hs` de
+11px a 8,5px, `.back` (Info/Guardar/Volver) de 12px a 9,5px, los
+botones ES/EN de `.segs.idioma` con padding más chico — y
+`#s-config/#s-results/#s-info .wrap` ajusta su `padding-top` de
+compensación (112px → 82px) porque el header fijo mismo queda más
+bajo. Verificado con `Emulation.setDeviceMetricsOverride` en Chrome
+headless a 375/414px (teléfono) y 768/820/1024px (tablet/desktop) —
+tablet en adelante no necesita el breakpoint, ya entra cómodo en una
+sola fila sin achicar nada.
+
 **Desplegado en Vercel.** Producción en
 `https://hifimatch-web-5bbj.vercel.app/`, conectado al branch `master`. Root
 Directory en la raíz del repo (no en `apps/web` — ese apunte rompe la
