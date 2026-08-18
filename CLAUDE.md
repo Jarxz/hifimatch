@@ -407,6 +407,39 @@ equipos tienen output stages inusuales que un solo campo `salidaV`/
   (6,0 V/10 Ω) en vez de mezclar el voltaje RCA (3,0 V, sin impedancia
   medida) con una impedancia de otro conector.
 
+**Quinta ronda: 4 equipos, uno por categoría.** Focal Sopra N°2
+(parlante), Hegel H30A (amplificador), HiFi Rose RS130 (streamer) y
+T+A DAC 200 (DAC) — catálogo a 53 equipos (14+13+12+11+3). Dos casos
+particulares:
+
+- **Focal Sopra N°2**: la ficha oficial declara 91 dB de sensibilidad
+  y 3,1 Ω de impedancia mínima; una medición independiente (NRC/
+  SoundStage) mide **87,5 dB reales** (casi 3,5 dB menos) y **2,6 Ω a
+  104 Hz** de impedancia mínima, con un EPDR de sólo 1,1 Ω a 85 Hz — se
+  registran los valores medidos, no los de fábrica, mismo criterio que
+  el resto del catálogo aplica a sensibilidades y cargas sobreestimadas.
+- **HiFi Rose RS130** es un *transporte* de red puro — sin DAC
+  integrado, sin salida analógica alguna, sólo salidas digitales
+  (coaxial, óptica, AES/EBU, HDMI I2S) hacia un DAC externo.
+  `salidaV`/`impedanciaSalidaOhm` quedan en `null` con `confianza:
+  'alta'` (no es un dato que falte investigar — es un dato que este
+  equipo, por diseño, no tiene) y `pendiente` lo explica. Verificado
+  extremo a extremo: al elegirlo, las tarjetas de puente y recorrido de
+  streamer se ocultan solas (mismo mecanismo que ya usa Cambridge CXN
+  V2 con datos realmente faltantes) y el resumen final lo declara en
+  "Sin datos suficientes".
+
+Hegel H30A es la primera entrada del catálogo que es explícitamente
+un *amplificador de potencia sin previo* (necesita un Hegel P30A u
+otro previo) en vez de un integrado — mismo tratamiento de categoría
+que ya recibía el McIntosh MC252. Se registran las cifras de modo
+estéreo (300 W/8 Ω, 600 W/4 Ω) como `potencia8OhmW`/`potencia4OhmW`
+—comparables al resto del catálogo— con el modo mono (1100 W) y la
+estabilidad declarada con carga de 1 Ω como dato adicional en
+`chipsExtra`, no en los campos numéricos principales. Sensibilidad de
+entrada no publicada por el fabricante en ningún documento
+consultado — `sensEntradaMv: null`.
+
 **Las 8 tarjetas de evaluación son colapsables** (`<details class="detalle">
 <summary>`, HTML nativo, sin JS propio). Siempre visible: el badge de capa
 (física/geometría) + veredicto, el título, la frase `simple` en itálica y

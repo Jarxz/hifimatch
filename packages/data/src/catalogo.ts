@@ -135,6 +135,41 @@ export const CATALOGO: Catalogo = {
       },
     },
     {
+      id: 'focal-sopra-n2',
+      nombre: 'Focal Sopra N°2',
+      tipo: {
+        es: 'Columna de piso de 3 vías, bass-reflex, tweeter Beryllium invertido',
+        en: '3-way floorstanding column, bass-reflex, inverted Beryllium tweeter',
+      },
+      descripcion: {
+        es: 'Columna de 3 vías bass-reflex con tweeter Beryllium IHL invertido, doble woofer "W" de 18 cm y medio "W" de 16,5 cm con suspensión TMD. La ficha oficial declara 91 dB de sensibilidad y 3,1 Ω de impedancia mínima; una medición independiente (NRC/SoundStage) da <b>87,5 dB reales</b> (casi 3,5 dB menos) y una impedancia mínima de <b>2,6 Ω a 104 Hz</b>, con un EPDR (resistencia de disipación de pico equivalente) de apenas 1,1 Ω a 85 Hz — una carga más exigente de lo que sugiere la ficha.',
+        en: 'A 3-way bass-reflex column with an inverted Beryllium IHL tweeter, dual 18 cm "W" woofers, and a 16.5 cm "W" midrange with TMD suspension. The official spec sheet claims 91 dB sensitivity and 3.1 Ω minimum impedance; an independent measurement (NRC/SoundStage) gives <b>87.5 dB in practice</b> (almost 3.5 dB lower) and a minimum impedance of <b>2.6 Ω at 104 Hz</b>, with an EPDR (equivalent peak dissipation resistance) of only 1.1 Ω at 85 Hz — a more demanding load than the spec sheet suggests.',
+      },
+      sensibilidadDb: {
+        valor: 87.5,
+        fuente: {
+          es: 'SoundStage Network (medición NRC, promedio de ventana de escucha 300 Hz–3 kHz)',
+          en: 'SoundStage Network (NRC measurement, Listening Window average 300Hz-3kHz)',
+        },
+        confianza: 'alta',
+        nota: {
+          es: 'Focal declara 91 dB en la ficha oficial; la medición independiente es casi 3,5 dB más baja — se usa la medida, mismo criterio que con otras sensibilidades de fábrica sobreestimadas de este catálogo',
+          en: 'Focal states 91 dB on the official spec sheet; the independent measurement is almost 3.5 dB lower — the measured figure is used, the same criterion applied to other overstated factory sensitivities in this catalog',
+        },
+      },
+      impedanciaNominalOhm: 8,
+      impedanciaMinOhm: 2.6,
+      potenciaRecMinW: 40,
+      potenciaRecMaxW: 300,
+      maxSplDb: null,
+      chipsExtra: [],
+      fuentes: ['Focal (ficha oficial, focal.com/products/sopra-n2)', 'SoundStage Network — NRC Measurements: Focal Sopra N°2 Loudspeakers'],
+      pendiente: {
+        es: 'impedancia mínima: la ficha oficial declara 3,1 Ω; la medición independiente (NRC) mide 2,6 Ω a 104 Hz, con un EPDR de 1,1 Ω a 85 Hz (la caída de impedancia combinada con el ángulo de fase la hace más exigente que un simple mínimo resistivo) — se registra el valor medido, más conservador. maxSplDb no publicado por el fabricante',
+        en: 'minimum impedance: the official spec sheet states 3.1 Ω; the independent measurement (NRC) measures 2.6 Ω at 104 Hz, with an EPDR of 1.1 Ω at 85 Hz (the impedance dip combined with phase angle makes it more demanding than a simple resistive minimum) — the measured, more conservative figure is recorded. maxSplDb not published by the manufacturer',
+      },
+    },
+    {
       id: 'focal-vestia-n2',
       nombre: 'Focal Vestia N2',
       tipo: {
@@ -568,6 +603,41 @@ export const CATALOGO: Catalogo = {
       fuentes: ['Denon (ficha oficial)'],
     },
     {
+      id: 'hegel-h30a',
+      nombre: 'Hegel H30A',
+      tipo: {
+        es: 'Amplificador de potencia de referencia, sin previo, mono/estéreo conmutable',
+        en: 'Reference power amplifier, no preamp stage, switchable mono/stereo',
+      },
+      descripcion: {
+        es: 'Amplificador de potencia puro (necesita un previo, ej. Hegel P30A) — 300 W en 8 Ω y 600 W en 4 Ω en modo estéreo (reserva 2×, sobre el umbral 1,7×); en modo mono entrega 1100 W, y el fabricante lo declara <b>estable incluso con cargas de 1 Ω</b>. La ficha oficial no publica sensibilidad de entrada.',
+        en: 'A pure power amplifier (needs a preamp, e.g. the Hegel P30A) — 300 W into 8 Ω and 600 W into 4 Ω in stereo mode (2x reserve, above the 1.7x threshold); in mono mode it delivers 1100 W, and the manufacturer states it is <b>stable even with 1 Ω loads</b>. The official spec sheet does not publish input sensitivity.',
+      },
+      potencia8OhmW: {
+        valor: 300,
+        fuente: { es: 'Hegel (ficha oficial)', en: 'Hegel (official spec sheet)' },
+        confianza: 'alta',
+      },
+      potencia4OhmW: {
+        valor: 600,
+        fuente: { es: 'Hegel (ficha oficial)', en: 'Hegel (official spec sheet)' },
+        confianza: 'alta',
+      },
+      cargaMinOhm: 1,
+      sensEntradaMv: null,
+      impedanciaEntradaOhm: 10000,
+      chipsExtra: [
+        { es: 'estable con carga de 1 Ω', en: 'stable into 1 Ω loads' },
+        { es: 'modo mono 1100 W', en: 'mono mode 1100 W' },
+        { es: 'entrada XLR 20 kΩ', en: 'XLR input 20 kΩ' },
+      ],
+      fuentes: ['Hegel (ficha oficial, hegel.com/en/products/power/h30a)', 'Dedicated Audio (specs replicadas de la ficha oficial)'],
+      pendiente: {
+        es: 'sensibilidad de entrada no publicada por el fabricante en ningún documento consultado (ficha oficial, manual ni reseñas técnicas). Impedancia de entrada: se registra la versión no balanceada (10 kΩ, RCA), más conservadora para el puente de impedancias; la entrada XLR balanceada es de 20 kΩ. La carga mínima de 1 Ω es una declaración explícita de estabilidad del fabricante, no una cifra de potencia asociada',
+        en: "input sensitivity is not published by the manufacturer in any document consulted (official spec sheet, manual, or technical reviews). Input impedance: the unbalanced (10 kΩ, RCA) figure is recorded, the more conservative one for the impedance bridge; the balanced XLR input is 20 kΩ. The 1 Ω minimum load is an explicit manufacturer stability claim, not a power-rated figure",
+      },
+    },
+    {
       id: 'hegel-h95',
       nombre: 'Hegel H95',
       tipo: { es: 'Integrado Clase AB, con DAC', en: 'Class AB integrated amplifier, with DAC' },
@@ -920,6 +990,35 @@ export const CATALOGO: Catalogo = {
       pendiente: {
         es: 'voltaje e impedancia de salida — la ficha oficial no los publica; fuentes de terceros dan valores aproximados ("~2 V") sin confirmar, así que se dejan en null en vez de asumir',
         en: 'output voltage and impedance — the official spec sheet does not publish them; third-party sources give approximate values ("~2 V") without confirmation, so they are left null instead of assumed',
+      },
+    },
+    {
+      id: 'hifirose-rs130',
+      nombre: 'HiFi Rose RS130',
+      tipo: {
+        es: 'Transporte de red, sin DAC integrado — sólo salidas digitales',
+        en: 'Network transport, no built-in DAC — digital outputs only',
+      },
+      descripcion: {
+        es: 'Transporte de red puro: no tiene conversor D/A propio ni salida analógica — sólo salidas digitales (coaxial, óptica, AES/EBU, HDMI I2S) hacia un DAC externo. <b>No corre ninguna de las dos subreglas de ganancia</b> (puente de impedancias, recorrido de volumen): no hay tensión ni impedancia de salida analógica que evaluar.',
+        en: 'A pure network transport: it has no D/A converter or analog output of its own — only digital outputs (coaxial, optical, AES/EBU, HDMI I2S) toward an external DAC. <b>Neither of the two gain-chain sub-rules runs</b> (impedance bridge, volume headroom): there is no analog output voltage or impedance to evaluate.',
+      },
+      salidaV: null,
+      impedanciaSalidaOhm: null,
+      fuente: {
+        es: 'HiFi Rose (ficha oficial, hifiroseusa.com/products/rs130-network-transport)',
+        en: 'HiFi Rose (official spec sheet, hifiroseusa.com/products/rs130-network-transport)',
+      },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'sólo transporte, requiere DAC externo', en: 'transport only, requires external DAC' },
+        { es: 'reloj OCXO 10 MHz', en: '10 MHz OCXO clock' },
+        { es: 'salidas coaxial, óptica, AES/EBU, HDMI I2S', en: 'coaxial, optical, AES/EBU, HDMI I2S outputs' },
+      ],
+      fuentes: ['HiFi Rose (ficha oficial, hifiroseusa.com/products/rs130-network-transport)'],
+      pendiente: {
+        es: 'no tiene tensión ni impedancia de salida analógica que registrar — es un transporte de red puro, sin DAC integrado; la ficha oficial confirma que sus únicas salidas de audio son digitales (coaxial, óptica, AES/EBU, HDMI I2S). Necesita un DAC externo (por ejemplo, cualquiera de los DAC de este catálogo) para producir señal analógica',
+        en: 'there is no analog output voltage or impedance to record — this is a pure network transport, with no built-in DAC; the official spec sheet confirms its only audio outputs are digital (coaxial, optical, AES/EBU, HDMI I2S). It needs an external DAC (for example, any of the DACs in this catalog) to produce an analog signal',
       },
     },
     {
@@ -1316,6 +1415,28 @@ export const CATALOGO: Catalogo = {
       confianza: 'alta',
       chipsExtra: [{ es: 'USB/coax/óptico', en: 'USB/coax/optical' }],
       fuentes: ['Schiit Audio (ficha oficial)'],
+    },
+    {
+      id: 'ta-dac-200',
+      nombre: 'T+A DAC 200',
+      tipo: {
+        es: 'DAC/previo de referencia, RCA y XLR, salida fija o variable',
+        en: 'Reference DAC/preamp, RCA and XLR, fixed or variable output',
+      },
+      descripcion: {
+        es: 'Conversor "Double-Differential-Quadruple" (cuatro conversores Sigma-Delta de 32 bits por canal para PCM; ruta DSD nativa propia "True 1-Bit" hasta DSD1024). Salida seleccionable fija o variable; se registran los valores RCA (no balanceados): 2,5 V y 22 Ω. La salida XLR balanceada duplica la tensión (5,0 V) con la misma impedancia.',
+        en: 'A "Double-Differential-Quadruple" converter (four 32-bit Sigma-Delta converters per channel for PCM; a proprietary native "True 1-Bit" DSD path up to DSD1024). Output selectable as fixed or variable; the unbalanced RCA figures are recorded here: 2.5 V and 22 Ω. The balanced XLR output doubles the voltage (5.0 V) at the same impedance.',
+      },
+      salidaV: 2.5,
+      impedanciaSalidaOhm: 22,
+      fuente: { es: 'T+A (ficha oficial, ta-hifi.de)', en: 'T+A (official spec sheet, ta-hifi.de)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'XLR balanceada 5,0 V / 22 Ω', en: 'balanced XLR 5.0 V / 22 Ω' },
+        { es: 'salida fija o variable', en: 'fixed or variable output' },
+        { es: 'audífonos 6 Ω, Clase A', en: '6 Ω Class A headphone output' },
+      ],
+      fuentes: ['T+A (ficha oficial, ta-hifi.de/en/audiosystems/series-200/dac-200-d-a-converter)'],
     },
     {
       id: 'topping-e30-ii',
