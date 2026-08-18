@@ -1032,7 +1032,55 @@ bajo 480px). `catalogo.test.ts` suma una prueba de que `nombre` siempre
 empieza con `marca`, para atajar errores de tipeo al cargar equipos
 nuevos.
 
+**Ampliación grande del catálogo: 91 equipos nuevos, marcas más
+reconocidas por categoría.** Catálogo a **114 equipos** (35 parlantes +
+34 amplificadores + 12 streamers + 30 dacs + 3 cables, antes 53) — el
+motivo fue directo: con el selector marca→modelo recién separado, varias
+categorías tenían sólo 1 modelo por marca, lo que dejaba el paso de
+"modelo" casi vacío para la mayoría de las marcas. Investigado con 3
+agentes en paralelo (uno por categoría — parlantes, amplificadores,
+dacs), cada uno con la misma disciplina de fuente + confianza que el
+resto del catálogo: ficha oficial o medición independiente citada
+(Stereophile, Hi-Fi News, Audio Science Review, SoundStage Network,
+Hi-Fi+, StereoNET, Erin's Audio Corner), `null` declarado con `pendiente`
+cuando el dato genuinamente no se publica — nunca una cifra inventada
+para completar un casillero. Marcas nuevas agregadas: **JBL** y
+**Yamaha** en parlantes; **Pioneer** en amplificadores; **iFi audio** y
+**SMSL** en DACs (Topping ya era la única marca china del catálogo en
+DACs; SMSL suma la segunda, tope declarado por el sitio de 1-2 marcas
+chinas por categoría — ninguna otra categoría suma una marca china
+nueva). Las marcas ya presentes (Bowers & Wilkins, Dynaudio, ELAC, KEF,
+Klipsch, Monitor Audio, Sonus Faber, Wharfedale, Arcam, Cambridge Audio,
+Denon, Hegel, Marantz, McIntosh, NAD, Rega, Chord, RME, Schiit, PS Audio,
+T+A) suman 1-2 modelos más cada una, en vez de quedarse con el único que
+tenían. Varios casos quedaron documentados con el mismo rigor que ya
+tenía el catálogo: discrepancias entre ficha oficial y medición
+independiente resueltas declarando ambas cifras y explicando cuál se usa
+(ej. Cambridge Audio Azur 851D: fábrica declara "<50 Ω", Stereophile
+midió 92 Ω balanceado; T+A DAC 8 DSD: fábrica declara 22/44 Ω, Stereophile
+midió 46-53/104-114 Ω); salidas configurables registradas por su máximo,
+nunca promediadas (iFi NEO iDSD, iFi Pro iDSD, Topping D90 III Sabre);
+un caso de impedancia de salida que ni el fabricante ni la medición
+independiente llegaron a publicar con cifra exacta (SMSL M400 — el
+propio revisor de Audio Science Review declara no haberla medido) se deja
+en `null` en vez de adoptar su estimación como si fuera un dato medido.
+
+**Streamers quedó sin ampliar — pendiente, no abandonado.** El agente de
+investigación de esa categoría se cortó por límite de sesión de la
+cuenta antes de escribir ningún resultado (a diferencia de los otros 3,
+que sí alcanzaron a guardar su archivo completo) — sigue en 12 equipos,
+9 marcas. Falta agregar Bluesound/Cambridge Audio/Naim/Audiolab/McIntosh
+(expandir) y NAD/Yamaha/Sonos/Denon (marcas nuevas) con la misma
+disciplina que las otras 3 categorías — ver el punto de "Falta" más
+abajo.
+
 Falta:
+- **Ampliar streamers** con las marcas ya identificadas (Bluesound,
+  Cambridge Audio, Naim, Audiolab, McIntosh — expandir; NAD, Yamaha,
+  Sonos, Denon — nuevas), misma disciplina de fuente + confianza que el
+  resto del catálogo. Único punto pendiente de la ronda de ampliación de
+  catálogo — las otras 3 categorías (parlantes, amplificadores, dacs) ya
+  quedaron ampliadas.
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos

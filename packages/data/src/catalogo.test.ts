@@ -59,13 +59,13 @@ test('ids únicos en todo el catálogo', () => {
   }
 });
 
-test('conteo de equipos por categoría: 14 parlantes + 13 amplis + 12 streamers + 11 dacs + 3 cables = 53', () => {
-  assert.equal(CATALOGO.parlantes.length, 14);
-  assert.equal(CATALOGO.amplificadores.length, 13);
+test('conteo de equipos por categoría: 35 parlantes + 34 amplis + 12 streamers + 30 dacs + 3 cables = 114', () => {
+  assert.equal(CATALOGO.parlantes.length, 35);
+  assert.equal(CATALOGO.amplificadores.length, 34);
   assert.equal(CATALOGO.streamers.length, 12);
-  assert.equal(CATALOGO.dacs.length, 11);
+  assert.equal(CATALOGO.dacs.length, 30);
   assert.equal(CATALOGO.cables.length, 3);
-  assert.equal(TODOS_LOS_EQUIPOS.length, 53);
+  assert.equal(TODOS_LOS_EQUIPOS.length, 114);
 });
 
 test('nombre no está vacío en ningún equipo (no se traduce, así que no pasa por el recorrido de Localizado)', () => {
@@ -91,7 +91,10 @@ test('lint de separador decimal: "es" no lleva punto entre dígitos, "en" no lle
   // Imperfecto a propósito (no es una garantía, es una red de contención):
   // hay excepciones legítimas (nombres de modelo, formatos de audio) que se
   // agregan acá si el catálogo crece y alguna empieza a matchear.
-  const ALLOWLIST_ES = [/\b\d\.\d+\s?V\b/i]; // "2.83V" citado dentro de prosa técnica en español
+  const ALLOWLIST_ES = [
+    /\b\d\.\d+\s?V\b/i, // "2.83V" citado dentro de prosa técnica en español
+    /\bDiamond 12\.1\b/, // nombre de producto (Wharfedale Diamond 12.1), no un decimal
+  ];
   const ALLOWLIST_EN: RegExp[] = [];
 
   function limpiar(texto: string, allowlist: RegExp[]): string {
