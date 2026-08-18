@@ -191,14 +191,19 @@ xR     = cx + sep/2
 
 distanciaEscucha = √( (sep/2)² + (ly − spOff)² )   // ← alimenta la regla de potencia
 
-// primer punto de reflexión en muros laterales (método de la imagen espejo)
-t   = xL / (xL + cx)
-rpy = spOff + t·(ly − spOff)
-reflexionIzq = (0, rpy)
-reflexionDer = (W, rpy)
-
 puntoDulce = (cx, ly)
 ```
+
+Las reflexiones laterales (`reflexionIzq`/`reflexionDer`) se calculan con el
+mismo `reflexionEnPlano` genérico que las reflexiones 3D de más abajo
+(`eje='x'`, `valorPlano=0` para la izquierda, `valorPlano=W` para la
+derecha) — **no** una fórmula 2D aparte. Hasta la ronda de arrastre manual
+(ver más abajo) existía una segunda fórmula independiente (`t = xL/(xL+cx)`,
+`rpy = spOff + t·(ly−spOff)`) que sólo coincidía con `reflexionEnPlano` por
+la simetría de la sala; se unificó porque una disposición manual asimétrica
+sí las distingue. El resultado numérico en el caso simétrico no cambia (es
+la misma sala del vector de más abajo) — la corrección es de duplicación,
+no de resultado.
 
 **Disciplina:** esto predice desde una sala rectangular rígida y se equivoca fácil.
 El veredicto de sala nunca es `error`; es disposición **de referencia**, que se
@@ -208,7 +213,6 @@ afina midiendo. El frontend ya lo rotula así.
 ```
 cx=1,80  sep=1,98  spOff=0,75  ly=3,126  xL=0,81  xR=2,79
 distanciaEscucha ≈ 2,574 m
-t≈0,3103   rpy≈1,487
 reflexionIzq=(0, 1,487)   reflexionDer=(3,6, 1,487)   puntoDulce=(1,8, 3,126)
 ```
 
@@ -261,11 +265,12 @@ techo/piso: punto medio (parlanteIzq, puntoDulce) = (1,305, 1,938)
 
 El renderer isométrico acepta una `Vista = 'isometrica'|'frontal'|'lateral'|
 'superior'`: misma geometría, sólo cambia la fórmula de proyección
-(`proyectar(p, vista)`) — botones de vista preestablecida, no arrastre
-libre con mouse (decisión explícita: no agregar el primer widget
-interactivo-con-mouse del sitio; el cambio de vista sólo re-dibuja, no
-recalcula nada, `main.ts` cachea la última `{sala, disposicion,
-murosVista}` para eso). En vistas ortográficas (frontal/lateral/superior)
+(`proyectar(p, vista)`) — botones de vista preestablecida; el cambio de
+vista sólo re-dibuja, no recalcula nada, `main.ts` cachea la última
+`{sala, disposicion, murosVista}` para eso. La vista Superior es además la
+única **editable** (arrastre de parlantes) — ver la subsección de más
+abajo; las otras 3 siguen siendo de sólo lectura. En vistas ortográficas
+(frontal/lateral/superior)
 dos etiquetas de muro caen exactamente superpuestas cuando la vista deja
 caer el eje que las distingue — se omiten en vez de mostrar texto
 amontonado (`frontal` oculta frontal/posterior; `lateral` oculta
@@ -278,6 +283,101 @@ catálogo no tiene dimensiones por equipo, así que esto no alimenta ningún
 cálculo, sólo hace que el ícono se lea como un volumen. Centrada en
 `alturaM` (el mismo eje acústico asumido para las reflexiones de techo/
 piso), sin modelar específicamente parlante de piso vs. de estante.
+
+### Disposición manual (`calcularDisposicionManual`) — parlantes independientes
+
+El usuario puede arrastrar cada parlante por separado (no en espejo) en la
+vista Superior. `calcularDisposicionManual(sala, parlanteIzq, parlanteDer)`
+generaliza `calcularDisposicion(sala)` a dos posiciones arbitrarias, en vez
+de derivarlas de las dimensiones de la sala:
+
+```
+MARGEN_MURO_MIN_M = 0,15   // distancia mínima de un parlante (o el punto dulce) a cualquier muro
+
+clampPosicionParlante(p, sala, margen=MARGEN_MURO_MIN_M):
+  x = clamp(margen, p.x, anchoM − margen)
+  y = clamp(margen, p.y, largoM − margen)
+```
+
+**El punto dulce se recalcula solo**, no queda fijo en su posición
+original. `calcularDisposicion` pone el punto dulce sobre la línea central
+de la sala, a `sep·1,2` de distancia detrás de los parlantes — eso
+garantiza por construcción que ambos quedan equidistantes de él (triángulo
+simétrico). La generalización que preserva esa misma propiedad para dos
+parlantes cualesquiera es ponerlo sobre la **mediatriz** del segmento que
+los une (el lugar geométrico de los puntos equidistantes de ambos, sea
+cual sea su posición), a la misma distancia `sep·1,2` del punto medio, del
+lado que se aleja del muro frontal:
+
+```
+puntoDulceDesdeParlantes(parlanteIzq, parlanteDer, sala):
+  medio = punto medio de (parlanteIzq, parlanteDer)
+  sep   = |parlanteDer − parlanteIzq|                 // distancia real, no sólo en X
+  dir   = (parlanteDer − parlanteIzq) / sep            // dirección del segmento; (1,0) si sep≈0
+  perp  = ⊥dir, el de los dos candidatos (±90°) con mayor componente +Y   // hacia el fondo, no el frente
+  offset = clamp(1.0, sep·1.2, largoM − 0.6 − medio.y)
+  puntoDulce = clampPosicionParlante(medio + perp·offset, sala)
+```
+
+**Consecuencia, no un supuesto aparte:** como el punto dulce queda por
+construcción sobre la mediatriz, cada parlante resulta exactamente
+equidistante de él — no hace falta declarar qué distancia usar cuando los
+parlantes quedan a distinta distancia del oyente (una asimetría real que
+la primera versión de esta función iba a resolver con una heurística tipo
+"la del parlante más lejano"; no hizo falta). `distanciaEscuchaM` sigue
+siendo el mismo cálculo de siempre, `distancia3(parlanteIzq, puntoDulce)`.
+
+**Reducción al caso simétrico:** cuando ambos parlantes comparten la
+coordenada Y (el caso de `calcularDisposicion`), esta fórmula da
+exactamente el mismo punto dulce que la fórmula simétrica original — no
+una coincidencia numérica, es la misma expresión con `dir=(1,0)`,
+`perp=(0,1)`. `sala.test.ts` prueba esta reducción llamando
+`calcularDisposicionManual` con los parlantes que ya produce
+`calcularDisposicion` para la misma sala y comparando cada campo.
+
+**Vector asimétrico (W=4,5, L=6,0, H=2,6), parlantes en diagonal, no
+alineados a ningún eje** — prueba de equidistancia por construcción, no un
+resultado calculado a mano:
+```
+parlanteIzq=(0,8, 0,6)   parlanteDer=(3,5, 1,4)
+distancia(parlanteIzq, puntoDulce) = distancia(parlanteDer, puntoDulce)   // exacto, salvo punto flotante
+```
+
+### Arrastre (`apps/web/src/vista/arrastre.ts`) — primer widget interactivo con mouse del sitio
+
+Un solo listener delegado (`pointerdown`/`pointermove`/`pointerup` vía
+Pointer Events, mouse y touch unificados) sobre el contenedor `#plan`
+sobrevive a cada repintado del plano — `pintarPlano` sólo reemplaza el
+`innerHTML`, no el contenedor, así que no hay que reconectar nada aunque
+el propio arrastre dispare un repintado en cada frame. La captura de
+puntero (`setPointerCapture`) se pide sobre ese contenedor, no sobre el
+elemento bajo el dedo/mouse en el momento del `pointerdown` — ese elemento
+puede desaparecer del DOM en el próximo frame (el repintado lo reemplaza)
+y perdería la captura con él.
+
+Conversión de coordenadas de pantalla a metros de sala: `svg.
+createSVGPoint()` + `getScreenCTM().inverse()` (robusto a cualquier
+escalado CSS del SVG) da un punto en unidades de viewBox; de ahí a metros
+se invierte `proyeccionSuperior(sala)` — `pad`/`scale` de la vista
+Superior (`sx=x, sy=y`, sin trigonometría: es la única de las 4
+proyecciones invertible sin resolver un sistema). `construirPlanoSvg`
+llama a esta misma función para esa vista, así que dibujo y arrastre no
+pueden desincronizarse.
+
+Cada `pointermove` crudo sobreescribe "último punto conocido"; un sólo
+callback de `requestAnimationFrame` (agendado sólo si no hay uno
+pendiente) dispara el callback de movimiento como máximo una vez por
+frame. El `pointerup` fuerza un último flush de esa posición antes de
+soltar — sin eso, un arrastre muy rápido (pocos eventos de movimiento
+antes de soltar) podía perder la posición final si el frame de rAF
+todavía no había corrido.
+
+**Arrastrar es sólo vista previa** (redibuja el plano y el párrafo de
+ubicación en vivo) — no toca potencia, puntaje ni "En resumen" hasta que
+el usuario confirma con "Recalcular", que congela la posición en curso en
+un snapshot completo y lo publica en una segunda pestaña ("Modificado")
+junto a "Análisis original" (que nunca se pisa). Cambiar de pestaña
+repinta un snapshot ya calculado — nunca recalcula el motor.
 
 ---
 

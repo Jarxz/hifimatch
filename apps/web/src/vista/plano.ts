@@ -51,6 +51,30 @@ interface Pt3 {
 const COS30 = Math.sqrt(3) / 2;
 const SIN30 = 0.5;
 
+const PAD_SVG = 64;
+const MAX_ANCHO_PROYECCION = 560;
+const MAX_ALTO_PROYECCION = 460;
+
+/** Radio (en unidades de viewBox, no metros) del área de agarre invisible
+ * alrededor de cada parlante en la vista Superior editable — generoso a
+ * propósito: la caja de alambre del parlante es un blanco fino para el
+ * primer widget arrastrable del sitio. */
+const RADIO_AGARRE = 20;
+
+/**
+ * pad/scale que usa la vista Superior (`sx=x, sy=y`, sin trigonometría) —
+ * expuesto para que la capa de arrastre (`vista/arrastre.ts`) pueda invertir
+ * coordenadas de pantalla a metros de sala sin duplicar esta cuenta.
+ * `construirPlanoSvg` llama a esta misma función para esa vista, así que
+ * dibujo y arrastre nunca pueden desincronizarse.
+ */
+export function proyeccionSuperior(sala: Sala): { pad: number; scale: number } {
+  const anchoSpan = Math.max(sala.anchoM, 0.5);
+  const altoSpan = Math.max(sala.largoM, 0.5);
+  const scale = Math.min(MAX_ANCHO_PROYECCION / anchoSpan, MAX_ALTO_PROYECCION / altoSpan);
+  return { pad: PAD_SVG, scale };
+}
+
 /**
  * Dimensiones de la caja que representa cada parlante en el dibujo —
  * ilustrativas, no físicas: el catálogo no tiene el tamaño físico por
@@ -81,10 +105,22 @@ function proyectar(p: Pt3, vista: Vista): { sx: number; sy: number } {
   }
 }
 
-export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: MurosVista, vista: Vista, idioma: Idioma): string {
+export function construirPlanoSvg(
+  sala: Sala,
+  disp: DisposicionSala,
+  muros: MurosVista,
+  vista: Vista,
+  idioma: Idioma,
+  editable = false
+): string {
   const t = textosDe(idioma).resultado.plano;
   const { anchoM: W, largoM: L, altoM: H } = sala;
   const h = disp.alturaM;
+  // El arrastre sólo tiene matemática de inversión de coordenadas para la
+  // vista Superior (proyeccionSuperior) — si el llamador pasa editable=true
+  // en otra vista por error, se ignora en vez de dibujar agarres que no
+  // corresponderían a la geometría real.
+  const editableEfectivo = editable && vista === 'superior';
 
   const corners: Pt3[] = [
     { x: 0, y: 0, z: 0 },
@@ -102,10 +138,10 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   const minSy = Math.min(...proyCorners.map((p) => p.sy));
   const maxSy = Math.max(...proyCorners.map((p) => p.sy));
 
-  const pad = 64;
   const anchoSpan = Math.max(maxSx - minSx, 0.5);
   const altoSpan = Math.max(maxSy - minSy, 0.5);
-  const scale = Math.min(560 / anchoSpan, 460 / altoSpan);
+  const { pad, scale } =
+    vista === 'superior' ? proyeccionSuperior(sala) : { pad: PAD_SVG, scale: Math.min(MAX_ANCHO_PROYECCION / anchoSpan, MAX_ALTO_PROYECCION / altoSpan) };
   const sw = anchoSpan * scale + pad * 2;
   const sh = altoSpan * scale + pad * 2;
 
@@ -277,7 +313,12 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
     caja += linea(c110, c111, CAJA);
     return caja;
   };
-  s += cajaParlante(spkIzq3) + cajaParlante(spkDer3);
+  const agarre = (p: Pt3, lado: 'izq' | 'der'): string => circulo(p, RADIO_AGARRE, `fill="transparent" data-agarre="${lado}"`);
+  const parlante = (p: Pt3, lado: 'izq' | 'der'): string => {
+    const dibujo = cajaParlante(p);
+    return editableEfectivo ? `<g data-parlante="${lado}" class="parlante-arrastrable">${dibujo}${agarre(p, lado)}</g>` : dibujo;
+  };
+  s += parlante(spkIzq3, 'izq') + parlante(spkDer3, 'der');
   s += texto(spkIzq3, 'L', 'fill="#ECECEE" font-size="9.5" text-anchor="middle"', 0, -22);
   s += texto(spkDer3, 'R', 'fill="#ECECEE" font-size="9.5" text-anchor="middle"', 0, -22);
 

@@ -4,7 +4,8 @@ import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
-import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
+import { calcularDisposicion, calcularDisposicionManual } from '../../../../packages/engine/src/sala.ts';
+import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import { evaluarReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import type { Materiales } from '../../../../packages/engine/src/reverberacion.ts';
 import { calcularPuntaje, PESOS_DECLARADOS } from '../../../../packages/engine/src/puntaje.ts';
@@ -384,20 +385,32 @@ test('modeloReverberacion en inglés: veredicto, texto y calc en inglés, sin me
 
 // ---- ubicación de referencia de los parlantes ----
 
-test('modeloUbicacionParlantes: narra las distancias ya calculadas por sala.ts (vector motor-mvp.md sección 4)', () => {
-  const disp = calcularDisposicion(SALA_REVERB); // W=3,6 L=5,0 H=2,4 → offsetFrenteM=0,75 parlanteIzq.x=0,81 separacionM=1,98
-  const html = modeloUbicacionParlantes(disp, 'es');
-  assert.match(html, /0,75 m/); // distancia a la pared frontal
-  assert.match(html, /0,81 m/); // distancia a cada pared lateral (parlanteIzq.x)
+test('modeloUbicacionParlantes: caso simétrico (disposición automática) — ambos parlantes dan el mismo par de valores (vector motor-mvp.md sección 4)', () => {
+  const disp = calcularDisposicion(SALA_REVERB); // W=3,6 L=5,0 H=2,4 → offsetFrenteM=0,75 parlanteIzq.x=0,81 parlanteDer.x=2,79 separacionM=1,98
+  const html = modeloUbicacionParlantes(SALA_REVERB, disp, 'es');
+  assert.match(html, /0,75 m/); // ambos parlantes: distancia a la pared frontal
+  assert.match(html, /0,81 m/); // izquierdo: distancia a su pared lateral (x=0)
+  assert.match(html, /0,81 m/); // derecho: distancia a SU pared lateral (anchoM−2,79=0,81) — mismo valor, simetría
   assert.match(html, /1,98 m/); // separación entre parlantes
 });
 
 test('modeloUbicacionParlantes en inglés: mismos números, punto decimal', () => {
   const disp = calcularDisposicion(SALA_REVERB);
-  const html = modeloUbicacionParlantes(disp, 'en');
+  const html = modeloUbicacionParlantes(SALA_REVERB, disp, 'en');
   assert.match(html, /0\.75 m/);
   assert.match(html, /0\.81 m/);
   assert.match(html, /1\.98 m/);
+});
+
+test('modeloUbicacionParlantes: caso asimétrico (parlantes arrastrados a mano) — cada parlante reporta SU propia distancia, no un valor compartido', () => {
+  const sala: Sala = { anchoM: 4.0, largoM: 6.0, altoM: 2.4 };
+  const disp = calcularDisposicionManual(sala, { x: 0.9, y: 0.6 }, { x: 3.2, y: 1.0 });
+  const html = modeloUbicacionParlantes(sala, disp, 'es');
+  assert.match(html, /0,60 m/); // izquierdo: distancia a la pared frontal (parlanteIzq.y)
+  assert.match(html, /0,90 m/); // izquierdo: distancia a su pared lateral (parlanteIzq.x)
+  assert.match(html, /1,00 m/); // derecho: distancia a la pared frontal (parlanteDer.y)
+  assert.match(html, /0,80 m/); // derecho: distancia a SU pared lateral (anchoM−parlanteDer.x = 4,0−3,2)
+  assert.match(html, /2,33 m/); // separación entre ambos (distancia real, no la separación en X)
 });
 
 // ---- puntaje (capa criterio-editorial) ----

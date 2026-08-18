@@ -1,7 +1,7 @@
 import './estilos.css';
 import { CATALOGO } from '../../../packages/data/src/catalogo.ts';
-import { calcularDisposicion } from '../../../packages/engine/src/sala.ts';
-import type { Sala, DisposicionSala } from '../../../packages/engine/src/sala.ts';
+import { calcularDisposicion, calcularDisposicionManual } from '../../../packages/engine/src/sala.ts';
+import type { Sala, DisposicionSala, Punto } from '../../../packages/engine/src/sala.ts';
 import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
@@ -22,6 +22,7 @@ import { poblarSelectores, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuent
 import { construirEscala } from './vista/medidor.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
 import type { MurosVista, Vista } from './vista/plano.ts';
+import { activarArrastre } from './vista/arrastre.ts';
 import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
 import {
   modeloPotencia,
@@ -57,15 +58,71 @@ const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alt
 
 let idiomaActual: Idioma = idiomaInicial();
 
+/**
+ * Parte del análisis que NO depende de la posición de los parlantes —
+ * carga, puente/recorrido de ganancia, modos y reverberación sólo miran la
+ * sala y el equipo elegido, nunca la disposición (confirmado leyendo
+ * potencia.ts/modos.ts/reverberacion.ts: sólo evaluarPotencia recibe una
+ * distancia). Se calcula una sola vez por "Analizar" y viven acá, en vez
+ * de duplicarse entre la pestaña "Análisis original" y "Modificado".
+ */
+interface UltimoAnalisis {
+  sala: Sala;
+  spk: ReturnType<typeof buscarParlante>;
+  amp: ReturnType<typeof buscarAmplificador>;
+  parlanteM: ReturnType<typeof parlanteDelCatalogo>;
+  ampM: ReturnType<typeof amplificadorDelCatalogo>;
+  streamer: ReturnType<typeof buscarFuente> | null;
+  dac: ReturnType<typeof buscarFuente> | null;
+  resCarga: ReturnType<typeof evaluarCarga>;
+  mCarga: ReturnType<typeof modeloCarga>;
+  resPuenteStreamer: ResultadoPuenteImpedancias | null;
+  mPuenteStreamer: ReturnType<typeof modeloPuente> | null;
+  resRecorridoStreamer: ResultadoRecorridoVolumen | null;
+  mRecorridoStreamer: ReturnType<typeof modeloRecorrido> | null;
+  resPuenteDac: ResultadoPuenteImpedancias | null;
+  mPuenteDac: ReturnType<typeof modeloPuente> | null;
+  resRecorridoDac: ResultadoRecorridoVolumen | null;
+  mRecorridoDac: ReturnType<typeof modeloRecorrido> | null;
+  resModos: ReturnType<typeof evaluarModos>;
+  mModos: ReturnType<typeof modeloModos>;
+  resReverb: ReturnType<typeof evaluarReverberacion>;
+  mReverb: ReturnType<typeof modeloReverberacion>;
+  avisoReverb: string | null;
+  murosVista: MurosVista;
+  nivelTexto: string;
+  picoObjetivo: number;
+}
+
+/** Parte del análisis que sí depende de la posición de los parlantes —
+ * una por pestaña ("Análisis original" / "Modificado"). */
+interface SnapshotAnalisis {
+  disposicion: DisposicionSala;
+  resPot: ReturnType<typeof evaluarPotencia>;
+  mPot: ReturnType<typeof modeloPotencia>;
+  puntaje: ReturnType<typeof calcularPuntaje>;
+  mPuntaje: ReturnType<typeof modeloPuntaje>;
+  componentesResumen: ComponenteResumen[];
+}
+
+let ultimoAnalisis: UltimoAnalisis | null = null;
+let analisisOriginal: SnapshotAnalisis | null = null; // se fija una vez por "Analizar", nunca se pisa
+let analisisModificado: SnapshotAnalisis | null = null; // null hasta el primer "Recalcular"; se reemplaza en cada uno siguiente
+let pestanaActiva: 'original' | 'modificado' = 'original';
+/** Posición "en curso" del arrastre — independiente de qué pestaña está
+ * activa; "Recalcular" congela esto en un snapshot nuevo. */
+let disposicionManual: { parlanteIzq: Punto; parlanteDer: Punto } | null = null;
+
 /** Geometría del último análisis pintado — sólo para poder re-dibujar el
  * plano isométrico cuando el usuario cambia de vista (isométrica/frontal/
- * lateral/superior) sin recalcular ni renavegar. `null` antes del primer
- * "Analizar". */
+ * lateral/superior) o arrastra un parlante, sin recalcular potencia ni
+ * puntaje. `null` antes del primer "Analizar". */
 let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista } | null = null;
 
 function repintarPlano(): void {
   if (!ultimoPlano) return;
-  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual));
+  const editable = estado.vistaPlano === 'superior';
+  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual, editable));
 }
 
 function nivelTextoDe(lvl: NivelUI, idioma: Idioma): string {
@@ -89,7 +146,10 @@ function buscarFuente(id: string) {
   return f;
 }
 
-/** Geometría de sala derivada del estado actual — delega en el motor real. */
+/** Geometría de sala derivada del estado actual — delega en el motor real.
+ * Sólo se usa en la pantalla de configurar (antes de "Analizar"), donde
+ * todavía no hay disposición manual posible: el arrastre sólo existe en el
+ * plano de la pantalla de resultado. */
 function disposicionActual() {
   const sala = { anchoM: estado.W, largoM: estado.L, altoM: estado.H };
   return { sala, disposicion: calcularDisposicion(sala) };
@@ -201,18 +261,218 @@ function setGenero(genero: Genero): void {
 /** A diferencia de los demás `set*`, esto vive en la pantalla de resultado
  * (no en configurar): sólo cambia el ángulo de cámara del plano ya
  * calculado, así que repinta directo en vez de esperar un nuevo
- * "Analizar". */
+ * "Analizar". El hint de arrastre y los agarres editables (vía
+ * `repintarPlano`) sólo aparecen en la vista Superior. */
 function setVistaPlano(vista: Vista): void {
   estado.vistaPlano = vista;
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-vista]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.vista === vista));
   });
+  const hint = document.getElementById('plan-hint');
+  if (hint) hint.classList.toggle('hidden', vista !== 'superior');
   repintarPlano();
 }
 
-/** El núcleo de "Analizar": calcula y pinta las cuatro tarjetas de resultado
- * más el plano. Separado de analizar() para poder llamarlo de nuevo al
- * cambiar de idioma sin forzar la navegación a la pantalla de resultado. */
+/** Arma el snapshot completo (potencia + puntaje + resumen) de UNA
+ * disposición de parlantes, reusando la parte compartida ya calculada en
+ * `ultimoAnalisis` — no recalcula carga/puente/recorrido/modos/
+ * reverberación, sólo lo que sí depende de dónde están los parlantes. */
+function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): SnapshotAnalisis {
+  const resPot = evaluarPotencia(a.parlanteM, a.ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl]);
+  const mPot = modeloPotencia(a.spk, a.amp, resPot, disposicion.distanciaEscuchaM, a.nivelTexto, a.picoObjetivo, estado.genero, idiomaActual);
+
+  const componentesPuntaje: ComponentePuntaje[] = [
+    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
+    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: a.resCarga.severidad },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: a.resModos.severidad },
+    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: a.resReverb.severidad },
+  ];
+  if (a.streamer) {
+    componentesPuntaje.push(
+      { nombre: 'puenteStreamer', peso: PESOS_DECLARADOS.puenteStreamer, severidad: a.resPuenteStreamer!.severidad },
+      { nombre: 'recorridoStreamer', peso: PESOS_DECLARADOS.recorridoStreamer, severidad: a.resRecorridoStreamer!.severidad }
+    );
+  }
+  if (a.dac) {
+    componentesPuntaje.push(
+      { nombre: 'puenteDac', peso: PESOS_DECLARADOS.puenteDac, severidad: a.resPuenteDac!.severidad },
+      { nombre: 'recorridoDac', peso: PESOS_DECLARADOS.recorridoDac, severidad: a.resRecorridoDac!.severidad }
+    );
+  }
+  const puntaje = calcularPuntaje(componentesPuntaje);
+  const mPuntaje = modeloPuntaje(puntaje, idiomaActual);
+
+  const t = textosDe(idiomaActual);
+  const nombreComponente = t.motor.puntaje.componente;
+  const componentesResumen: ComponenteResumen[] = [
+    {
+      nombre: nombreComponente.potencia,
+      verdictoClase: mPot.verdictoClase,
+      verdictoTexto: mPot.verdictoTexto,
+      detalle: `${numConSigno(resPot.margenDb, 1, idiomaActual)} dB`,
+      avisoHtml: mPot.avisoHtml,
+    },
+    { nombre: nombreComponente.carga, verdictoClase: a.mCarga.verdictoClase, verdictoTexto: a.mCarga.verdictoTexto, avisoHtml: a.mCarga.avisoHtml },
+    { nombre: nombreComponente.modos, verdictoClase: a.mModos.verdictoClase, verdictoTexto: a.mModos.verdictoTexto, avisoHtml: a.mModos.sugerenciaHtml },
+    {
+      nombre: t.motor.reverberacion.nombreCorto,
+      verdictoClase: a.mReverb.verdictoClase,
+      verdictoTexto: a.mReverb.verdictoTexto,
+      avisoHtml: a.avisoReverb,
+    },
+  ];
+  if (a.mPuenteStreamer && a.resPuenteStreamer) {
+    componentesResumen.push({
+      nombre: nombreComponente.puenteStreamer,
+      verdictoClase: a.mPuenteStreamer.verdictoClase,
+      verdictoTexto: a.mPuenteStreamer.verdictoTexto,
+      detalle: a.resPuenteStreamer.ratioZ !== null ? `ratioZ ${num(a.resPuenteStreamer.ratioZ, 1, idiomaActual)}×` : undefined,
+      avisoHtml: a.mPuenteStreamer.avisoHtml,
+    });
+  }
+  if (a.mRecorridoStreamer && a.resRecorridoStreamer) {
+    componentesResumen.push({
+      nombre: nombreComponente.recorridoStreamer,
+      verdictoClase: a.mRecorridoStreamer.verdictoClase,
+      verdictoTexto: a.mRecorridoStreamer.verdictoTexto,
+      detalle: a.resRecorridoStreamer.margenV !== null ? `${num(a.resRecorridoStreamer.margenV, 1, idiomaActual)}×` : undefined,
+      avisoHtml: a.mRecorridoStreamer.avisoHtml,
+    });
+  }
+  if (a.mPuenteDac && a.resPuenteDac) {
+    componentesResumen.push({
+      nombre: nombreComponente.puenteDac,
+      verdictoClase: a.mPuenteDac.verdictoClase,
+      verdictoTexto: a.mPuenteDac.verdictoTexto,
+      detalle: a.resPuenteDac.ratioZ !== null ? `ratioZ ${num(a.resPuenteDac.ratioZ, 1, idiomaActual)}×` : undefined,
+      avisoHtml: a.mPuenteDac.avisoHtml,
+    });
+  }
+  if (a.mRecorridoDac && a.resRecorridoDac) {
+    componentesResumen.push({
+      nombre: nombreComponente.recorridoDac,
+      verdictoClase: a.mRecorridoDac.verdictoClase,
+      verdictoTexto: a.mRecorridoDac.verdictoTexto,
+      detalle: a.resRecorridoDac.margenV !== null ? `${num(a.resRecorridoDac.margenV, 1, idiomaActual)}×` : undefined,
+      avisoHtml: a.mRecorridoDac.avisoHtml,
+    });
+  }
+
+  return { disposicion, resPot, mPot, puntaje, mPuntaje, componentesResumen };
+}
+
+/** Pinta un snapshot completo — potencia, "La cadena", "Sala", puntaje,
+ * "En resumen" y el plano — reusando la parte compartida de
+ * `ultimoAnalisis`. Un solo lugar sabe pintar "el resultado de una
+ * disposición dada", tanto para el primer "Analizar" como para cada
+ * cambio de pestaña o "Recalcular" — nada de esto recalcula el motor, sólo
+ * asigna al DOM lo que el snapshot ya trae calculado. */
+function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
+  pintarPotencia(snap.mPot, idiomaActual);
+
+  const t = textosDe(idiomaActual);
+  const items = [
+    { categoria: t.resultado.itemParlantes, nombre: a.spk.nombre, espec: especParlante(a.spk, idiomaActual), comentario: a.mCarga.verdictoTexto },
+    { categoria: t.resultado.itemAmplificador, nombre: a.amp.nombre, espec: especAmplificador(a.amp, idiomaActual), comentario: snap.mPot.verdictoTexto },
+  ];
+  if (a.streamer) {
+    items.push({
+      categoria: t.resultado.itemStreamer,
+      nombre: a.streamer.nombre,
+      espec: especFuente(a.streamer, idiomaActual),
+      comentario: `${a.mPuenteStreamer!.verdictoTexto} · ${a.mRecorridoStreamer!.verdictoTexto}`,
+    });
+  }
+  if (a.dac) {
+    items.push({
+      categoria: t.resultado.itemDac,
+      nombre: a.dac.nombre,
+      espec: especFuente(a.dac, idiomaActual),
+      comentario: `${a.mPuenteDac!.verdictoTexto} · ${a.mRecorridoDac!.verdictoTexto}`,
+    });
+  }
+  pintarCadena(items);
+
+  pintarSala(
+    `${num(a.sala.anchoM, 1, idiomaActual)} × ${num(a.sala.largoM, 1, idiomaActual)} m`,
+    `${num(a.sala.altoM, 2, idiomaActual)} m`,
+    `≈ ${num(snap.disposicion.distanciaEscuchaM, 1, idiomaActual)} m`,
+    a.nivelTexto,
+    `${num(a.picoObjetivo, 0, idiomaActual)} dB`
+  );
+
+  pintarPuntaje(snap.mPuntaje);
+  pintarResumenFinal(modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual));
+
+  ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
+  repintarPlano();
+  const ubicacionEl = document.getElementById('plan-ubicacion');
+  if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(a.sala, snap.disposicion, idiomaActual);
+}
+
+/** Vista previa liviana durante el arrastre: sólo redibuja el plano y el
+ * párrafo de ubicación con la disposición nueva — no toca potencia,
+ * puntaje ni "En resumen" (eso sólo pasa al confirmar con "Recalcular"). */
+function previsualizarDisposicion(disposicion: DisposicionSala): void {
+  if (!ultimoAnalisis || !ultimoPlano) return;
+  ultimoPlano = { ...ultimoPlano, disposicion };
+  repintarPlano();
+  const ubicacionEl = document.getElementById('plan-ubicacion');
+  if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(ultimoAnalisis.sala, disposicion, idiomaActual);
+}
+
+/** Posición de partida para un gesto de arrastre: la última posición
+ * "en curso" si ya se movió algo desde el último "Analizar"/cambio de
+ * pestaña, o si no, la de la pestaña actualmente activa. */
+function posicionBaseParaArrastre(): { parlanteIzq: Punto; parlanteDer: Punto } | null {
+  if (disposicionManual) return disposicionManual;
+  const snap = pestanaActiva === 'original' ? analisisOriginal : analisisModificado;
+  return snap ? { parlanteIzq: snap.disposicion.parlanteIzq, parlanteDer: snap.disposicion.parlanteDer } : null;
+}
+
+function onMoverParlante(lado: 'izq' | 'der', puntoM: Punto): void {
+  if (!ultimoAnalisis) return;
+  const base = posicionBaseParaArrastre();
+  if (!base) return;
+  disposicionManual = lado === 'izq' ? { parlanteIzq: puntoM, parlanteDer: base.parlanteDer } : { parlanteIzq: base.parlanteIzq, parlanteDer: puntoM };
+  previsualizarDisposicion(calcularDisposicionManual(ultimoAnalisis.sala, disposicionManual.parlanteIzq, disposicionManual.parlanteDer));
+}
+
+function mostrarPestanaModificado(): void {
+  document.querySelector('[data-pestana="modificado"]')?.classList.remove('hidden');
+}
+
+/** Cambia de pestaña repintando el snapshot ya calculado — nunca recalcula
+ * el motor. También retoma el arrastre desde donde quedó esa pestaña, no
+ * desde una posición vieja de otra pestaña. */
+function activarPestana(pestana: 'original' | 'modificado'): void {
+  const snap = pestana === 'original' ? analisisOriginal : analisisModificado;
+  if (!snap || !ultimoAnalisis) return;
+  pestanaActiva = pestana;
+  pintarSnapshot(ultimoAnalisis, snap);
+  disposicionManual = { parlanteIzq: snap.disposicion.parlanteIzq, parlanteDer: snap.disposicion.parlanteDer };
+  document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.pestana === pestana));
+  });
+}
+
+/** "Recalcular": congela la posición actual del arrastre en un snapshot
+ * completo y lo publica como la pestaña "Modificado" — la crea la primera
+ * vez, reemplaza su contenido las veces siguientes (nunca hay una tercera
+ * pestaña). La pestaña "Análisis original" nunca se toca. */
+function recalcular(): void {
+  if (!disposicionManual || !ultimoAnalisis) return;
+  const disposicion = calcularDisposicionManual(ultimoAnalisis.sala, disposicionManual.parlanteIzq, disposicionManual.parlanteDer);
+  analisisModificado = construirSnapshot(ultimoAnalisis, disposicion);
+  mostrarPestanaModificado();
+  activarPestana('modificado');
+}
+
+/** El núcleo de "Analizar": calcula la parte compartida del análisis, la
+ * disposición automática como pestaña "Análisis original", y resetea
+ * cualquier pestaña "Modificado" previa — un "Analizar" nuevo siempre
+ * vuelve a partir de cero. Separado de analizar() para poder llamarlo de
+ * nuevo al cambiar de idioma sin forzar la navegación a esa pantalla. */
 function renderizarResultado(): void {
   if (!estado.spk || !estado.amp) return;
 
@@ -224,14 +484,10 @@ function renderizarResultado(): void {
   const parlanteM = parlanteDelCatalogo(spk, idiomaActual);
   const ampM = amplificadorDelCatalogo(amp, idiomaActual);
 
-  const { sala, disposicion } = disposicionActual();
+  const sala: Sala = { anchoM: estado.W, largoM: estado.L, altoM: estado.H };
   const t = textosDe(idiomaActual);
   const nivelTexto = nivelTextoDe(estado.lvl, idiomaActual);
   const picoObjetivo = PICO_OBJETIVO_DB[NIVEL_MOTOR[estado.lvl]];
-
-  const resPot = evaluarPotencia(parlanteM, ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl]);
-  const mPot = modeloPotencia(spk, amp, resPot, disposicion.distanciaEscuchaM, nivelTexto, picoObjetivo, estado.genero, idiomaActual);
-  pintarPotencia(mPot, idiomaActual);
 
   const resCarga = evaluarCarga(parlanteM, ampM);
   const mCarga = modeloCarga(spk, amp, resCarga, idiomaActual);
@@ -275,14 +531,13 @@ function renderizarResultado(): void {
     piso: estado.piso,
     techo: estado.techo,
   };
-  const murosVista = {
+  const murosVista: MurosVista = {
     frontal: materiales.muroFrontal,
     posterior: materiales.muroPosterior,
     izquierdo: materiales.muroIzquierdo,
     derecho: materiales.muroDerecho,
   };
-  ultimoPlano = { sala, disposicion, murosVista };
-  repintarPlano();
+
   const resModos = evaluarModos(sala);
   const mModos = modeloModos(resModos, idiomaActual);
   pintarModos(mModos);
@@ -297,115 +552,44 @@ function renderizarResultado(): void {
     .map((k) => t.config[k]);
   const avisoReverb = murosVacios.length > 0 ? t.motor.reverberacion.avisoVacio({ muros: murosVacios.join(', ') }) : null;
 
-  const ubicacionEl = document.getElementById('plan-ubicacion');
-  if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(disposicion, idiomaActual);
-
-  const items = [
-    { categoria: t.resultado.itemParlantes, nombre: spk.nombre, espec: especParlante(spk, idiomaActual), comentario: mCarga.verdictoTexto },
-    { categoria: t.resultado.itemAmplificador, nombre: amp.nombre, espec: especAmplificador(amp, idiomaActual), comentario: mPot.verdictoTexto },
-  ];
-  if (streamer) {
-    items.push({
-      categoria: t.resultado.itemStreamer,
-      nombre: streamer.nombre,
-      espec: especFuente(streamer, idiomaActual),
-      comentario: `${mPuenteStreamer!.verdictoTexto} · ${mRecorridoStreamer!.verdictoTexto}`,
-    });
-  }
-  if (dac) {
-    items.push({
-      categoria: t.resultado.itemDac,
-      nombre: dac.nombre,
-      espec: especFuente(dac, idiomaActual),
-      comentario: `${mPuenteDac!.verdictoTexto} · ${mRecorridoDac!.verdictoTexto}`,
-    });
-  }
-  pintarCadena(items);
-
-  pintarSala(
-    `${num(sala.anchoM, 1, idiomaActual)} × ${num(sala.largoM, 1, idiomaActual)} m`,
-    `${num(sala.altoM, 2, idiomaActual)} m`,
-    `≈ ${num(disposicion.distanciaEscuchaM, 1, idiomaActual)} m`,
+  ultimoAnalisis = {
+    sala,
+    spk,
+    amp,
+    parlanteM,
+    ampM,
+    streamer,
+    dac,
+    resCarga,
+    mCarga,
+    resPuenteStreamer,
+    mPuenteStreamer,
+    resRecorridoStreamer,
+    mRecorridoStreamer,
+    resPuenteDac,
+    mPuenteDac,
+    resRecorridoDac,
+    mRecorridoDac,
+    resModos,
+    mModos,
+    resReverb,
+    mReverb,
+    avisoReverb,
+    murosVista,
     nivelTexto,
-    `${num(picoObjetivo, 0, idiomaActual)} dB`
-  );
+    picoObjetivo,
+  };
 
-  const componentesPuntaje: ComponentePuntaje[] = [
-    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: resCarga.severidad },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: resModos.severidad },
-    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: resReverb.severidad },
-  ];
-  if (streamer) {
-    componentesPuntaje.push(
-      { nombre: 'puenteStreamer', peso: PESOS_DECLARADOS.puenteStreamer, severidad: resPuenteStreamer!.severidad },
-      { nombre: 'recorridoStreamer', peso: PESOS_DECLARADOS.recorridoStreamer, severidad: resRecorridoStreamer!.severidad }
-    );
-  }
-  if (dac) {
-    componentesPuntaje.push(
-      { nombre: 'puenteDac', peso: PESOS_DECLARADOS.puenteDac, severidad: resPuenteDac!.severidad },
-      { nombre: 'recorridoDac', peso: PESOS_DECLARADOS.recorridoDac, severidad: resRecorridoDac!.severidad }
-    );
-  }
-  const puntaje = calcularPuntaje(componentesPuntaje);
-  pintarPuntaje(modeloPuntaje(puntaje, idiomaActual));
+  analisisOriginal = construirSnapshot(ultimoAnalisis, calcularDisposicion(sala));
+  analisisModificado = null;
+  disposicionManual = null;
+  pestanaActiva = 'original';
+  document.querySelector('[data-pestana="original"]')?.setAttribute('aria-pressed', 'true');
+  const pestanaModEl = document.querySelector('[data-pestana="modificado"]');
+  pestanaModEl?.setAttribute('aria-pressed', 'false');
+  pestanaModEl?.classList.add('hidden');
 
-  const nombreComponente = t.motor.puntaje.componente;
-  const componentesResumen: ComponenteResumen[] = [
-    {
-      nombre: nombreComponente.potencia,
-      verdictoClase: mPot.verdictoClase,
-      verdictoTexto: mPot.verdictoTexto,
-      detalle: `${numConSigno(resPot.margenDb, 1, idiomaActual)} dB`,
-      avisoHtml: mPot.avisoHtml,
-    },
-    { nombre: nombreComponente.carga, verdictoClase: mCarga.verdictoClase, verdictoTexto: mCarga.verdictoTexto, avisoHtml: mCarga.avisoHtml },
-    { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
-    {
-      nombre: t.motor.reverberacion.nombreCorto,
-      verdictoClase: mReverb.verdictoClase,
-      verdictoTexto: mReverb.verdictoTexto,
-      avisoHtml: avisoReverb,
-    },
-  ];
-  if (mPuenteStreamer && resPuenteStreamer) {
-    componentesResumen.push({
-      nombre: nombreComponente.puenteStreamer,
-      verdictoClase: mPuenteStreamer.verdictoClase,
-      verdictoTexto: mPuenteStreamer.verdictoTexto,
-      detalle: resPuenteStreamer.ratioZ !== null ? `ratioZ ${num(resPuenteStreamer.ratioZ, 1, idiomaActual)}×` : undefined,
-      avisoHtml: mPuenteStreamer.avisoHtml,
-    });
-  }
-  if (mRecorridoStreamer && resRecorridoStreamer) {
-    componentesResumen.push({
-      nombre: nombreComponente.recorridoStreamer,
-      verdictoClase: mRecorridoStreamer.verdictoClase,
-      verdictoTexto: mRecorridoStreamer.verdictoTexto,
-      detalle: resRecorridoStreamer.margenV !== null ? `${num(resRecorridoStreamer.margenV, 1, idiomaActual)}×` : undefined,
-      avisoHtml: mRecorridoStreamer.avisoHtml,
-    });
-  }
-  if (mPuenteDac && resPuenteDac) {
-    componentesResumen.push({
-      nombre: nombreComponente.puenteDac,
-      verdictoClase: mPuenteDac.verdictoClase,
-      verdictoTexto: mPuenteDac.verdictoTexto,
-      detalle: resPuenteDac.ratioZ !== null ? `ratioZ ${num(resPuenteDac.ratioZ, 1, idiomaActual)}×` : undefined,
-      avisoHtml: mPuenteDac.avisoHtml,
-    });
-  }
-  if (mRecorridoDac && resRecorridoDac) {
-    componentesResumen.push({
-      nombre: nombreComponente.recorridoDac,
-      verdictoClase: mRecorridoDac.verdictoClase,
-      verdictoTexto: mRecorridoDac.verdictoTexto,
-      detalle: resRecorridoDac.margenV !== null ? `${num(resRecorridoDac.margenV, 1, idiomaActual)}×` : undefined,
-      avisoHtml: mRecorridoDac.avisoHtml,
-    });
-  }
-  pintarResumenFinal(modeloResumenFinal(componentesResumen, { valor: puntaje.puntaje, clase: puntaje.clase }, idiomaActual));
+  pintarSnapshot(ultimoAnalisis, analisisOriginal);
 }
 
 function analizar(): void {
@@ -417,7 +601,9 @@ function analizar(): void {
  * estático (data-i18n), reformatea lo que no es data-i18n (dimensiones,
  * "falta elegir…", tarjetas .info ya elegidas) y, si ya hay una cadena
  * completa, vuelve a calcular el resultado en el nuevo idioma sin
- * navegar — el usuario puede estar todavía en la pantalla de configurar. */
+ * navegar — el usuario puede estar todavía en la pantalla de configurar.
+ * Esto reinicia a la pestaña "Análisis original" igual que un "Analizar"
+ * nuevo — es el mismo recálculo completo, sólo disparado por otro gatillo. */
 function cambiarIdioma(idioma: Idioma): void {
   if (idioma === idiomaActual) return;
   idiomaActual = idioma;
@@ -520,6 +706,21 @@ function wireEventos(): void {
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-vista]').forEach((b) => {
     b.addEventListener('click', () => setVistaPlano(b.dataset.vista as Vista));
   });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
+    b.addEventListener('click', () => activarPestana(b.dataset.pestana as 'original' | 'modificado'));
+  });
+  document.getElementById('btn-recalcular')?.addEventListener('click', recalcular);
+
+  const plan = document.getElementById('plan');
+  if (plan) {
+    activarArrastre(
+      plan,
+      () => ultimoAnalisis!.sala,
+      () => ultimoAnalisis !== null && estado.vistaPlano === 'superior',
+      { onMover: onMoverParlante, onSoltar: () => {} }
+    );
+  }
 
   document.getElementById('btn-an')?.addEventListener('click', analizar);
 

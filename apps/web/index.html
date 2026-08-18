@@ -325,14 +325,24 @@
           <h3 data-i18n="resultado.plano.titulo">Plano, escucha y reflexiones</h3>
           <p data-i18n="resultado.plano.texto">Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
           <div class="rline" style="margin-top:14px">
-            <span class="rl" data-i18n="resultado.plano.vista">Vista</span>
-            <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
-              <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
-              <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
-              <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
-              <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
+            <div class="segs" role="group" id="tabs-analisis">
+              <button type="button" data-pestana="original" aria-pressed="true" data-i18n="resultado.plano.pestanaOriginal">Análisis original</button>
+              <button type="button" data-pestana="modificado" class="hidden" aria-pressed="false" data-i18n="resultado.plano.pestanaModificado">Modificado</button>
             </div>
           </div>
+          <div class="rline">
+            <span class="rl" data-i18n="resultado.plano.vista">Vista</span>
+            <div class="plan-controles">
+              <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
+                <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
+                <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
+                <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
+                <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
+              </div>
+              <button type="button" id="btn-recalcular" class="back" data-i18n="resultado.plano.recalcular">Recalcular</button>
+            </div>
+          </div>
+          <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n="resultado.plano.hintArrastre">En esta vista se puede arrastrar los parlantes para probar otra disposición.</p>
           <div class="plan-wrap" id="plan"></div>
           <div class="legend">
             <span><i style="border-top:1px dashed var(--dim)"></i> <span data-i18n="resultado.plano.leyendaTriangulo">triángulo de escucha</span></span>

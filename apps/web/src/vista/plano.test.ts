@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
-import { construirPlanoSvg } from './plano.ts';
+import { construirPlanoSvg, proyeccionSuperior } from './plano.ts';
 import type { MurosVista, Vista } from './plano.ts';
 
 const SALA_VECTOR: Sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // motor-mvp.md sección 4
@@ -122,4 +122,66 @@ test('muro declarado "vacío" muestra el sufijo de abertura junto a su etiqueta'
   assert.match(svgEs, />FRONTAL \(abierto\)</);
   const svgEn = construirPlanoSvg(SALA_VECTOR, disp, conAbertura, 'isometrica', 'en');
   assert.match(svgEn, />FRONT \(open\)</);
+});
+
+// ---- editable (vista Superior arrastrable) y proyeccionSuperior ----
+
+test('editable=false (u omitido) no cambia el SVG — mismo dibujo que antes de este parámetro', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const sinParametro = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es');
+  const explicitoFalse = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false);
+  assert.equal(sinParametro, explicitoFalse);
+  assert.equal((sinParametro.match(/data-parlante=/g) ?? []).length, 0);
+  assert.equal((sinParametro.match(/data-agarre=/g) ?? []).length, 0);
+});
+
+test('editable=true en vista Superior agrega un <g data-parlante> y un círculo de agarre invisible por parlante', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const svgFijo = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false);
+  const svgEditable = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', true);
+
+  assert.match(svgEditable, /<g data-parlante="izq" class="parlante-arrastrable">/);
+  assert.match(svgEditable, /<g data-parlante="der" class="parlante-arrastrable">/);
+  assert.equal((svgEditable.match(/data-agarre="izq"/g) ?? []).length, 1);
+  assert.equal((svgEditable.match(/data-agarre="der"/g) ?? []).length, 1);
+  // 2 círculos de agarre más que la versión fija, nada más cambia de forma
+  assert.equal((svgEditable.match(/<circle/g) ?? []).length, (svgFijo.match(/<circle/g) ?? []).length + 2);
+  assert.equal((svgEditable.match(/<line/g) ?? []).length, (svgFijo.match(/<line/g) ?? []).length);
+  assert.equal((svgEditable.match(/<polyline/g) ?? []).length, (svgFijo.match(/<polyline/g) ?? []).length);
+});
+
+test('editable=true en una vista que no es Superior se ignora — sin agarres ni <g data-parlante>, geometría de arrastre no aplicaría ahí', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  for (const vista of ['isometrica', 'frontal', 'lateral'] as const) {
+    const svgFijo = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es', false);
+    const svgEditablePedido = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es', true);
+    assert.equal(svgFijo, svgEditablePedido, vista);
+  }
+});
+
+test('proyeccionSuperior: pad fijo, scale limitado por el eje que primero toca el borde del área de dibujo', () => {
+  // W=3.6 domina poco (560/3.6≈155.6), L=5.0 con 460/5.0=92 es el más chico → gana el largo
+  const p1 = proyeccionSuperior(SALA_VECTOR);
+  assert.equal(p1.pad, 64);
+  assert.ok(Math.abs(p1.scale - 92) < 0.01, `scale=${p1.scale}`);
+
+  // sala angosta y muy larga: 460/10=46 sigue siendo más chico que 560/2=280 → gana el largo otra vez
+  const p2 = proyeccionSuperior({ anchoM: 2.0, largoM: 10, altoM: 2.4 });
+  assert.ok(Math.abs(p2.scale - 46) < 0.01, `scale=${p2.scale}`);
+
+  // sala ancha y corta: acá sí gana el ancho (560/8=70 < 460/2.5=184)
+  const p3 = proyeccionSuperior({ anchoM: 8, largoM: 2.5, altoM: 2.4 });
+  assert.ok(Math.abs(p3.scale - 70) < 0.01, `scale=${p3.scale}`);
+});
+
+test('proyeccionSuperior alimenta exactamente el pad/scale que usa construirPlanoSvg en vista Superior (viewBox derivado del mismo scale)', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const { pad, scale } = proyeccionSuperior(SALA_VECTOR);
+  const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es');
+  const sw = Math.round(SALA_VECTOR.anchoM * scale + pad * 2);
+  const sh = Math.round(SALA_VECTOR.largoM * scale + pad * 2);
+  const viewBox = svg.match(/viewBox="0 0 (\d+) (\d+)"/);
+  assert.ok(viewBox);
+  assert.equal(Number(viewBox![1]), sw);
+  assert.equal(Number(viewBox![2]), sh);
 });

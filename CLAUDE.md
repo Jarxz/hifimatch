@@ -493,7 +493,10 @@ parlantes como volumen.** Ronda de pulido sobre el resultado completo:
   de referencia que `sala.ts` ya calculaba (distancia a la pared frontal,
   a cada pared lateral, separación entre parlantes) — no es una regla
   nueva, es la misma geometría que ya alimentaba `distanciaEscuchaM` y el
-  plano, puesta en una oración.
+  plano, puesta en una oración. (Ronda posterior: con el arrastre manual
+  de parlantes, pasó a reportar cada parlante por separado en vez de un
+  valor compartido — ver el párrafo "Arrastrar parlantes en el plano" más
+  abajo.)
 - **Muro "vacío" ahora se declara en "En resumen".** Cuando algún muro
   está marcado como abertura, la tarjeta de Reverberación en el resumen
   lleva un aviso (`motor.reverberacion.avisoVacio`) explicando que no
@@ -918,6 +921,61 @@ resolución de workspaces); `buildCommand` corre `npm run verify && npm run
 build`, así que una regresión de tests o de typecheck bloquea el deploy antes
 de publicar nada.
 
+**Arrastrar parlantes en el plano (vista Superior) — primer widget
+interactivo con mouse del sitio.** `packages/engine/src/sala.ts` gana
+`calcularDisposicionManual(sala, parlanteIzq, parlanteDer)`: los dos
+parlantes se mueven de forma **independiente** (no en espejo), y el punto
+dulce **se recalcula solo** en cada movimiento — va sobre la mediatriz del
+segmento que une los parlantes (generaliza la fórmula simétrica existente,
+que ya ponía el punto dulce a `separación×1,2` sobre la línea central;
+sobre la mediatriz esa misma distancia sigue garantizando equidistancia
+por construcción, sea cual sea la posición de cada parlante — ver
+`docs/motor-mvp.md` sección 4 para la prueba). `MARGEN_MURO_MIN_M = 0,15`
+impide soltar un parlante (o el punto dulce derivado) pegado a un muro o
+fuera de la sala. De paso se corrigió un bug latente: `reflexionIzq`/
+`reflexionDer` usaban una fórmula 2D vieja, independiente de la que ya
+usaban las demás reflexiones (`reflexionEnPlano`) — sólo coincidían porque
+la sala siempre era simétrica hasta ahora; unificadas, con el mismo
+resultado numérico en el caso simétrico (test de regresión en
+`sala.test.ts`). `apps/web/src/vista/plano.ts` (sigue puro) gana un
+parámetro `editable` — sólo tiene efecto en la vista Superior, la única
+con matemática de proyección invertible sin trigonometría
+(`proyeccionSuperior`, exportada para que el arrastre nunca pueda
+desincronizarse del dibujo) — que envuelve cada parlante en
+`<g data-parlante="izq|der">` con un círculo de agarre invisible
+(`r=20`, área generosa). El arrastre en sí vive en
+`apps/web/src/vista/arrastre.ts` (nuevo, DOM puro — ni `plano.ts` ni
+`pintar.ts` lo tocan): un solo listener delegado sobre `#plan` (Pointer
+Events, mouse y touch unificados) que sobrevive a cada repintado,
+`requestAnimationFrame` para no disparar más de un recálculo por frame, y
+un flush forzado en `pointerup` para que un arrastre muy rápido no pierda
+la última posición si el frame de rAF todavía no había corrido (bug real,
+detectado por el propio script de verificación con Chrome headless antes
+de este commit). Arrastrar es sólo **vista previa** — repinta el plano y
+el párrafo de ubicación en vivo sin tocar potencia/puntaje/resumen — hasta
+que el botón **"Recalcular"** (mismos hover que el resto del sitio, clase
+`.back` con `transition` agregada) congela esa posición en un snapshot
+completo (potencia, puntaje, "La cadena", "Sala", "En resumen") y lo
+publica en una **segunda pestaña** ("Modificado") junto a "Análisis
+original", que nunca se pisa; volver a arrastrar y recalcular reemplaza el
+contenido de "Modificado" — nunca aparece una tercera pestaña. Cambiar de
+pestaña repinta un snapshot ya calculado (`pintarSnapshot` en `main.ts`)
+sin recalcular el motor: carga/puente/recorrido/modos/reverberación no
+dependen de la posición, así que se calculan una sola vez por "Analizar"
+(`ultimoAnalisis`, caché compartida) en vez de duplicarse entre pestañas.
+`modeloUbicacionParlantes` (en `resultado.ts`) ganó un parámetro `sala` y
+pasó a reportar la distancia de **cada** parlante a su propia pared
+frontal/lateral por separado, en vez de un único valor compartido — con
+arrastre libre ya no son necesariamente iguales; en la disposición
+automática (sin arrastrar nada) los dos pares de valores siguen
+coincidiendo, así que el texto se lee igual que antes de esta ronda.
+Verificado extremo a extremo con Chrome headless (PointerEvents
+sintéticos): arrastre en vivo sin tocar el resultado, "Recalcular"
+cambiando todo el análisis, vuelta exacta a "Análisis original", dos
+ciclos de arrastre+Recalcular sin crear una tercera pestaña, el margen de
+muro recortando un arrastre extremo, y un "Analizar" nuevo reseteando
+todo.
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
@@ -933,3 +991,7 @@ Falta:
 - **Ubicación de parlantes: regla de Cardas vs. tercios**, como alternativa
   a la disposición de referencia única que calcula hoy `sala.ts`: sin
   diseñar, sesión aparte.
+- **Alternativa de teclado para arrastrar parlantes** (accesibilidad): el
+  arrastre del plano (vista Superior) queda como mejora progresiva
+  puramente mouse/touch por ahora — se puede sumar después sin rediseñar
+  la geometría ni el sistema de snapshots/pestañas.

@@ -21,7 +21,7 @@ import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
 import { ABSORCION_MURO, ABSORCION_PISO, ABSORCION_TECHO, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ResultadoPuntaje, ClasePuntaje } from '../../../../packages/engine/src/puntaje.ts';
-import type { DisposicionSala } from '../../../../packages/engine/src/sala.ts';
+import type { DisposicionSala, Sala } from '../../../../packages/engine/src/sala.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { num, numConSigno } from '../formato/numeros.ts';
@@ -432,16 +432,22 @@ export function modeloReverberacion(r: ResultadoReverberacion, materiales: Mater
 }
 
 /** Narra la disposición de referencia que sala.ts ya calculó (no evalúa
- * nada nuevo): distancia a la pared frontal, a cada pared lateral —
- * simétrica por construcción, `parlanteIzq.x` y `anchoM − parlanteDer.x`
- * dan el mismo valor — y separación entre parlantes. Es la misma
+ * nada nuevo): distancia de CADA parlante a la pared frontal y a su
+ * propia pared lateral (izquierdo contra x=0, derecho contra
+ * `anchoM − parlanteDer.x`), más la separación entre ambos. Reporta los
+ * dos parlantes por separado porque, con arrastre manual, ya no son
+ * necesariamente simétricos — en la disposición automática (sin
+ * arrastrar nada) los pares de valores coinciden, así que el texto se
+ * lee igual que antes de que existiera el arrastre. Es la misma
  * geometría que alimenta potencia.ts (`distanciaEscuchaM`) y el plano
  * isométrico; esto sólo la pone en palabras. */
-export function modeloUbicacionParlantes(disp: DisposicionSala, idioma: Idioma): string {
+export function modeloUbicacionParlantes(sala: Sala, disp: DisposicionSala, idioma: Idioma): string {
   const t = textosDe(idioma).resultado.plano;
   return t.ubicacion({
-    frontal: num(disp.offsetFrenteM, 2, idioma),
-    lateral: num(disp.parlanteIzq.x, 2, idioma),
+    frontalIzq: num(disp.parlanteIzq.y, 2, idioma),
+    lateralIzq: num(disp.parlanteIzq.x, 2, idioma),
+    frontalDer: num(disp.parlanteDer.y, 2, idioma),
+    lateralDer: num(sala.anchoM - disp.parlanteDer.x, 2, idioma),
     separacion: num(disp.separacionM, 2, idioma),
   });
 }
