@@ -1,19 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
-import type { ModoAgrupado } from '../../../../packages/engine/src/modos.ts';
+import { evaluarModos, paresMasImportantes, TOP_N_AGRUPADOS } from '../../../../packages/engine/src/modos.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
-import { construirCurvasModalesSvg, TOP_N_AGRUPADOS } from './curvamodal.ts';
-
-/** Mismo criterio de curación que curvamodal.ts: los TOP_N_AGRUPADOS de
- * menor frecuencia promedio — reproducido acá para no depender de que la
- * implementación exponga el paso intermedio. */
-function masImportantes(agrupados: ModoAgrupado[]): ModoAgrupado[] {
-  return [...agrupados]
-    .sort((a, b) => (a.modoA.frecuenciaHz + a.modoB.frecuenciaHz) / 2 - (b.modoA.frecuenciaHz + b.modoB.frecuenciaHz) / 2)
-    .slice(0, TOP_N_AGRUPADOS);
-}
+import { construirCurvasModalesSvg } from './curvamodal.ts';
 
 const SALA_CON_AGRUPAMIENTO: Sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // motor-mvp.md sección 4bis
 const SALA_SIN_AGRUPAMIENTO: Sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
@@ -31,7 +21,7 @@ test('sala con agrupamiento (3,6×5,0×2,4): se curan sólo los 2 pares de menor
   const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
   assert.ok(r.agrupados.length > TOP_N_AGRUPADOS, 'este vector necesita más pares de los que se curan, para probar que efectivamente recorta');
 
-  const curados = masImportantes(r.agrupados);
+  const curados = paresMasImportantes(r.agrupados);
   const ejesAfectados = new Set(curados.flatMap((a) => [a.modoA.eje, a.modoB.eje]));
   const ordenesDistintosPorEje = new Set(curados.flatMap((a) => [`${a.modoA.eje}-${a.modoA.orden}`, `${a.modoB.eje}-${a.modoB.orden}`]));
 

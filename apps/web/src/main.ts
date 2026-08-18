@@ -7,6 +7,7 @@ import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../packages/engine/src/modos.ts';
+import type { ModoAgrupado } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
@@ -116,13 +117,20 @@ let disposicionManual: { parlanteIzq: Punto; parlanteDer: Punto } | null = null;
 /** Geometría del último análisis pintado — sólo para poder re-dibujar el
  * plano isométrico cuando el usuario cambia de vista (isométrica/frontal/
  * lateral/superior) o arrastra un parlante, sin recalcular potencia ni
- * puntaje. `null` antes del primer "Analizar". */
-let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista } | null = null;
+ * puntaje. `agrupados` viaja acá también: el mapa de zonas modales sólo
+ * depende de las dimensiones de la sala (nunca de la posición de los
+ * parlantes — ver modos.ts), así que no hace falta recalcularlo durante
+ * el arrastre, sólo que el objeto lo siga cargando en cada repintado.
+ * `null` antes del primer "Analizar". */
+let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista; agrupados: ModoAgrupado[] } | null = null;
 
 function repintarPlano(): void {
   if (!ultimoPlano) return;
   const editable = estado.vistaPlano === 'superior';
-  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual, editable));
+  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual, editable, ultimoPlano.agrupados));
+
+  const leyendaMapaModal = document.getElementById('legend-mapamodal');
+  if (leyendaMapaModal) leyendaMapaModal.classList.toggle('hidden', !(editable && ultimoPlano.agrupados.length > 0));
 }
 
 function nivelTextoDe(lvl: NivelUI, idioma: Idioma): string {
@@ -415,7 +423,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   pintarPuntaje(snap.mPuntaje);
   pintarResumenFinal(modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual));
 
-  ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
+  ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista, agrupados: a.resModos.agrupados };
   repintarPlano();
   const ubicacionEl = document.getElementById('plan-ubicacion');
   if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(a.sala, snap.disposicion, idiomaActual);

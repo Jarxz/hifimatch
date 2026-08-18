@@ -438,6 +438,13 @@ si no hay agrupamiento, `warn` si hay al menos un par.
 (142,9167 Hz) coincide exactamente (diferencia 0 Hz) con el de orden 2 del
 alto. Resultado: `warn`, con ese par entre los agrupados — la sala de
 demostración del sitio tiene, de hecho, un problema real de proporciones.
+**Esta sala tiene 4 agrupamientos en total**, no sólo ese: los otros tres
+son `{largo orden 2, alto orden 1}` (68,60/71,46 Hz), `{largo orden 4,
+ancho orden 3}` (137,20/142,92 Hz) y `{largo orden 4, alto orden 2}`
+(137,20/142,92 Hz). El par ancho3/alto2 (diferencia exacta 0 Hz) es el más
+"exacto" de los 4, pero **no** es uno de los que efectivamente se grafican
+más abajo — ordenados por frecuencia promedio, `TOP_N_AGRUPADOS=2` corta
+en `{largo2, alto1}` y `{largo4, ancho3}` (ver la sección siguiente).
 
 Vector de control sin agrupamiento: W=2.5, L=3.0, H=2.2 (sin razones
 simples entre ejes) → `ok`.
@@ -461,6 +468,14 @@ varios pares (la sala por defecto tiene 4). La tarjeta ya no lista todos
 los modos individuales (hasta 300 Hz) — sólo el veredicto, la frase simple,
 el aviso de agrupamiento y estas curvas curadas.
 
+`TOP_N_AGRUPADOS` y la función que ordena+corta (`paresMasImportantes`)
+viven en `packages/engine/src/modos.ts`, exportadas — antes era lógica
+privada duplicada dos veces (`curvamodal.ts` y, a mano, dentro de su propio
+test). Se promovió a una sola función compartida porque un segundo
+consumidor la necesitaba (el mapa de zonas modales, más abajo): las dos
+visualizaciones tienen que curar exactamente el mismo conjunto de pares,
+por construcción, no por convención repetida.
+
 **Aviso de filtro de modo activo:** cuando hay agrupamiento, la sugerencia
 de la tarjeta (`sugerenciaHtml`) menciona, además de reposicionar
 parlantes/punto de escucha, que un filtro paramétrico (EQ activo) centrado
@@ -468,6 +483,104 @@ en la frecuencia agrupada también puede atenuar el refuerzo — con la misma
 salvedad de siempre: ajustarlo exige medir la sala real, este modelo no
 tiene la amplitud ni la fase medidas como para proponer un Q o una
 atenuación en dB.
+
+### Mapa de zonas modales (`apps/web/src/vista/mapamodal.ts`)
+
+Capa de fondo en la vista Superior del plano isométrico, sólo cuando hay
+agrupamiento: una grilla de celdas coloreadas verde-amarillo-rojo mostrando
+dónde, en el plano, coinciden los nodos y antinodos de los mismos pares que
+`paresMasImportantes` ya cura para las curvas de arriba.
+
+**Qué es y qué NO es — misma disciplina que las curvas 1D.** No es una
+aproximación del campo combinado real de la sala (eso seguiría exigiendo
+sumar fase y amplitud entre modos, dato que este motor no tiene y no
+inventa — la misma razón por la que las curvas de arriba son 1D y no un
+mapa 2D). Es un **mapa de coincidencia geométrica**: para cada modo de los
+pares curados, se evalúa su propia condición de nodo/antinodo — la misma
+fórmula cos²(n·π·x/L) que ya grafican las curvas 1D — en un punto del
+plano en vez de a lo largo de un solo eje. Combinar dos modos es una regla
+de combinación declarada, no una física nueva:
+
+```
+intensidadModo(modo, punto):
+  eje='ancho' → cos²(orden·π·punto.x / anchoM)
+  eje='largo' → cos²(orden·π·punto.y / largoM)
+  eje='alto'  → cos²(orden·π·ALTURA_ESCUCHA_M / altoM)   // constante: no varía en un plano horizontal
+
+intensidadPar(par, punto) = min(intensidadModo(par.modoA, punto), intensidadModo(par.modoB, punto))
+```
+
+**"min", no promedio, dentro de un par:** el refuerzo (verde) exige que
+LOS DOS modos estén cerca de su antinodo a la vez; la cancelación (rojo)
+es real si CUALQUIERA de los dos tiene un nodo ahí, sin importar el otro.
+El promedio borra esa asimetría física — `min` la reproduce directamente.
+
+```
+intensidadCombinada(punto, pares) = el valor de intensidadPar(par, punto) más alejado de 0,5,
+                                     entre los hasta 2 pares curados.
+                                     Empate exacto en |valor−0,5|: gana el más bajo (más "rojo").
+```
+
+**"el más extremo gana", no promedio, entre los hasta 2 pares:** promediar
+dos pares puede ocultar un problema real de uno detrás de que el otro esté
+bien en ese mismo punto (ej. par1≈0 + par2≈1 → promedio≈0,5/"ideal", cuando
+en realidad hay un hallazgo real de cancelación en par1 ahí). El empate
+exacto (dos pares igual de extremos, en direcciones opuestas) se resuelve
+a favor del valor más bajo — mismo sesgo que el resto del sitio: declarar
+un hueco antes que taparlo.
+
+**Color:** interpolación lineal (RGB) entre 3 tonos — 0→`#C58474`
+(cancelación), 0,5→`#C7AD7C` (equilibrio), 1→`#96B6A2` (refuerzo). Mismos
+3 hex que `--alert`/`--warn`/`--ok` del sitio, pero declarados como
+variables CSS propias (`--mapa-cancelacion`/`--mapa-equilibrio`/
+`--mapa-refuerzo`): ese trío en el resto del sitio codifica un orden
+monótono estricto (verde siempre bien, rojo siempre mal); este gradiente
+es **divergente** — lo "ideal" (amarillo) está en el medio, no en un
+extremo. "Ideal" es sobre *ese* agrupamiento puntual, no una recomendación
+general de dónde sentarse — mismo cuidado de alcance que el resto del
+sitio ("se verifica midiendo", "criterio del sitio").
+
+**El eje alto da un mapa parejo, y eso es correcto, no un bug.** Un modo
+del eje alto no varía en un plano horizontal — se evalúa en
+`ALTURA_ESCUCHA_M` (mismo supuesto que las reflexiones de techo/piso),
+dando un término constante para ese modo en TODA la sala. Vector de
+prueba: el par `{largo orden 2, alto orden 1}` de la sala por defecto —
+`alto orden 1` da cos²(π·1,0/2,4) ≈ 0,067 en cualquier punto, un valor
+bajo que domina el `min` casi en todas partes salvo donde `largo orden 2`
+cae aún más bajo (sus propios nodos) — el mapa de ese par sale
+mayormente rojo/parejo en toda la sala, con nada de estructura horizontal
+visible. Es información real (esa coincidencia no se refuerza a la altura
+de escucha, en ningún punto del piso), no un error de cálculo; la curva 1D
+del eje alto (arriba) es la que muestra la variación vertical que este
+mapa no puede.
+
+**Resolución de la grilla:** 30 columnas fijas, filas proporcionales a la
+razón largo/ancho de la sala (acotadas entre 12 y 50, para no degenerar en
+salas muy alargadas). Justificado por el propio dominio: bajo
+`TECHO_AGRUPAMIENTO_HZ` (150 Hz) el orden de un modo candidato ronda 7-9
+como mucho en el eje más largo típico, así que incluso esta grilla
+moderada da varias muestras por semiperíodo — sin aliasing visible para un
+mapa de esta naturaleza. Opacidad parcial (0,55) para que el wireframe y
+las etiquetas que se dibujan encima sigan leyéndose.
+
+**Sólo vista Superior, sólo con agrupamiento.** `construirMapaModalSvg`
+llama a `proyeccionSuperior(sala)` (`apps/web/src/vista/proyeccion.ts` —
+extraída de `plano.ts` a un módulo propio para que este mapa la pueda
+importar sin crear un ciclo: `plano.ts` inserta la capa del mapa, así que
+no puede ser al revés) para alinear la grilla exactamente con el
+wireframe/parlantes de esa vista. Devuelve `''` si no hay pares curados —
+mismo criterio que las curvas 1D (`agrupados.length === 0` → sin nada que
+mostrar).
+
+**No depende de la posición de los parlantes.** `evaluarModos(sala)` sólo
+ve las dimensiones de la sala — nunca la disposición de parlantes/escucha
+— así que el campo de color es matemáticamente invariante al arrastre; el
+mapa se calcula una sola vez por "Analizar" (junto con `resModos`) y viaja
+sin cambios en cada repintado, incluidos los frames de arrastre. Lo único
+que se mueve encima es el marcador de parlante/punto dulce — que es
+exactamente cómo el usuario experimenta "se actualiza al mover los
+parlantes": ve su marcador cruzar zonas de color fijas, sin que el motor
+tenga que recalcular nada por cuadro.
 
 ---
 

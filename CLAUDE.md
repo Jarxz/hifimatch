@@ -1065,22 +1065,83 @@ independiente llegaron a publicar con cifra exacta (SMSL M400 — el
 propio revisor de Audio Science Review declara no haberla medido) se deja
 en `null` en vez de adoptar su estimación como si fuera un dato medido.
 
-**Streamers quedó sin ampliar — pendiente, no abandonado.** El agente de
-investigación de esa categoría se cortó por límite de sesión de la
-cuenta antes de escribir ningún resultado (a diferencia de los otros 3,
-que sí alcanzaron a guardar su archivo completo) — sigue en 12 equipos,
-9 marcas. Falta agregar Bluesound/Cambridge Audio/Naim/Audiolab/McIntosh
-(expandir) y NAD/Yamaha/Sonos/Denon (marcas nuevas) con la misma
-disciplina que las otras 3 categorías — ver el punto de "Falta" más
-abajo.
+**Mapa de zonas modales — vista Superior del plano, cuando hay
+agrupamiento.** Capa de fondo nueva (`apps/web/src/vista/mapamodal.ts`):
+una grilla verde-amarillo-rojo mostrando, en el plano de planta, dónde
+coinciden los nodos y antinodos de los mismos pares de modos que las
+curvas 1D de `curvamodal.ts` ya curan y grafican. **No es una aproximación
+del campo combinado real de la sala** — eso seguiría exigiendo sumar fase
+y amplitud entre modos, dato que este motor no tiene y no inventa, la
+misma razón por la que las curvas de arriba ya eran 1D y no un mapa 2D.
+Es un **mapa de coincidencia geométrica**: la misma fórmula cos² de cada
+modo, ya validada, evaluada en un punto del plano en vez de a lo largo de
+un eje, combinada con una regla declarada (no una física nueva): `min`
+entre los 2 modos de un par (el refuerzo exige que los dos coincidan en
+su antinodo a la vez; la cancelación es real si cualquiera de los dos
+tiene un nodo ahí — el promedio borraría esa asimetría), y "el valor más
+extremo gana" entre los hasta 2 pares curados (promediarlos podría ocultar
+un problema real de un par detrás de que el otro esté bien ahí mismo,
+empate exacto resuelto a favor del más rojo — mismo sesgo que "dato
+faltante nunca es ok"). Colores: mismos 3 hex que `--alert`/`--warn`/
+`--ok` del sitio, pero en variables CSS propias (`--mapa-cancelacion`/
+`--mapa-equilibrio`/`--mapa-refuerzo`) — ese trío en el resto del sitio
+codifica un orden monótono estricto (verde siempre bien), y este gradiente
+es divergente (lo "ideal" está en el medio, no en un extremo); reusar las
+variables de severidad habría leído como un bug. Un modo del eje alto no
+varía en un plano horizontal — se evalúa en `ALTURA_ESCUCHA_M` (mismo
+supuesto que las reflexiones de techo/piso) como término constante para
+ese modo en toda la sala; el mapa de un par que lo incluya puede salir
+parejo/rojo en toda la sala, que es información real (esa coincidencia no
+se refuerza a la altura de escucha en ningún punto del piso), no un bug —
+la curva 1D de ese eje muestra la variación vertical que el mapa no puede.
+`TOP_N_AGRUPADOS` y la función de curación (`paresMasImportantes`) se
+promovieron de lógica privada duplicada en `curvamodal.ts` (y otra vez a
+mano en su test) a una función exportada en `modos.ts`, para que las dos
+visualizaciones muestren siempre exactamente los mismos pares.
+`proyeccionSuperior` se extrajo de `plano.ts` a un archivo propio
+(`vista/proyeccion.ts`) para que `mapamodal.ts` pudiera importarla sin
+crear un ciclo (`plano.ts` inserta la capa del mapa); `plano.ts` sigue
+re-exportándola para que `arrastre.ts` y los tests existentes no cambien.
+El mapa **no depende de la posición de los parlantes** (`evaluarModos`
+sólo ve dimensiones de sala) — se calcula una sola vez por "Analizar" y
+viaja sin cambios en cada repintado, incluidos los frames de arrastre; lo
+único que se mueve encima es el marcador de parlante/punto dulce, que es
+como el usuario experimenta "se actualiza al mover los parlantes" sin que
+el motor recalcule nada por cuadro. Verificado con Chrome headless: sala
+por defecto (con agrupamiento real) muestra la grilla en Superior y la
+oculta en las otras 3 vistas; arrastrar un parlante deja el mapa
+bit-a-bit idéntico mientras el marcador se mueve encima; una sala sin
+agrupamiento no muestra grilla ni leyenda.
+
+**Streamers ampliados: 18 equipos nuevos, cierra la ronda de ampliación de
+catálogo.** Catálogo a **132 equipos** (35 parlantes + 34 amplificadores +
+**30 streamers** + 30 dacs + 3 cables, antes 114) — cuarto y último agente
+de investigación de esta ronda, misma disciplina de fuente + confianza que
+las otras 3 categorías ya ampliadas. Marcas expandidas: Audiolab,
+Bluesound (3 modelos nuevos), Cambridge Audio, Naim; marcas nuevas: NAD (3
+modelos, cubriendo desde un streamer de entrada sin salida analógica hasta
+uno sin salida analógica alguna — ver abajo), Yamaha (3), Sonos, Denon (3).
+Casos de interés: **Sonos Port**, uno de los componentes más vendidos de
+la categoría, no tiene voltaje ni impedancia de salida publicados en
+ninguna fuente oficial ni independiente pese a revisar manual, ficha y
+foros de medición (ASR) — queda en `null`, mismo criterio que el resto del
+catálogo aplica a un dato genuinamente ausente, sea cual sea la popularidad
+del equipo. **NAD C 658** declara su impedancia de salida como una fórmula
+dependiente de la fuente conectada ("Source Z + 240 Ω"), no un número fijo
+del equipo — no hay forma honesta de reducirla a un valor único, así que
+`impedanciaSalidaOhm` queda en `null`. **NAD M50.2** es un
+reproductor/servidor sin salida analógica alguna (sólo HDMI/AES-EBU/
+óptica/coaxial, confirmado por ficha oficial y reseña de Stereophile) —
+mismo tratamiento que el HiFi Rose RS130 de la ronda anterior: `null` con
+`confianza: 'alta'`, porque no es un dato que falte investigar sino un
+dato que el equipo, por diseño, no tiene. **Bluesound Node 2i**: su cifra
+de impedancia de salida (650 Ω) aparece como dato secundario dentro de un
+hilo de soporte oficial centrado en confirmar la del Node N130 (2,2 V/
+500 Ω) — se registra igual por ser la misma persona de soporte técnico
+oficial, atribuida y específica por modelo, con la salvedad declarada en
+`pendiente`.
 
 Falta:
-- **Ampliar streamers** con las marcas ya identificadas (Bluesound,
-  Cambridge Audio, Naim, Audiolab, McIntosh — expandir; NAD, Yamaha,
-  Sonos, Denon — nuevas), misma disciplina de fuente + confianza que el
-  resto del catálogo. Único punto pendiente de la ronda de ampliación de
-  catálogo — las otras 3 categorías (parlantes, amplificadores, dacs) ya
-  quedaron ampliadas.
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos

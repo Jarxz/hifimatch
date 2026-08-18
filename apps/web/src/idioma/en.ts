@@ -71,7 +71,7 @@ export const en: Textos = {
     plano: {
       titulo: 'Isometric view and early reflections',
       cuerpoHtml:
-        "The diagram draws the room to scale, with the speakers' reference layout (a symmetric triangle) and the <b>sweet spot</b> — that triangle's apex, the listening position that calculation assumes. Every point marked on a wall, the ceiling, or the floor is a <b>first reflection</b>: the path sound travels from the speaker, bouncing off that surface, to the sweet spot — calculated with the mirror-image method (the same one acoustics studios use to place treatment). Each reflection shows its total distance in meters. A wall declared \"open\" draws no reflection there, because there's no wall to bounce off. The \"View\" button changes the camera angle (isometric/front/side/top) without recalculating anything — it's the same geometry, seen from another angle.",
+        "The diagram draws the room to scale, with the speakers' reference layout (a symmetric triangle) and the <b>sweet spot</b> — that triangle's apex, the listening position that calculation assumes. Every point marked on a wall, the ceiling, or the floor is a <b>first reflection</b>: the path sound travels from the speaker, bouncing off that surface, to the sweet spot — calculated with the mirror-image method (the same one acoustics studios use to place treatment). Each reflection shows its total distance in meters. A wall declared \"open\" draws no reflection there, because there's no wall to bounce off. The \"View\" button changes the camera angle (isometric/front/side/top) without recalculating anything — it's the same geometry, seen from another angle. In the Top view, if there are grouped modes, a <b>zone map</b> (green/yellow/red) appears in the background: where the nodes and antinodes of those same modes line up across the floor — red where either mode has a node (that frequency is missing there), green where both coincide at their antinode (reinforced), yellow in between. It's a geometric-coincidence map between already-flagged modes, not an acoustic simulation with real phase — and \"ideal\" (yellow) is about that specific grouping, not a general seating recommendation. If one pair's map comes out flat across the whole room, it's because one of its modes is on the height axis (it doesn't vary across a horizontal plane); that axis's 1D curve, further down, shows the vertical variation this map can't.",
     },
     puntaje: {
       titulo: 'Match score (1-10)',
@@ -173,6 +173,9 @@ export const en: Textos = {
       leyendaTriangulo: 'listening triangle',
       leyendaReflexion: 'reflection (with distance)',
       leyendaParlante: 'speaker / listening position',
+      leyendaMapaCancelacion: 'cancellation (missing bass)',
+      leyendaMapaEquilibrio: 'balanced',
+      leyendaMapaRefuerzo: 'reinforcement (boosted bass)',
       muroFrontalCorto: 'FRONT',
       muroPosteriorCorto: 'REAR',
       muroIzquierdoCorto: 'LEFT',

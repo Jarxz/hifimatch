@@ -31,6 +31,17 @@ export const TECHO_AGRUPAMIENTO_HZ = 150;
  * midiendo/escuchando, igual salvedad que el resto de las reglas de sala. */
 export const UMBRAL_AGRUPAMIENTO = 0.05;
 
+/** Cuántos agrupamientos curar (curvas 1D, mapa de zonas) — los de menor
+ * frecuencia, que son los más audibles y los más difíciles de tratar
+ * acústicamente. El resto de los agrupamientos sigue contando en el texto
+ * de la tarjeta (el "N par(es)..."), sólo no se grafican, para no saturar
+ * de curvas/celdas. Vivía como constante privada en curvamodal.ts; se
+ * promovió acá junto con `paresMasImportantes` para que un segundo
+ * consumidor (el mapa de zonas modales) nunca pueda curar un conjunto de
+ * pares distinto al de las curvas — una sola función, no una convención
+ * repetida a mano en cada archivo. */
+export const TOP_N_AGRUPADOS = 2;
+
 export type EjeSala = 'ancho' | 'largo' | 'alto';
 
 export interface ModoAxial {
@@ -89,4 +100,19 @@ export function evaluarModos(sala: Sala): ResultadoModos {
 
   const codigo: CodigoModos = agrupados.length > 0 ? 'modos-agrupados' : 'modos-distribuidos';
   return { modos, agrupados, severidad: agrupados.length > 0 ? 'warn' : 'ok', codigo };
+}
+
+/** Ordena por frecuencia promedio del par (ascendente) y corta a los
+ * `TOP_N_AGRUPADOS` más graves — la curación que ya usan las curvas 1D de
+ * `curvamodal.ts`, exportada para que el mapa de zonas modales (2D) la
+ * reuse en vez de reimplementarla: las dos visualizaciones muestran
+ * siempre exactamente los mismos pares, por construcción. */
+export function paresMasImportantes(agrupados: ModoAgrupado[]): ModoAgrupado[] {
+  return [...agrupados]
+    .sort((a, b) => promedioHz(a) - promedioHz(b))
+    .slice(0, TOP_N_AGRUPADOS);
+}
+
+function promedioHz(par: ModoAgrupado): number {
+  return (par.modoA.frecuenciaHz + par.modoB.frecuenciaHz) / 2;
 }

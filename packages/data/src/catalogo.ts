@@ -2683,6 +2683,533 @@ export const CATALOGO: Catalogo = {
         'Hi-Fi News (lab report, hifinews.com/content/wiim-pro-plus-lab-report — 2 V desde 10 Ω)',
       ],
     },
+    {
+      id: 'audiolab-6000n-play',
+      marca: 'Audiolab',
+      nombre: 'Audiolab 6000N Play',
+      tipo: {
+        es: 'Streamer de red, DAC integrado, sólo RCA (nivel variable)',
+        en: 'Network streamer, integrated DAC, RCA only (variable level)',
+      },
+      descripcion: {
+        es: 'DAC ESS Sabre ES9018K2M, el mismo chip usado en el integrado Audiolab 6000A. Salida <b>variable</b> (0–2,1 V), controlada desde la app Play-Fi — se registra el máximo. Impedancia de salida de 100 Ω según el manual oficial.',
+        en: 'An ESS Sabre ES9018K2M DAC, the same chip used in the Audiolab 6000A integrated amp. <b>Variable</b> output (0–2.1 V), controlled from the Play-Fi app — the maximum is recorded here. A 100 Ω output impedance per the official manual.',
+      },
+      salidaV: 2.1,
+      impedanciaSalidaOhm: 100,
+      fuente: { es: 'Audiolab (manual oficial)', en: 'Audiolab (official manual)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'ESS Sabre ES9018K2M', en: 'ESS Sabre ES9018K2M' },
+        { es: 'salida variable 0–2,1 V', en: '0–2.1 V variable output' },
+        { es: 'Play-Fi', en: 'Play-Fi' },
+      ],
+      fuentes: [
+        'Audiolab (manual oficial, manuals.plus/audiolab/6000n-play-wireless-streaming-player-manual) — salida variable 0–2,1 V, impedancia de salida 100 Ω',
+      ],
+    },
+    {
+      id: 'bluesound-node-2i',
+      marca: 'Bluesound',
+      nombre: 'Bluesound Node 2i',
+      tipo: {
+        es: 'Streamer de red, DAC integrado (salida analógica) — descontinuado',
+        en: 'Network streamer, integrated DAC (analog output) — discontinued',
+      },
+      descripcion: {
+        es: 'Generación previa al Node (N130, 2021), descontinuada tras ese relanzamiento. Salida analógica fija de 0,6 V con 650 Ω de impedancia de salida — sensiblemente distinta del N130 que lo reemplazó (2,2 V / 500 Ω), <b>no son la misma cifra de una generación a otra</b>. Los dos valores provienen del mismo hilo de soporte oficial de Bluesound, citado como comparación al confirmar los datos del N130.',
+        en: 'The generation before the Node (N130, 2021), discontinued after that relaunch. A fixed 0.6 V analog output with 650 Ω of output impedance — noticeably different from the N130 that replaced it (2.2 V / 500 Ω), <b>the figures are not the same across generations</b>. Both values come from the same official Bluesound support thread, cited there as a comparison point while confirming the N130 numbers.',
+      },
+      salidaV: 0.6,
+      impedanciaSalidaOhm: 650,
+      fuente: {
+        es: 'Bluesound (soporte técnico oficial, mismo hilo que confirma el Node N130)',
+        en: 'Bluesound (official technical support, same thread that confirms the Node N130)',
+      },
+      confianza: 'media',
+      chipsExtra: [
+        { es: 'descontinuado, reemplazado por el Node (N130, 2021)', en: 'discontinued, replaced by the Node (N130, 2021)' },
+        { es: 'hasta 24/192 + MQA', en: 'up to 24/192 + MQA' },
+      ],
+      fuentes: [
+        'Bluesound Support Community: Tony W. (Product Support Manager), 8 dic 2023 — cifra del Node 2i (650 Ω / 0,6 V) dada como comparación al confirmar la del NODE N130 (2,2 V / 500 Ω)',
+      ],
+      pendiente: {
+        es: 'la cifra del Node 2i aparece como dato secundario/comparativo dentro de un hilo de soporte centrado en el N130, no como una consulta dedicada al 2i — se registra igual porque la fuente es la misma persona de soporte técnico oficial, atribuida y específica por modelo',
+        en: "the Node 2i figure appears as a secondary/comparison data point inside a support thread focused on the N130, not as a dedicated inquiry about the 2i — it is still recorded because the source is the same official technical-support person, attributed and model-specific",
+      },
+    },
+    {
+      id: 'bluesound-node-icon',
+      marca: 'Bluesound',
+      nombre: 'Bluesound Node Icon',
+      tipo: {
+        es: 'Streamer de red, DAC integrado, salida RCA y XLR (nivel variable)',
+        en: 'Network streamer, integrated DAC, RCA and XLR output (variable level)',
+      },
+      descripcion: {
+        es: 'Doble DAC ESS Sabre ES9039Q2M en configuración dual-mono. Salida de línea de 2,0 V por RCA según la ficha oficial; impedancia de salida RCA medida de forma independiente en 116 Ω. La salida XLR balanceada, con el doble de ganancia, mide 230 Ω — <b>no es simplemente el doble de la impedancia RCA por azar</b>, es la etapa balanceada completa, distinta de la RCA.',
+        en: 'A dual ESS Sabre ES9039Q2M DAC in a dual-mono configuration. A 2.0 V RCA line output per the official spec sheet; RCA output impedance independently measured at 116 Ω. The balanced XLR output, with twice the gain, measures 230 Ω — <b>not simply double the RCA impedance by coincidence</b>, it is the full balanced stage, distinct from the RCA one.',
+      },
+      salidaV: 2.0,
+      impedanciaSalidaOhm: 116,
+      fuente: {
+        es: 'Bluesound (ficha oficial, voltaje); SoundStage Network (medición independiente, impedancia de salida RCA)',
+        en: 'Bluesound (official spec sheet, voltage); SoundStage Network (independent measurement, RCA output impedance)',
+      },
+      confianza: 'media',
+      chipsExtra: [
+        { es: '2× ESS Sabre ES9039Q2M', en: '2× ESS Sabre ES9039Q2M' },
+        { es: 'XLR balanceada ~230 Ω (medido)', en: 'balanced XLR ~230 Ω (measured)' },
+        { es: 'amplificador de audífonos THX AAA', en: 'THX AAA headphone amplifier' },
+        { es: 'Roon Ready', en: 'Roon Ready' },
+      ],
+      fuentes: [
+        'Bluesound (ficha oficial, bluesound.com/node-icon)',
+        'SoundStage Network (medición de laboratorio) — 116 Ω RCA, 230–231 Ω XLR',
+      ],
+      pendiente: {
+        es: 'el voltaje de 2,0 V (RCA) se toma de descripciones generales del producto, sin una única cita de ficha técnica con el número aislado — la impedancia de salida sí está confirmada por una medición de laboratorio independiente (SoundStage Network)',
+        en: 'the 2.0 V (RCA) figure is taken from general product descriptions, without a single spec-sheet citation isolating that number — the output impedance, by contrast, is confirmed by an independent lab measurement (SoundStage Network)',
+      },
+    },
+    {
+      id: 'bluesound-node-x',
+      marca: 'Bluesound',
+      nombre: 'Bluesound Node X (N131)',
+      tipo: {
+        es: 'Streamer de red, DAC integrado (salida analógica)',
+        en: 'Network streamer, integrated DAC (analog output)',
+      },
+      descripcion: {
+        es: 'DAC ESS Sabre (modelo exacto no publicado por el fabricante). La ficha oficial no da voltaje ni impedancia de salida; una medición independiente de SoundStage Network, con entrada digital a 0 dBFS/1 kHz, midió 2,092 V RMS de salida máxima y una impedancia de salida de 686–687 Ω.',
+        en: "An ESS Sabre DAC (exact model not published by the manufacturer). The official spec sheet gives no output voltage or impedance; an independent SoundStage Network measurement, with a digital input at 0dBFS/1kHz, measured 2.092V RMS maximum output and an output impedance of 686–687 Ω.",
+      },
+      salidaV: 2.09,
+      impedanciaSalidaOhm: 687,
+      fuente: {
+        es: 'SoundStage Network (medición de laboratorio independiente)',
+        en: 'SoundStage Network (independent lab measurement)',
+      },
+      confianza: 'media',
+      chipsExtra: [
+        { es: 'ESS Sabre (modelo no publicado)', en: 'ESS Sabre (model not published)' },
+        { es: 'amplificador de audífonos THX AAA', en: 'THX AAA headphone amplifier' },
+        { es: 'salida fija o variable', en: 'fixed or variable output' },
+      ],
+      fuentes: [
+        'Bluesound (ficha oficial) — no publica voltaje ni impedancia de salida',
+        'SoundStage Network (medición de laboratorio) — 2,092 V RMS máx., 686–687 Ω de impedancia de salida',
+      ],
+      pendiente: {
+        es: 'ni el manual ni la ficha oficial publican voltaje o impedancia de salida — ambos valores registrados provienen únicamente de la medición de laboratorio independiente de SoundStage Network',
+        en: 'neither the manual nor the official spec sheet publish output voltage or impedance — both recorded values come solely from the independent SoundStage Network lab measurement',
+      },
+    },
+    {
+      id: 'cambridge-cxn100',
+      marca: 'Cambridge Audio',
+      nombre: 'Cambridge Audio CXN100',
+      tipo: {
+        es: 'Streamer de red, DAC integrado, salida RCA y XLR',
+        en: 'Network streamer, integrated DAC, RCA and XLR output',
+      },
+      descripcion: {
+        es: 'DAC ESS ES9028Q2M, salida RCA y XLR. Igual que con el CXN (V2) anterior, la ficha técnica oficial no publica voltaje ni impedancia de salida — confirmado revisando la página de especificaciones técnicas completa, que sí detalla THD, respuesta en frecuencia y relación señal/ruido, pero omite ambos datos de salida analógica. <b>Ninguna de las dos subreglas de ganancia corre</b> con este equipo.',
+        en: 'An ESS ES9028Q2M DAC, with RCA and XLR output. Same as with the earlier CXN (V2), the official technical spec sheet does not publish output voltage or impedance — confirmed by checking the full technical specifications page, which does detail THD, frequency response, and signal-to-noise ratio, but omits both analog output figures. <b>Neither of the two gain-chain sub-rules runs</b> with this unit.',
+      },
+      salidaV: null,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Cambridge Audio (ficha oficial)', en: 'Cambridge Audio (official spec sheet)' },
+      confianza: 'baja',
+      chipsExtra: [
+        { es: 'ESS ES9028Q2M', en: 'ESS ES9028Q2M' },
+        { es: 'RCA + XLR', en: 'RCA + XLR' },
+        { es: 'hasta 32/192 + DSD512', en: 'up to 32/192 + DSD512' },
+      ],
+      fuentes: ['Cambridge Audio (ficha técnica oficial, cambridgeaudio.com/usa/en/faqs/cxn100-technical-specifications)'],
+      pendiente: {
+        es: 'voltaje e impedancia de salida — la ficha técnica oficial completa (revisada línea por línea) no los publica, mismo patrón que el CXN (V2) anterior; no se estima ni se copia una cifra aproximada de terceros',
+        en: 'output voltage and impedance — the full official technical spec sheet (checked line by line) does not publish them, the same pattern as the earlier CXN (V2); no approximate third-party figure is estimated or copied',
+      },
+    },
+    {
+      id: 'cambridge-mxn10',
+      marca: 'Cambridge Audio',
+      nombre: 'Cambridge Audio MXN10',
+      tipo: {
+        es: 'Streamer de red compacto, DAC integrado, sólo RCA',
+        en: 'Compact network streamer, integrated DAC, RCA only',
+      },
+      descripcion: {
+        es: 'DAC ESS Sabre ES9033Q, el mismo chip que el AXN10 de la misma marca. La ficha oficial declara un máximo de 2,1 V (fija o variable) con una impedancia de salida citada como "500 Ω, valor estándar de la industria, a 2 V"; una medición independiente de Stereophile la ubica en <b>437 Ω</b> en todo el rango 20 Hz–20 kHz, valor algo distinto pero del mismo orden — se registra el medido.',
+        en: 'An ESS Sabre ES9033Q DAC, the same chip as this brand\'s AXN10. The official spec sheet states a 2.1 V maximum (fixed or variable) with output impedance cited as "500 Ω, the industry-standard figure, at 2V"; an independent Stereophile measurement puts it at <b>437 Ω</b> across the full 20Hz–20kHz range, a somewhat different figure but of the same order — the measured value is recorded.',
+      },
+      salidaV: 2.1,
+      impedanciaSalidaOhm: 437,
+      fuente: {
+        es: 'Cambridge Audio (ficha oficial, voltaje); Stereophile (medición independiente, impedancia de salida)',
+        en: 'Cambridge Audio (official spec sheet, voltage); Stereophile (independent measurement, output impedance)',
+      },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'ESS Sabre ES9033Q', en: 'ESS Sabre ES9033Q' },
+        { es: 'salida fija o variable', en: 'fixed or variable output' },
+        { es: 'StreamMagic', en: 'StreamMagic' },
+      ],
+      fuentes: [
+        'Cambridge Audio (ficha oficial, cambridgeaudio.com/row/en/products/hi-fi/mx/mxn10)',
+        'Stereophile (mediciones) — 2,1 V hacia 100 kΩ, impedancia de salida de 437 Ω entre 20 Hz y 20 kHz',
+      ],
+      pendiente: {
+        es: 'la ficha oficial redondea la impedancia de salida a "500 Ω" como cifra de referencia; la medición independiente de Stereophile la ubica en 437 Ω — se prefiere el valor medido, mismo criterio que el resto del catálogo aplica cuando hay una medición de laboratorio disponible',
+        en: 'the official spec sheet rounds the output impedance to "500 Ω" as a reference figure; the independent Stereophile measurement puts it at 437 Ω — the measured value is preferred, the same criterion the rest of the catalog applies whenever a lab measurement is available',
+      },
+    },
+    {
+      id: 'denon-dnp-2000ne',
+      marca: 'Denon',
+      nombre: 'Denon DNP-2000NE',
+      tipo: {
+        es: 'Streamer de red de gama alta, DAC integrado, sólo RCA (fija o variable)',
+        en: 'Flagship network streamer, integrated DAC, RCA only (fixed or variable)',
+      },
+      descripcion: {
+        es: 'Cuatro DAC ESS ES9018K2M en configuración doble-diferencial (dos por canal). Salida sólo RCA, con dos modos: <b>fija</b> en 2,2 V o <b>variable</b> hasta 4,5 V máximo. El manual oficial acompaña ambas cifras con la nota "(10 kΩ)" — es la impedancia de carga usada para la medición, no la impedancia de salida propia del equipo, que no se publica.',
+        en: 'Four ESS ES9018K2M DACs in a dual-differential configuration (two per channel). RCA-only output, with two modes: <b>fixed</b> at 2.2 V or <b>variable</b> up to a 4.5 V maximum. The official manual pairs both figures with a "(10 kΩ)" note — that is the load impedance used for the measurement, not the unit\'s own output impedance, which is not published.',
+      },
+      salidaV: 2.2,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Denon (manual oficial)', en: 'Denon (official manual)' },
+      confianza: 'media',
+      chipsExtra: [
+        { es: '4× ESS ES9018K2M (doble-diferencial)', en: '4× ESS ES9018K2M (dual-differential)' },
+        { es: 'salida variable hasta 4,5 V', en: 'variable output up to 4.5 V' },
+        { es: 'HEOS built-in', en: 'HEOS built-in' },
+      ],
+      fuentes: ['Denon (manual oficial, manuals.denon.com/dnp2000ne) — fija 2,2 V (10 kΩ) / variable 4,5 V máx. (10 kΩ)'],
+      pendiente: {
+        es: 'la nota "(10 kΩ)" que acompaña el voltaje en el manual es la impedancia de carga de referencia usada para medir, no la impedancia de salida del equipo — ese dato no se encontró publicado en ninguna fuente consultada, así que queda en null',
+        en: 'the "(10 kΩ)" note next to the voltage in the manual is the reference load impedance used for the measurement, not the unit\'s own output impedance — that figure was not found published in any source consulted, so it is left null',
+      },
+    },
+    {
+      id: 'denon-dnp-800ne',
+      marca: 'Denon',
+      nombre: 'Denon DNP-800NE',
+      tipo: {
+        es: 'Streamer de red, DAC integrado, sólo RCA (fija o variable)',
+        en: 'Network streamer, integrated DAC, RCA only (fixed or variable)',
+      },
+      descripcion: {
+        es: 'DAC Burr-Brown PCM1795. Salida sólo RCA, con dos modos: <b>fija</b> en 2,2 V o <b>variable</b> hasta 4,5 V máximo. Igual que en el DNP-2000NE de gama más alta de la misma marca, el manual da estas cifras junto a una nota de carga de 10 kΩ, no una impedancia de salida propia — ese dato no está publicado.',
+        en: 'A Burr-Brown PCM1795 DAC. RCA-only output, with two modes: <b>fixed</b> at 2.2 V or <b>variable</b> up to a 4.5 V maximum. Same as with this brand\'s higher-tier DNP-2000NE, the manual gives these figures alongside a 10 kΩ load note, not the unit\'s own output impedance — that figure is not published.',
+      },
+      salidaV: 2.2,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Denon (manual oficial)', en: 'Denon (official manual)' },
+      confianza: 'media',
+      chipsExtra: [
+        { es: 'Burr-Brown PCM1795', en: 'Burr-Brown PCM1795' },
+        { es: 'salida variable hasta 4,5 V', en: 'variable output up to 4.5 V' },
+        { es: 'HEOS built-in', en: 'HEOS built-in' },
+      ],
+      fuentes: ['Denon (manual oficial, manuals.denon.com/DNP800NE) — fija 2,2 V (10 kΩ) / variable 4,5 V máx. (10 kΩ)'],
+      pendiente: {
+        es: 'misma situación que el DNP-2000NE: la nota "(10 kΩ)" es la carga de referencia para la medición del voltaje, no la impedancia de salida propia del equipo — no se encontró publicada en ninguna fuente consultada',
+        en: 'same situation as the DNP-2000NE: the "(10 kΩ)" note is the reference load for the voltage measurement, not the unit\'s own output impedance — it was not found published in any source consulted',
+      },
+    },
+    {
+      id: 'denon-heos-link-hs2',
+      marca: 'Denon',
+      nombre: 'Denon HEOS Link HS2',
+      tipo: {
+        es: 'Preamplificador streamer de red, sólo RCA (fija o variable)',
+        en: 'Network streaming preamplifier, RCA only (fixed or variable)',
+      },
+      descripcion: {
+        es: 'Preamplificador/streamer HEOS, más simple que los DNP de la misma marca (sin CD ni funciones de reproductor). Salida sólo RCA, <b>fija</b> en 2,0 V. El chip DAC no está identificado en ninguna fuente consultada. Al igual que en los DNP-NE, el manual acompaña el voltaje con una nota de carga de 10 kΩ, no una impedancia de salida propia.',
+        en: 'A HEOS preamplifier/streamer, simpler than this brand\'s DNP models (no CD or player functions). RCA-only output, <b>fixed</b> at 2.0 V. The DAC chip is not identified in any source consulted. As with the DNP-NE models, the manual pairs the voltage with a 10 kΩ load note, not the unit\'s own output impedance.',
+      },
+      salidaV: 2.0,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Denon (manual oficial)', en: 'Denon (official manual)' },
+      confianza: 'media',
+      chipsExtra: [
+        { es: 'salida sólo fija', en: 'fixed output only' },
+        { es: 'HEOS built-in', en: 'HEOS built-in' },
+      ],
+      fuentes: ['Denon (manual oficial, manuals.denon.com/HEOSLINKHS2) — fija 2,0 V (10 kΩ)'],
+      pendiente: {
+        es: 'la nota "(10 kΩ)" es la carga de referencia para la medición del voltaje, no la impedancia de salida propia — no se encontró publicada; tampoco se identificó el chip DAC en ninguna fuente consultada',
+        en: 'the "(10 kΩ)" note is the reference load for the voltage measurement, not the unit\'s own output impedance — it was not found published; the DAC chip was also not identified in any source consulted',
+      },
+    },
+    {
+      id: 'nad-c658',
+      marca: 'NAD',
+      nombre: 'NAD C 658',
+      tipo: {
+        es: 'Streamer/DAC/preamplificador de red, salida RCA (fija o variable)',
+        en: 'Network streamer/DAC/preamplifier, RCA output (fixed or variable)',
+      },
+      descripcion: {
+        es: 'DAC ESS Sabre (el modelo exacto varía entre fuentes consultadas — no se identifica un chip único y confiable). La ficha oficial da la distorsión "a 2 V de salida" como referencia de operación normal, y por separado declara un máximo de más de 4,5 V con carga IHF al 0,1 % THD — se registra el primer valor por ser el nivel de referencia declarado. La impedancia de salida <b>no es un número fijo</b>: la ficha la define como "Z de la fuente + 240 Ω", una fórmula que depende de la impedancia de lo que esté conectado a la entrada analógica, no un dato propio del equipo — no se registra ningún valor.',
+        en: 'An ESS Sabre DAC (the exact model varies between sources consulted — no single reliable chip figure could be identified). The official spec sheet gives distortion "at 2V out" as the normal-operation reference, and separately states a maximum of over 4.5V into an IHF load at 0.1% THD — the first figure is recorded as the declared reference level. Output impedance <b>is not a fixed number</b>: the spec sheet defines it as "source Z + 240 Ω," a formula that depends on the impedance of whatever is connected to the analog input, not a figure of the unit\'s own — no value is recorded.',
+      },
+      salidaV: 2.0,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'NAD (ficha oficial)', en: 'NAD (official spec sheet)' },
+      confianza: 'baja',
+      chipsExtra: [
+        { es: 'ESS Sabre (modelo no confirmado)', en: 'ESS Sabre (model not confirmed)' },
+        { es: 'máximo >4,5 V (carga IHF)', en: '>4.5 V maximum (IHF load)' },
+        { es: 'BluOS', en: 'BluOS' },
+      ],
+      fuentes: [
+        'NAD (ficha oficial / data sheet, nadelectronics.com) — THD <0,005 % a 2 V de salida; máximo >4,5 V con carga IHF; impedancia de salida "Source Z + 240 Ω"',
+      ],
+      pendiente: {
+        es: 'la impedancia de salida declarada por NAD es una fórmula dependiente de la fuente conectada a la entrada analógica ("Source Z + 240 Ω"), no un número fijo del equipo — no hay forma honesta de reducirla a un solo valor, así que queda en null; el voltaje de 2 V se toma del nivel de referencia usado en la especificación de distorsión, no de una etiqueta explícita de "salida nominal"',
+        en: 'the output impedance NAD declares is a formula dependent on whatever is connected to the analog input ("Source Z + 240 Ω"), not a fixed figure for the unit — there is no honest way to reduce it to a single value, so it is left null; the 2V figure is taken from the reference level used in the distortion spec, not from an explicit "nominal output" label',
+      },
+    },
+    {
+      id: 'nad-cs1-endpoint',
+      marca: 'NAD',
+      nombre: 'NAD CS1 Endpoint',
+      tipo: {
+        es: 'Streamer de red de entrada, sólo RCA',
+        en: 'Entry-level network streamer, RCA only',
+      },
+      descripcion: {
+        es: 'Streamer BluOS de entrada, con un par de salidas RCA de línea. Ni la ficha oficial ni el manual publican el voltaje ni la impedancia de salida del par de RCA analógicos — sólo confirman que existen ("Analog Out: RCA x 1"). No se encontró tampoco una medición independiente.',
+        en: 'An entry-level BluOS streamer, with a pair of line-level RCA outputs. Neither the official spec sheet nor the manual publish the voltage or output impedance of the analog RCA pair — they only confirm it exists ("Analog Out: RCA x 1"). No independent measurement was found either.',
+      },
+      salidaV: null,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'NAD (ficha oficial / manual)', en: 'NAD (official spec sheet / manual)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'BluOS', en: 'BluOS' },
+        { es: 'entrada de gama de la línea NAD/BluOS', en: 'entry point of the NAD/BluOS lineup' },
+      ],
+      fuentes: [
+        'NAD (ficha oficial, nadelectronics.com/products/cs1-endpoint-network-streamer) — confirma la salida RCA sin dar voltaje ni impedancia',
+        'NAD (CS1 Data Sheet, PDF oficial) — misma ausencia de dato confirmada',
+      ],
+      pendiente: {
+        es: 'ni el datasheet ni el manual oficial dan un número de voltaje o impedancia para la salida analógica — sólo confirman que la salida RCA existe; no se encontró una medición independiente publicada para este modelo de entrada',
+        en: "neither the datasheet nor the official manual give a voltage or impedance figure for the analog output — they only confirm the RCA output exists; no independent measurement was found published for this entry-level model",
+      },
+    },
+    {
+      id: 'nad-m50-2',
+      marca: 'NAD',
+      nombre: 'NAD M50.2',
+      tipo: {
+        es: 'Reproductor/servidor de red Masters Series, sin salida analógica — sólo salidas digitales',
+        en: 'Masters Series network player/server, no analog output — digital outputs only',
+      },
+      descripcion: {
+        es: 'Reproductor/servidor de música de la línea Masters Series, con bandeja de disco y almacenamiento interno además de streaming en red. <b>No tiene salida analógica</b> — sus únicas salidas de audio son digitales (HDMI, AES/EBU, óptica, coaxial), confirmado tanto por la ficha oficial como por la reseña de Stereophile. Necesita un DAC externo para producir señal analógica; <b>no corre ninguna de las dos subreglas de ganancia</b>.',
+        en: 'A music player/server from the Masters Series line, with a disc tray and internal storage in addition to network streaming. <b>It has no analog output</b> — its only audio outputs are digital (HDMI, AES/EBU, optical, coaxial), confirmed both by the official spec sheet and by the Stereophile review. It needs an external DAC to produce an analog signal; <b>neither of the two gain-chain sub-rules runs</b>.',
+      },
+      salidaV: null,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'NAD (ficha oficial); Stereophile (reseña)', en: 'NAD (official spec sheet); Stereophile (review)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'sin salida analógica, requiere DAC externo', en: 'no analog output, requires external DAC' },
+        { es: 'bandeja de disco + almacenamiento interno', en: 'disc tray + internal storage' },
+        { es: 'BluOS', en: 'BluOS' },
+      ],
+      fuentes: [
+        'NAD (ficha oficial, nadelectronics.com/products/m50-2-digital-music-player)',
+        'Stereophile (reseña y especificaciones) — confirma la ausencia de salidas analógicas',
+      ],
+      pendiente: {
+        es: 'no hay tensión ni impedancia de salida analógica que registrar — es un reproductor/servidor digital puro, sin DAC de salida propio; necesita un DAC externo (cualquiera de los de este catálogo) para producir señal analógica',
+        en: 'there is no analog output voltage or impedance to record — this is a pure digital player/server, with no output DAC of its own; it needs an external DAC (any of the ones in this catalog) to produce an analog signal',
+      },
+    },
+    {
+      id: 'naim-nd-555',
+      marca: 'Naim',
+      nombre: 'Naim ND 555',
+      tipo: {
+        es: 'Streamer de red de gama alta, DAC integrado, salida fija (sin control de volumen)',
+        en: 'Flagship network streamer, integrated DAC, fixed output (no volume control)',
+      },
+      descripcion: {
+        es: 'DAC Burr-Brown PCM1704U, distinto del PCM1791A/PCM1792A usado en los modelos ND5 XS 2 y NDX 2 de la misma marca. Salida <b>fija</b>, sin control de volumen — pensado para ir a un preamplificador o integrado con volumen propio. Impedancia de salida de 17 Ω en banda media según Hi-Fi News, con una subida a 170 Ω a 20 Hz (mismo comportamiento de acople capacitivo que el resto de la gama Naim).',
+        en: 'A Burr-Brown PCM1704U DAC, different from the PCM1791A/PCM1792A used in this brand\'s ND5 XS 2 and NDX 2 models. <b>Fixed</b> output, no volume control — meant to feed a preamplifier or integrated amp with its own volume. A 17 Ω mid-band output impedance per Hi-Fi News, rising to 170 Ω at 20 Hz (the same capacitive-coupling behavior as the rest of the Naim streaming range).',
+      },
+      salidaV: 2.23,
+      impedanciaSalidaOhm: 17,
+      fuente: {
+        es: 'Naim (ficha oficial, voltaje); Hi-Fi News (medición independiente, impedancia de salida)',
+        en: 'Naim (official spec sheet, voltage); Hi-Fi News (independent measurement, output impedance)',
+      },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'Burr-Brown PCM1704U', en: 'Burr-Brown PCM1704U' },
+        { es: 'salida DIN 5 pines + RCA', en: '5-pin DIN + RCA output' },
+        { es: 'Roon Ready', en: 'Roon Ready' },
+      ],
+      fuentes: [
+        'Naim (ficha oficial, naimaudio.com/products/nd-555)',
+        'Hi-Fi News (Lab Report) — salida fija máxima de 2,23 V desde 17 Ω en banda media, subiendo a 170 Ω a 20 Hz',
+      ],
+      pendiente: {
+        es: 'la subida de impedancia en graves (170 Ω a 20 Hz, probable capacitor de acople en serie) sigue el mismo patrón que el resto de la gama Naim — se registra el valor de banda media (17 Ω) por ser el más relevante para el puente de impedancias',
+        en: 'the bass-region impedance rise (170 Ω at 20 Hz, likely a series coupling capacitor) follows the same pattern as the rest of the Naim range — the mid-band figure (17 Ω) is recorded as the one most relevant to the impedance bridge',
+      },
+    },
+    {
+      id: 'naim-ndx2',
+      marca: 'Naim',
+      nombre: 'Naim NDX 2',
+      tipo: {
+        es: 'Streamer de red, DAC integrado, salida fija (sin control de volumen)',
+        en: 'Network streamer, integrated DAC, fixed output (no volume control)',
+      },
+      descripcion: {
+        es: 'DAC Burr-Brown PCM1792A. Salida <b>fija</b>, sin control de volumen — pensado para ir a un preamplificador o integrado con volumen propio, no directo a una etapa de potencia. Impedancia de salida de 17 Ω en banda media según Hi-Fi News, subiendo a 190 Ω a 20 Hz — mismo comportamiento que el ND5 XS 2 de la misma marca, con una cifra de banda media apenas más baja.',
+        en: 'A Burr-Brown PCM1792A DAC. <b>Fixed</b> output, no volume control — meant to feed a preamplifier or integrated amp with its own volume, not a power amp directly. A 17 Ω mid-band output impedance per Hi-Fi News, rising to 190 Ω at 20 Hz — the same behavior as this brand\'s ND5 XS 2, with a slightly lower mid-band figure.',
+      },
+      salidaV: 2.22,
+      impedanciaSalidaOhm: 17,
+      fuente: {
+        es: 'Naim (ficha oficial, voltaje); Hi-Fi News (medición independiente, impedancia de salida)',
+        en: 'Naim (official spec sheet, voltage); Hi-Fi News (independent measurement, output impedance)',
+      },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'Burr-Brown PCM1792A', en: 'Burr-Brown PCM1792A' },
+        { es: 'salida DIN 5 pines + RCA', en: '5-pin DIN + RCA output' },
+        { es: 'Roon Ready', en: 'Roon Ready' },
+      ],
+      fuentes: [
+        'Naim (ficha oficial, naimaudio.com/products/ndx-2)',
+        'Hi-Fi News (Lab Report) — salida fija máxima de 2,22 V desde 17 Ω en banda media, subiendo a 190 Ω a 20 Hz',
+      ],
+      pendiente: {
+        es: 'la subida de impedancia en graves (190 Ω a 20 Hz) sigue el mismo patrón que el ND5 XS 2 y el ND 555 de la misma marca — se registra el valor de banda media (17 Ω), en el que coincide con el resto de la gama',
+        en: 'the bass-region impedance rise (190 Ω at 20 Hz) follows the same pattern as this brand\'s ND5 XS 2 and ND 555 — the mid-band figure (17 Ω) is recorded, matching the rest of the range',
+      },
+    },
+    {
+      id: 'sonos-port',
+      marca: 'Sonos',
+      nombre: 'Sonos Port',
+      tipo: {
+        es: 'Streamer de red, sólo RCA (nivel fijo, variable o pass-through)',
+        en: 'Network streamer, RCA only (fixed, variable, or pass-through level)',
+      },
+      descripcion: {
+        es: 'Componente de streaming en línea de Sonos, con salida analógica sólo RCA y tres modos de nivel de línea seleccionables desde la app: <b>Variable</b> (controlado desde la app), <b>Fijo</b> (controlado desde el amplificador) y <b>Pass-Through</b>. Ni la ficha oficial ni el manual publican un voltaje o impedancia de salida para ninguno de los tres modos; tampoco se encontró una medición independiente confiable (revisado en foros técnicos y comunidades de medición, sin resultado).',
+        en: 'A line-level Sonos streaming component, with RCA-only analog output and three line-out level modes selectable from the app: <b>Variable</b> (app-controlled), <b>Fixed</b> (amplifier-controlled), and <b>Pass-Through</b>. Neither the official spec sheet nor the manual publish an output voltage or impedance for any of the three modes; no reliable independent measurement was found either (checked across technical forums and measurement communities, without a result).',
+      },
+      salidaV: null,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Sonos (ficha oficial / manual)', en: 'Sonos (official spec sheet / manual)' },
+      confianza: 'baja',
+      chipsExtra: [
+        { es: 'tres modos de línea: variable/fija/pass-through', en: 'three line-out modes: variable/fixed/pass-through' },
+        { es: 'AirPlay 2', en: 'AirPlay 2' },
+      ],
+      fuentes: [
+        'Sonos (guía de usuario oficial, sonos.com/en-us/guides/port) — describe los tres modos de línea sin dar voltaje ni impedancia',
+        'Audio Science Review (foro técnico) — sin una medición de línea de salida confirmada para este modelo',
+      ],
+      pendiente: {
+        es: 'no se encontró voltaje ni impedancia de salida en ninguna fuente oficial ni independiente, pese a revisar manual, ficha técnica y foros de medición (ASR) — el Port es uno de los componentes más vendidos de la categoría, y aun así este dato específico no está publicado',
+        en: "no output voltage or impedance was found in any official or independent source, despite checking the manual, spec sheet, and measurement forums (ASR) — the Port is one of the best-selling components in this category, and this specific figure still isn't published",
+      },
+    },
+    {
+      id: 'yamaha-np-s303',
+      marca: 'Yamaha',
+      nombre: 'Yamaha NP-S303',
+      tipo: {
+        es: 'Streamer de red MusicCast, sólo RCA',
+        en: 'MusicCast network streamer, RCA only',
+      },
+      descripcion: {
+        es: 'Streamer MusicCast de la línea de componentes Hi-Fi de Yamaha (no un altavoz con streaming, sino un componente pensado para conectarse a un amplificador externo por RCA). El manual oficial da el nivel de salida en 2,0 V ± 0,3 V (medido a 1 kHz, 0 dB, 44,1 kHz) — no publica la impedancia de salida.',
+        en: 'A MusicCast streamer from Yamaha\'s Hi-Fi components line (not a streaming speaker, but a component meant to connect to an external amplifier via RCA). The official manual gives the output level as 2.0 V ± 0.3 V (measured at 1kHz, 0dB, 44.1kHz) — it does not publish output impedance.',
+      },
+      salidaV: 2.0,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Yamaha (manual oficial)', en: 'Yamaha (official manual)' },
+      confianza: 'media',
+      chipsExtra: [
+        { es: 'MusicCast', en: 'MusicCast' },
+        { es: 'hasta 24/192 + DSD 5,6 MHz', en: 'up to 24/192 + DSD 5.6MHz' },
+      ],
+      fuentes: [
+        'Yamaha (manual oficial, "Owner\'s Manual", sección de especificaciones) — "Output level (1 kHz, 0 dB, Fs 44.1 kHz) ... 2.0 ±0.3 V"',
+      ],
+      pendiente: {
+        es: 'el manual oficial da el voltaje de salida con su tolerancia (2,0 ± 0,3 V) pero no incluye una cifra de impedancia de salida en ninguna sección revisada',
+        en: "the official manual gives the output voltage with its tolerance (2.0 ± 0.3 V) but does not include an output impedance figure in any section checked",
+      },
+    },
+    {
+      id: 'yamaha-wxad-10',
+      marca: 'Yamaha',
+      nombre: 'Yamaha WXAD-10',
+      tipo: {
+        es: 'Adaptador de streaming MusicCast, sólo RCA (añade red a un equipo existente)',
+        en: 'MusicCast streaming adapter, RCA only (adds networking to an existing system)',
+      },
+      descripcion: {
+        es: 'Adaptador MusicCast pensado para sumar streaming en red a un amplificador o equipo ya existente, no un streamer independiente con preamplificación propia. El manual oficial confirma el tipo de conector de la salida LINE OUT (RCA) pero no publica voltaje ni impedancia de salida en ninguna sección revisada; tampoco se encontró una medición independiente.',
+        en: 'A MusicCast adapter meant to add network streaming to an existing amplifier or system, not a standalone streamer with its own preamp stage. The official manual confirms the LINE OUT connector type (RCA) but does not publish output voltage or impedance in any section checked; no independent measurement was found either.',
+      },
+      salidaV: null,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Yamaha (manual oficial)', en: 'Yamaha (official manual)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'MusicCast', en: 'MusicCast' },
+        { es: 'adaptador, no streamer independiente', en: 'adapter, not a standalone streamer' },
+      ],
+      fuentes: [
+        'Yamaha (manual oficial, "Owner\'s Manual", sección de especificaciones) — confirma conector RCA en LINE OUT sin dar voltaje ni impedancia',
+      ],
+      pendiente: {
+        es: 'el manual oficial sólo especifica el tipo de conector (RCA) para la salida LINE OUT — no da voltaje ni impedancia en ninguna sección revisada, y tampoco se encontró una medición independiente publicada para este modelo',
+        en: 'the official manual only specifies the connector type (RCA) for the LINE OUT — it gives no voltage or impedance in any section checked, and no independent measurement was found published for this model either',
+      },
+    },
+    {
+      id: 'yamaha-wxc-50',
+      marca: 'Yamaha',
+      nombre: 'Yamaha WXC-50',
+      tipo: {
+        es: 'Preamplificador streamer MusicCast, sólo RCA',
+        en: 'MusicCast streaming preamplifier, RCA only',
+      },
+      descripcion: {
+        es: 'Preamplificador/streamer MusicCast sin etapa de potencia (pensado para ir antes de un amplificador o etapa de potencia externa). El manual oficial ("Advanced Owner\'s Manual") da el PRE OUT en 2,0 V / 470 Ω medidos a 1 kHz, con un máximo de 4,0 V bajo condiciones de alta distorsión (0,9 % THD, ganancia +6 dB). También tiene una salida AUX OUT separada de 2,0 V / 1 kΩ.',
+        en: 'A MusicCast preamplifier/streamer with no power stage (meant to feed an amplifier or external power stage). The official manual ("Advanced Owner\'s Manual") gives the PRE OUT as 2.0 V / 470 Ω measured at 1kHz, with a 4.0 V maximum under high-distortion conditions (0.9% THD, +6dB gain). It also has a separate AUX OUT at 2.0 V / 1 kΩ.',
+      },
+      salidaV: 2.0,
+      impedanciaSalidaOhm: 470,
+      fuente: { es: 'Yamaha (manual oficial, "Advanced Owner\'s Manual")', en: 'Yamaha (official "Advanced Owner\'s Manual")' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'MusicCast', en: 'MusicCast' },
+        { es: 'AUX OUT 2,0 V / 1 kΩ', en: 'AUX OUT 2.0 V / 1 kΩ' },
+        { es: 'máximo PRE OUT 4,0 V (alta distorsión)', en: '4.0 V PRE OUT maximum (high distortion)' },
+      ],
+      fuentes: [
+        'Yamaha (manual oficial, "Advanced Owner\'s Manual") — "PRE OUT (1 kHz) 2.0 V/470 Ω"; "AUX OUT 2.0 V/1 kΩ"; máximo PRE OUT 4,0 V a 0,9 % THD',
+      ],
+    },
   ],
 
   dacs: [

@@ -84,7 +84,7 @@ export const es = {
     plano: {
       titulo: 'Vista isométrica y reflexiones tempranas',
       cuerpoHtml:
-        'El diagrama dibuja la sala a escala, con la disposición de referencia de los parlantes (triángulo simétrico) y el <b>punto dulce</b> — el vértice de ese triángulo, la posición de escucha que ese cálculo asume. Cada punto marcado sobre una pared, el techo o el piso es una <b>primera reflexión</b>: el camino que recorre el sonido desde el parlante, rebotando en esa superficie, hasta llegar al punto dulce — calculado con el método de imagen especular (el mismo que usan los estudios de acústica para ubicar puntos de tratamiento). Cada reflexión muestra su distancia total en metros. Un muro declarado "vacío" no dibuja su reflexión, porque no hay pared de la que rebotar. El botón "Vista" cambia el ángulo de cámara (isométrica/frontal/lateral/superior) sin recalcular nada — es la misma geometría, mirada desde otro lado.',
+        'El diagrama dibuja la sala a escala, con la disposición de referencia de los parlantes (triángulo simétrico) y el <b>punto dulce</b> — el vértice de ese triángulo, la posición de escucha que ese cálculo asume. Cada punto marcado sobre una pared, el techo o el piso es una <b>primera reflexión</b>: el camino que recorre el sonido desde el parlante, rebotando en esa superficie, hasta llegar al punto dulce — calculado con el método de imagen especular (el mismo que usan los estudios de acústica para ubicar puntos de tratamiento). Cada reflexión muestra su distancia total en metros. Un muro declarado "vacío" no dibuja su reflexión, porque no hay pared de la que rebotar. El botón "Vista" cambia el ángulo de cámara (isométrica/frontal/lateral/superior) sin recalcular nada — es la misma geometría, mirada desde otro lado. En la vista Superior, si hay modos agrupados, aparece de fondo un <b>mapa de zonas</b> (verde/amarillo/rojo): dónde coinciden los nodos y antinodos de esos mismos modos en el plano — rojo donde cualquiera de los dos modos tiene un nodo (esa frecuencia queda ausente ahí), verde donde los dos coinciden en su antinodo (reforzada), amarillo en el medio. Es un mapa de coincidencia geométrica entre modos ya identificados, no una simulación acústica con fase real — y "ideal" (amarillo) es sobre ese agrupamiento puntual, no una recomendación general de dónde sentarse. Si el mapa de un par sale parejo en toda la sala, es porque uno de sus modos es del eje alto (no varía en un plano horizontal); la curva 1D de ese eje, más abajo, muestra la variación vertical que este mapa no puede.',
     },
     puntaje: {
       titulo: 'Puntaje del match (1-10)',
@@ -186,6 +186,9 @@ export const es = {
       leyendaTriangulo: 'triángulo de escucha',
       leyendaReflexion: 'reflexión (con distancia)',
       leyendaParlante: 'parlante / escucha',
+      leyendaMapaCancelacion: 'cancelación (grave ausente)',
+      leyendaMapaEquilibrio: 'equilibrado',
+      leyendaMapaRefuerzo: 'refuerzo (grave reforzado)',
       muroFrontalCorto: 'FRONTAL',
       muroPosteriorCorto: 'POSTERIOR',
       muroIzquierdoCorto: 'IZQUIERDO',
