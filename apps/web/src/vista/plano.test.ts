@@ -140,10 +140,16 @@ test('editable=true en vista Superior agrega un <g data-parlante> y un círculo 
   const svgFijo = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false);
   const svgEditable = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', true);
 
-  assert.match(svgEditable, /<g data-parlante="izq" class="parlante-arrastrable">/);
-  assert.match(svgEditable, /<g data-parlante="der" class="parlante-arrastrable">/);
+  assert.match(svgEditable, /<g data-parlante="izq" class="parlante-arrastrable" style="touch-action:none">/);
+  assert.match(svgEditable, /<g data-parlante="der" class="parlante-arrastrable" style="touch-action:none">/);
   assert.equal((svgEditable.match(/data-agarre="izq"/g) ?? []).length, 1);
   assert.equal((svgEditable.match(/data-agarre="der"/g) ?? []).length, 1);
+  // el agarre invisible también declara touch-action:none directo (no sólo
+  // heredado de la clase del <g>) — el compositor de touch de algunos
+  // navegadores decide scroll-vs-gesto sobre la forma tocada, no sobre un
+  // ancestro sin geometría propia.
+  assert.match(svgEditable, /data-agarre="izq" style="touch-action:none"/);
+  assert.match(svgEditable, /data-agarre="der" style="touch-action:none"/);
   // 2 círculos de agarre más que la versión fija, nada más cambia de forma
   assert.equal((svgEditable.match(/<circle/g) ?? []).length, (svgFijo.match(/<circle/g) ?? []).length + 2);
   assert.equal((svgEditable.match(/<line/g) ?? []).length, (svgFijo.match(/<line/g) ?? []).length);

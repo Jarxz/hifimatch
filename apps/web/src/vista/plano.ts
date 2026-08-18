@@ -313,10 +313,19 @@ export function construirPlanoSvg(
     caja += linea(c110, c111, CAJA);
     return caja;
   };
-  const agarre = (p: Pt3, lado: 'izq' | 'der'): string => circulo(p, RADIO_AGARRE, `fill="transparent" data-agarre="${lado}"`);
+  // touch-action:none inline, no sólo vía la clase CSS .parlante-arrastrable:
+  // un <g> no tiene geometría propia, y el motor de touch de algunos
+  // navegadores decide si el gesto es "scroll de página" o "gesto propio"
+  // al nivel del compositor, antes de que corra el JS del sitio — declarar
+  // touch-action directo sobre las formas realmente tocadas (el agarre
+  // invisible y la caja) es lo único que ese compositor ve con certeza.
+  const agarre = (p: Pt3, lado: 'izq' | 'der'): string =>
+    circulo(p, RADIO_AGARRE, `fill="transparent" data-agarre="${lado}" style="touch-action:none"`);
   const parlante = (p: Pt3, lado: 'izq' | 'der'): string => {
     const dibujo = cajaParlante(p);
-    return editableEfectivo ? `<g data-parlante="${lado}" class="parlante-arrastrable">${dibujo}${agarre(p, lado)}</g>` : dibujo;
+    return editableEfectivo
+      ? `<g data-parlante="${lado}" class="parlante-arrastrable" style="touch-action:none">${dibujo}${agarre(p, lado)}</g>`
+      : dibujo;
   };
   s += parlante(spkIzq3, 'izq') + parlante(spkDer3, 'der');
   s += texto(spkIzq3, 'L', 'fill="#ECECEE" font-size="9.5" text-anchor="middle"', 0, -22);

@@ -990,6 +990,27 @@ para "largo" sólo en esa vista (`plano.ts`), separándolas en dos columnas
 de texto — ver `docs/motor-mvp.md` sección 4 para el detalle. Confirmado
 con capturas de Chrome headless en las 4 vistas, antes y después.
 
+**Arrastrar un parlante en mobile ya no arrastra la página.** Bug
+reportado tras el despliegue: en touch, mover un parlante en la vista
+Superior también scrolleaba la página entera. `arrastre.ts` sólo
+cancelaba el default en `pointerdown`, no en `pointermove` — sin eso, el
+navegador puede seguir interpretando el gesto como scroll aunque el drag
+ya esté funcionando. Se corrigió en tres capas, las tres estándar para
+este problema: `preventDefault()` (no pasivo, `{passive:false}`) también
+en `pointermove`; `touch-action:none` declarado **directo** (atributo
+`style`, no sólo la clase `.parlante-arrastrable`) sobre las formas
+realmente tocadas — el `<g>` que las agrupa no tiene geometría propia, y
+el motor de touch de algunos navegadores decide scroll-vs-gesto sobre la
+forma tocada, no sobre un ancestro sin geometría; y un `touchmove` crudo
+de respaldo (además de todo lo anterior en Pointer Events) para
+variantes de Safari/iOS donde el `preventDefault` de un pointer
+sintetizado desde touch no siempre alcanza. No se pudo confirmar con
+Chrome headless: `Input.dispatchTouchEvent` en ese entorno dispara un
+scroll por su cuenta sin pasar por el pipeline real de eventos de touch
+del DOM (`touchmove` nunca llegó a dispararse ahí, 0 veces, con o sin el
+fix) — una limitación conocida de esa herramienta de simulación, no del
+sitio. Pendiente de confirmar en un teléfono real.
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como

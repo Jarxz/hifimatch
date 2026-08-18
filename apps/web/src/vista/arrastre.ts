@@ -72,35 +72,63 @@ export function activarArrastre(contenedor: HTMLElement, salaDe: () => Sala, edi
     cb.onSoltar();
   }
 
-  contenedor.addEventListener('pointerdown', (ev) => {
-    if (!editableAhora()) return;
-    const grupo = (ev.target as Element | null)?.closest('[data-parlante]');
-    const lado = grupo?.getAttribute('data-parlante');
-    if (lado !== 'izq' && lado !== 'der') return;
+  contenedor.addEventListener(
+    'pointerdown',
+    (ev) => {
+      if (!editableAhora()) return;
+      const grupo = (ev.target as Element | null)?.closest('[data-parlante]');
+      const lado = grupo?.getAttribute('data-parlante');
+      if (lado !== 'izq' && lado !== 'der') return;
 
-    const punto = puntoMetrosDesdeEvento(ev);
-    if (!punto) return;
+      const punto = puntoMetrosDesdeEvento(ev);
+      if (!punto) return;
 
-    ladoActivo = lado;
-    ultimoPunto = punto;
-    try {
-      contenedor.setPointerCapture?.(ev.pointerId);
-    } catch {
-      /* el arrastre sigue funcionando sin captura mientras el puntero no salga del SVG */
-    }
-    document.body.style.cursor = 'grabbing';
-    programarFrame();
-    ev.preventDefault();
-  });
+      ladoActivo = lado;
+      ultimoPunto = punto;
+      try {
+        contenedor.setPointerCapture?.(ev.pointerId);
+      } catch {
+        /* el arrastre sigue funcionando sin captura mientras el puntero no salga del SVG */
+      }
+      document.body.style.cursor = 'grabbing';
+      programarFrame();
+      ev.preventDefault();
+    },
+    { passive: false }
+  );
 
-  contenedor.addEventListener('pointermove', (ev) => {
-    if (!ladoActivo) return;
-    const punto = puntoMetrosDesdeEvento(ev);
-    if (!punto) return;
-    ultimoPunto = punto;
-    programarFrame();
-  });
+  // preventDefault también en cada pointermove, no sólo en el pointerdown:
+  // en mobile, touch-action:none en el SVG no siempre alcanza para frenar
+  // el scroll de la página una vez que el gesto ya está en curso — sin
+  // este preventDefault, arrastrar un parlante también arrastraba la
+  // página entera (bug real reportado en mobile).
+  contenedor.addEventListener(
+    'pointermove',
+    (ev) => {
+      if (!ladoActivo) return;
+      ev.preventDefault();
+      const punto = puntoMetrosDesdeEvento(ev);
+      if (!punto) return;
+      ultimoPunto = punto;
+      programarFrame();
+    },
+    { passive: false }
+  );
 
   contenedor.addEventListener('pointerup', soltar);
   contenedor.addEventListener('pointercancel', soltar);
+
+  // Respaldo directo sobre el evento de touch crudo, además de todo lo de
+  // arriba en Pointer Events: en algunos navegadores (variantes de Safari/
+  // iOS en particular) el preventDefault de un pointermove sintetizado
+  // desde touch no siempre alcanza a cancelar el scroll nativo asociado al
+  // touchmove real — cancelar el touchmove mismo mientras hay un lado
+  // activo es la única vía que ese navegador sí respeta con certeza.
+  contenedor.addEventListener(
+    'touchmove',
+    (ev) => {
+      if (ladoActivo) ev.preventDefault();
+    },
+    { passive: false }
+  );
 }
