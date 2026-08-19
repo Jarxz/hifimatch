@@ -2,7 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
-import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { construirPlanoSvg, proyeccionSuperior } from './plano.ts';
 import type { MurosVista, Vista } from './plano.ts';
@@ -191,53 +190,4 @@ test('proyeccionSuperior alimenta exactamente el pad/scale que usa construirPlan
   assert.ok(viewBox);
   assert.equal(Number(viewBox![1]), sw);
   assert.equal(Number(viewBox![2]), sh);
-});
-
-// ---- mapa de zonas modales (agrupados) ----
-
-test('agrupados omitido o [] no cambia el SVG (ninguna vista) — mismo criterio que editable=false', () => {
-  const disp = calcularDisposicion(SALA_VECTOR);
-  for (const vista of VISTAS) {
-    const sinParametro = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es');
-    const vacioExplicito = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es', false, []);
-    assert.equal(sinParametro, vacioExplicito, vista);
-    assert.equal((sinParametro.match(/<rect /g) ?? []).length, 0, vista);
-  }
-});
-
-test('agrupados no vacío en vista Superior agrega una grilla de <rect> — no hay <rect> en el resto del dibujo', () => {
-  const disp = calcularDisposicion(SALA_VECTOR);
-  const r = evaluarModos(SALA_VECTOR); // sala con agrupamiento real, ver modos.test.ts
-  assert.ok(r.agrupados.length > 0);
-
-  const sinMapa = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false, []);
-  const conMapa = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false, r.agrupados);
-  assert.equal((sinMapa.match(/<rect /g) ?? []).length, 0);
-  assert.ok((conMapa.match(/<rect /g) ?? []).length > 0);
-  // nada más cambia de forma — mismo criterio que el test de "editable"
-  assert.equal((conMapa.match(/<circle/g) ?? []).length, (sinMapa.match(/<circle/g) ?? []).length);
-  assert.equal((conMapa.match(/<line/g) ?? []).length, (sinMapa.match(/<line/g) ?? []).length);
-  assert.equal((conMapa.match(/<polyline/g) ?? []).length, (sinMapa.match(/<polyline/g) ?? []).length);
-});
-
-test('agrupados no vacío en una vista que no es Superior se ignora — sin <rect>, un plano de planta no aplica a una vista 3D/ortográfica lateral', () => {
-  const disp = calcularDisposicion(SALA_VECTOR);
-  const r = evaluarModos(SALA_VECTOR);
-  for (const vista of ['isometrica', 'frontal', 'lateral'] as const) {
-    const svgFijo = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es', false, []);
-    const svgConAgrupadosPedido = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es', false, r.agrupados);
-    assert.equal(svgFijo, svgConAgrupadosPedido, vista);
-  }
-});
-
-test('el mapa de zonas modales se dibuja ANTES del piso/cubo de alambre (capa de fondo) — su primer <rect> aparece antes que el primer <line>/<polyline>', () => {
-  const disp = calcularDisposicion(SALA_VECTOR);
-  const r = evaluarModos(SALA_VECTOR);
-  const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false, r.agrupados);
-  const idxRect = svg.indexOf('<rect ');
-  const idxLine = svg.indexOf('<line ');
-  const idxPoli = svg.indexOf('<polyline ');
-  assert.ok(idxRect >= 0);
-  assert.ok(idxRect < idxLine, 'el mapa modal debería pintarse antes que el cubo de alambre');
-  assert.ok(idxRect < idxPoli, 'el mapa modal debería pintarse antes que el piso');
 });

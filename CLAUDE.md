@@ -1111,7 +1111,55 @@ el motor recalcule nada por cuadro. Verificado con Chrome headless: sala
 por defecto (con agrupamiento real) muestra la grilla en Superior y la
 oculta en las otras 3 vistas; arrastrar un parlante deja el mapa
 bit-a-bit idéntico mientras el marcador se mueve encima; una sala sin
-agrupamiento no muestra grilla ni leyenda.
+agrupamiento no muestra grilla ni leyenda. (Ronda posterior: el mapa se
+sacó por completo del plano de reflexiones y pasó a ser un diagrama propio
+de la tarjeta "Modos" — ver el párrafo "Mapa de zonas modales: reubicado…"
+más abajo; la mecánica de combinación de modos — `min` dentro de un par,
+"el más extremo gana" entre pares — no cambió, sólo dónde y cómo se
+dibuja.)
+
+**Mapa de zonas modales: reubicado a la tarjeta "Modos", ya no en el plano
+de reflexiones.** El usuario vio la primera versión (capa de fondo dentro
+del plano isométrico, sólo visible en la vista Superior, con una imagen de
+referencia de tipo simulación acústica real — un mapa de calor COMSOL con
+su propia barra de color) y pidió explícitamente que viviera "en la
+tarjeta de modos, no en reflexiones": mezclar el mapa dentro del dibujo de
+reflexiones conflaba dos piezas de evidencia física distintas (modos vs.
+reflexiones) en un solo dibujo, aunque las dos ya compartieran una sola
+tarjeta "Geometría" a nivel de sección. `mapamodal.ts` gana
+`construirDiagramaModalSvg(sala, disposición, agrupados, idioma)`: una
+planta 2D propia (no una vista más del plano isométrico — esta tarjeta no
+tiene selector de vista) con la misma grilla de `construirMapaModalSvg`
+(que se queda como está, sigue siendo la capa de sólo-celdas, ahora
+reusada en vez de insertada directo en `plano.ts`) de fondo, más el
+contorno de la sala, los 2 parlantes (círculo + etiqueta L/R) y el punto
+dulce — reusando las posiciones que `sala.ts` ya calculó para el plano de
+reflexiones, dibujadas de nuevo acá porque es un diagrama independiente.
+`plano.ts` volvió a su forma anterior a esta ronda: perdió el parámetro
+`agrupados`, la capa `conMapaModal` y el import de `mapamodal.ts` — el
+plano isométrico vuelve a mostrar sólo reflexiones, en las 4 vistas, sin
+ninguna mención a modos. El diagrama nuevo vive detrás del mismo "Ver
+detalle técnico" de la tarjeta Modos que ya tenían las curvas 1D
+(`#mo-mapa`, junto a `#mo-curvas`), con su propia leyenda — ya no 3
+cuadraditos de color (`.swatch`, eliminado, quedó sin otro uso) sino una
+**barra de gradiente continuo** (`.leyenda-gradiente`, CSS
+`linear-gradient` sobre las mismas 3 variables `--mapa-*`) con las 3
+etiquetas debajo — más parecida a la barra de escala de la imagen de
+referencia que el trío de cuadraditos original. A diferencia de la
+versión anterior (que no dependía de la posición de los parlantes y por
+eso no necesitaba recalcularse durante el arrastre), esta versión sí
+recibe la `disposición` como parámetro — para dibujar los parlantes en su
+lugar real — pero sigue sin recalcular nada por cuadro: se pinta una sola
+vez por snapshot (dentro de `pintarSnapshot`, no en `repintarPlano`), así
+que cambiar de pestaña ("Análisis original"/"Modificado") o tocar
+"Recalcular" actualiza los marcadores del diagrama igual que actualiza el
+resto de la tarjeta, sin necesidad de arrastre en vivo dentro de esta
+tarjeta (no es interactiva — mismo nivel que las curvas 1D vecinas, nunca
+tuvo agarre propio). Verificado con Chrome headless: el plano isométrico
+(cualquier vista) ya no tiene ningún `<rect>`; el diagrama nuevo aparece
+sólo dentro de "Modos" con la grilla + 2 círculos de parlante + 2 círculos
+de punto dulce; arrastrar un parlante y tocar "Recalcular" cambia las
+coordenadas de los marcadores del diagrama.
 
 **Streamers ampliados: 18 equipos nuevos, cierra la ronda de ampliación de
 catálogo.** Catálogo a **132 equipos** (35 parlantes + 34 amplificadores +

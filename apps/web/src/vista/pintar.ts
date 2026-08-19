@@ -179,6 +179,22 @@ export function pintarCurvasModales(svg: string, caption: string): void {
   cont.innerHTML = svg + `<div class="src">${caption}</div>`;
 }
 
+/** '' cuando no hay modos agrupados (construirDiagramaModalSvg ya lo
+ * resuelve) — oculta el diagrama y su leyenda de gradiente. */
+export function pintarDiagramaModal(svg: string, caption: string): void {
+  const cont = el('mo-mapa');
+  const leyenda = el('mo-mapa-leyenda');
+  if (!svg) {
+    cont.classList.add('hidden');
+    cont.innerHTML = '';
+    leyenda.classList.add('hidden');
+    return;
+  }
+  cont.classList.remove('hidden');
+  cont.innerHTML = svg + `<div class="src">${caption}</div>`;
+  leyenda.classList.remove('hidden');
+}
+
 /** Capa criterio-editorial (puntaje.ts) — nunca usa pintarVerdict (el pill
  * de veredicto de capa física); el número lleva color (clase puntaje-ok/
  * warn/alert) pero sigue siendo un <b> simple, no un pill, y sigue

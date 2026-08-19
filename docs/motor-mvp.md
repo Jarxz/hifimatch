@@ -486,10 +486,16 @@ atenuación en dB.
 
 ### Mapa de zonas modales (`apps/web/src/vista/mapamodal.ts`)
 
-Capa de fondo en la vista Superior del plano isométrico, sólo cuando hay
-agrupamiento: una grilla de celdas coloreadas verde-amarillo-rojo mostrando
-dónde, en el plano, coinciden los nodos y antinodos de los mismos pares que
-`paresMasImportantes` ya cura para las curvas de arriba.
+Diagrama propio de la tarjeta "Modos de sala" — no una capa del plano
+isométrico de reflexiones (`plano.ts`), que sigue mostrando sólo
+reflexiones en sus 4 vistas. Sólo cuando hay agrupamiento: una grilla de
+celdas coloreadas verde-amarillo-rojo, vista en planta, mostrando dónde
+coinciden los nodos y antinodos de los mismos pares que `paresMasImportantes`
+ya cura para las curvas de arriba. (Primera versión: vivía como capa de
+fondo dentro de la vista Superior del plano isométrico — se reubicó a
+pedido explícito del usuario, que la quería asociada a "Modos", no
+mezclada con el dibujo de reflexiones; ver el detalle de la reubicación
+más abajo.)
 
 **Qué es y qué NO es — misma disciplina que las curvas 1D.** No es una
 aproximación del campo combinado real de la sala (eso seguiría exigiendo
@@ -563,24 +569,51 @@ moderada da varias muestras por semiperíodo — sin aliasing visible para un
 mapa de esta naturaleza. Opacidad parcial (0,55) para que el wireframe y
 las etiquetas que se dibujan encima sigan leyéndose.
 
-**Sólo vista Superior, sólo con agrupamiento.** `construirMapaModalSvg`
-llama a `proyeccionSuperior(sala)` (`apps/web/src/vista/proyeccion.ts` —
-extraída de `plano.ts` a un módulo propio para que este mapa la pueda
-importar sin crear un ciclo: `plano.ts` inserta la capa del mapa, así que
-no puede ser al revés) para alinear la grilla exactamente con el
-wireframe/parlantes de esa vista. Devuelve `''` si no hay pares curados —
-mismo criterio que las curvas 1D (`agrupados.length === 0` → sin nada que
-mostrar).
+**Sólo con agrupamiento.** `construirMapaModalSvg(sala, agrupados)` llama a
+`proyeccionSuperior(sala)` (`apps/web/src/vista/proyeccion.ts` — extraída
+de `plano.ts` a un módulo propio para que este archivo la pudiera importar
+sin crear un ciclo cuando todavía vivía dentro de `plano.ts`; se quedó ahí
+después de la reubicación, ya no hace falta pero tampoco estorba) para
+que la grilla use la misma escala que el resto del diagrama. Devuelve `''`
+si no hay pares curados — mismo criterio que las curvas 1D
+(`agrupados.length === 0` → sin nada que mostrar). Esta función sigue
+siendo sólo la capa de celdas — el diagrama completo que se pinta en
+pantalla es una función distinta, ver abajo.
 
-**No depende de la posición de los parlantes.** `evaluarModos(sala)` sólo
-ve las dimensiones de la sala — nunca la disposición de parlantes/escucha
-— así que el campo de color es matemáticamente invariante al arrastre; el
-mapa se calcula una sola vez por "Analizar" (junto con `resModos`) y viaja
-sin cambios en cada repintado, incluidos los frames de arrastre. Lo único
-que se mueve encima es el marcador de parlante/punto dulce — que es
-exactamente cómo el usuario experimenta "se actualiza al mover los
-parlantes": ve su marcador cruzar zonas de color fijas, sin que el motor
-tenga que recalcular nada por cuadro.
+**El campo de color no depende de la posición de los parlantes; el
+diagrama completo sí.** `evaluarModos(sala)` sólo ve las dimensiones de la
+sala — nunca la disposición de parlantes/escucha — así que
+`construirMapaModalSvg` (la grilla) es matemáticamente invariante al
+arrastre. Pero el diagrama que efectivamente se pinta,
+`construirDiagramaModalSvg(sala, disp, agrupados, idioma)`, sí recibe la
+`disposición` — para dibujar los 2 parlantes y el punto dulce en su
+posición real, igual que hace el plano de reflexiones. A diferencia de la
+primera versión (que vivía dentro del plano y se repintaba en cada frame
+de arrastre sin costo extra porque la grilla nunca cambiaba), esta versión
+no es interactiva — no tiene agarre propio, mismo nivel que las curvas 1D
+vecinas — así que se pinta una sola vez por snapshot, dentro de
+`pintarSnapshot` (no en `repintarPlano`): cambiar de pestaña ("Análisis
+original"/"Modificado") o tocar "Recalcular" actualiza los marcadores del
+diagrama exactamente igual que actualiza el resto de la tarjeta.
+
+**`construirDiagramaModalSvg`: contorno de sala + parlantes + punto dulce
+sobre la grilla.** Dibuja, en este orden (SVG pinta por orden de
+documento, esta capa tiene que quedar atrás): la grilla de
+`construirMapaModalSvg`, un `<rect>` de contorno del tamaño de la sala,
+los 2 parlantes (círculo + etiqueta "L"/"R", reusando `disp.parlanteIzq`/
+`disp.parlanteDer`) y el punto dulce (`disp.puntoDulce`, mismo estilo de
+anillo + centro que usa `plano.ts`). No es una vista más del plano
+isométrico — esta tarjeta no tiene selector de vista (isométrica/frontal/
+lateral/superior): siempre es una planta simple en 2D, porque un mapa de
+zonas modales sólo tiene sentido visto desde arriba. La leyenda que lo
+acompaña en pantalla (`.leyenda-gradiente`) es una barra de gradiente
+CSS continuo sobre las 3 variables `--mapa-*` — no los 3 cuadraditos
+discretos (`.swatch`) de la primera versión, retirados por no tener ya
+otro uso — con las 3 etiquetas (cancelación/equilibrado/refuerzo) debajo,
+más parecida a la barra de escala de una simulación acústica real (la
+referencia visual que pidió el usuario) aunque los datos que representa
+sigan siendo la misma coincidencia geométrica declarada arriba, no una
+medición.
 
 ---
 

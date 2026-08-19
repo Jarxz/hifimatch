@@ -361,11 +361,6 @@
             <span><i style="border-top:1px dashed var(--warn)"></i> <span data-i18n="resultado.plano.leyendaReflexion">1ª reflexión</span></span>
             <span><i style="border-top:2px solid var(--text)"></i> <span data-i18n="resultado.plano.leyendaParlante">parlante / escucha</span></span>
           </div>
-          <div class="legend hidden" id="legend-mapamodal">
-            <span><i class="swatch" style="background:var(--mapa-cancelacion)"></i> <span data-i18n="resultado.plano.leyendaMapaCancelacion">cancelación</span></span>
-            <span><i class="swatch" style="background:var(--mapa-equilibrio)"></i> <span data-i18n="resultado.plano.leyendaMapaEquilibrio">equilibrado</span></span>
-            <span><i class="swatch" style="background:var(--mapa-refuerzo)"></i> <span data-i18n="resultado.plano.leyendaMapaRefuerzo">refuerzo</span></span>
-          </div>
           <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
           <h4 data-i18n="resultado.plano.ubicacionTitulo">Ubicación de referencia de los parlantes</h4>
           <p id="plan-ubicacion">—</p>
@@ -378,6 +373,15 @@
             <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
             <div class="flag hidden" id="mo-flag"></div>
             <div class="curvas hidden" id="mo-curvas"></div>
+            <div class="mapa-modal-wrap hidden" id="mo-mapa"></div>
+            <div class="leyenda-gradiente hidden" id="mo-mapa-leyenda">
+              <div class="barra"></div>
+              <div class="rotulos">
+                <span data-i18n="motor.modos.leyendaMapaCancelacion">cancelación</span>
+                <span data-i18n="motor.modos.leyendaMapaEquilibrio">equilibrado</span>
+                <span data-i18n="motor.modos.leyendaMapaRefuerzo">refuerzo</span>
+              </div>
+            </div>
             <div class="src" id="mo-src"></div>
           </details>
 

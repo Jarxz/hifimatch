@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { evaluarModos, paresMasImportantes } from '../../../../packages/engine/src/modos.ts';
 import type { ModoAxial, ModoAgrupado } from '../../../../packages/engine/src/modos.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
-import { ALTURA_ESCUCHA_M } from '../../../../packages/engine/src/sala.ts';
+import { ALTURA_ESCUCHA_M, calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
 import { proyeccionSuperior } from './proyeccion.ts';
-import { intensidadModoEn, intensidadParEn, intensidadCombinadaEn, colorDeIntensidad, construirMapaModalSvg } from './mapamodal.ts';
+import { intensidadModoEn, intensidadParEn, intensidadCombinadaEn, colorDeIntensidad, construirMapaModalSvg, construirDiagramaModalSvg } from './mapamodal.ts';
 
 const SALA_CON_AGRUPAMIENTO: Sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // motor-mvp.md sección 4bis
 const SALA_SIN_AGRUPAMIENTO: Sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
@@ -143,4 +143,58 @@ test('construirMapaModalSvg: coordenadas siempre con punto ASCII (nunca coma) �
   const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
   const svg = construirMapaModalSvg(SALA_CON_AGRUPAMIENTO, r.agrupados);
   assert.ok(!/,\d/.test(svg.replace(/fill="#[0-9a-f]+"/g, '')), 'coordenada con coma decimal encontrada');
+});
+
+// ---- construirDiagramaModalSvg: diagrama propio de la tarjeta "Modos" ----
+
+test('construirDiagramaModalSvg: sala sin agrupamiento real da string vacío', () => {
+  const disp = calcularDisposicion(SALA_SIN_AGRUPAMIENTO);
+  const r = evaluarModos(SALA_SIN_AGRUPAMIENTO);
+  assert.equal(construirDiagramaModalSvg(SALA_SIN_AGRUPAMIENTO, disp, r.agrupados, 'es'), '');
+});
+
+test('construirDiagramaModalSvg: agrupados=[] da string vacío', () => {
+  const disp = calcularDisposicion(SALA_CON_AGRUPAMIENTO);
+  assert.equal(construirDiagramaModalSvg(SALA_CON_AGRUPAMIENTO, disp, [], 'es'), '');
+});
+
+test('construirDiagramaModalSvg: sala con agrupamiento produce un SVG bien formado, con la grilla, el contorno de sala y los 2 parlantes + punto dulce', () => {
+  const disp = calcularDisposicion(SALA_CON_AGRUPAMIENTO);
+  const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
+  const svg = construirDiagramaModalSvg(SALA_CON_AGRUPAMIENTO, disp, r.agrupados, 'es');
+  assert.match(svg, /^<svg viewBox="0 0 \d/);
+  assert.match(svg, /<\/svg>$/);
+  assert.ok((svg.match(/<rect /g) ?? []).length > 30, 'debería incluir la grilla de zonas + el contorno de sala');
+  // 2 parlantes (círculo relleno) + punto dulce (2 círculos: anillo + centro) = 4
+  assert.equal((svg.match(/<circle/g) ?? []).length, 4);
+  assert.ok(svg.includes('>L<'), 'debería etiquetar el parlante izquierdo');
+  assert.ok(svg.includes('>R<'), 'debería etiquetar el parlante derecho');
+});
+
+test('construirDiagramaModalSvg: el contorno de sala y los marcadores se dibujan DESPUÉS de la grilla (capa de fondo)', () => {
+  const disp = calcularDisposicion(SALA_CON_AGRUPAMIENTO);
+  const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
+  const svg = construirDiagramaModalSvg(SALA_CON_AGRUPAMIENTO, disp, r.agrupados, 'es');
+  const rects = [...svg.matchAll(/<rect /g)];
+  const circles = [...svg.matchAll(/<circle/g)];
+  assert.ok(rects.length > 0 && circles.length > 0);
+  assert.ok(rects[0]!.index! < circles[0]!.index!, 'la grilla/contorno deberían pintarse antes que los parlantes');
+});
+
+test('construirDiagramaModalSvg: usa la disposición recibida — parlantes arrastrados a otra posición mueven los marcadores', () => {
+  const dispBase = calcularDisposicion(SALA_CON_AGRUPAMIENTO);
+  const dispMovida = { ...dispBase, parlanteIzq: { x: 0.5, y: 0.5 } };
+  const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
+  const svgBase = construirDiagramaModalSvg(SALA_CON_AGRUPAMIENTO, dispBase, r.agrupados, 'es');
+  const svgMovido = construirDiagramaModalSvg(SALA_CON_AGRUPAMIENTO, dispMovida, r.agrupados, 'es');
+  assert.notEqual(svgBase, svgMovido);
+});
+
+test('construirDiagramaModalSvg en inglés: mismo dibujo, etiqueta del punto dulce en inglés', () => {
+  const disp = calcularDisposicion(SALA_CON_AGRUPAMIENTO);
+  const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
+  const svgEs = construirDiagramaModalSvg(SALA_CON_AGRUPAMIENTO, disp, r.agrupados, 'es');
+  const svgEn = construirDiagramaModalSvg(SALA_CON_AGRUPAMIENTO, disp, r.agrupados, 'en');
+  assert.ok(svgEs.includes('punto dulce'));
+  assert.ok(svgEn.includes('sweet spot'));
 });

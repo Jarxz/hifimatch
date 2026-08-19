@@ -29,12 +29,10 @@
  */
 import type { Sala, DisposicionSala } from '../../../../packages/engine/src/sala.ts';
 import type { MaterialMuro } from '../../../../packages/engine/src/reverberacion.ts';
-import type { ModoAgrupado } from '../../../../packages/engine/src/modos.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { coord, num } from '../formato/numeros.ts';
 import { textosDe } from '../idioma/idioma.ts';
 import { proyeccionSuperior, PAD_SVG, MAX_ANCHO_PROYECCION, MAX_ALTO_PROYECCION } from './proyeccion.ts';
-import { construirMapaModalSvg } from './mapamodal.ts';
 
 export { proyeccionSuperior } from './proyeccion.ts';
 
@@ -92,23 +90,11 @@ function proyectar(p: Pt3, vista: Vista): { sx: number; sy: number } {
   }
 }
 
-export function construirPlanoSvg(
-  sala: Sala,
-  disp: DisposicionSala,
-  muros: MurosVista,
-  vista: Vista,
-  idioma: Idioma,
-  editable = false,
-  agrupados: ModoAgrupado[] = []
-): string {
+export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: MurosVista, vista: Vista, idioma: Idioma, editable = false): string {
   const t = textosDe(idioma).resultado.plano;
   const { anchoM: W, largoM: L, altoM: H } = sala;
   const h = disp.alturaM;
-  // Mismo criterio que editableEfectivo: el mapa de zonas modales sólo
-  // tiene sentido geométrico en la vista Superior (plano de planta) — un
-  // llamador que pase agrupados en otra vista por error no dibuja nada.
   const editableEfectivo = editable && vista === 'superior';
-  const conMapaModal = vista === 'superior' && agrupados.length > 0;
 
   const corners: Pt3[] = [
     { x: 0, y: 0, z: 0 },
@@ -164,10 +150,6 @@ export function construirPlanoSvg(
   };
 
   let s = `<svg viewBox="0 0 ${coord(sw, 0)} ${coord(sh, 0)}" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,Consolas,monospace">`;
-
-  // mapa de zonas modales: capa de fondo, tiene que ir antes que el piso y
-  // el cubo de alambre (SVG pinta en orden de documento) para quedar debajo.
-  if (conMapaModal) s += construirMapaModalSvg(sala, agrupados);
 
   // piso: relleno sutil para dar noción de plano de apoyo
   s += poli(

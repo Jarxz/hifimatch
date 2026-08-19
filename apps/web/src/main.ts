@@ -7,7 +7,6 @@ import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import { evaluarModos } from '../../../packages/engine/src/modos.ts';
-import type { ModoAgrupado } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
@@ -25,6 +24,7 @@ import { construirPlanoSvg } from './vista/plano.ts';
 import type { MurosVista, Vista } from './vista/plano.ts';
 import { activarArrastre } from './vista/arrastre.ts';
 import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
+import { construirDiagramaModalSvg } from './vista/mapamodal.ts';
 import {
   modeloPotencia,
   modeloCarga,
@@ -46,6 +46,7 @@ import {
   pintarPlano,
   pintarModos,
   pintarCurvasModales,
+  pintarDiagramaModal,
   pintarReverberacion,
   pintarPuntaje,
   pintarResumenFinal,
@@ -117,20 +118,13 @@ let disposicionManual: { parlanteIzq: Punto; parlanteDer: Punto } | null = null;
 /** Geometría del último análisis pintado — sólo para poder re-dibujar el
  * plano isométrico cuando el usuario cambia de vista (isométrica/frontal/
  * lateral/superior) o arrastra un parlante, sin recalcular potencia ni
- * puntaje. `agrupados` viaja acá también: el mapa de zonas modales sólo
- * depende de las dimensiones de la sala (nunca de la posición de los
- * parlantes — ver modos.ts), así que no hace falta recalcularlo durante
- * el arrastre, sólo que el objeto lo siga cargando en cada repintado.
- * `null` antes del primer "Analizar". */
-let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista; agrupados: ModoAgrupado[] } | null = null;
+ * puntaje. `null` antes del primer "Analizar". */
+let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista } | null = null;
 
 function repintarPlano(): void {
   if (!ultimoPlano) return;
   const editable = estado.vistaPlano === 'superior';
-  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual, editable, ultimoPlano.agrupados));
-
-  const leyendaMapaModal = document.getElementById('legend-mapamodal');
-  if (leyendaMapaModal) leyendaMapaModal.classList.toggle('hidden', !(editable && ultimoPlano.agrupados.length > 0));
+  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual, editable));
 }
 
 function nivelTextoDe(lvl: NivelUI, idioma: Idioma): string {
@@ -423,10 +417,16 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   pintarPuntaje(snap.mPuntaje);
   pintarResumenFinal(modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual));
 
-  ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista, agrupados: a.resModos.agrupados };
+  ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
   repintarPlano();
   const ubicacionEl = document.getElementById('plan-ubicacion');
   if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(a.sala, snap.disposicion, idiomaActual);
+
+  // El diagrama de zonas modales usa la disposición de esta pestaña (igual
+  // que el plano) aunque el campo de color en sí no dependa de ella — así
+  // ambos quedan consistentes al cambiar entre "Análisis original" y
+  // "Modificado".
+  pintarDiagramaModal(construirDiagramaModalSvg(a.sala, snap.disposicion, a.resModos.agrupados, idiomaActual), t.motor.modos.mapaCaption);
 }
 
 /** Vista previa liviana durante el arrastre: sólo redibuja el plano y el

@@ -1,7 +1,11 @@
 /**
- * Mapa de zonas modales — puro: (sala, agrupados) → string SVG, sólo para
- * la vista Superior del plano. Grilla de celdas coloreadas, capa de fondo
- * detrás del cubo de alambre.
+ * Mapa de zonas modales — puro: (sala, disposición, agrupados) → string
+ * SVG. Diagrama propio de la tarjeta "Modos de sala" (no del plano de
+ * reflexiones): planta simple de la sala en 2D, con la grilla de celdas
+ * coloreadas de fondo y los parlantes + punto dulce dibujados encima como
+ * referencia espacial — no es una vista más del plano isométrico
+ * (`plano.ts`), que sigue mostrando sólo reflexiones, sin mezclar las dos
+ * capas de evidencia (modos vs. reflexiones) en un mismo dibujo.
  *
  * Qué es y qué NO es (misma disciplina que curvamodal.ts, que ya declara:
  * "no es un mapa de calor 2D/3D del campo combinado de la sala — eso exige
@@ -36,11 +40,13 @@
  * la curva 1D de ese eje (curvamodal.ts) muestra la variación vertical
  * que este plano no puede.
  */
-import type { Sala, Punto } from '../../../../packages/engine/src/sala.ts';
+import type { Sala, Punto, DisposicionSala } from '../../../../packages/engine/src/sala.ts';
 import { ALTURA_ESCUCHA_M } from '../../../../packages/engine/src/sala.ts';
 import type { ModoAxial, ModoAgrupado } from '../../../../packages/engine/src/modos.ts';
 import { paresMasImportantes } from '../../../../packages/engine/src/modos.ts';
+import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { coord } from '../formato/numeros.ts';
+import { textosDe } from '../idioma/idioma.ts';
 import { proyeccionSuperior } from './proyeccion.ts';
 
 /** Columnas de la grilla — filas se derivan de la razón largo/ancho de la
@@ -150,4 +156,46 @@ export function construirMapaModalSvg(sala: Sala, agrupados: readonly ModoAgrupa
     }
   }
   return svg;
+}
+
+/** '' si no hay agrupamientos curados (`construirMapaModalSvg` ya resuelve
+ * ese caso) — no hay nada que mostrar. Planta simple en 2D (no isométrica:
+ * esta tarjeta no tiene selector de vista) con la grilla de fondo,
+ * contorno de sala, parlantes y punto dulce — mismas posiciones que ya
+ * calculó `sala.ts` para el plano de reflexiones, dibujadas de nuevo acá
+ * porque este es un diagrama propio de "Modos", no una vista del plano
+ * isométrico (`plano.ts` no dibuja este mapa). */
+export function construirDiagramaModalSvg(sala: Sala, disp: DisposicionSala, agrupados: readonly ModoAgrupado[], idioma: Idioma): string {
+  const pares = paresMasImportantes([...agrupados]);
+  if (pares.length === 0) return '';
+
+  const t = textosDe(idioma).resultado.plano;
+  const { pad, scale } = proyeccionSuperior(sala);
+  const sw = sala.anchoM * scale + pad * 2;
+  const sh = sala.largoM * scale + pad * 2;
+  const px = (x: number): number => pad + x * scale;
+  const py = (y: number): number => pad + y * scale;
+
+  let s = `<svg viewBox="0 0 ${coord(sw, 0)} ${coord(sh, 0)}" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,Consolas,monospace">`;
+  s += construirMapaModalSvg(sala, agrupados);
+  s += `<rect x="${coord(pad, 1)}" y="${coord(pad, 1)}" width="${coord(sala.anchoM * scale, 1)}" height="${coord(sala.largoM * scale, 1)}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.2"/>`;
+
+  const PARLANTE = 'fill="#ECECEE"';
+  const ETIQUETA = 'fill="#ECECEE" font-size="9.5" text-anchor="middle"';
+  const parlante = (p: Punto, etiqueta: string): string => {
+    const cx = coord(px(p.x), 1);
+    const cy = coord(py(p.y), 1);
+    return `<circle cx="${cx}" cy="${cy}" r="5" ${PARLANTE}/><text x="${cx}" y="${coord(py(p.y) - 10, 1)}" ${ETIQUETA}>${etiqueta}</text>`;
+  };
+  s += parlante(disp.parlanteIzq, 'L');
+  s += parlante(disp.parlanteDer, 'R');
+
+  const dcx = coord(px(disp.puntoDulce.x), 1);
+  const dcy = coord(py(disp.puntoDulce.y), 1);
+  s += `<circle cx="${dcx}" cy="${dcy}" r="4" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1" stroke-dasharray="3 3"/>`;
+  s += `<circle cx="${dcx}" cy="${dcy}" r="3.5" fill="#ECECEE"/>`;
+  s += `<text x="${dcx}" y="${coord(py(disp.puntoDulce.y) + 16, 1)}" fill="#ECECEE" font-size="10" text-anchor="middle">${t.puntoDulce}</text>`;
+
+  s += '</svg>';
+  return s;
 }
