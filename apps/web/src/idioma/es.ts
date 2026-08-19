@@ -68,6 +68,11 @@ export const es = {
     cta: 'Analizar un sistema',
     pie: 'basado en física · specs medidos',
     cierreHtml: '<b>The Hifi Match</b> te da la información.<br>Tú escuchas y decides.',
+    // Marca de versión, no texto de producto traducible — mismo valor en
+    // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
+    // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
+    // mes/año son los del deploy. Se actualiza a mano en cada push.
+    version: 'V1.08.26',
   },
 
   info: {
@@ -232,8 +237,7 @@ export const es = {
       vistaSuperior: 'Superior',
       pestanaOriginal: 'Análisis original',
       pestanaModificado: 'Modificado',
-      recalcular: 'Recalcular',
-      hintArrastreHtml: 'En esta vista se puede mover los parlantes para probar otra disposición, <b>RECALCULAR</b> y comparar con Análisis original.',
+      hintArrastreHtml: 'En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.',
       ubicacionTitulo: 'Ubicación de referencia de los parlantes',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Parlante izquierdo: <b>${p.frontalIzq} m</b> de la pared frontal, <b>${p.lateralIzq} m</b> de su pared lateral. Parlante derecho: <b>${p.frontalDer} m</b> de la pared frontal, <b>${p.lateralDer} m</b> de su pared lateral. Separación entre ambos: <b>${p.separacion} m</b>. Es la disposición de referencia que usa el resto del análisis (potencia, modos, reflexiones) — se afina moviendo los parlantes y escuchando en el espacio real.`,

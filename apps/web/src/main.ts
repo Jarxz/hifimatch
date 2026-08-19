@@ -839,7 +839,15 @@ function wireEventos(): void {
   document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
     b.addEventListener('click', () => activarPestana(b.dataset.pestana as 'original' | 'modificado'));
   });
-  document.getElementById('btn-recalcular')?.addEventListener('click', recalcular);
+  // Delegado sobre #plan-hint, no directo sobre #btn-recalcular: ese botón
+  // vive dentro de resultado.plano.hintArrastreHtml, que aplicarCromoEstatico()
+  // reescribe entero (innerHTML) en cada cambio de idioma — un listener
+  // puesto directo sobre el nodo original se perdería ahí. #plan-hint en
+  // sí nunca se recrea, sólo su contenido, así que el listener sobrevive
+  // (mismo patrón que activarArrastre usa sobre #plan por la misma razón).
+  document.getElementById('plan-hint')?.addEventListener('click', (ev) => {
+    if ((ev.target as Element | null)?.closest('#btn-recalcular')) recalcular();
+  });
 
   const plan = document.getElementById('plan');
   if (plan) {

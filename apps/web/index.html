@@ -18,6 +18,7 @@
       </div>
     </div>
     <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
+    <div class="version-splash" data-i18n="splash.version">V1.08.26</div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
         <div class="mark" aria-hidden="true">
@@ -344,18 +345,14 @@
               <button type="button" data-pestana="original" aria-pressed="true" data-i18n="resultado.plano.pestanaOriginal">Análisis original</button>
               <button type="button" data-pestana="modificado" class="hidden" aria-pressed="false" data-i18n="resultado.plano.pestanaModificado">Modificado</button>
             </div>
-            <span class="rl" data-i18n="resultado.plano.vista">Vista</span>
-            <div class="plan-controles">
-              <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
-                <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
-                <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
-                <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
-                <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
-              </div>
-              <button type="button" id="btn-recalcular" class="back" data-i18n="resultado.plano.recalcular">Recalcular</button>
+            <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
+              <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
+              <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
+              <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
+              <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
             </div>
           </div>
-          <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <b>RECALCULAR</b> y comparar con Análisis original.</p>
+          <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.</p>
           <div class="plan-wrap" id="plan"></div>
           <div class="legend">
             <span><i style="border-top:1px dashed var(--dim)"></i> <span data-i18n="resultado.plano.leyendaTriangulo">triángulo de escucha</span></span>

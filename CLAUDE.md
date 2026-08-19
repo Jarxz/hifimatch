@@ -1462,6 +1462,70 @@ Confirmado con `tsc --noEmit -p tsconfig.api.json` (que ya declara
 igual que `node16`/`nodenext`) y con una carga real vía `tsx` del
 módulo completo.
 
+**"Vista" deja de ser una etiqueta separada; Recalcular deja de ser un
+botón aparte — pasa a ser la propia palabra "RECALCULAR" dentro de la
+frase de ayuda, ahora un `<button>` real.** Tres cambios pedidos juntos
+sobre la fila de arriba del plano (`.plan-toprow`): (1) se borra
+`<span class="rl">Vista</span>` — el grupo de 4 botones de vista ya se
+entiende sin rótulo, al lado de las pestañas Análisis original/
+Modificado; el `data-i18n-aria="resultado.plano.vista"` que llevaba ese
+mismo texto para el `role="group"` de los botones se queda (accesible,
+sin rótulo visual). (2) El botón `#btn-recalcular` que vivía suelto al
+final de la fila desaparece de ahí; la palabra "RECALCULAR" que ya
+existía dentro de `resultado.plano.hintArrastreHtml` (antes un `<b>`
+decorativo) pasa a ser el `<button id="btn-recalcular">` real — la
+acción vive en la frase que la explica ("mové los parlantes para probar
+otra disposición, RECALCULAR y comparar con Análisis original") en vez
+de en un control aparte; sin chrome de botón (fondo/borde), sólo
+subrayado en hover/foco como única señal de interactividad. La clave
+`resultado.plano.recalcular` (el texto del botón viejo) se borra del
+diccionario por quedar huérfana. (3) Como consecuencia de (2), el
+listener de click **no puede** engancharse directo al nodo del botón en
+`wireEventos()`: `aplicarCromoEstatico()` reescribe el `innerHTML` de
+`#plan-hint` entero en cada cambio de idioma (ES/EN), destruyendo y
+recreando ese `<button>` — un listener puesto ahí se perdería en el
+primer cambio de idioma. Se resuelve con el mismo patrón que ya usa
+`arrastre.ts` sobre `#plan` por la misma razón: el listener se delega
+sobre `#plan-hint` (el `<p>` en sí nunca se recrea, sólo su contenido) y
+comprueba `event.target.closest('#btn-recalcular')`. Verificado con
+Chrome headless (PointerEvents sintéticos + click real): el botón
+funciona en español, se cambia a inglés (confirmando que el HTML de
+`#plan-hint` se reescribió), y un segundo click en el `<button>`
+recién creado sigue disparando `recalcular()` — el listener delegado
+sobrevivió. `.plan-controles` (el div que envolvía sólo los 4 botones de
+vista tras sacar Recalcular) se aplanó: ya no hace falta el wrapper, el
+`.segs` de vistas cuelga directo de `.plan-toprow`.
+
+**Teléfono/tablet: pestañas y botones de vista, cada uno en su propia
+línea.** Bug reportado: `.plan-toprow` (pestañas Análisis original/
+Modificado + los 4 botones de vista) no entraba en una sola línea en
+pantallas angostas y el navegador partía la fila de forma
+impredecible — a veces mezclando pestañas y botones de vista en la
+misma línea recortada a la mitad. En vez de dejarlo al ancho justo, se
+fuerza un quiebre conocido bajo 820px (mismo umbral "tablet" que ya usa
+`.materiales-grid` en Configurar): `.plan-toprow` pasa a
+`flex-direction:column` — como cada hijo directo de un contenedor
+columna ocupa su propia línea por definición, las pestañas quedan
+siempre arriba y el grupo de 4 vistas siempre debajo, sin ambigüedad de
+ancho. Ese grupo de vistas además gana `flex-wrap:nowrap` en este
+breakpoint — sin esto hereda el `flex-wrap:wrap` de `.segs` (la regla
+general del sitio) y podía partirse a sí mismo en una grilla 2×2 en vez
+de quedar en una sola fila — compensado con menos padding por botón
+para que las 4 etiquetas quepan igual. Verificado con Chrome headless a
+390px (`Emulation.setDeviceMetricsOverride`): las dos filas quedan a
+44px de distancia vertical entre sí, sin superposición ni mezcla.
+
+**Marca de versión en la portada.** `.version-splash` (`apps/web/
+index.html`, esquina inferior izquierda, mismo patrón fijo que el link
+"Contacto" de la esquina opuesta) muestra `V{n}.{mes}.{año}` —
+`splash.version` en `es.ts`/`en.ts`, mismo valor en los dos idiomas
+porque es una marca técnica, no texto traducible. Regla pedida por el
+usuario, no derivable del código — documentada en memoria del asistente
+(no en este archivo, que es sobre el motor, no sobre el flujo de
+trabajo del asistente): cada deploy a `master` sube `n` en 1 si es
+dentro del mismo mes, o resetea `n=1` y actualiza mes/año si cambió el
+mes. Primer valor: `V1.08.26` (agosto 2026).
+
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y

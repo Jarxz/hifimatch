@@ -51,6 +51,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .idioma-splash{position:fixed; top:20px; right:22px; z-index:1}
 .segs.idioma button{padding:7px 12px; font-size:11.5px; letter-spacing:.1em}
 .contacto-splash{position:fixed; bottom:20px; right:22px; z-index:1}
+.version-splash{position:fixed; bottom:20px; left:22px; z-index:1; color:var(--faint); font-size:10px; letter-spacing:.12em}
 
 /* HEAD */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:grid; grid-template-columns:auto 1fr; grid-template-areas:"hm hright" "hs hright"; align-items:center; column-gap:20px; padding:18px 22px; border-bottom:1px solid var(--line)}
@@ -210,34 +211,47 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .flag b{color:var(--text); font-weight:500}
 .flag.sindato{border-left-color:var(--faint)}
 
-/* Fila con #tabs-analisis (Análisis original/Modificado), la etiqueta
-   "Vista" y .plan-controles (botones de vista + Recalcular), todos en la
-   misma línea: en vez de justify-content:space-between (el de .rline por
-   defecto, que empujaría TODO lo que sigue a #tabs-analisis pegado al
-   borde derecho como un solo bloque), acá el arranque es flex-start
-   normal — #tabs-analisis, "Vista" y el grupo de vistas quedan en fila
-   con el gap normal de .rline — y sólo .plan-controles crece
-   (flex:1) para ocupar el resto del ancho, con su propio
-   justify-content:space-between empujando Recalcular al borde derecho de
-   la tarjeta sin mover el grupo de botones de vista de al lado de
-   "Vista". */
+/* Fila con #tabs-analisis (Análisis original/Modificado) y el grupo de
+   4 botones de vista, los dos en la misma línea: en vez de
+   justify-content:space-between (el de .rline por defecto, que empujaría
+   el grupo de vistas pegado al borde derecho de la tarjeta), acá el
+   arranque es flex-start normal — quedan en fila con el gap normal de
+   .rline. Recalcular ya no vive en esta fila: es texto clicable dentro
+   de la frase de #plan-hint (ver más abajo), no un botón aparte. */
 .plan-toprow{justify-content:flex-start}
 /* Botones más angostos SÓLO en esta fila (no todos los .segs del sitio —
    Nivel de escucha, Género musical, ES/EN, etc. no deberían encogerse):
    con "Modificado" visible (tras el primer Recalcular) esta fila suma un
-   6º botón, y a los anchos de tarjeta más comunes el contenido pasaba por
-   apenas ~10px el ancho disponible — lo justo para que el navegador la
-   partiera en dos líneas (o, peor, hiciera que el propio grupo de vistas
-   se envolviera en dos filas adentro de su caja). Bajar el padding
-   horizontal da mucho más margen que esos 10px, para que no vuelva a
-   pasar con textos más largos en otro idioma. */
+   3er botón a #tabs-analisis, y a los anchos de tarjeta más angostos el
+   conjunto completo (pestañas + 4 vistas) pasaba de largo el ancho
+   disponible. Bajar el padding horizontal da margen extra para que no
+   vuelva a pasar con textos más largos en otro idioma. */
 .plan-toprow .segs button{padding:9px 12px}
-.plan-controles{display:flex; align-items:center; gap:10px; flex:1; justify-content:space-between}
 .plan-hint{font-size:12px; color:var(--dim); margin-top:6px}
 #plan-hint b{color:var(--warn); font-weight:600}
-#btn-recalcular{color:var(--warn); border:1px solid var(--line2); border-radius:3px; padding:6px 12px; transition:background-color .2s cubic-bezier(.22,.61,.36,1), border-color .2s cubic-bezier(.22,.61,.36,1)}
-#btn-recalcular:hover{border-color:var(--warn); background:rgba(199,173,124,.08)}
+/* RECALCULAR vive como <button> real dentro de la frase de #plan-hint —
+   se ve y actúa como el resto del texto en negrita/mayúscula (mismo
+   tratamiento que tenía el <b> que reemplaza), pero es clicable: sin
+   chrome de botón (fondo, borde), sólo subrayado al pasar el mouse/foco
+   como única señal de que es interactivo. */
+#btn-recalcular{background:transparent; border:0; padding:0; font:inherit; font-weight:600; color:var(--warn); cursor:pointer; text-decoration:underline; text-decoration-color:transparent; transition:text-decoration-color .2s cubic-bezier(.22,.61,.36,1)}
+#btn-recalcular:hover, #btn-recalcular:focus-visible{text-decoration-color:var(--warn)}
 .parlante-arrastrable{cursor:grab; touch-action:none}
+
+/* En teléfono/tablet, #tabs-analisis + el grupo de 4 botones de vista no
+   entraban en una sola línea y el navegador partía la fila de forma
+   impredecible — a veces mezclando pestañas y botones de vista en la
+   misma línea recortada. Se fuerza un quiebre conocido en vez de dejarlo
+   al ancho justo: .plan-toprow pasa a columna, así las pestañas siempre
+   quedan en su propia línea y el grupo de vistas en la siguiente, sin
+   partirse a sí mismo (flex-wrap:nowrap — sin esto hereda el
+   flex-wrap:wrap de .segs y podía caer en una grilla 2×2), con menos
+   padding para que quepa igual. */
+@media (max-width:820px){
+  .plan-toprow{flex-direction:column; align-items:flex-start; gap:10px}
+  .plan-toprow .segs{flex-wrap:nowrap}
+  .plan-toprow .segs button{padding:7px 9px; font-size:11.5px}
+}
 
 .plan-wrap{display:flex; justify-content:center; margin:6px 0 4px}
 .plan-wrap svg{width:100%; height:auto; max-width:100%}
