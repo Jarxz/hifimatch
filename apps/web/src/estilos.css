@@ -203,17 +203,17 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .flag b{color:var(--text); font-weight:500}
 .flag.sindato{border-left-color:var(--faint)}
 
-/* Filas "Análisis original/Modificado" y "Vista" comparten esta clase para
-   que sus segs queden alineadas verticalmente entre sí: en vez de
-   justify-content:space-between (el de .rline por defecto, que empuja
-   .plan-controles entero pegado al borde derecho — a una distancia que
-   depende del ancho de SU contenido, no del de #tabs-analisis, así que
-   nunca podrían coincidir), acá la etiqueta "Vista" (real u oculta, mismo
-   texto en las dos filas) queda a la izquierda con el gap normal de
-   .rline, y sólo .plan-controles crece para ocupar el resto de la fila —
-   su propio justify-content:space-between empuja Recalcular al borde
-   derecho, dejando el grupo de vistas pegado a la etiqueta, en la misma
-   posición horizontal que #tabs-analisis en la fila de arriba. */
+/* Fila con #tabs-analisis (Análisis original/Modificado), la etiqueta
+   "Vista" y .plan-controles (botones de vista + Recalcular), todos en la
+   misma línea: en vez de justify-content:space-between (el de .rline por
+   defecto, que empujaría TODO lo que sigue a #tabs-analisis pegado al
+   borde derecho como un solo bloque), acá el arranque es flex-start
+   normal — #tabs-analisis, "Vista" y el grupo de vistas quedan en fila
+   con el gap normal de .rline — y sólo .plan-controles crece
+   (flex:1) para ocupar el resto del ancho, con su propio
+   justify-content:space-between empujando Recalcular al borde derecho de
+   la tarjeta sin mover el grupo de botones de vista de al lado de
+   "Vista". */
 .plan-toprow{justify-content:flex-start}
 .plan-controles{display:flex; align-items:center; gap:10px; flex:1; justify-content:space-between}
 .plan-hint{font-size:12px; color:var(--dim); margin-top:6px}
