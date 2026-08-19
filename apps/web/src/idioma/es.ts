@@ -17,7 +17,7 @@ import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos
 import type { CodigoReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
-import type { CodigoContacto } from '../../../../packages/contact/src/validar.ts';
+import type { CodigoContacto } from '../../../../packages/contact/src/contacto.ts';
 
 /** Códigos que puede devolver `/api/contact.ts` — superset de
  * `CodigoContacto` (que sólo cubre lo que valida `validarContacto`, del

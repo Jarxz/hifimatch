@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validarContacto, TIEMPO_MINIMO_MS, LARGO_MAXIMO_MENSAJE } from './validar.ts';
-import type { EntradaContacto } from './validar.ts';
+import { validarContacto, TIEMPO_MINIMO_MS, LARGO_MAXIMO_MENSAJE } from './contacto.ts';
+import type { EntradaContacto } from './contacto.ts';
 
 function entradaValida(overrides: Partial<EntradaContacto> = {}): EntradaContacto {
   const cargadoEnMs = 1_000_000;

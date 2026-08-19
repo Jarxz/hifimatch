@@ -1,10 +1,20 @@
 /**
  * Función serverless de Vercel — el único backend real del sitio. Se
  * construye por separado del `buildCommand` de `apps/web` (Vercel detecta
- * `/api/**` y lo compila aparte); por eso `tsconfig.api.json` +
- * `npm run typecheck:api` (enganchado a `verify`) son necesarios para que
- * una regresión acá también rompa el deploy, igual que en los demás
- * workspaces (`docs/despliegue.md`).
+ * `/api/**` y lo compila aparte, con su propio TypeScript — ignora
+ * `tsconfig.api.json`); por eso `npm run typecheck:api` (enganchado a
+ * `verify`) es necesario para que una regresión acá también rompa el
+ * deploy, igual que en los demás workspaces (`docs/despliegue.md`).
+ *
+ * El import de abajo hacia `packages/contact` va **sin** extensión `.ts`
+ * a propósito — es el único import de todo el repo así, y no es un
+ * descuido: el compilador de Vercel para `/api/**` no acepta imports
+ * relativos con extensión `.ts` explícita (`allowImportingTsExtensions`
+ * no está habilitado ahí), a diferencia de `node --test` en el resto del
+ * repo, que sí la necesita. Confirmado en producción — con la extensión,
+ * la función ni siquiera cargaba (`FUNCTION_INVOCATION_FAILED` en
+ * cualquier request). Ver el comentario de cabecera de
+ * `packages/contact/src/contacto.ts` para el detalle completo.
  *
  * Adaptador delgado: parsea el request, arma el `enviarEmail` real
  * (Resend) y delega toda la validación/lógica en `manejarContacto`
@@ -14,8 +24,8 @@
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
-import { manejarContacto } from '../packages/contact/src/manejar.ts';
-import type { EntradaContacto } from '../packages/contact/src/validar.ts';
+import { manejarContacto } from '../packages/contact/src/contacto';
+import type { EntradaContacto } from '../packages/contact/src/contacto';
 
 function comoTexto(v: unknown): string {
   return typeof v === 'string' ? v : '';

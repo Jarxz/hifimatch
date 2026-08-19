@@ -1344,20 +1344,43 @@ un límite real por IP, la pieza correcta es Upstash Ratelimit (backing
 store persistente), no implementado todavía porque no hay evidencia de
 que haga falta.
 
+**Bug de producción, encontrado recién con la función ya desplegada:
+`FUNCTION_INVOCATION_FAILED` en cualquier request a `/api/contact`,
+hasta un `GET` sin body — la causa no tenía nada que ver con el email,
+era el import.** Vercel compila `/api/**` con su propio TypeScript,
+**ignorando `tsconfig.api.json`** — confirmado leyendo el log de build
+real: `error TS5097: An import path can only end with a '.ts' extension
+when 'allowImportingTsExtensions' is enabled`, sobre el import de
+`api/contact.ts` hacia `packages/contact` y, en cascada, sobre el
+import interno de `manejar.ts` hacia `validar.ts` (ese segundo error
+además disparaba un falso `Property 'codigo' does not exist` — el tipo
+`ResultadoValidacion` no se resolvía porque el import de origen ya
+había fallado). Lo insidioso: **esos errores no frenaban el build** — el
+deploy "terminaba" igual, con la función rota adentro, así que no había
+señal visible del problema hasta invocarla de verdad. `validar.ts` y
+`manejar.ts` tenían un import relativo interno (`manejar.ts` → `./
+validar.ts`) que necesitaba la extensión `.ts` para `node --test`
+(confirmado además probándolo a mano: sacarla rompe `node --test` con
+`ERR_MODULE_NOT_FOUND`) pero no la aceptaba el compilador de Vercel —
+dos exigencias contrapuestas sobre el mismo import, imposibles de
+satisfacer a la vez con dos archivos separados. Se fusionaron en un
+solo `packages/contact/src/contacto.ts` (elimina el import relativo
+interno entre los dos — ya no hay ningún punto donde las dos exigencias
+choquen) y `api/contact.ts` importa ese archivo **sin** extensión — es
+el único import de todo el repo así, documentado inline en los dos
+archivos para que no se "corrija" por accidente en una limpieza futura.
+Verificado con `tsc` standalone (sin `tsconfig.api.json`, con
+`--skipLibCheck` para descartar un error no relacionado de los tipos de
+`resend`/React) que compila limpio con esta estructura.
+
 Falta:
-- **Cuenta de Resend**: crear, quedarse en plan Free, **sin cargar
-  método de pago** — así el tope de 100 emails/día es un
-  circuit-breaker real garantizado por configuración (peor caso: $0 y
-  UX degradada, nunca una factura sorpresa), no un supuesto. Cargar
-  `RESEND_API_KEY`/`CONTACT_TO_EMAIL` en Vercel (Project Settings →
-  Environment Variables) — sin esto, `/api/contact.ts` responde
-  `error-servidor` siempre (fallo explícito, no un `undefined`
-  silencioso).
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y
   registros DNS distintos): recién ahí tiene sentido cambiar
   `CONTACT_FROM_EMAIL` a algo `@thehifimatch.com` en vez del dominio de
-  pruebas de Resend.
+  pruebas de Resend. `RESEND_API_KEY`/`CONTACT_TO_EMAIL` ya están
+  cargadas en Vercel (`thehmcontacto@gmail.com`, misma dirección que
+  `CONTACTO_EMAIL_FALLBACK` en `main.ts`).
 - **Activar el Firewall/protección de bots de Vercel** (dashboard, cero
   código, gratis incluso en Hobby) — capa adicional gratuita que no se
   activó desde acá porque requiere acceso al dashboard del usuario.

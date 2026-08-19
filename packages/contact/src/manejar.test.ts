@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { manejarContacto } from './manejar.ts';
-import { TIEMPO_MINIMO_MS } from './validar.ts';
-import type { EntradaContacto } from './validar.ts';
-import type { DatosEmail } from './manejar.ts';
+import { manejarContacto } from './contacto.ts';
+import { TIEMPO_MINIMO_MS } from './contacto.ts';
+import type { EntradaContacto } from './contacto.ts';
+import type { DatosEmail } from './contacto.ts';
 
 function entradaValida(overrides: Partial<EntradaContacto> = {}): EntradaContacto {
   const cargadoEnMs = 1_000_000;

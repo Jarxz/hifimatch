@@ -14,8 +14,8 @@ import { calcularPuntaje, PESOS_DECLARADOS } from '../../../packages/engine/src/
 import type { ComponentePuntaje } from '../../../packages/engine/src/puntaje.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
-import { validarContacto } from '../../../packages/contact/src/validar.ts';
-import type { EntradaContacto } from '../../../packages/contact/src/validar.ts';
+import { validarContacto } from '../../../packages/contact/src/contacto.ts';
+import type { EntradaContacto } from '../../../packages/contact/src/contacto.ts';
 
 import { estado } from './estado.ts';
 import type { NivelUI } from './estado.ts';
@@ -673,7 +673,7 @@ const CONTACTO_EMAIL_FALLBACK = 'thehmcontacto@gmail.com';
 
 /** `Date.now()` al abrir el diálogo — junto con el momento del envío,
  * alimenta el chequeo de "muy rápido" de `validarContacto` (ver
- * `packages/contact/src/validar.ts`). */
+ * `packages/contact/src/contacto.ts`). */
 let contactoAbiertoEnMs = 0;
 
 function abrirContactoPopup(): void {
