@@ -42,7 +42,7 @@ export const es = {
   contacto: {
     boton: 'Contacto',
     titulo: 'Contacto',
-    intro: '¿Encontraste un dato que parece mal, o tenés una sugerencia? Escribinos.',
+    intro: 'Agradecemos tus sugerencias y solicitudes de nuevos componentes.',
     campoNombre: 'Nombre (opcional)',
     campoEmail: 'Tu email',
     campoMensaje: 'Mensaje',
@@ -50,13 +50,13 @@ export const es = {
     enviando: 'Enviando…',
     exito: 'Mensaje enviado. Gracias — lo vamos a leer.',
     error: {
-      'honeypot': 'No se pudo enviar el mensaje. Probá de nuevo.',
-      'muy-rapido': 'Probá de nuevo en un momento.',
-      'email-invalido': 'Revisá el formato del email.',
+      'honeypot': 'No se pudo enviar el mensaje. Vuelve a intentarlo.',
+      'muy-rapido': 'Vuelve a intentarlo en un momento.',
+      'email-invalido': 'Revisa el formato del email.',
       'mensaje-vacio': 'El mensaje no puede quedar vacío.',
-      'mensaje-largo': 'El mensaje es demasiado largo — probá acortarlo.',
-      'metodo-invalido': 'No se pudo enviar el mensaje. Probá de nuevo.',
-      'error-servidor': 'No se pudo enviar el mensaje. Probá de nuevo en un momento.',
+      'mensaje-largo': 'El mensaje es demasiado largo — intenta acortarlo.',
+      'metodo-invalido': 'No se pudo enviar el mensaje. Vuelve a intentarlo.',
+      'error-servidor': 'No se pudo enviar el mensaje. Vuelve a intentarlo en un momento.',
     } satisfies Record<CodigoRespuestaContacto, string>,
     fallbackMailtoHtml: (p: { mailto: string }): string =>
       `Esta página está abierta como archivo local, así que no se puede enviar directo desde acá. <a href="${p.mailto}">Abrí tu cliente de correo</a> con el mensaje ya cargado.`,
