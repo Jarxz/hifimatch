@@ -203,7 +203,19 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .flag b{color:var(--text); font-weight:500}
 .flag.sindato{border-left-color:var(--faint)}
 
-.plan-controles{display:flex; align-items:center; gap:10px}
+/* Filas "Análisis original/Modificado" y "Vista" comparten esta clase para
+   que sus segs queden alineadas verticalmente entre sí: en vez de
+   justify-content:space-between (el de .rline por defecto, que empuja
+   .plan-controles entero pegado al borde derecho — a una distancia que
+   depende del ancho de SU contenido, no del de #tabs-analisis, así que
+   nunca podrían coincidir), acá la etiqueta "Vista" (real u oculta, mismo
+   texto en las dos filas) queda a la izquierda con el gap normal de
+   .rline, y sólo .plan-controles crece para ocupar el resto de la fila —
+   su propio justify-content:space-between empuja Recalcular al borde
+   derecho, dejando el grupo de vistas pegado a la etiqueta, en la misma
+   posición horizontal que #tabs-analisis en la fila de arriba. */
+.plan-toprow{justify-content:flex-start}
+.plan-controles{display:flex; align-items:center; gap:10px; flex:1; justify-content:space-between}
 .plan-hint{font-size:12px; color:var(--dim); margin-top:6px}
 #plan-hint b{color:var(--warn); font-weight:600}
 #btn-recalcular{color:var(--warn)}

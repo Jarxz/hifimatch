@@ -1184,6 +1184,31 @@ parlante izquierdo cambia sus 2 números (y sólo los suyos — el derecho
 no movido conserva los propios) y el SVG resultante es distinto
 bit-a-bit del anterior.
 
+**Pestañas "Análisis original"/"Modificado" alineadas con los botones de
+vista.** Las dos filas de controles sobre el plano (`#tabs-analisis` y
+"Vista" + botones isométrica/frontal/lateral/superior + Recalcular)
+usaban `justify-content:space-between` (el default de `.rline`) cada
+una por su cuenta — `.plan-controles` entero quedaba empujado contra el
+borde derecho de la tarjeta a una distancia que depende de SU propio
+ancho (4 botones de vista + Recalcular), no del ancho de
+`#tabs-analisis` (2 botones), así que sus bordes izquierdos nunca podían
+coincidir por más que ambas filas midieran lo mismo. Solución sin
+píxeles fijos (para que siga funcionando igual en inglés, donde "Vista"
+mide distinto que "View"): clase nueva `.plan-toprow` en las dos filas
+(`justify-content:flex-start`, no `space-between`) + `.plan-controles`
+pasa a `flex:1; justify-content:space-between` — así "Vista" (o su
+gemela oculta arriba, mismo texto vía `data-i18n`, mismo ancho
+calculado) queda a la izquierda con el gap normal, el grupo de botones
+de vista queda pegado a esa etiqueta, y sólo Recalcular se empuja al
+borde derecho (el `space-between` ahora vive DENTRO de
+`.plan-controles`, entre sus 2 hijos, no en toda la fila). La etiqueta
+"Vista" duplicada en la fila de pestañas es `visibility:hidden` +
+`aria-hidden="true"` — ocupa el mismo espacio que la real sin mostrarse
+ni anunciarse a un lector de pantalla. Verificado con Chrome headless en
+los dos idiomas y con "Modificado" visible (tras arrastrar y
+Recalcular): el borde izquierdo de `#tabs-analisis` coincide en píxeles
+con el de `.plan-controles` en ambos casos.
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
