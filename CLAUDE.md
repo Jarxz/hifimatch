@@ -1203,6 +1203,25 @@ en una sola fila en desktop (con "Modificado" visible tras arrastrar y
 Recalcular); en mobile (`flex-wrap:wrap` ya existente en `.rline`)
 quiebra a dos filas sin romperse.
 
+**Hover en los `.segs` de pestañas/vistas, y marco a "Recalcular".** Los
+botones de un `.segs` (Análisis original/Modificado, y los 4 de vista)
+sólo tenían estado activo (`[aria-pressed=true]`, fondo blanco) y foco —
+ningún feedback al pasar el mouse sobre un botón sin presionar. Nueva
+regla `.segs button:hover:not([aria-pressed=true])` (fondo
+`rgba(255,255,255,.07)` + texto `--text`) — el `:not()` es necesario
+porque, sin él, esta regla tiene la misma especificidad que
+`[aria-pressed=true]` y el orden en la hoja decidiría el empate: el
+botón activo (fondo blanco, texto oscuro) quedaría con texto claro
+sobre fondo claro al pasarle el mouse, ilegible. `#btn-recalcular`
+(hasta ahora texto dorado sin borde, heredado de `.back`) suma
+`border:1px solid var(--line2)` — el "marco de línea gris" pedido — y
+un hover propio que lo tiñe de dorado (`border-color:var(--warn)` +
+fondo `rgba(199,173,124,.08)`), coherente con que su texto ya es
+`--warn`. Verificado con Chrome headless disparando `mouseMoved` real
+(no sólo mirar el CSS): el botón activo de un `.segs` no cambia de
+color al pasarle el mouse, uno inactivo sí, y "Recalcular" muestra el
+marco en reposo y el tinte dorado en hover.
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
