@@ -1144,7 +1144,27 @@ como si fuera un placeholder sin elegir. `setMarca()` ahora hace
 `selMarca.classList.toggle('empty', !marca)` — mismo criterio que ya
 usa `pick()` para el select de modelo, aplicado también al de marca.
 
-Falta:
+**Padding interno de cajas: el gap de "Ver detalle técnico" como regla
+general.** El usuario pidió tomar la distancia entre esa barra y la
+línea (borde) inmediatamente arriba de ella — `.detalle{padding-top:2px}`
++ `.detalle summary{padding:4px 2px}` = 6px — como el estándar para
+cualquier otro "línea → texto" del sitio, no sólo ese caso puntual.
+`.card{padding:18px 20px}` baja a `padding:6px 20px` (sólo vertical; el
+horizontal no se tocó, no fue parte del pedido) — así "CAPA FÍSICA"/
+"GEOMETRÍA" queda a la misma distancia del borde superior de la tarjeta
+que "VER DETALLE TÉCNICO" de su propia línea. `.geo-split` (el divisor
+interno entre Plano/Modos/Reverberación) baja de `padding-top:16px` a
+`6px` por la misma razón — ahí `.ct`/`.geo-split` es el mismo div, sin
+un nivel de anidamiento extra como en `.detalle`, así que 6px directos
+igualan el mismo gap visual. `.rail .blk` (Puntaje/La cadena/Sala) y
+`.info` (tarjeta de equipo elegido en Configurar) — los "cuadros" que el
+pedido nombra explícitamente para la página de selección de equipos —
+bajan igual a `padding-top/bottom:6px`. `.info-item` (tarjetas de la
+Guía) no necesitó tocarse aparte: ya es `class="card info-item"`, hereda
+el nuevo padding de `.card` directamente. Deliberadamente fuera de esta
+pasada: los márgenes ENTRE cajas (`.card{margin-bottom:12px}`, gap antes
+de un `.geo-split`) — el pedido fue sobre el espacio interno borde↔texto
+de una misma caja, no sobre la separación entre cajas distintas.
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos
