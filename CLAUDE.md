@@ -1009,7 +1009,47 @@ Chrome headless: `Input.dispatchTouchEvent` en ese entorno dispara un
 scroll por su cuenta sin pasar por el pipeline real de eventos de touch
 del DOM (`touchmove` nunca llegó a dispararse ahí, 0 veces, con o sin el
 fix) — una limitación conocida de esa herramienta de simulación, no del
-sitio. Pendiente de confirmar en un teléfono real.
+sitio.
+
+**Confirmado en un teléfono real que las tres capas de arriba no
+alcanzaban — dos capas más, reforzando en vez de reemplazar.** El
+usuario probó en su celular: la página seguía moviéndose al arrastrar,
+y además el arrastre se veía cortado/discontinuo (no un seguimiento
+fluido del dedo). Las dos capas nuevas:
+
+1. `construirPlanoSvg` (`plano.ts`) agrega `touch-action:none` también
+   en el **`<svg>` raíz**, no sólo en el `<g>`/círculo de agarre de cada
+   parlante — sólo cuando `editableEfectivo`. El cómputo de
+   "intersección de touch-action con los ancestros" que define el spec
+   no se respeta de forma confiable en la práctica sobre elementos SVG
+   anidados en navegadores móviles reales (a diferencia de Chrome
+   headless, que no lo puede exponer — de ahí que la ronda anterior no
+   lo haya visto). Poner el freno en el elemento que sí recibe el toque
+   de forma consistente es más robusto, a costa de que tocar el
+   diagrama en cualquier punto (no sólo el círculo de agarre) tampoco
+   scrollea la página mientras es editable — cambio de alcance
+   aceptado, el diagrama es chico dentro de la tarjeta.
+2. `arrastre.ts` gana `bloquearScrollPagina()`/`restaurarScrollPagina()`:
+   mientras hay un lado activo, fija `document.body.style.touchAction =
+   'none'` (guardando el valor previo) y lo restaura al soltar. `body`
+   es un elemento HTML plano — ahí `touch-action` sí se respeta de
+   forma consistente en todos los navegadores, sin la ambigüedad de
+   ancestro-SVG del punto anterior. Explica también el segundo síntoma
+   reportado (arrastre "cortado"): con la página scrolleando en
+   paralelo al gesto, cada `pointermove` recalculaba la posición con
+   `svg.getScreenCTM()` sobre un SVG que se había movido en la
+   pantalla — el parlante no seguía al dedo de forma continua porque el
+   propio sistema de referencia cambiaba de un frame al otro.
+
+Test de regresión nuevo en `plano.test.ts` verifica el `touch-action`
+del `<svg>` raíz (presente sólo con `editable=true` en vista Superior,
+ausente en cualquier otro caso) — lo único de este fix que es
+verificable sin un dispositivo real, ya que `bloquearScrollPagina` es
+DOM puro sin rama de lógica que un test de Node pueda ejercitar
+distinto según el navegador. Igual que la ronda anterior, el
+comportamiento real en touch **sigue sin poder confirmarse con Chrome
+headless** — pendiente de una nueva prueba en teléfono real del
+usuario.
 
 **Selectores de equipo en dos pasos: marca → modelo.** Las 4 categorías
 con selector (parlantes/amplificador/streamer/dac) pasaron de un único

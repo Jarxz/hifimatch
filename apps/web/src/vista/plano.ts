@@ -165,7 +165,20 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
     return `<text x="${x}" y="${y}" ${extra}${transform}>${contenido}</text>`;
   };
 
-  let s = `<svg viewBox="0 0 ${coord(sw, 0)} ${coord(sh, 0)}" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,Consolas,monospace">`;
+  // touch-action:none también en el <svg> raíz cuando es editable, no sólo
+  // en el <g>/círculo de agarre de cada parlante: el cómputo de touch-action
+  // por "intersección con los ancestros" del spec no es fiable en la
+  // práctica sobre elementos SVG anidados en algunos navegadores móviles
+  // reales — bug reportado tras el despliegue (la página seguía
+  // scrolleando y el arrastre se veía cortado, doc anterior sólo validada
+  // con Chrome headless, que no reproduce touch real). Poner el freno en
+  // el elemento raíz que sí recibe el toque de forma consistente es más
+  // robusto, a costa de que tocar el diagrama en cualquier punto (no sólo
+  // el círculo de agarre) tampoco scrollee la página mientras es editable
+  // — cambio de alcance aceptado: el diagrama es chico dentro de la
+  // tarjeta, el resto de la página scrollea igual.
+  const touchAction = editableEfectivo ? ' style="touch-action:none"' : '';
+  let s = `<svg viewBox="0 0 ${coord(sw, 0)} ${coord(sh, 0)}" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,Consolas,monospace"${touchAction}>`;
 
   // piso: relleno sutil para dar noción de plano de apoyo
   s += poli(

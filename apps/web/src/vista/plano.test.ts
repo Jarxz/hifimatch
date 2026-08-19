@@ -198,6 +198,24 @@ test('editable=true en una vista que no es Superior se ignora — sin agarres ni
   }
 });
 
+test('editable=true en vista Superior: el <svg> raíz también lleva touch-action:none, no sólo el <g>/círculo de agarre', () => {
+  // Freno extra contra un bug reportado en mobile real (el spec de
+  // touch-action por "intersección con ancestros" no siempre se respeta
+  // sobre SVG anidado) — el elemento raíz que sí recibe el toque de forma
+  // consistente en todos los navegadores también declara touch-action:none.
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const svgEditable = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', true);
+  assert.match(svgEditable, /^<svg viewBox="0 0 \d+ \d+" xmlns="[^"]+" font-family="[^"]+" style="touch-action:none">/);
+
+  const svgFijo = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false);
+  assert.doesNotMatch(svgFijo, /touch-action/, 'sin editable, el <svg> raíz no debe declarar touch-action');
+
+  for (const vista of ['isometrica', 'frontal', 'lateral'] as const) {
+    const svgNoEditable = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es', true);
+    assert.doesNotMatch(svgNoEditable, /touch-action/, `vista ${vista}: editable no aplica fuera de Superior`);
+  }
+});
+
 test('proyeccionSuperior: pad fijo, scale limitado por el eje que primero toca el borde del área de dibujo', () => {
   // W=3.6 domina poco (560/3.6≈155.6), L=5.0 con 460/5.0=92 es el más chico → gana el largo
   const p1 = proyeccionSuperior(SALA_VECTOR);

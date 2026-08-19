@@ -27,6 +27,28 @@ export function activarArrastre(contenedor: HTMLElement, salaDe: () => Sala, edi
   let ladoActivo: 'izq' | 'der' | null = null;
   let ultimoPunto: Punto | null = null;
   let framePendiente = false;
+  let touchActionPrevio: string | null = null;
+
+  // Freno adicional a nivel documento, más allá del touch-action:none del
+  // propio <svg>/<g>/círculo de agarre: el cómputo de touch-action por
+  // "intersección con ancestros" del spec no siempre se respeta sobre
+  // elementos SVG anidados en navegadores móviles reales (bug reportado en
+  // producción — la página seguía scrolleando durante el arrastre, y ese
+  // scroll paralelo hacía que getScreenCTM() devolviera un CTM en
+  // movimiento, cortando el arrastre en vez de seguir al dedo). body es un
+  // elemento HTML plano: touch-action ahí sí se respeta de forma
+  // consistente. Se activa sólo mientras hay un lado activo y se restaura
+  // al soltar — nunca deja la página bloqueada fuera del gesto de arrastre.
+  function bloquearScrollPagina(): void {
+    if (touchActionPrevio !== null) return;
+    touchActionPrevio = document.body.style.touchAction;
+    document.body.style.touchAction = 'none';
+  }
+  function restaurarScrollPagina(): void {
+    if (touchActionPrevio === null) return;
+    document.body.style.touchAction = touchActionPrevio;
+    touchActionPrevio = null;
+  }
 
   function puntoMetrosDesdeEvento(ev: PointerEvent): Punto | null {
     const svg = contenedor.querySelector('svg');
@@ -69,6 +91,7 @@ export function activarArrastre(contenedor: HTMLElement, salaDe: () => Sala, edi
     ladoActivo = null;
     ultimoPunto = null;
     document.body.style.cursor = '';
+    restaurarScrollPagina();
     cb.onSoltar();
   }
 
@@ -91,6 +114,7 @@ export function activarArrastre(contenedor: HTMLElement, salaDe: () => Sala, edi
         /* el arrastre sigue funcionando sin captura mientras el puntero no salga del SVG */
       }
       document.body.style.cursor = 'grabbing';
+      bloquearScrollPagina();
       programarFrame();
       ev.preventDefault();
     },
