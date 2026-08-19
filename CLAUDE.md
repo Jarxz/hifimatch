@@ -1222,6 +1222,33 @@ fondo `rgba(199,173,124,.08)`), coherente con que su texto ya es
 color al pasarle el mouse, uno inactivo sí, y "Recalcular" muestra el
 marco en reposo y el tinte dorado en hover.
 
+**Bug (introducido por el marco de "Recalcular"): la fila de pestañas/
+vistas se partía en dos líneas al mostrar "Modificado".** El `border` +
+`padding` nuevo de `#btn-recalcular` (párrafo anterior) engordó el botón
+~30px — lo suficiente para que, con "Modificado" visible (tras el
+primer Recalcular), la fila pasara por apenas ~10px el ancho disponible
+de la tarjeta en los anchos de escritorio más comunes (medido: fila de
+736px, contenido de 746px con los 3 gaps de `.rline`) — el navegador la
+partía, y encima el propio grupo de 4 botones de vista se envolvía
+adentro de su caja (Isométrica/Frontal/Lateral arriba, Superior solo
+abajo), no sólo la fila entera. `.plan-toprow .segs button` (selector
+con el ancestro para no tocar el resto de los `.segs` del sitio — Nivel
+de escucha, Género musical, ES/EN, etc.) baja de `padding:9px 16px` a
+`9px 12px`; `#btn-recalcular` de `6px 14px` a `6px 12px` — mucho más
+margen que los 10px que faltaban, para que tampoco se rompa con textos
+más largos en inglés. Verificado con Chrome headless en 1152-1600px
+(el ancho de tarjeta se satura en 736px desde ~1164px de ventana en
+adelante, así que ese rango cubre la enorme mayoría de resoluciones de
+escritorio reales): una sola línea, con "Modificado" visible. **Sigue
+partiéndose en ventanas angostas de escritorio** (~1024px, entre el
+breakpoint de `.grid` a 860px — ahí la barra lateral se apila arriba y
+esto deja de ser un problema — y el ancho donde ya entra holgado): ahí
+faltarían ~120px más, no unos pocos px — un recorte de padding tan
+grande dejaría los botones incómodamente chicos en el ancho común, así
+que se dejó así a propósito; si hace falta cubrir ese rango angosto
+también, la solución real es bajar el breakpoint de `.grid`, un cambio
+de alcance distinto a "ajustar ancho de botones".
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
