@@ -669,7 +669,7 @@ function abrirGuardarPopup(): void {
  * a un host). Independiente de `CONTACT_TO_EMAIL` (esa es la variable de
  * entorno del lado del servidor); si esa dirección cambia, actualizar
  * también acá. */
-const CONTACTO_EMAIL_FALLBACK = 'contacto@thehifimatch.com';
+const CONTACTO_EMAIL_FALLBACK = 'thehmcontacto@gmail.com';
 
 /** `Date.now()` al abrir el diálogo — junto con el momento del envío,
  * alimenta el chequeo de "muy rápido" de `validarContacto` (ver
