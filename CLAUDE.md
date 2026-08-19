@@ -1189,6 +1189,32 @@ hilo de soporte oficial centrado en confirmar la del Node N130 (2,2 V/
 oficial, atribuida y específica por modelo, con la salvedad declarada en
 `pendiente`.
 
+**Mapa de zonas modales: manchas continuas, no un mosaico de celdas — y
+pasada general de compresión de espaciado.** Dos ajustes a pedido del
+usuario, comparando contra una imagen de referencia de simulación
+acústica real (mapa de calor con degradado suave y su propia barra de
+color). La grilla de `construirMapaModalSvg` sigue siendo el mismo
+muestreo puntual de `intensidadCombinadaEn` sobre celdas discretas —
+eso no cambió, nada nuevo se calculó — pero ahora se envuelve en un
+`<filter>` SVG (`feGaussianBlur`, desviación proporcional al tamaño de
+celda vía `FACTOR_DESENFOQUE`) recortado con `clipPath` al rectángulo
+exacto de la sala: el desenfoque es puramente de presentación, funde
+las celdas vecinas en manchas de color continuas en vez de un escalón
+duro entre rectángulos, sin inventar ni promediar ningún dato nuevo. La
+opacidad de celda subió de 0,55 a 0,8 (ya no hay un wireframe encima
+que necesite verse a través, así que puede ser más saturada, más
+parecida a la imagen de referencia). Aparte, pasada de compresión de
+espaciado en `estilos.css` — `.card`, `.geo-split` (el divisor interno
+entre Plano/Modos/Reverberación, el mayor ahorro individual: de 52px a
+34px por divisor), `.detalle`, `.rail .blk`, `.grid`, y el equivalente
+en la pantalla de configurar (`.rline`, `.picker`, `.room`, `.soon`,
+`.foot-bar`, `.lead`) — todos los márgenes/paddings bajaron entre 20 y
+35%, sin tocar `padding-top` de `.wrap` (ese compensa la altura del
+header fijo, no es espacio "vacío"). Ningún cambio de estructura, sólo
+valores de espaciado — verificado que la página de resultado completa
+(con las tarjetas colapsadas por defecto) entra en un scroll bastante
+más corto que antes.
+
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como

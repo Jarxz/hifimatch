@@ -59,9 +59,23 @@ const COLUMNAS = 30;
 const FILAS_MIN = 12;
 const FILAS_MAX = 50;
 
-/** Opacidad parcial: la grilla es una capa de fondo, el wireframe y las
- * etiquetas que se dibujan encima tienen que seguir leyéndose. */
-const OPACIDAD_CELDA = 0.55;
+/** Opacidad parcial: la grilla es una capa de fondo, el contorno de sala y
+ * los marcadores de parlante/punto dulce que se dibujan encima tienen que
+ * seguir leyéndose. */
+const OPACIDAD_CELDA = 0.8;
+
+/** Desenfoque (feGaussianBlur) aplicado sobre toda la grilla, relativo al
+ * tamaño de celda — funde las celdas contiguas en manchas de color
+ * continuas en vez de un mosaico de rectángulos con bordes duros (pedido
+ * explícito del usuario, comparando contra una imagen de referencia de
+ * simulación acústica real). El desenfoque es puramente de presentación:
+ * suaviza cómo se VE la misma grilla ya calculada, no cambia ningún valor
+ * — cada celda sigue siendo el mismo muestreo puntual de
+ * `intensidadCombinadaEn`, sólo que el ojo ve una transición continua
+ * entre celdas vecinas en vez de un escalón. Recortado con un `clipPath`
+ * exacto al rectángulo de la sala para que el desenfoque no "sangre" fuera
+ * de sus límites. */
+const FACTOR_DESENFOQUE = 1.6;
 
 /** Mismos 3 tonos que --alert/--warn/--ok en estilos.css, pero con nombre
  * propio (no las mismas variables): ese trío en el resto del sitio
@@ -131,9 +145,15 @@ export function colorDeIntensidad(intensidad: number): string {
   return aHex([interpolarLineal(c1[0], c2[0], tLocal), interpolarLineal(c1[1], c2[1], tLocal), interpolarLineal(c1[2], c2[2], tLocal)]);
 }
 
-/** '' si no hay agrupamientos curados — no hay nada que marcar. Sólo tiene
- * sentido geométrico en la vista Superior (el llamador, plano.ts, es
- * responsable de no insertarlo en otra vista). */
+/** id fijo: sólo hay un mapa modal en pantalla a la vez (una sola tarjeta
+ * "Modos"), así que no hace falta generar un id único por llamada. */
+const ID_FILTRO = 'mapa-modal-desenfoque';
+const ID_CLIP = 'mapa-modal-recorte';
+
+/** '' si no hay agrupamientos curados — no hay nada que marcar. Devuelve
+ * la grilla ya desenfocada (manchas de color continuas, no un mosaico de
+ * celdas) y recortada al rectángulo exacto de la sala — lista para
+ * insertarse como capa de fondo de `construirDiagramaModalSvg`. */
 export function construirMapaModalSvg(sala: Sala, agrupados: readonly ModoAgrupado[]): string {
   const pares = paresMasImportantes([...agrupados]);
   if (pares.length === 0) return '';
@@ -144,17 +164,27 @@ export function construirMapaModalSvg(sala: Sala, agrupados: readonly ModoAgrupa
   const largoCeldaM = sala.largoM / filas;
   const wPx = anchoCeldaM * scale;
   const hPx = largoCeldaM * scale;
+  const anchoTotalPx = sala.anchoM * scale;
+  const largoTotalPx = sala.largoM * scale;
 
-  let svg = '';
+  let celdas = '';
   for (let fila = 0; fila < filas; fila++) {
     for (let col = 0; col < COLUMNAS; col++) {
       const centroM: Punto = { x: (col + 0.5) * anchoCeldaM, y: (fila + 0.5) * largoCeldaM };
       const color = colorDeIntensidad(intensidadCombinadaEn(centroM, sala, pares));
       const x = pad + col * wPx;
       const y = pad + fila * hPx;
-      svg += `<rect x="${coord(x, 1)}" y="${coord(y, 1)}" width="${coord(wPx, 1)}" height="${coord(hPx, 1)}" fill="${color}" fill-opacity="${OPACIDAD_CELDA}" stroke="none"/>`;
+      celdas += `<rect x="${coord(x, 1)}" y="${coord(y, 1)}" width="${coord(wPx, 1)}" height="${coord(hPx, 1)}" fill="${color}" fill-opacity="${OPACIDAD_CELDA}" stroke="none"/>`;
     }
   }
+
+  const desenfoqueX = coord(wPx * FACTOR_DESENFOQUE, 2);
+  const desenfoqueY = coord(hPx * FACTOR_DESENFOQUE, 2);
+  let svg = '<defs>';
+  svg += `<clipPath id="${ID_CLIP}"><rect x="${coord(pad, 1)}" y="${coord(pad, 1)}" width="${coord(anchoTotalPx, 1)}" height="${coord(largoTotalPx, 1)}"/></clipPath>`;
+  svg += `<filter id="${ID_FILTRO}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="${desenfoqueX} ${desenfoqueY}"/></filter>`;
+  svg += '</defs>';
+  svg += `<g filter="url(#${ID_FILTRO})" clip-path="url(#${ID_CLIP})">${celdas}</g>`;
   return svg;
 }
 
