@@ -59,7 +59,7 @@ export const es = {
       'error-servidor': 'No se pudo enviar el mensaje. Vuelve a intentarlo en un momento.',
     } satisfies Record<CodigoRespuestaContacto, string>,
     fallbackMailtoHtml: (p: { mailto: string }): string =>
-      `Esta página está abierta como archivo local, así que no se puede enviar directo desde acá. <a href="${p.mailto}">Abrí tu cliente de correo</a> con el mensaje ya cargado.`,
+      `Esta página está abierta como archivo local, así que no se puede enviar directo desde aquí. <a href="${p.mailto}">Abre tu cliente de correo</a> con el mensaje ya cargado.`,
   },
 
   splash: {
@@ -129,7 +129,7 @@ export const es = {
     volver: '← Volver',
     lead: 'Define la cadena',
     leadNote:
-      'Elige un amplificador y un par de parlantes, y dale las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.',
+      'Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.',
     parlantes: 'Parlantes',
     amplificador: 'Amplificador',
     streamer: 'Streamer',
