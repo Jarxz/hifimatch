@@ -72,7 +72,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V1.08.26',
+    version: 'V2.08.26',
   },
 
   info: {
@@ -477,6 +477,8 @@ export const es = {
         `Calculado sobre ${p.evaluados} de ${p.total} componentes — el resto no tenía dato suficiente y no se incluyó (ni suma ni resta).`,
       criterio:
         '<b>Criterio editorial, no un dato medido:</b> combina las severidades de arriba con pesos que este sitio declara — potencia 24 % · carga 20 % · modos de sala 10 % · reverberación 10 % · puente de impedancias 10 % y recorrido de volumen 8 % por cada fuente elegida (streamer y/o DAC, evaluados por separado). Otro criterio razonable pesaría distinto.',
+      notaRecalculo:
+        'Este puntaje ya recalculó la potencia con la nueva distancia de escucha. Los demás componentes (carga, modos, reverberación, puente/recorrido) no dependen de dónde están los parlantes, así que el número puede no cambiar si el margen de potencia se mantiene en la misma categoría.',
     },
 
     resumen: {

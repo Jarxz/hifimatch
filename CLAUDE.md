@@ -1526,6 +1526,31 @@ trabajo del asistente): cada deploy a `master` sube `n` en 1 si es
 dentro del mismo mes, o resetea `n=1` y actualiza mes/año si cambió el
 mes. Primer valor: `V1.08.26` (agosto 2026).
 
+**Nota que declara por qué el puntaje puede no cambiar tras Recalcular.**
+Confirmado leyendo `construirSnapshot()` (`main.ts`) que el arrastre de
+parlantes **ya** afectaba el puntaje del match: recalcula `evaluarPotencia`
+con la nueva `distanciaEscuchaM`, y esa severidad entra en
+`calcularPuntaje` igual que las demás — no era un bug, sólo no estaba
+declarado en pantalla. Verificado con Chrome headless (drag sintético):
+la distancia y el margen de potencia sí cambian con el arrastre
+(2,6→2,9 m, +2,8→+1,8 dB en el vector de prueba), pero el número final
+del puntaje puede quedar igual porque `evaluarPotencia` trabaja con
+bandas categóricas (`con-margen` ≥3 dB, `justo` 0-3 dB, `insuficiente`
+<0 dB — `potencia.ts`), no con el dB crudo — dos márgenes distintos en
+la misma banda dan la misma severidad, y por lo tanto el mismo puntaje.
+Carga/modos/reverberación/puente/recorrido no dependen de la posición
+por diseño del motor (geometría de sala, materiales o electrónica, no
+distancia), así que correctamente no cambian entre "Análisis original"
+y "Modificado". Se agregó `#pt-nota-recalculo` (texto estático,
+`motor.puntaje.notaRecalculo`) debajo de `pt-criterio` en el bloque
+"Puntaje del match" del sidebar, visible **sólo** en la pestaña
+"Modificado" — `activarPestana()` alterna su clase `.hidden` según la
+pestaña activa, y `renderizarResultado()` (un "Analizar" nuevo) la
+oculta explícitamente para no arrastrar el estado visible de un
+análisis anterior. Verificado con Chrome headless: oculta en "Análisis
+original", visible tras Recalcular, vuelve a ocultarse al volver a
+"Análisis original" y al analizar un sistema nuevo desde cero.
+
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y

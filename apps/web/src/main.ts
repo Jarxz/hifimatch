@@ -468,6 +468,9 @@ function activarPestana(pestana: 'original' | 'modificado'): void {
   document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.pestana === pestana));
   });
+  // Sólo "Modificado" recalculó potencia con una disposición distinta —
+  // "Análisis original" nunca cambia, así que la aclaración no aplica ahí.
+  document.getElementById('pt-nota-recalculo')?.classList.toggle('hidden', pestana !== 'modificado');
 }
 
 /** "Recalcular": congela la posición actual del arrastre en un snapshot
@@ -602,6 +605,7 @@ function renderizarResultado(): void {
   const pestanaModEl = document.querySelector('[data-pestana="modificado"]');
   pestanaModEl?.setAttribute('aria-pressed', 'false');
   pestanaModEl?.classList.add('hidden');
+  document.getElementById('pt-nota-recalculo')?.classList.add('hidden');
 
   pintarSnapshot(ultimoAnalisis, analisisOriginal);
 }

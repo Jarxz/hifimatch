@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V1.08.26',
+    version: 'V2.08.26',
   },
 
   info: {
@@ -443,6 +443,8 @@ export const en: Textos = {
       aviso: (p) => `Calculated over ${p.evaluados} of ${p.total} components — the rest lacked enough data and were not included (neither added nor subtracted).`,
       criterio:
         '<b>Editorial criterion, not a measured figure:</b> combines the severities above with weights this site declares — power 24% · load 20% · room modes 10% · reverberation 10% · impedance bridge 10% and volume headroom 8% per source chosen (streamer and/or DAC, evaluated separately). Another reasonable criterion would weigh things differently.',
+      notaRecalculo:
+        'This score already recalculated power with the new listening distance. The other components (load, room modes, reverberation, bridge/headroom) do not depend on where the speakers are, so the number may stay the same if the power margin remains in the same category.',
     },
 
     resumen: {
