@@ -3,13 +3,6 @@
   --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.20);
   --text:#ECECEE; --dim:#8C8C93; --faint:#5A5A61; --label:#6E6E75;
   --ok:#96B6A2; --warn:#C7AD7C; --alert:#C58474; --dorado:#B8996A;
-  /* Mismos 3 hex que --alert/--warn/--ok, pero variables propias: ese trío
-     en el resto del sitio codifica un orden monótono estricto (verde
-     siempre bien, rojo siempre mal); el gradiente del mapa de zonas
-     modales es divergente (lo ideal está en el medio) — reusar las
-     variables de severidad leería como un bug. Mantener sincronizado con
-     los mismos hex hardcodeados en apps/web/src/vista/mapamodal.ts. */
-  --mapa-cancelacion:#C58474; --mapa-equilibrio:#C7AD7C; --mapa-refuerzo:#96B6A2;
   --sans:'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif;
   --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
 }
@@ -226,15 +219,8 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .curva-modal svg{width:100%; height:auto; max-width:460px; display:block}
 .curva-leyenda{font-size:11px; color:var(--dim); margin-top:2px}
 
-.mapa-modal-wrap{display:flex; flex-direction:column; align-items:center; margin:6px 0 4px}
-.mapa-modal-wrap svg{width:100%; height:auto; max-width:460px}
-.mapa-modal-wrap .src{width:100%; max-width:460px}
-.leyenda-gradiente{max-width:460px; margin:2px 0 10px}
-.leyenda-gradiente .barra{height:10px; border-radius:5px; background:linear-gradient(to right, var(--mapa-cancelacion), var(--mapa-equilibrio), var(--mapa-refuerzo))}
-.leyenda-gradiente .rotulos{display:flex; justify-content:space-between; font-size:11px; color:var(--dim); margin-top:4px}
-
 .detalle{margin-top:10px; border-top:1px solid var(--line); padding-top:2px}
-.detalle summary{cursor:pointer; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); padding:9px 2px; list-style:none; display:flex; align-items:center; justify-content:space-between; user-select:none}
+.detalle summary{cursor:pointer; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); padding:4px 2px; list-style:none; display:flex; align-items:center; justify-content:space-between; user-select:none}
 .detalle summary::-webkit-details-marker{display:none}
 .detalle summary:hover{color:var(--dim)}
 .detalle summary:focus-visible{outline:2px solid var(--line2); outline-offset:-2px}

@@ -1065,101 +1065,30 @@ independiente llegaron a publicar con cifra exacta (SMSL M400 — el
 propio revisor de Audio Science Review declara no haberla medido) se deja
 en `null` en vez de adoptar su estimación como si fuera un dato medido.
 
-**Mapa de zonas modales — vista Superior del plano, cuando hay
-agrupamiento.** Capa de fondo nueva (`apps/web/src/vista/mapamodal.ts`):
-una grilla verde-amarillo-rojo mostrando, en el plano de planta, dónde
-coinciden los nodos y antinodos de los mismos pares de modos que las
-curvas 1D de `curvamodal.ts` ya curan y grafican. **No es una aproximación
-del campo combinado real de la sala** — eso seguiría exigiendo sumar fase
-y amplitud entre modos, dato que este motor no tiene y no inventa, la
-misma razón por la que las curvas de arriba ya eran 1D y no un mapa 2D.
-Es un **mapa de coincidencia geométrica**: la misma fórmula cos² de cada
-modo, ya validada, evaluada en un punto del plano en vez de a lo largo de
-un eje, combinada con una regla declarada (no una física nueva): `min`
-entre los 2 modos de un par (el refuerzo exige que los dos coincidan en
-su antinodo a la vez; la cancelación es real si cualquiera de los dos
-tiene un nodo ahí — el promedio borraría esa asimetría), y "el valor más
-extremo gana" entre los hasta 2 pares curados (promediarlos podría ocultar
-un problema real de un par detrás de que el otro esté bien ahí mismo,
-empate exacto resuelto a favor del más rojo — mismo sesgo que "dato
-faltante nunca es ok"). Colores: mismos 3 hex que `--alert`/`--warn`/
-`--ok` del sitio, pero en variables CSS propias (`--mapa-cancelacion`/
-`--mapa-equilibrio`/`--mapa-refuerzo`) — ese trío en el resto del sitio
-codifica un orden monótono estricto (verde siempre bien), y este gradiente
-es divergente (lo "ideal" está en el medio, no en un extremo); reusar las
-variables de severidad habría leído como un bug. Un modo del eje alto no
-varía en un plano horizontal — se evalúa en `ALTURA_ESCUCHA_M` (mismo
-supuesto que las reflexiones de techo/piso) como término constante para
-ese modo en toda la sala; el mapa de un par que lo incluya puede salir
-parejo/rojo en toda la sala, que es información real (esa coincidencia no
-se refuerza a la altura de escucha en ningún punto del piso), no un bug —
-la curva 1D de ese eje muestra la variación vertical que el mapa no puede.
-`TOP_N_AGRUPADOS` y la función de curación (`paresMasImportantes`) se
-promovieron de lógica privada duplicada en `curvamodal.ts` (y otra vez a
-mano en su test) a una función exportada en `modos.ts`, para que las dos
-visualizaciones muestren siempre exactamente los mismos pares.
-`proyeccionSuperior` se extrajo de `plano.ts` a un archivo propio
-(`vista/proyeccion.ts`) para que `mapamodal.ts` pudiera importarla sin
-crear un ciclo (`plano.ts` inserta la capa del mapa); `plano.ts` sigue
-re-exportándola para que `arrastre.ts` y los tests existentes no cambien.
-El mapa **no depende de la posición de los parlantes** (`evaluarModos`
-sólo ve dimensiones de sala) — se calcula una sola vez por "Analizar" y
-viaja sin cambios en cada repintado, incluidos los frames de arrastre; lo
-único que se mueve encima es el marcador de parlante/punto dulce, que es
-como el usuario experimenta "se actualiza al mover los parlantes" sin que
-el motor recalcule nada por cuadro. Verificado con Chrome headless: sala
-por defecto (con agrupamiento real) muestra la grilla en Superior y la
-oculta en las otras 3 vistas; arrastrar un parlante deja el mapa
-bit-a-bit idéntico mientras el marcador se mueve encima; una sala sin
-agrupamiento no muestra grilla ni leyenda. (Ronda posterior: el mapa se
-sacó por completo del plano de reflexiones y pasó a ser un diagrama propio
-de la tarjeta "Modos" — ver el párrafo "Mapa de zonas modales: reubicado…"
-más abajo; la mecánica de combinación de modos — `min` dentro de un par,
-"el más extremo gana" entre pares — no cambió, sólo dónde y cómo se
-dibuja.)
-
-**Mapa de zonas modales: reubicado a la tarjeta "Modos", ya no en el plano
-de reflexiones.** El usuario vio la primera versión (capa de fondo dentro
-del plano isométrico, sólo visible en la vista Superior, con una imagen de
-referencia de tipo simulación acústica real — un mapa de calor COMSOL con
-su propia barra de color) y pidió explícitamente que viviera "en la
-tarjeta de modos, no en reflexiones": mezclar el mapa dentro del dibujo de
-reflexiones conflaba dos piezas de evidencia física distintas (modos vs.
-reflexiones) en un solo dibujo, aunque las dos ya compartieran una sola
-tarjeta "Geometría" a nivel de sección. `mapamodal.ts` gana
-`construirDiagramaModalSvg(sala, disposición, agrupados, idioma)`: una
-planta 2D propia (no una vista más del plano isométrico — esta tarjeta no
-tiene selector de vista) con la misma grilla de `construirMapaModalSvg`
-(que se queda como está, sigue siendo la capa de sólo-celdas, ahora
-reusada en vez de insertada directo en `plano.ts`) de fondo, más el
-contorno de la sala, los 2 parlantes (círculo + etiqueta L/R) y el punto
-dulce — reusando las posiciones que `sala.ts` ya calculó para el plano de
-reflexiones, dibujadas de nuevo acá porque es un diagrama independiente.
-`plano.ts` volvió a su forma anterior a esta ronda: perdió el parámetro
-`agrupados`, la capa `conMapaModal` y el import de `mapamodal.ts` — el
-plano isométrico vuelve a mostrar sólo reflexiones, en las 4 vistas, sin
-ninguna mención a modos. El diagrama nuevo vive detrás del mismo "Ver
-detalle técnico" de la tarjeta Modos que ya tenían las curvas 1D
-(`#mo-mapa`, junto a `#mo-curvas`), con su propia leyenda — ya no 3
-cuadraditos de color (`.swatch`, eliminado, quedó sin otro uso) sino una
-**barra de gradiente continuo** (`.leyenda-gradiente`, CSS
-`linear-gradient` sobre las mismas 3 variables `--mapa-*`) con las 3
-etiquetas debajo — más parecida a la barra de escala de la imagen de
-referencia que el trío de cuadraditos original. A diferencia de la
-versión anterior (que no dependía de la posición de los parlantes y por
-eso no necesitaba recalcularse durante el arrastre), esta versión sí
-recibe la `disposición` como parámetro — para dibujar los parlantes en su
-lugar real — pero sigue sin recalcular nada por cuadro: se pinta una sola
-vez por snapshot (dentro de `pintarSnapshot`, no en `repintarPlano`), así
-que cambiar de pestaña ("Análisis original"/"Modificado") o tocar
-"Recalcular" actualiza los marcadores del diagrama igual que actualiza el
-resto de la tarjeta, sin necesidad de arrastre en vivo dentro de esta
-tarjeta (no es interactiva — mismo nivel que las curvas 1D vecinas, nunca
-tuvo agarre propio). Verificado con Chrome headless: el plano isométrico
-(cualquier vista) ya no tiene ningún `<rect>`; el diagrama nuevo aparece
-sólo dentro de "Modos" con la grilla + 2 círculos de parlante + 2 círculos
-de punto dulce; arrastrar un parlante y tocar "Recalcular" cambia las
-coordenadas de los marcadores del diagrama.
+**Mapa de zonas modales — probado en dos rondas, retirado por completo.**
+Se construyó una capa de color (verde-amarillo-rojo) mostrando, en un
+plano de planta, dónde coinciden los nodos y antinodos de los pares de
+modos que `curvamodal.ts` ya cura y grafica en 1D — primero como capa de
+fondo dentro de la vista Superior del plano isométrico, después (a pedido
+del usuario, que la quería asociada a "Modos" y no mezclada con el
+plano de reflexiones) como diagrama propio de la tarjeta "Modos" con
+desenfoque gaussiano para dar manchas de color continuas en vez de una
+grilla de celdas. Ninguna de las dos versiones reflejó lo que el usuario
+buscaba — pidió eliminarla directamente después de ver la segunda ronda,
+así que se retiró por completo (`apps/web/src/vista/mapamodal.ts` y su
+test, borrados; `#mo-mapa`/`#mo-mapa-leyenda` y su CSS, sacados de
+`index.html`/`estilos.css`; las claves `motor.modos.mapaCaption`/
+`leyendaMapa*` y la mención del mapa en `info.modos.cuerpoHtml`,
+revertidas). Lo único que sobrevive de ese trabajo: `paresMasImportantes`/
+`TOP_N_AGRUPADOS` se quedaron promovidas en `modos.ts` (ya no eran lógica
+privada duplicada de `curvamodal.ts`, y las curvas 1D siguen usándolas
+tal cual). `proyeccionSuperior` volvió a vivir dentro de `plano.ts` — el
+archivo `vista/proyeccion.ts` sólo existía para que `mapamodal.ts` la
+importara sin crear un ciclo; sin ese consumidor, la extracción ya no
+tenía motivo, así que se plegó de vuelta (sin cambios para
+`arrastre.ts`/`plano.test.ts`, que ya la importaban vía el re-export de
+`plano.ts`). El plano isométrico de reflexiones (`plano.ts`) queda
+exactamente como estaba antes de que este trabajo empezara.
 
 **Streamers ampliados: 18 equipos nuevos, cierra la ronda de ampliación de
 catálogo.** Catálogo a **132 equipos** (35 parlantes + 34 amplificadores +
@@ -1189,31 +1118,31 @@ hilo de soporte oficial centrado en confirmar la del Node N130 (2,2 V/
 oficial, atribuida y específica por modelo, con la salvedad declarada en
 `pendiente`.
 
-**Mapa de zonas modales: manchas continuas, no un mosaico de celdas — y
-pasada general de compresión de espaciado.** Dos ajustes a pedido del
-usuario, comparando contra una imagen de referencia de simulación
-acústica real (mapa de calor con degradado suave y su propia barra de
-color). La grilla de `construirMapaModalSvg` sigue siendo el mismo
-muestreo puntual de `intensidadCombinadaEn` sobre celdas discretas —
-eso no cambió, nada nuevo se calculó — pero ahora se envuelve en un
-`<filter>` SVG (`feGaussianBlur`, desviación proporcional al tamaño de
-celda vía `FACTOR_DESENFOQUE`) recortado con `clipPath` al rectángulo
-exacto de la sala: el desenfoque es puramente de presentación, funde
-las celdas vecinas en manchas de color continuas en vez de un escalón
-duro entre rectángulos, sin inventar ni promediar ningún dato nuevo. La
-opacidad de celda subió de 0,55 a 0,8 (ya no hay un wireframe encima
-que necesite verse a través, así que puede ser más saturada, más
-parecida a la imagen de referencia). Aparte, pasada de compresión de
-espaciado en `estilos.css` — `.card`, `.geo-split` (el divisor interno
-entre Plano/Modos/Reverberación, el mayor ahorro individual: de 52px a
-34px por divisor), `.detalle`, `.rail .blk`, `.grid`, y el equivalente
-en la pantalla de configurar (`.rline`, `.picker`, `.room`, `.soon`,
-`.foot-bar`, `.lead`) — todos los márgenes/paddings bajaron entre 20 y
-35%, sin tocar `padding-top` de `.wrap` (ese compensa la altura del
-header fijo, no es espacio "vacío"). Ningún cambio de estructura, sólo
-valores de espaciado — verificado que la página de resultado completa
-(con las tarjetas colapsadas por defecto) entra en un scroll bastante
-más corto que antes.
+**Pasada general de compresión de espaciado.** A pedido del usuario, la
+página de resultado quedaba demasiado larga con demasiado espacio vacío
+entre tarjetas y dentro de ellas. Bajaron entre 20 y 35% los márgenes/
+paddings de `.card`, `.geo-split` (el divisor interno entre Plano/Modos/
+Reverberación, el mayor ahorro individual: de 52px a 34px por divisor),
+`.detalle`, `.rail .blk`, `.grid`, y el equivalente en la pantalla de
+configurar (`.rline`, `.picker`, `.room`, `.soon`, `.foot-bar`, `.lead`)
+— sin tocar `padding-top` de `.wrap` (ese compensa la altura del header
+fijo, no es espacio "vacío"). Una ronda posterior, a pedido explícito
+también, achicó además la barra "Ver detalle técnico" (`.detalle
+summary`) de `padding:9px 2px` a `padding:4px 2px` — quedó ceñida al
+texto en vez de con aire de sobra arriba/abajo. Ningún cambio de
+estructura, sólo valores de espaciado — verificado que la página de
+resultado completa (con las tarjetas colapsadas por defecto) entra en un
+scroll bastante más corto que antes.
+
+**Bug: el `<select>` de marca se quedaba gris para siempre, incluso con
+una marca elegida.** `pick()` (`main.ts`) ya alternaba la clase `.empty`
+(texto gris vs. blanco, `.sel select.empty{color:var(--faint)}`) en el
+`<select>` de *modelo* al elegir un equipo — pero el de *marca* nunca la
+tocaba: nace con `class="empty"` en `index.html` y ningún código la
+sacaba, así que el nombre de la marca elegida se seguía viendo gris,
+como si fuera un placeholder sin elegir. `setMarca()` ahora hace
+`selMarca.classList.toggle('empty', !marca)` — mismo criterio que ya
+usa `pick()` para el select de modelo, aplicado también al de marca.
 
 Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones

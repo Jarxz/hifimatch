@@ -32,11 +32,24 @@ import type { MaterialMuro } from '../../../../packages/engine/src/reverberacion
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { coord, num } from '../formato/numeros.ts';
 import { textosDe } from '../idioma/idioma.ts';
-import { proyeccionSuperior, PAD_SVG, MAX_ANCHO_PROYECCION, MAX_ALTO_PROYECCION } from './proyeccion.ts';
-
-export { proyeccionSuperior } from './proyeccion.ts';
 
 export type Vista = 'isometrica' | 'frontal' | 'lateral' | 'superior';
+
+const PAD_SVG = 64;
+const MAX_ANCHO_PROYECCION = 560;
+const MAX_ALTO_PROYECCION = 460;
+
+/** pad/scale que usa la vista Superior (`sx=x, sy=y`, sin trigonometría) —
+ * expuesto para que la capa de arrastre (`vista/arrastre.ts`) pueda
+ * invertir/derivar coordenadas de pantalla a metros de sala sin duplicar
+ * esta cuenta. `construirPlanoSvg` llama a esta misma función para esa
+ * vista, así que dibujo y arrastre nunca pueden desincronizarse. */
+export function proyeccionSuperior(sala: Sala): { pad: number; scale: number } {
+  const anchoSpan = Math.max(sala.anchoM, 0.5);
+  const altoSpan = Math.max(sala.largoM, 0.5);
+  const scale = Math.min(MAX_ANCHO_PROYECCION / anchoSpan, MAX_ALTO_PROYECCION / altoSpan);
+  return { pad: PAD_SVG, scale };
+}
 
 export interface MurosVista {
   frontal: MaterialMuro;

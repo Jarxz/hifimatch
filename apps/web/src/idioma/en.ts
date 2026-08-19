@@ -61,7 +61,7 @@ export const en: Textos = {
     modos: {
       titulo: 'Room modes (bass resonances)',
       cuerpoHtml:
-        "Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room's width, length, and height \"fit\" certain wavelengths. When two modes on different axes land very close in frequency (within 5%, below 150 Hz — both thresholds declared by this site, not a published convention), that reinforcement stands out more: it's a frequency where the room will likely sound \"fatter\" or more resonant than the rest of the bass range. This rule never returns \"error\" severity — it's a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space. When there's grouping, the technical detail shows two views of the same mode pair: 1D curves of relative pressure along each axis, and a <b>zone map</b> (green/yellow/red) seen from above — red where either mode has a node (that frequency is missing there), green where both coincide at their antinode (reinforced), yellow in between. It's a geometric-coincidence map between already-flagged modes, not an acoustic simulation with real phase. If one pair's map comes out flat across the whole room, it's because one of its modes is on the height axis (it doesn't vary across a horizontal plane); that axis's 1D curve shows the vertical variation the map can't.",
+        "Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room's width, length, and height \"fit\" certain wavelengths. When two modes on different axes land very close in frequency (within 5%, below 150 Hz — both thresholds declared by this site, not a published convention), that reinforcement stands out more: it's a frequency where the room will likely sound \"fatter\" or more resonant than the rest of the bass range. This rule never returns \"error\" severity — it's a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space.",
     },
     reverberacion: {
       titulo: 'Estimated reverberation time (RT60)',
@@ -367,11 +367,6 @@ export const en: Textos = {
       curvaOrden: (p) => `order ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Relative pressure along each affected axis — only the lowest-frequency clusters (the most audible and hardest to treat). Independent 1D curves per axis, not a combined room map.',
-      mapaCaption:
-        'Zone map, seen from above: where the nodes and antinodes of those same clusters line up across the room floor. A geometric-coincidence map between already-flagged modes, not an acoustic simulation with real phase — "ideal" (yellow) is about this specific grouping, not a general seating recommendation.',
-      leyendaMapaCancelacion: 'cancellation (missing bass)',
-      leyendaMapaEquilibrio: 'balanced',
-      leyendaMapaRefuerzo: 'reinforcement (boosted bass)',
     },
 
     reverberacion: {

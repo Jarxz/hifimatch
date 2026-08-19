@@ -472,9 +472,9 @@ el aviso de agrupamiento y estas curvas curadas.
 viven en `packages/engine/src/modos.ts`, exportadas — antes era lógica
 privada duplicada dos veces (`curvamodal.ts` y, a mano, dentro de su propio
 test). Se promovió a una sola función compartida porque un segundo
-consumidor la necesitaba (el mapa de zonas modales, más abajo): las dos
-visualizaciones tienen que curar exactamente el mismo conjunto de pares,
-por construcción, no por convención repetida.
+consumidor la necesitaba (el mapa de zonas modales, sección siguiente —
+probado y retirado después, pero la promoción quedó, sigue evitando la
+duplicación original).
 
 **Aviso de filtro de modo activo:** cuando hay agrupamiento, la sugerencia
 de la tarjeta (`sugerenciaHtml`) menciona, además de reposicionar
@@ -484,136 +484,25 @@ salvedad de siempre: ajustarlo exige medir la sala real, este modelo no
 tiene la amplitud ni la fase medidas como para proponer un Q o una
 atenuación en dB.
 
-### Mapa de zonas modales (`apps/web/src/vista/mapamodal.ts`)
+### Mapa de zonas modales — probado y retirado
 
-Diagrama propio de la tarjeta "Modos de sala" — no una capa del plano
-isométrico de reflexiones (`plano.ts`), que sigue mostrando sólo
-reflexiones en sus 4 vistas. Sólo cuando hay agrupamiento: una grilla de
-celdas coloreadas verde-amarillo-rojo, vista en planta, mostrando dónde
-coinciden los nodos y antinodos de los mismos pares que `paresMasImportantes`
-ya cura para las curvas de arriba. (Primera versión: vivía como capa de
-fondo dentro de la vista Superior del plano isométrico — se reubicó a
-pedido explícito del usuario, que la quería asociada a "Modos", no
-mezclada con el dibujo de reflexiones; ver el detalle de la reubicación
-más abajo.)
-
-**Qué es y qué NO es — misma disciplina que las curvas 1D.** No es una
-aproximación del campo combinado real de la sala (eso seguiría exigiendo
-sumar fase y amplitud entre modos, dato que este motor no tiene y no
-inventa — la misma razón por la que las curvas de arriba son 1D y no un
-mapa 2D). Es un **mapa de coincidencia geométrica**: para cada modo de los
-pares curados, se evalúa su propia condición de nodo/antinodo — la misma
-fórmula cos²(n·π·x/L) que ya grafican las curvas 1D — en un punto del
-plano en vez de a lo largo de un solo eje. Combinar dos modos es una regla
-de combinación declarada, no una física nueva:
-
-```
-intensidadModo(modo, punto):
-  eje='ancho' → cos²(orden·π·punto.x / anchoM)
-  eje='largo' → cos²(orden·π·punto.y / largoM)
-  eje='alto'  → cos²(orden·π·ALTURA_ESCUCHA_M / altoM)   // constante: no varía en un plano horizontal
-
-intensidadPar(par, punto) = min(intensidadModo(par.modoA, punto), intensidadModo(par.modoB, punto))
-```
-
-**"min", no promedio, dentro de un par:** el refuerzo (verde) exige que
-LOS DOS modos estén cerca de su antinodo a la vez; la cancelación (rojo)
-es real si CUALQUIERA de los dos tiene un nodo ahí, sin importar el otro.
-El promedio borra esa asimetría física — `min` la reproduce directamente.
-
-```
-intensidadCombinada(punto, pares) = el valor de intensidadPar(par, punto) más alejado de 0,5,
-                                     entre los hasta 2 pares curados.
-                                     Empate exacto en |valor−0,5|: gana el más bajo (más "rojo").
-```
-
-**"el más extremo gana", no promedio, entre los hasta 2 pares:** promediar
-dos pares puede ocultar un problema real de uno detrás de que el otro esté
-bien en ese mismo punto (ej. par1≈0 + par2≈1 → promedio≈0,5/"ideal", cuando
-en realidad hay un hallazgo real de cancelación en par1 ahí). El empate
-exacto (dos pares igual de extremos, en direcciones opuestas) se resuelve
-a favor del valor más bajo — mismo sesgo que el resto del sitio: declarar
-un hueco antes que taparlo.
-
-**Color:** interpolación lineal (RGB) entre 3 tonos — 0→`#C58474`
-(cancelación), 0,5→`#C7AD7C` (equilibrio), 1→`#96B6A2` (refuerzo). Mismos
-3 hex que `--alert`/`--warn`/`--ok` del sitio, pero declarados como
-variables CSS propias (`--mapa-cancelacion`/`--mapa-equilibrio`/
-`--mapa-refuerzo`): ese trío en el resto del sitio codifica un orden
-monótono estricto (verde siempre bien, rojo siempre mal); este gradiente
-es **divergente** — lo "ideal" (amarillo) está en el medio, no en un
-extremo. "Ideal" es sobre *ese* agrupamiento puntual, no una recomendación
-general de dónde sentarse — mismo cuidado de alcance que el resto del
-sitio ("se verifica midiendo", "criterio del sitio").
-
-**El eje alto da un mapa parejo, y eso es correcto, no un bug.** Un modo
-del eje alto no varía en un plano horizontal — se evalúa en
-`ALTURA_ESCUCHA_M` (mismo supuesto que las reflexiones de techo/piso),
-dando un término constante para ese modo en TODA la sala. Vector de
-prueba: el par `{largo orden 2, alto orden 1}` de la sala por defecto —
-`alto orden 1` da cos²(π·1,0/2,4) ≈ 0,067 en cualquier punto, un valor
-bajo que domina el `min` casi en todas partes salvo donde `largo orden 2`
-cae aún más bajo (sus propios nodos) — el mapa de ese par sale
-mayormente rojo/parejo en toda la sala, con nada de estructura horizontal
-visible. Es información real (esa coincidencia no se refuerza a la altura
-de escucha, en ningún punto del piso), no un error de cálculo; la curva 1D
-del eje alto (arriba) es la que muestra la variación vertical que este
-mapa no puede.
-
-**Resolución de la grilla:** 30 columnas fijas, filas proporcionales a la
-razón largo/ancho de la sala (acotadas entre 12 y 50, para no degenerar en
-salas muy alargadas). Justificado por el propio dominio: bajo
-`TECHO_AGRUPAMIENTO_HZ` (150 Hz) el orden de un modo candidato ronda 7-9
-como mucho en el eje más largo típico, así que incluso esta grilla
-moderada da varias muestras por semiperíodo — sin aliasing visible para un
-mapa de esta naturaleza. Opacidad parcial (0,55) para que el wireframe y
-las etiquetas que se dibujan encima sigan leyéndose.
-
-**Sólo con agrupamiento.** `construirMapaModalSvg(sala, agrupados)` llama a
-`proyeccionSuperior(sala)` (`apps/web/src/vista/proyeccion.ts` — extraída
-de `plano.ts` a un módulo propio para que este archivo la pudiera importar
-sin crear un ciclo cuando todavía vivía dentro de `plano.ts`; se quedó ahí
-después de la reubicación, ya no hace falta pero tampoco estorba) para
-que la grilla use la misma escala que el resto del diagrama. Devuelve `''`
-si no hay pares curados — mismo criterio que las curvas 1D
-(`agrupados.length === 0` → sin nada que mostrar). Esta función sigue
-siendo sólo la capa de celdas — el diagrama completo que se pinta en
-pantalla es una función distinta, ver abajo.
-
-**El campo de color no depende de la posición de los parlantes; el
-diagrama completo sí.** `evaluarModos(sala)` sólo ve las dimensiones de la
-sala — nunca la disposición de parlantes/escucha — así que
-`construirMapaModalSvg` (la grilla) es matemáticamente invariante al
-arrastre. Pero el diagrama que efectivamente se pinta,
-`construirDiagramaModalSvg(sala, disp, agrupados, idioma)`, sí recibe la
-`disposición` — para dibujar los 2 parlantes y el punto dulce en su
-posición real, igual que hace el plano de reflexiones. A diferencia de la
-primera versión (que vivía dentro del plano y se repintaba en cada frame
-de arrastre sin costo extra porque la grilla nunca cambiaba), esta versión
-no es interactiva — no tiene agarre propio, mismo nivel que las curvas 1D
-vecinas — así que se pinta una sola vez por snapshot, dentro de
-`pintarSnapshot` (no en `repintarPlano`): cambiar de pestaña ("Análisis
-original"/"Modificado") o tocar "Recalcular" actualiza los marcadores del
-diagrama exactamente igual que actualiza el resto de la tarjeta.
-
-**`construirDiagramaModalSvg`: contorno de sala + parlantes + punto dulce
-sobre la grilla.** Dibuja, en este orden (SVG pinta por orden de
-documento, esta capa tiene que quedar atrás): la grilla de
-`construirMapaModalSvg`, un `<rect>` de contorno del tamaño de la sala,
-los 2 parlantes (círculo + etiqueta "L"/"R", reusando `disp.parlanteIzq`/
-`disp.parlanteDer`) y el punto dulce (`disp.puntoDulce`, mismo estilo de
-anillo + centro que usa `plano.ts`). No es una vista más del plano
-isométrico — esta tarjeta no tiene selector de vista (isométrica/frontal/
-lateral/superior): siempre es una planta simple en 2D, porque un mapa de
-zonas modales sólo tiene sentido visto desde arriba. La leyenda que lo
-acompaña en pantalla (`.leyenda-gradiente`) es una barra de gradiente
-CSS continuo sobre las 3 variables `--mapa-*` — no los 3 cuadraditos
-discretos (`.swatch`) de la primera versión, retirados por no tener ya
-otro uso — con las 3 etiquetas (cancelación/equilibrado/refuerzo) debajo,
-más parecida a la barra de escala de una simulación acústica real (la
-referencia visual que pidió el usuario) aunque los datos que representa
-sigan siendo la misma coincidencia geométrica declarada arriba, no una
-medición.
+Se construyó y se probó, en dos rondas de diseño distintas (capa dentro
+del plano isométrico; después diagrama propio de la tarjeta "Modos" con
+desenfoque gaussiano), un mapa 2D de coincidencia geométrica entre nodos
+y antinodos de los pares de modos ya curados por `paresMasImportantes` —
+combinando dos modos de un mismo par con `min` (no promedio: el refuerzo
+exige que los dos coincidan en su antinodo a la vez, la cancelación es
+real si cualquiera tiene un nodo ahí) y hasta 2 pares curados con "el
+valor más extremo gana" (no promedio: evita que un par bien ahí mismo
+tape un problema real del otro). Ninguna de las dos versiones reflejó lo
+que el usuario buscaba — pidió eliminarla directamente después de ver la
+segunda ronda. `apps/web/src/vista/mapamodal.ts` y su test se borraron
+por completo; el plano isométrico de reflexiones (`plano.ts`) nunca
+mostró esta capa (se sacó de ahí en la ronda de reubicación, antes de
+eliminarse del todo) y queda intacto. Sobrevive únicamente
+`paresMasImportantes`/`TOP_N_AGRUPADOS` en `modos.ts` — la extracción de
+esa lógica desde `curvamodal.ts` sigue siendo válida, las curvas 1D
+(sección anterior) la siguen usando tal cual.
 
 ---
 

@@ -24,7 +24,6 @@ import { construirPlanoSvg } from './vista/plano.ts';
 import type { MurosVista, Vista } from './vista/plano.ts';
 import { activarArrastre } from './vista/arrastre.ts';
 import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
-import { construirDiagramaModalSvg } from './vista/mapamodal.ts';
 import {
   modeloPotencia,
   modeloCarga,
@@ -46,7 +45,6 @@ import {
   pintarPlano,
   pintarModos,
   pintarCurvasModales,
-  pintarDiagramaModal,
   pintarReverberacion,
   pintarPuntaje,
   pintarResumenFinal,
@@ -223,6 +221,7 @@ function pick(kind: 'spk' | 'amp' | 'streamer' | 'dac', valor: string): void {
  * exactamente la misma limpieza de estado/tarjeta .info que ya usa el
  * <select> de modelo al volver a su placeholder. */
 function setMarca(kind: 'spk' | 'amp' | 'streamer' | 'dac', marca: string): void {
+  document.getElementById('sel-' + kind + '-marca')?.classList.toggle('empty', !marca);
   if (marca) poblarModelos(kind, marca, idiomaActual);
   else vaciarModelos(kind, idiomaActual);
   pick(kind, '');
@@ -421,12 +420,6 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   repintarPlano();
   const ubicacionEl = document.getElementById('plan-ubicacion');
   if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(a.sala, snap.disposicion, idiomaActual);
-
-  // El diagrama de zonas modales usa la disposición de esta pestaña (igual
-  // que el plano) aunque el campo de color en sí no dependa de ella — así
-  // ambos quedan consistentes al cambiar entre "Análisis original" y
-  // "Modificado".
-  pintarDiagramaModal(construirDiagramaModalSvg(a.sala, snap.disposicion, a.resModos.agrupados, idiomaActual), t.motor.modos.mapaCaption);
 }
 
 /** Vista previa liviana durante el arrastre: sólo redibuja el plano y el

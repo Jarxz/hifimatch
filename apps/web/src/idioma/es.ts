@@ -74,7 +74,7 @@ export const es = {
     modos: {
       titulo: 'Modos de sala (resonancias de graves)',
       cuerpoHtml:
-        'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. Cuando dos modos de ejes distintos caen muy cerca en frecuencia (menos de 5%, por debajo de 150 Hz — ambos umbrales declarados por este sitio, no una convención publicada), ese refuerzo se nota más: es una frecuencia donde la sala probablemente sonará más "gorda" o resonante que el resto del rango grave. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real. Cuando hay agrupamiento, el detalle técnico muestra dos visualizaciones del mismo par de modos: curvas 1D de presión relativa a lo largo de cada eje, y un <b>mapa de zonas</b> (verde/amarillo/rojo) visto en planta — rojo donde cualquiera de los dos modos tiene un nodo (esa frecuencia queda ausente ahí), verde donde los dos coinciden en su antinodo (reforzada), amarillo en el medio. Es un mapa de coincidencia geométrica entre modos ya identificados, no una simulación acústica con fase real. Si el mapa de un par sale parejo en toda la sala, es porque uno de sus modos es del eje alto (no varía en un plano horizontal); la curva 1D de ese eje muestra la variación vertical que el mapa no puede.',
+        'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. Cuando dos modos de ejes distintos caen muy cerca en frecuencia (menos de 5%, por debajo de 150 Hz — ambos umbrales declarados por este sitio, no una convención publicada), ese refuerzo se nota más: es una frecuencia donde la sala probablemente sonará más "gorda" o resonante que el resto del rango grave. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real.',
     },
     reverberacion: {
       titulo: 'Tiempo de reverberación estimado (RT60)',
@@ -383,11 +383,6 @@ export const es = {
       curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Presión relativa a lo largo de cada eje afectado — sólo los agrupamientos de menor frecuencia (los más audibles y difíciles de tratar). Curvas 1D independientes por eje, no un mapa combinado de la sala.',
-      mapaCaption:
-        'Mapa de zonas modales, visto en planta: dónde coinciden los nodos y antinodos de esos mismos agrupamientos en el plano de la sala. Mapa de coincidencia geométrica entre modos ya identificados, no una simulación acústica con fase real — "ideal" (amarillo) es sobre este agrupamiento puntual, no una recomendación general de dónde sentarse.',
-      leyendaMapaCancelacion: 'cancelación (grave ausente)',
-      leyendaMapaEquilibrio: 'equilibrado',
-      leyendaMapaRefuerzo: 'refuerzo (grave reforzado)',
     },
 
     reverberacion: {
