@@ -1,5 +1,5 @@
 /** Las pantallas del sitio y el cambio entre ellas — el `go()` del prototipo. */
-export type Pantalla = 'splash' | 'config' | 'results' | 'info';
+export type Pantalla = 'splash' | 'config' | 'results' | 'info' | 'documento';
 
 export function ir(pantalla: Pantalla): void {
   const cambiar = (): void => {

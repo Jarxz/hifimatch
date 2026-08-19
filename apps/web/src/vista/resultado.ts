@@ -26,6 +26,7 @@ import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packag
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { num, numConSigno } from '../formato/numeros.ts';
 import { textosDe } from '../idioma/idioma.ts';
+import { especParlante, especAmplificador, especFuente } from '../datos/etiquetas.ts';
 
 export type ClaseVerdicto = 'ok' | 'warn' | 'alert' | 'dim';
 
@@ -574,4 +575,74 @@ export function modeloResumenFinal(
       : `<li>${t.recomendacionTodoOk}</li>`;
 
   return { comportamientoHtml, resumenHtml, fortalezasHtml, debilidadesHtml, sinDatosHtml, recomendacionesHtml };
+}
+
+export interface ModeloDocumento {
+  fechaTexto: string;
+  equiposHtml: string;
+  anchoLargoTexto: string;
+  altoTexto: string;
+  distanciaTexto: string;
+  nivelTexto: string;
+  picoTexto: string;
+  puntajeTexto: string;
+  puntajeClase: ClasePuntaje;
+  componentesHtml: string;
+}
+
+/**
+ * Reformatea los datos ya calculados de un análisis como un informe — sin
+ * recalcular nada del motor, mismo principio que `modeloResumenFinal`.
+ * Vista previa interna de "Documento" (pantalla sin botón visible, ver
+ * CLAUDE.md): reusa las mismas etiquetas de categoría y plantillas de
+ * componente que ya usan "La cadena" y "En resumen", para no inventar
+ * redacción nueva. `fechaTexto` no es un dato del motor — lo arma
+ * `main.ts` con `Date`, se pasa ya formateado.
+ */
+export function modeloDocumento(
+  spk: ParlanteCat,
+  amp: AmplificadorCat,
+  streamer: FuenteCat | null,
+  dac: FuenteCat | null,
+  sala: Sala,
+  distanciaEscuchaM: number,
+  nivelTexto: string,
+  picoObjetivoDb: number,
+  puntaje: { valor: number; clase: ClasePuntaje },
+  componentes: ComponenteResumen[],
+  fechaTexto: string,
+  idioma: Idioma
+): ModeloDocumento {
+  const t = textosDe(idioma).resultado;
+
+  const equipoFila = (categoria: string, nombre: string, espec: string): string =>
+    `<div class="doc-equipo"><div class="doc-equipo-cat">${categoria}</div><div class="doc-equipo-nombre">${nombre}</div><div class="doc-equipo-espec">${espec}</div></div>`;
+
+  let equiposHtml = equipoFila(t.itemParlantes, spk.nombre, especParlante(spk, idioma));
+  equiposHtml += equipoFila(t.itemAmplificador, amp.nombre, especAmplificador(amp, idioma));
+  if (streamer) equiposHtml += equipoFila(t.itemStreamer, streamer.nombre, especFuente(streamer, idioma));
+  if (dac) equiposHtml += equipoFila(t.itemDac, dac.nombre, especFuente(dac, idioma));
+
+  const tr = textosDe(idioma).motor.resumen;
+  const componentesHtml = componentes
+    .map((c) => {
+      if (c.verdictoClase === 'dim') return `<li>${tr.itemSinDatos({ nombre: c.nombre })}</li>`;
+      return c.detalle
+        ? `<li>${tr.itemConDetalle({ nombre: c.nombre, verdicto: c.verdictoTexto, detalle: c.detalle })}</li>`
+        : `<li>${tr.itemFortaleza({ nombre: c.nombre, verdicto: c.verdictoTexto })}</li>`;
+    })
+    .join('');
+
+  return {
+    fechaTexto,
+    equiposHtml,
+    anchoLargoTexto: `${num(sala.anchoM, 1, idioma)} × ${num(sala.largoM, 1, idioma)} m`,
+    altoTexto: `${num(sala.altoM, 2, idioma)} m`,
+    distanciaTexto: `≈ ${num(distanciaEscuchaM, 1, idioma)} m`,
+    nivelTexto,
+    picoTexto: `${num(picoObjetivoDb, 0, idioma)} dB`,
+    puntajeTexto: `${num(puntaje.valor, 1, idioma)}/10`,
+    puntajeClase: puntaje.clase,
+    componentesHtml,
+  };
 }

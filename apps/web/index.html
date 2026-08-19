@@ -18,7 +18,7 @@
       </div>
     </div>
     <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
-    <div class="version-splash" data-i18n="splash.version">V2.08.26</div>
+    <div class="version-splash" data-i18n="splash.version">V3.08.26</div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
         <div class="mark" aria-hidden="true">
@@ -442,6 +442,71 @@
 
     <div style="display:flex; justify-content:center; margin:30px 0 10px">
       <button class="back" id="btn-info-volver-2" data-i18n="info.volver">← Volver al análisis</button>
+    </div>
+  </div>
+</section>
+
+<!-- DOCUMENTO — vista previa interna de "guardar y comparar como PDF" (paywall
+     futuro). Sin botón visible en ninguna pantalla: se llega escribiendo
+     ir('documento') en la consola. Sólo "Análisis 1" tiene contenido real;
+     "Análisis 2"/"Comparar"/"Descargar PDF" reusan el mismo popup de
+     #btn-guardar (ver resultado.guardarPopupTitulo/Cuerpo). -->
+<section class="screen" id="s-documento">
+  <div class="wrap">
+    <div class="head">
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="documento.hs">Informe (vista previa)</div>
+      <div class="hright">
+        <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+          <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+          <button type="button" data-idioma="en" aria-pressed="false">EN</button>
+        </div>
+        <button class="back" id="btn-contacto-documento" data-i18n="contacto.boton">Contacto</button>
+        <button class="back" id="btn-doc-volver" data-i18n="info.volver">← Volver al análisis</button>
+      </div>
+    </div>
+
+    <div class="doc-toolbar">
+      <div class="segs" role="group" id="tabs-documento">
+        <button type="button" data-doc-tab="1" aria-pressed="true" data-i18n="documento.pestana1">Análisis 1</button>
+        <button type="button" data-doc-tab="2" aria-pressed="false" data-i18n="documento.pestana2">Análisis 2</button>
+      </div>
+      <div class="doc-toolbar-acciones">
+        <button type="button" class="back" id="btn-doc-comparar" data-i18n="documento.comparar">Comparar</button>
+        <button type="button" class="back" id="btn-doc-pdf" data-i18n="documento.descargarPdf">Descargar PDF</button>
+      </div>
+    </div>
+
+    <div class="doc-paper">
+      <div class="doc-logo"><b class="doc-logo-the">THE</b> HIFI <b>MATCH</b></div>
+      <h1 class="doc-title" data-i18n="documento.titulo">Informe de análisis</h1>
+      <div class="doc-fecha" id="doc-fecha">—</div>
+
+      <h2 class="doc-h2" data-i18n="documento.equipoTitulo">Equipo</h2>
+      <div class="doc-equipos" id="doc-equipos"></div>
+
+      <h2 class="doc-h2" data-i18n="resultado.sala">Sala</h2>
+      <div class="doc-sala">
+        <div class="doc-row"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="doc-r-wl">—</b></div>
+        <div class="doc-row"><span data-i18n="resultado.alto">Alto</span><b id="doc-r-h">—</b></div>
+        <div class="doc-row"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="doc-r-dist">—</b></div>
+        <div class="doc-row"><span data-i18n="resultado.nivel">Nivel</span><b id="doc-r-lvl">—</b></div>
+        <div class="doc-row"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="doc-r-peak">—</b></div>
+      </div>
+
+      <h2 class="doc-h2" data-i18n="motor.puntaje.titulo">Puntaje del match</h2>
+      <div class="doc-puntaje-wrap">
+        <b class="doc-puntaje-num" id="doc-puntaje">—</b>
+        <span class="doc-puntaje-rotulo" data-i18n="motor.puntaje.rotulo">Criterio editorial, no física</span>
+      </div>
+
+      <h2 class="doc-h2" data-i18n="documento.componentesTitulo">Evaluación por componente</h2>
+      <ul class="doc-componentes" id="doc-componentes"></ul>
+
+      <div class="doc-footer" data-i18n-html="documento.disclaimerHtml">—</div>
+    </div>
+
+    <div style="display:flex; justify-content:center; margin:20px 0 10px">
+      <button class="back" id="btn-doc-volver-2" data-i18n="info.volver">← Volver al análisis</button>
     </div>
   </div>
 </section>

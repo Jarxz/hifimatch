@@ -14,6 +14,7 @@ import type { Parlante, Amplificador } from '../../../../packages/engine/src/tip
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from '../datos/adaptadores.ts';
+import { especParlante, especAmplificador, especFuente } from '../datos/etiquetas.ts';
 import {
   modeloPotencia,
   modeloCarga,
@@ -24,6 +25,7 @@ import {
   modeloUbicacionParlantes,
   modeloPuntaje,
   modeloResumenFinal,
+  modeloDocumento,
 } from './resultado.ts';
 import type { ComponenteResumen } from './resultado.ts';
 import { num } from '../formato/numeros.ts';
@@ -638,4 +640,71 @@ test('modeloPuente en inglés: cita la convención con "confidence" en inglés, 
   assert.equal(m.verdictoTexto, 'Bridge correct');
   assert.match(m.fuenteHtml, /confidence/);
   assert.doesNotMatch(m.fuenteHtml, /convención|confianza/);
+});
+
+// ---- modeloDocumento (vista previa interna "Documento") ----
+
+const DOC_SPK = parlanteCat('kef-ls50-meta');
+const DOC_AMP = ampCat('rega-brio');
+const DOC_STREAMER = fuenteCat('topping-e30-ii');
+const DOC_DAC = fuenteCat('schiit-modi-plus');
+const DOC_COMPONENTES: ComponenteResumen[] = [
+  { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
+  { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', detalle: '3,5 Ω', avisoHtml: '<b>aviso</b>' },
+  { nombre: 'Reverberación', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
+];
+
+test('modeloDocumento: equiposHtml incluye parlante y amplificador siempre; streamer y dac sólo si están elegidos', () => {
+  const sinFuentes = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
+  assert.equal((sinFuentes.equiposHtml.match(/doc-equipo"/g) ?? []).length, 2);
+  assert.doesNotMatch(sinFuentes.equiposHtml, /Streamer|DAC/);
+
+  const conFuentes = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
+  assert.equal((conFuentes.equiposHtml.match(/doc-equipo"/g) ?? []).length, 4);
+  assert.match(conFuentes.equiposHtml, /Streamer/);
+  assert.match(conFuentes.equiposHtml, />DAC</);
+});
+
+test('modeloDocumento: el espec de cada equipo reusa especParlante/especAmplificador/especFuente ya existentes, no recalcula nada', () => {
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
+  assert.match(m.equiposHtml, new RegExp(especParlante(DOC_SPK, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(m.equiposHtml, new RegExp(especAmplificador(DOC_AMP, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(m.equiposHtml, new RegExp(especFuente(DOC_STREAMER, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+test('modeloDocumento: sala/distancia formateadas con el separador decimal del idioma (coma en es, punto en en)', () => {
+  const es = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, 'x', 'es');
+  const en = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'High', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, 'x', 'en');
+  assert.equal(es.anchoLargoTexto, '3,6 × 5,0 m');
+  assert.equal(en.anchoLargoTexto, '3.6 × 5.0 m');
+  assert.equal(es.distanciaTexto, '≈ 2,6 m');
+  assert.equal(en.distanciaTexto, '≈ 2.6 m');
+});
+
+test('modeloDocumento: puntajeTexto usa un decimal y puntajeClase es la ya calculada, sin reclasificar', () => {
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'warn' }, DOC_COMPONENTES, 'x', 'es');
+  assert.equal(m.puntajeTexto, '8,7/10');
+  assert.equal(m.puntajeClase, 'warn'); // 8,7 normalmente sería "ok" — prueba que no reclasifica
+});
+
+test('modeloDocumento: componentesHtml reusa itemFortaleza/itemConDetalle/itemSinDatos según verdictoClase — no inventa una evaluación nueva', () => {
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, 'x', 'es');
+  assert.equal((m.componentesHtml.match(/<li>/g) ?? []).length, 3);
+  assert.match(m.componentesHtml, /Potencia: Con margen/);
+  assert.match(m.componentesHtml, /Carga: Exige corriente \(3,5 Ω\)/);
+  assert.match(m.componentesHtml, /Reverberación/);
+});
+
+test('modeloDocumento: fechaTexto se pasa tal cual — no es un dato del motor, main.ts lo arma con Date', () => {
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
+  assert.equal(m.fechaTexto, '19 de agosto de 2026');
+});
+
+test('modeloDocumento en inglés: specs y componentes en inglés, sin mezclar idiomas', () => {
+  const componentesEn: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'High', 100, { valor: 8.7, clase: 'ok' }, componentesEn, 'August 19, 2026', 'en');
+  assert.match(m.equiposHtml, /Speakers/);
+  assert.match(m.equiposHtml, /Amplifier/);
+  assert.doesNotMatch(m.equiposHtml, /Parlantes|Amplificador/);
+  assert.match(m.componentesHtml, /Power: With margin/);
 });

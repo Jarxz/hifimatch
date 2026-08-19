@@ -11,6 +11,7 @@ import type {
   ModeloTarjetaReverberacion,
   ModeloPuntaje,
   ModeloResumenFinal,
+  ModeloDocumento,
 } from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { actualizarMedidor } from './medidor.ts';
@@ -208,4 +209,22 @@ export function pintarResumenFinal(m: ModeloResumenFinal): void {
     sinDatosWrap.classList.add('hidden');
   }
   el('rf-recomendaciones').innerHTML = m.recomendacionesHtml;
+}
+
+/** Pinta la vista previa interna "Documento" (#s-documento, sin botón
+ * visible — ver CLAUDE.md). Se llama junto con pintarSnapshot para que
+ * siempre muestre el análisis vigente, aunque la pantalla misma no tenga
+ * ningún punto de entrada real todavía. */
+export function pintarDocumento(m: ModeloDocumento): void {
+  el('doc-fecha').textContent = m.fechaTexto;
+  el('doc-equipos').innerHTML = m.equiposHtml;
+  el('doc-r-wl').textContent = m.anchoLargoTexto;
+  el('doc-r-h').textContent = m.altoTexto;
+  el('doc-r-dist').textContent = m.distanciaTexto;
+  el('doc-r-lvl').textContent = m.nivelTexto;
+  el('doc-r-peak').textContent = m.picoTexto;
+  const puntajeEl = el('doc-puntaje');
+  puntajeEl.textContent = m.puntajeTexto;
+  puntajeEl.className = 'doc-puntaje-num doc-puntaje-' + m.puntajeClase;
+  el('doc-componentes').innerHTML = m.componentesHtml;
 }

@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V2.08.26',
+    version: 'V3.08.26',
   },
 
   info: {
@@ -173,7 +173,7 @@ export const en: Textos = {
     volver: '← Change system',
     guardarBoton: 'Save',
     guardarPopupTitulo: 'You need to sign in',
-    guardarPopupCuerpo: 'Coming soon.',
+    guardarPopupCuerpo: 'Coming soon. This feature will let you save your analyses, compare them against each other, and download them as PDF files.',
     cadena: 'The chain',
     itemParlantes: 'Speakers',
     itemAmplificador: 'Amplifier',
@@ -229,6 +229,21 @@ export const en: Textos = {
         'Starter database of popular, well-measured gear. When the factory sensitivity is measured half-space ' +
         'and overstates it, the independent anechoic measurement is used instead.',
     },
+  },
+
+  documento: {
+    hs: 'Report (preview)',
+    pestana1: 'Analysis 1',
+    pestana2: 'Analysis 2',
+    comparar: 'Compare',
+    descargarPdf: 'Download PDF',
+    titulo: 'Analysis report',
+    equipoTitulo: 'Equipment',
+    componentesTitulo: 'Per-component evaluation',
+    disclaimerHtml:
+      'Internal preview of an exportable report — reformats data already calculated for <b>Analysis 1</b>, no ' +
+      'real PDF is generated yet. <b>Analysis 2</b>, <b>Compare</b>, and <b>Download PDF</b> sit behind sign-in, ' +
+      'same as "Save".',
   },
 
   motor: {

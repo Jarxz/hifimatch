@@ -55,7 +55,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 
 /* HEAD */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:grid; grid-template-columns:auto 1fr; grid-template-areas:"hm hright" "hs hright"; align-items:center; column-gap:20px; padding:18px 22px; border-bottom:1px solid var(--line)}
-#s-config .wrap, #s-results .wrap, #s-info .wrap{padding-top:112px}
+#s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:112px}
 .head .hm{grid-area:hm; font-weight:300; letter-spacing:.05em; font-size:19px; padding-left:.05em}
 .head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}
@@ -70,7 +70,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .head .hright{gap:7px}
   .back{font-size:9.5px; letter-spacing:.08em}
   .segs.idioma button{padding:5px 7px; font-size:9px}
-  #s-config .wrap, #s-results .wrap, #s-info .wrap{padding-top:82px}
+  #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:82px}
 }
 
 /* CONFIG */
@@ -325,3 +325,51 @@ dialog.info-popup[open]::backdrop{opacity:1}
 footer.note{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:11.5px; color:var(--faint); line-height:1.8}
 footer.note b{color:var(--dim)}
 @media (prefers-reduced-motion:reduce){ .needle,.readout{transition:none} }
+
+/* DOCUMENTO (vista previa interna, sin botón visible — ver CLAUDE.md) */
+.doc-toolbar{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; border:1px solid var(--line); border-radius:4px; padding:14px 18px; margin:18px 0 22px; background:var(--panel)}
+.doc-toolbar-acciones{display:flex; gap:10px; flex-wrap:wrap}
+
+/* Único punto del sitio con fondo claro — tokens propios, no se reusan
+   --text/--dim/--faint (calibrados para fondo oscuro, contraste incorrecto
+   sobre blanco). Escala de severidad recalibrada a mano respecto de
+   --ok/--warn/--alert para mantener buen contraste sobre blanco — esos
+   tonos, pálidos a propósito para fondo oscuro, no rendirían igual sobre
+   papel. */
+.doc-paper{
+  --paper-bg:#FFFFFF; --paper-ink:#17171A; --paper-dim:#5C5C63; --paper-line:rgba(0,0,0,.12);
+  --paper-ok:#2F7A4B; --paper-warn:#8A6A1F; --paper-alert:#A23B2B;
+  background:var(--paper-bg); color:var(--paper-ink); border-radius:4px;
+  padding:40px 46px; box-shadow:0 20px 50px rgba(0,0,0,.45);
+}
+.doc-logo{font-weight:300; letter-spacing:.05em; font-size:15px; color:var(--paper-ink)}
+.doc-logo b{font-weight:600}
+.doc-logo-the{color:var(--dorado)}
+.doc-title{font-weight:300; font-size:26px; margin:22px 0 4px; letter-spacing:.01em; color:var(--paper-ink)}
+.doc-fecha{font-size:12.5px; color:var(--paper-dim); margin-bottom:8px}
+.doc-h2{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--paper-dim); font-weight:400; border-top:1px solid var(--paper-line); margin:26px 0 10px; padding-top:16px}
+.doc-h2:first-of-type{border-top:0; padding-top:0; margin-top:22px}
+.doc-equipo{padding:8px 0; border-bottom:1px solid var(--paper-line)}
+.doc-equipo:last-child{border-bottom:0}
+.doc-equipo-cat{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--paper-dim)}
+.doc-equipo-nombre{font-size:14px; color:var(--paper-ink); margin-top:2px}
+.doc-equipo-espec{font-family:var(--mono); font-size:11.5px; color:var(--paper-dim); margin-top:2px}
+.doc-row{display:flex; justify-content:space-between; font-size:13px; color:var(--paper-dim); padding:4px 0}
+.doc-row b{font-family:var(--mono); color:var(--paper-ink); font-weight:500}
+.doc-puntaje-wrap{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.doc-puntaje-num{font-size:26px; font-weight:600}
+.doc-puntaje-num.doc-puntaje-ok{color:var(--paper-ok)}
+.doc-puntaje-num.doc-puntaje-warn{color:var(--paper-warn)}
+.doc-puntaje-num.doc-puntaje-alert{color:var(--paper-alert)}
+.doc-puntaje-rotulo{font-size:11px; color:var(--paper-dim); text-transform:uppercase; letter-spacing:.1em}
+.doc-componentes{list-style:none; margin:0; padding:0}
+.doc-componentes li{font-size:13.5px; color:var(--paper-ink); padding:6px 0; border-bottom:1px solid var(--paper-line)}
+.doc-componentes li:last-child{border-bottom:0}
+.doc-footer{margin-top:30px; padding-top:16px; border-top:1px solid var(--paper-line); font-size:11px; color:var(--paper-dim); line-height:1.7}
+.doc-footer b{color:var(--paper-ink)}
+
+@media (max-width:640px){
+  .doc-paper{padding:26px 20px}
+  .doc-title{font-size:20px}
+  .doc-toolbar{padding:12px 14px}
+}

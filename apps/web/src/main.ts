@@ -36,6 +36,7 @@ import {
   modeloUbicacionParlantes,
   modeloPuntaje,
   modeloResumenFinal,
+  modeloDocumento,
 } from './vista/resultado.ts';
 import type { ComponenteResumen } from './vista/resultado.ts';
 import {
@@ -50,6 +51,7 @@ import {
   pintarReverberacion,
   pintarPuntaje,
   pintarResumenFinal,
+  pintarDocumento,
 } from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
@@ -422,6 +424,33 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   repintarPlano();
   const ubicacionEl = document.getElementById('plan-ubicacion');
   if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(a.sala, snap.disposicion, idiomaActual);
+
+  // Vista previa interna "Documento" (#s-documento, sin botón visible — ver
+  // CLAUDE.md): se repinta junto con el resto del resultado para que
+  // ir('documento') (sólo alcanzable desde devtools) siempre muestre el
+  // análisis vigente. fechaTexto no es un dato del motor, se arma acá con
+  // Date.
+  const fechaTexto = new Date().toLocaleDateString(idiomaActual === 'es' ? 'es-CL' : 'en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  pintarDocumento(
+    modeloDocumento(
+      a.spk,
+      a.amp,
+      a.streamer,
+      a.dac,
+      a.sala,
+      snap.disposicion.distanciaEscuchaM,
+      a.nivelTexto,
+      a.picoObjetivo,
+      { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase },
+      snap.componentesResumen,
+      fechaTexto,
+      idiomaActual
+    )
+  );
 }
 
 /** Vista previa liviana durante el arrastre: sólo redibuja el plano y el
@@ -787,6 +816,16 @@ function wireEventos(): void {
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
 
+  // "Documento" — vista previa interna, sin botón visible (ver CLAUDE.md).
+  // Sólo la pestaña "Análisis 1" (ya activa por defecto, sin listener propio)
+  // muestra contenido real; "Análisis 2"/"Comparar"/"Descargar PDF" reusan
+  // el mismo popup que #btn-guardar.
+  document.getElementById('btn-doc-volver')?.addEventListener('click', () => ir('results'));
+  document.getElementById('btn-doc-volver-2')?.addEventListener('click', () => ir('results'));
+  document.getElementById('btn-doc-comparar')?.addEventListener('click', () => abrirGuardarPopup());
+  document.getElementById('btn-doc-pdf')?.addEventListener('click', () => abrirGuardarPopup());
+  document.querySelector('[data-doc-tab="2"]')?.addEventListener('click', () => abrirGuardarPopup());
+
   document.querySelectorAll<HTMLButtonElement>('.infobtn[data-info]').forEach((b) => {
     b.addEventListener('click', () => abrirInfoPopup(b.dataset.info as InfoClave));
   });
@@ -800,6 +839,7 @@ function wireEventos(): void {
   document.getElementById('btn-contacto-config')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-resultado')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-info')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-documento')?.addEventListener('click', () => abrirContactoPopup());
   const contactoPopup = document.getElementById('contacto-popup') as HTMLDialogElement | null;
   document.getElementById('contacto-cerrar')?.addEventListener('click', () => contactoPopup?.close());
   contactoPopup?.addEventListener('click', (e) => {
@@ -881,6 +921,12 @@ function main(): void {
 
   actualizarTextosDimension();
   refrescar();
+
+  // Único hook de devtools del sitio: "Documento" (#s-documento) no tiene
+  // botón visible a propósito (vista previa interna, ver CLAUDE.md) — se
+  // llega escribiendo ir('documento') en la consola. No agrega ninguna
+  // afordancia de UI, sólo hace alcanzable esa pantalla sin exponerla.
+  (window as unknown as { ir: typeof ir }).ir = ir;
 }
 
 main();

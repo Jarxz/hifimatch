@@ -1551,6 +1551,63 @@ análisis anterior. Verificado con Chrome headless: oculta en "Análisis
 original", visible tras Recalcular, vuelve a ocultarse al volver a
 "Análisis original" y al analizar un sistema nuevo desde cero.
 
+**"Documento" — vista previa interna de "guardar y comparar como PDF",
+sin botón visible en ningún lado.** Pantalla nueva (`#s-documento`,
+mismo patrón `Pantalla`/`ir()` que splash/config/resultado/guía) que
+muestra el análisis actual reformateado como un informe — logo en negro
+sobre fondo blanco (el único lugar del sitio con fondo claro), título,
+fecha, equipo elegido con specs, sala, puntaje y veredicto por
+componente. **Deliberadamente no conectada a ningún botón real de la
+interfaz** — es una referencia de diseño para cuando exista una cuenta
+de usuario, decisión explícita del usuario tras una ronda de preguntas
+de scope: ni siquiera "Guardar" navega ahí (`#btn-guardar` sigue
+exactamente igual que antes, abre el popup de login de siempre). Se
+llega escribiendo `ir('documento')` en la consola — `main()` expone
+`window.ir = ir` sólo para eso, sin agregar ninguna afordancia de UI.
+
+Arriba de la hoja blanca, un `.doc-toolbar` (fondo oscuro, igual que el
+resto del cromo del sitio) con pestañas "Análisis 1"/"Análisis 2" y
+botones "Comparar"/"Descargar PDF": únicamente "Análisis 1" (activa por
+defecto, sin listener — nunca cambia) tiene contenido real; los otros
+tres reusan `abrirGuardarPopup()` **verbatim** — mismo diálogo, mismo
+título "Debe iniciar sesión", mismo cuerpo que ya usa `#btn-guardar` —
+en vez de inventar un mensaje o un mockup separado. El cuerpo de ese
+popup se amplió esta misma ronda para nombrar la función futura:
+"Esta función permitirá guardar tus análisis, compararlos entre sí y
+descargarlos como archivos PDF." (`resultado.guardarPopupCuerpo`).
+
+`modeloDocumento()` (nuevo, `resultado.ts`) es una función pura más —
+mismo principio que `modeloResumenFinal`: reformatea datos que
+`construirSnapshot()` ya calculó, no ejecuta el motor de nuevo. Reusa
+`especParlante`/`especAmplificador`/`especFuente` (`datos/etiquetas.ts`,
+ya usadas por "La cadena") para los specs de equipo, y las mismas
+plantillas `itemFortaleza`/`itemConDetalle`/`itemSinDatos` de
+`motor.resumen` para el veredicto por componente — cero redacción
+nueva para esa parte. Se pinta junto con el resto del resultado dentro
+de `pintarSnapshot()` (no en un flujo aparte), así que `ir('documento')`
+siempre muestra el análisis vigente sin importar si el usuario llegó
+ahí después de "Analizar", cambiar de pestaña o cambiar de idioma —
+mismo mecanismo que ya mantenía sincronizados potencia/puntaje/resumen
+entre "Análisis original" y "Modificado".
+
+Tokens de color propios (`--paper-bg/ink/dim/line/ok/warn/alert` dentro
+de `.doc-paper`) en vez de reusar `--text`/`--dim`/`--ok` etc.: esos
+están calibrados para fondo oscuro y no rinden igual sobre blanco. El
+acento dorado de "THE" en el logo de la hoja sí se mantiene (mismo
+`--dorado` que el resto del sitio) — es lo único que visualmente ancla
+la marca entre el cromo oscuro y la hoja clara.
+
+7 tests nuevos en `resultado.test.ts` (equipo real solo con streamer/dac
+elegidos, specs reusados vía los helpers de `etiquetas.ts` sin
+recalcular, separador decimal por idioma, puntaje sin reclasificar,
+plantillas de componente reusadas, `fechaTexto` pasado tal cual — no es
+un dato del motor, lo arma `main.ts` con `Date` — e inglés sin mezclar
+idiomas). Verificado con Chrome headless: el click en "Guardar" en
+`#s-results` es idéntico a antes (mismo popup, mismo texto); `ir(
+'documento')` pinta contenido real; los tres controles bloqueados abren
+el mismo popup; cambiar de idioma dentro de la pantalla relocaliza todo
+(incluida la fecha); el layout responsive a 390px no rompe.
+
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y
@@ -1574,7 +1631,13 @@ Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos
-  — arquitectura nueva, sin diseñar todavía.
+  — arquitectura nueva, sin diseñar todavía. La referencia visual de
+  cómo se vería ("Documento", `#s-documento`) ya existe en el código —
+  ver más arriba — pero sin ningún botón real conectado; cuando se
+  diseñe el login, conectar `#btn-guardar` a `ir('documento')` en vez
+  de a `abrirGuardarPopup()` es el cambio mínimo, y "Análisis 2"/
+  "Comparar"/"Descargar PDF" necesitan lógica real (segunda fuente de
+  datos, generación de PDF) donde hoy sólo reusan el mismo popup.
 - **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
   de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
   parte del alcance actual.

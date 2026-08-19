@@ -72,7 +72,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V2.08.26',
+    version: 'V3.08.26',
   },
 
   info: {
@@ -198,7 +198,7 @@ export const es = {
     volver: '← Cambiar sistema',
     guardarBoton: 'Guardar',
     guardarPopupTitulo: 'Debe iniciar sesión',
-    guardarPopupCuerpo: 'Pronto disponible.',
+    guardarPopupCuerpo: 'Pronto disponible. Esta función permitirá guardar tus análisis, compararlos entre sí y descargarlos como archivos PDF.',
     cadena: 'La cadena',
     itemParlantes: 'Parlantes',
     itemAmplificador: 'Amplificador',
@@ -253,6 +253,21 @@ export const es = {
         'Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide ' +
         'en media-espacio y sobreestima, se usa la medición anecoica independiente.',
     },
+  },
+
+  documento: {
+    hs: 'Informe (vista previa)',
+    pestana1: 'Análisis 1',
+    pestana2: 'Análisis 2',
+    comparar: 'Comparar',
+    descargarPdf: 'Descargar PDF',
+    titulo: 'Informe de análisis',
+    equipoTitulo: 'Equipo',
+    componentesTitulo: 'Evaluación por componente',
+    disclaimerHtml:
+      'Vista previa interna de un informe exportable — reformatea los datos ya calculados de <b>Análisis 1</b>, ' +
+      'sin generar un PDF real todavía. <b>Análisis 2</b>, <b>Comparar</b> y <b>Descargar PDF</b> quedan detrás ' +
+      'del inicio de sesión, igual que «Guardar».',
   },
 
   motor: {
