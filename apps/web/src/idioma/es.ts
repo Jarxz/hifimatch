@@ -202,7 +202,7 @@ export const es = {
       pestanaOriginal: 'Análisis original',
       pestanaModificado: 'Modificado',
       recalcular: 'Recalcular',
-      hintArrastre: 'En esta vista se puede arrastrar los parlantes para probar otra disposición.',
+      hintArrastreHtml: 'En esta vista se puede mover los parlantes para probar otra disposición, <b>RECALCULAR</b> y comparar con Análisis original.',
       ubicacionTitulo: 'Ubicación de referencia de los parlantes',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Parlante izquierdo: <b>${p.frontalIzq} m</b> de la pared frontal, <b>${p.lateralIzq} m</b> de su pared lateral. Parlante derecho: <b>${p.frontalDer} m</b> de la pared frontal, <b>${p.lateralDer} m</b> de su pared lateral. Separación entre ambos: <b>${p.separacion} m</b>. Es la disposición de referencia que usa el resto del análisis (potencia, modos, reflexiones) — se afina moviendo los parlantes y escuchando en el espacio real.`,

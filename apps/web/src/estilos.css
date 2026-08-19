@@ -205,6 +205,8 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 
 .plan-controles{display:flex; align-items:center; gap:10px}
 .plan-hint{font-size:12px; color:var(--dim); margin-top:6px}
+#plan-hint b{color:var(--warn); font-weight:600}
+#btn-recalcular{color:var(--warn)}
 .parlante-arrastrable{cursor:grab; touch-action:none}
 
 .plan-wrap{display:flex; justify-content:center; margin:6px 0 4px}

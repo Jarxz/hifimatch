@@ -189,7 +189,7 @@ export const en: Textos = {
       pestanaOriginal: 'Original analysis',
       pestanaModificado: 'Modified',
       recalcular: 'Recalculate',
-      hintArrastre: 'In this view you can drag the speakers to try a different layout.',
+      hintArrastreHtml: 'In this view you can move the speakers to try a different layout, <b>RECALCULATE</b> and compare with Original analysis.',
       ubicacionTitulo: 'Reference speaker placement',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Left speaker: <b>${p.frontalIzq} m</b> from the front wall, <b>${p.lateralIzq} m</b> from its side wall. Right speaker: <b>${p.frontalDer} m</b> from the front wall, <b>${p.lateralDer} m</b> from its side wall. Distance between them: <b>${p.separacion} m</b>. This is the reference layout the rest of the analysis uses (power, modes, reflections) — it gets refined by moving the speakers and listening in the real space.`,
