@@ -1,10 +1,13 @@
 /**
  * Vista isométrica de la sala — puro: (sala, disposición, muros, vista) →
  * string. Reemplaza el plano 2D top-down: un cubo de alambre a escala, con
- * el triángulo de escucha y las 8 reflexiones que calcula sala.ts
- * (laterales, trasera, techo, piso) cada una con su distancia total del
- * camino parlante→superficie→escucha. Un muro declarado "vacío" no dibuja
- * su reflexión — el sonido se escapa, no vuelve.
+ * el triángulo de escucha, la distancia de cada parlante a su pared
+ * frontal y a su pared lateral respectiva (líneas blancas segmentadas,
+ * mismas 2 medidas que el párrafo de texto de abajo — se mueven solas con
+ * el parlante) y las 8 reflexiones que calcula sala.ts (laterales,
+ * trasera, techo, piso) cada una con su distancia total del camino
+ * parlante→superficie→escucha. Un muro declarado "vacío" no dibuja su
+ * reflexión — el sonido se escapa, no vuelve.
  *
  * `vista` cambia sólo la proyección (isométrica/frontal/lateral/superior)
  * — mismos datos, mismo dibujo, otro ángulo de cámara fijo. Se eligió este
@@ -240,6 +243,30 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   const TRIANGULO = 'stroke="rgba(255,255,255,.5)" stroke-width="1" stroke-dasharray="4 3" fill="none"';
   s += linea(spkIzq3, dulce3, TRIANGULO);
   s += linea(spkDer3, dulce3, TRIANGULO);
+
+  // distancia de cada parlante a su pared frontal y a su pared lateral
+  // respectiva — mismas 2 medidas, mismas fórmulas, que ya reporta en texto
+  // "Ubicación de referencia de los parlantes" (modeloUbicacionParlantes,
+  // resultado.ts): parlante izquierdo mide contra el muro izquierdo (x=0),
+  // parlante derecho contra el muro derecho (x=W) — cada uno contra SU
+  // propio lado, no siempre el mismo. Se recalculan solas en cada
+  // repintado porque parten de spkIzq3/spkDer3, así que siguen al parlante
+  // en vivo durante el arrastre, igual que ese párrafo. Distancia a pared
+  // frontal (independiente del lado): siempre contra y=0.
+  const DIST_MURO = 'stroke="rgba(255,255,255,.4)" stroke-width="1" stroke-dasharray="2 3" fill="none"';
+  const DIST_MURO_TEXTO = 'fill="#8C8C93" font-size="9.5"';
+  const frontalIzq3: Pt3 = { x: disp.parlanteIzq.x, y: 0, z: h };
+  const lateralIzq3: Pt3 = { x: 0, y: disp.parlanteIzq.y, z: h };
+  const frontalDer3: Pt3 = { x: disp.parlanteDer.x, y: 0, z: h };
+  const lateralDer3: Pt3 = { x: W, y: disp.parlanteDer.y, z: h };
+  s += linea(spkIzq3, frontalIzq3, DIST_MURO);
+  s += linea(spkIzq3, lateralIzq3, DIST_MURO);
+  s += linea(spkDer3, frontalDer3, DIST_MURO);
+  s += linea(spkDer3, lateralDer3, DIST_MURO);
+  s += texto(frontalIzq3, num(disp.parlanteIzq.y, 2, idioma) + ' m', DIST_MURO_TEXTO + ' text-anchor="middle"', 0, -8);
+  s += texto(lateralIzq3, num(disp.parlanteIzq.x, 2, idioma) + ' m', DIST_MURO_TEXTO + ' text-anchor="end"', -8, 4);
+  s += texto(frontalDer3, num(disp.parlanteDer.y, 2, idioma) + ' m', DIST_MURO_TEXTO + ' text-anchor="middle"', 0, -8);
+  s += texto(lateralDer3, num(W - disp.parlanteDer.x, 2, idioma) + ' m', DIST_MURO_TEXTO + ' text-anchor="start"', 8, 4);
 
   // reflexiones: laterales y trasera se omiten si el muro correspondiente es "vacío"
   const REFLEXION_PATH = 'stroke="rgba(199,173,124,.4)" stroke-width="1" stroke-dasharray="2 3" fill="none"';

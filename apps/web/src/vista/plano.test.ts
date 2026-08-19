@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
+import { calcularDisposicion, calcularDisposicionManual } from '../../../../packages/engine/src/sala.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { construirPlanoSvg, proyeccionSuperior } from './plano.ts';
 import type { MurosVista, Vista } from './plano.ts';
+import { num } from '../formato/numeros.ts';
 
 const SALA_VECTOR: Sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // motor-mvp.md sección 4
 const IDIOMAS: readonly Idioma[] = ['es', 'en'];
@@ -20,8 +21,10 @@ test('vector de motor-mvp.md sección 4 (W=3,6, L=5,0): el SVG isométrico gener
     assert.equal((svg.match(/<rect/g) ?? []).length, 0, idioma); // sin <rect>: sala y parlantes son wireframe
     // sin muros "vacío": 8 reflexiones (lateral×2, trasera×2, techo×2, piso×2) + anillo del punto dulce + punto dulce
     assert.equal((svg.match(/<circle/g) ?? []).length, 10, idioma);
-    // cubo de alambre (12 aristas) + triángulo de escucha (2) + 4 verticales por caja de parlante × 2 parlantes (8)
-    assert.equal((svg.match(/<line/g) ?? []).length, 22, idioma);
+    // cubo de alambre (12 aristas) + triángulo de escucha (2) + distancia a
+    // pared frontal/lateral × 2 parlantes (4) + 4 verticales por caja de
+    // parlante × 2 parlantes (8)
+    assert.equal((svg.match(/<line/g) ?? []).length, 26, idioma);
     // piso (relleno) + 8 caminos de reflexión + 2 caras (arriba/abajo) por caja de parlante × 2 parlantes (4)
     assert.equal((svg.match(/<polyline/g) ?? []).length, 13, idioma);
   }
@@ -34,7 +37,7 @@ test('las 4 vistas (isométrica/frontal/lateral/superior) producen un SVG válid
     assert.match(svg, /^<svg viewBox="0 0 \d+ \d+"/, vista);
     assert.match(svg, /<\/svg>$/, vista);
     assert.equal((svg.match(/<circle/g) ?? []).length, 10, vista);
-    assert.equal((svg.match(/<line/g) ?? []).length, 22, vista);
+    assert.equal((svg.match(/<line/g) ?? []).length, 26, vista);
     assert.equal((svg.match(/<polyline/g) ?? []).length, 13, vista);
   }
 });
@@ -113,6 +116,36 @@ test('los <text> de dimensiones, muros y distancias de reflexión usan num() por
   assert.match(svgEn, />LEFT</);
   assert.match(svgEn, />RIGHT</);
   assert.match(svgEn, />sweet spot</);
+});
+
+// ---- distancia de cada parlante a su pared frontal y a su pared lateral ----
+
+test('distancia a pared frontal/lateral: coincide con las mismas fórmulas que modeloUbicacionParlantes (disposición simétrica de referencia)', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'isometrica', 'es');
+  // parlante izquierdo: distancia a pared frontal = parlanteIzq.y; a su pared lateral (izquierda, x=0) = parlanteIzq.x
+  assert.match(svg, new RegExp(`>${num(disp.parlanteIzq.y, 2, 'es')} m<`));
+  assert.match(svg, new RegExp(`>${num(disp.parlanteIzq.x, 2, 'es')} m<`));
+  // parlante derecho: distancia a pared frontal = parlanteDer.y; a su pared lateral (derecha, x=W) = anchoM - parlanteDer.x
+  assert.match(svg, new RegExp(`>${num(disp.parlanteDer.y, 2, 'es')} m<`));
+  assert.match(svg, new RegExp(`>${num(SALA_VECTOR.anchoM - disp.parlanteDer.x, 2, 'es')} m<`));
+  // disposición simétrica de referencia: 4 líneas nuevas, 2 iguales de a pares (frontal izq=der, lateral izq=der)
+  assert.equal(disp.parlanteIzq.y, disp.parlanteDer.y);
+  assert.ok(Math.abs(disp.parlanteIzq.x - (SALA_VECTOR.anchoM - disp.parlanteDer.x)) < 1e-9);
+});
+
+test('distancia a pared frontal/lateral: se recalcula sola al mover un parlante (disposición asimétrica)', () => {
+  const dispBase = calcularDisposicion(SALA_VECTOR);
+  const dispMovida = calcularDisposicionManual(SALA_VECTOR, { x: 0.3, y: 0.9 }, dispBase.parlanteDer);
+  const svgBase = construirPlanoSvg(SALA_VECTOR, dispBase, MUROS_TIPICOS, 'isometrica', 'es');
+  const svgMovida = construirPlanoSvg(SALA_VECTOR, dispMovida, MUROS_TIPICOS, 'isometrica', 'es');
+  assert.notEqual(svgBase, svgMovida);
+  // las nuevas distancias del parlante izquierdo movido aparecen en el SVG nuevo
+  assert.match(svgMovida, />0,90 m</); // distancia a pared frontal: y=0,9
+  assert.match(svgMovida, />0,30 m</); // distancia a pared lateral izquierda: x=0,3
+  // el parlante derecho no se movió: su par de distancias no cambia
+  assert.match(svgMovida, new RegExp(`>${num(dispBase.parlanteDer.y, 2, 'es')} m<`));
+  assert.match(svgMovida, new RegExp(`>${num(SALA_VECTOR.anchoM - dispBase.parlanteDer.x, 2, 'es')} m<`));
 });
 
 test('muro declarado "vacío" muestra el sufijo de abertura junto a su etiqueta', () => {

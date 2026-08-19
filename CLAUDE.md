@@ -1165,6 +1165,26 @@ el nuevo padding de `.card` directamente. Deliberadamente fuera de esta
 pasada: los márgenes ENTRE cajas (`.card{margin-bottom:12px}`, gap antes
 de un `.geo-split`) — el pedido fue sobre el espacio interno borde↔texto
 de una misma caja, no sobre la separación entre cajas distintas.
+
+**Distancia de cada parlante a pared frontal/lateral, en el plano.** El
+plano de reflexiones (`plano.ts`) suma 2 líneas blancas segmentadas por
+parlante — a su pared frontal (y=0) y a su pared lateral respectiva
+(izquierda x=0 para el parlante izquierdo, derecha x=W para el
+derecho) — con la distancia en metros como texto, mismas 2 fórmulas
+(y mismos números) que ya reporta el párrafo "Ubicación de referencia
+de los parlantes" (`modeloUbicacionParlantes`, `resultado.ts`) debajo
+del diagrama. No es un dato nuevo del motor: `sala.ts` ya tenía
+`disp.parlanteIzq`/`disp.parlanteDer`, sólo se dibujan 2 segmentos más
+por parlante con el mismo patrón (`Pt3`/`linea()`/`texto()`) que ya usa
+el triángulo de escucha — por eso se actualizan solas al arrastrar un
+parlante (vista Superior) o al recalcular, sin lógica nueva: la función
+sigue siendo pura, sólo lee `disp` de nuevo en cada repintado, igual que
+el resto del dibujo. Verificado con Chrome headless: arrastrar el
+parlante izquierdo cambia sus 2 números (y sólo los suyos — el derecho
+no movido conserva los propios) y el SVG resultante es distinto
+bit-a-bit del anterior.
+
+Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos
