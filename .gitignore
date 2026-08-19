@@ -6,3 +6,8 @@ node_modules/
 # lo reconstruye en el deploy.
 apps/web/dist/
 .vercel/
+
+# claves de Resend/otras — nunca se commitean, se cargan en el dashboard de Vercel.
+.env
+.env.local
+.env*.local

@@ -52,6 +52,35 @@ un navegador real); ahora la detecta el build, no una persona.
   Hace falta para que `node --test` corra los `.ts` de los tres paquetes
   con type-stripping nativo (sin transpilar) durante `verify`.
 
+## `/api/contact.ts` — la única función serverless del sitio
+
+Todo lo demás en este documento describe un sitio 100% estático; esta es
+la única excepción declarada. Vercel construye `/api/**` en un **paso
+separado** del `buildCommand` de arriba — no pasa por `npm run verify &&
+npm run build` — así que hay un `tsconfig.api.json` propio en la raíz
+(`include: ["api/**/*.ts"]`) y un script `typecheck:api` enganchado a la
+cadena de `npm run typecheck` (y por lo tanto de `verify`), para que una
+regresión ahí también bloquee el deploy en vez de publicarse.
+
+Variables de entorno requeridas (Project Settings → Environment
+Variables, nunca en un archivo commiteado — `.env.example` en la raíz
+documenta el nombre de cada una sin valores reales):
+
+- `RESEND_API_KEY` — cuenta de Resend en plan Free, sin método de pago
+  cargado (así el tope de 100 emails/día es un circuit-breaker real de
+  costo, no un supuesto).
+- `CONTACT_TO_EMAIL` — adónde llegan las consultas del formulario.
+- `CONTACT_FROM_EMAIL` (opcional) — remitente. Sin definir, usa el
+  dominio de pruebas de Resend (`onboarding@resend.dev`); una vez
+  `thehifimatch.com` esté verificado en Resend (Resend → Domains, panel
+  separado de "agregar el dominio en Vercel"), puede pasar a algo
+  `@thehifimatch.com`.
+
+Sin `RESEND_API_KEY`/`CONTACT_TO_EMAIL` cargadas, el endpoint responde
+`{ok:false, codigo:'error-servidor'}` siempre — fallo explícito, no un
+error a medias. Ver `CLAUDE.md` (sección del formulario de contacto)
+para el detalle de diseño y la postura anti-abuso.
+
 ## Primer deploy
 
 1. Crear el repositorio remoto (hoy este repo no tiene ningún remoto
@@ -75,4 +104,11 @@ lógica y de estructura del build, pero no reemplaza abrir el sitio:
    `file://`, pero sí debería en la web servida por `https://`).
 3. **Descargar el `index.html` desplegado y abrirlo por doble clic.** Tiene
    que funcionar igual que la URL — es la misma garantía que motiva todo el
-   diseño de `vite-plugin-singlefile`.
+   diseño de `vite-plugin-singlefile`. En ese modo, el botón "Contacto"
+   tiene que mostrar el enlace `mailto:` de respaldo, nunca intentar
+   `fetch` (no hay host que resolver desde `file://`).
+4. **Completar el formulario de contacto en la URL de producción** (no en
+   `file://`) y confirmar que el email llega a `CONTACT_TO_EMAIL`. Si las
+   variables de entorno de la sección de arriba todavía no están
+   cargadas, va a mostrar el mensaje de error genérico — esperado, no un
+   bug.

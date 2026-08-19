@@ -1249,7 +1249,127 @@ que se dejó así a propósito; si hace falta cubrir ese rango angosto
 también, la solución real es bajar el breakpoint de `.grid`, un cambio
 de alcance distinto a "ajustar ancho de botones".
 
+**Dominio propio + formulario de contacto → email: primer backend real
+del sitio.** Dos piezas relacionadas, pedidas juntas. El dominio
+`thehifimatch.com` ya está comprado y apuntando al deploy (dato del
+usuario, no hubo cambio de código de mi parte — comprar dominios/tocar
+DNS está fuera de lo que puedo ejecutar). El formulario sí es código
+nuevo, y es la primera vez que el sitio deja de ser 100% estático:
+hasta ahora "cero dependencias de runtime" valía para todo el repo por
+igual; a partir de acá vale específicamente para `packages/engine`,
+`packages/data`, `packages/contact` y `apps/web` — `/api/contact.ts` es,
+a propósito, la única excepción declarada, aislada en su propia carpeta,
+nunca importada desde el resto.
+
+**Por qué esto no era un problema de "alta consulta de análisis".** El
+motor sigue corriendo 100% en el navegador — sin `fetch`, sin backend,
+servido como archivo estático desde el CDN de Vercel — así que nada de
+esta ronda lo toca ni necesita "escalar": ya escala solo, gratis, porque
+no hay cómputo de servidor por análisis. El único punto nuevo de
+posible abuso/costo es específicamente `/api/contact.ts`, así que ahí
+se concentra toda la protección de esta ronda (ver abajo), no en el
+motor.
+
+**`packages/contact` (4º workspace, mismo patrón que `engine`/`data`):
+validación pura, cero dependencias de runtime, consumida tanto por el
+cliente (feedback instantáneo) como por el servidor (el borde de
+seguridad real).** `validarContacto(entrada)` — un `codigo`, nunca texto
+armado, mismo principio no-negociable del motor — chequea, en este
+orden (de menor a mayor costo de un falso positivo): honeypot no vacío
+→ `'honeypot'`; menos de 1000&nbsp;ms entre abrir el formulario y
+enviarlo → `'muy-rapido'` (umbral corto a propósito — 2-3&nbsp;s
+generarían falsos positivos con autocompletado o gente que tipea
+rápido); formato de email inválido → `'email-invalido'`; mensaje vacío
+→ `'mensaje-vacio'`; mensaje de más de 5000 caracteres (defensa, no un
+límite de UX real) → `'mensaje-largo'`. `manejarContacto(entrada, {
+enviarEmail })` recibe el envío de email **inyectado como dependencia**
+— mismo principio de separación que ya usa el sitio entre lógica pura y
+lo que toca el mundo exterior (`vista/pintar.ts`/`medidor.ts` vs. el
+resto) — así el flujo completo se testea con `node --test`, sin red ni
+credenciales, con un `enviarEmail` fake que sólo graba sus argumentos:
+el caso feliz invoca `enviarEmail`; honeypot devuelve `{ok:true}` de
+todas formas (nunca hay que confirmarle a un bot que fue detectado)
+**pero sin llamar a `enviarEmail`**; cualquier otro rechazo devuelve
+`{ok:false, codigo}` y tampoco llama a `enviarEmail`; si `enviarEmail`
+rechaza (falla Resend), `'error-servidor'` sin exponer el detalle
+interno al cliente (sí queda en `console.error`, visible en los logs de
+la función).
+
+**`/api/contact.ts`: adaptador delgado, sin CORS abierto.** Parsea el
+request, arma el `enviarEmail` real (llamada a Resend, remitente
+`onboarding@resend.dev` mientras `thehifimatch.com` no esté verificado
+en Resend — ver "Falta" más abajo) y delega toda la lógica en
+`manejarContacto`. Rechaza método distinto de `POST` (405); si faltan
+`RESEND_API_KEY`/`CONTACT_TO_EMAIL` en las variables de entorno,
+`error-servidor` sin arrancar Resend. Deliberadamente **sin**
+`Access-Control-Allow-Origin` — el fetch del sitio es same-origin,
+agregarlo habilitaría que cualquier sitio de terceros use el endpoint
+embebiéndolo en su propio formulario. Vercel construye `/api/**` en un
+paso separado del `buildCommand` de `apps/web` — por eso hay un
+`tsconfig.api.json` propio en la raíz y un script `typecheck:api`
+enganchado a la cadena de `verify`, para que una regresión ahí también
+rompa el deploy (mismo criterio que `docs/despliegue.md` ya declara
+para los demás workspaces — sin este agregado quedaba como una
+excepción silenciosa a esa garantía).
+
+**Frontend: un solo `<dialog>` de contacto, cuatro puntos de entrada, y
+manejo explícito de `file://`.** El diálogo (`#contacto-popup`, mismo
+framework CSS de animación/backdrop que `#info-popup`, con su propio
+`<form>` en vez de sólo texto inyectado) se abre desde un botón
+"Contacto" agregado a las 3 pantallas no-splash (mismo patrón repetido
+que Info/Guardar/Volver) y desde un link fijo en la esquina inferior de
+la portada. El honeypot es un `<input>` real (no `type="hidden"` —
+algunos bots lo filtran a propósito) oculto con posicionamiento fuera
+de pantalla, no `display:none`/`visibility:hidden` (mismo motivo).
+**El sitio tiene que seguir funcionando por `file://`**
+(`docs/despliegue.md`) y ahí un `fetch('/api/contact')` no es un error
+de red recuperable — la URL ni siquiera resuelve a un host — así que
+`enviarContacto` chequea `location.protocol === 'file:'` **antes** de
+intentar la red y muestra directo un enlace `mailto:` con asunto/cuerpo
+precargados, en vez de un error de red genérico y confuso. Verificado
+con Chrome headless en los dos casos: por `file://` nunca llama a
+`fetch` (interceptado y confirmado); servido por `http://`, si intenta
+`fetch` (sin servidor real en el entorno de test, falla de red) el
+error se maneja con el mensaje genérico, sin crash. También verificado
+que el honeypot corta antes de la red y que un envío a menos de 1s del
+`open` se rechaza — ambos casos client-side, antes de llegar al fetch.
+
+**Postura anti-abuso, deliberadamente liviana para esta ronda — sin
+sumar servicios de terceros nuevos.** Honeypot + chequeo de tiempo +
+límite de longitud (arriba) cubren bots simples. El resto depende de
+config, no de código — ver "Falta". Nada de rate-limit con un `Map` en
+memoria: no funciona en serverless (instancias efímeras, sin memoria
+compartida garantizada entre requests) — si en algún momento hace falta
+un límite real por IP, la pieza correcta es Upstash Ratelimit (backing
+store persistente), no implementado todavía porque no hay evidencia de
+que haga falta.
+
 Falta:
+- **Cuenta de Resend**: crear, quedarse en plan Free, **sin cargar
+  método de pago** — así el tope de 100 emails/día es un
+  circuit-breaker real garantizado por configuración (peor caso: $0 y
+  UX degradada, nunca una factura sorpresa), no un supuesto. Cargar
+  `RESEND_API_KEY`/`CONTACT_TO_EMAIL` en Vercel (Project Settings →
+  Environment Variables) — sin esto, `/api/contact.ts` responde
+  `error-servidor` siempre (fallo explícito, no un `undefined`
+  silencioso).
+- **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
+  el mismo paso que agregar el dominio en Vercel — son paneles y
+  registros DNS distintos): recién ahí tiene sentido cambiar
+  `CONTACT_FROM_EMAIL` a algo `@thehifimatch.com` en vez del dominio de
+  pruebas de Resend.
+- **Activar el Firewall/protección de bots de Vercel** (dashboard, cero
+  código, gratis incluso en Hobby) — capa adicional gratuita que no se
+  activó desde acá porque requiere acceso al dashboard del usuario.
+- **Verificar qué versión de Node soporta el runtime de Functions** de
+  Vercel (Project Settings → Functions) — es una config de plataforma
+  separada del `engines.node` que fija el build, puede ir un escalón
+  atrás del Node más nuevo; no confirmable sin acceso al dashboard.
+- **Confirmar `CONTACTO_EMAIL_FALLBACK`** (`main.ts`,
+  `contacto@thehifimatch.com` hoy) apunta a una casilla real que se
+  revisa — es el destino del enlace `mailto:` de `file://`,
+  independiente de `CONTACT_TO_EMAIL` (esa es server-side); si cambia
+  una, hay que actualizar la otra a mano.
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos

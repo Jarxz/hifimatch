@@ -17,6 +17,7 @@
         <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
+    <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
         <div class="mark" aria-hidden="true">
@@ -46,6 +47,7 @@
           <button type="button" data-idioma="es" aria-pressed="true">ES</button>
           <button type="button" data-idioma="en" aria-pressed="false">EN</button>
         </div>
+        <button class="back" id="btn-contacto-config" data-i18n="contacto.boton">Contacto</button>
         <button class="back" id="btn-volver-splash" data-i18n="config.volver">← Volver</button>
       </div>
     </div>
@@ -220,6 +222,7 @@
         </div>
         <button class="back" id="btn-info" data-i18n="info.boton">Info</button>
         <button class="back" id="btn-guardar" data-i18n="resultado.guardarBoton">Guardar</button>
+        <button class="back" id="btn-contacto-resultado" data-i18n="contacto.boton">Contacto</button>
         <button class="back" id="btn-volver-config" data-i18n="resultado.volver">← Cambiar sistema</button>
       </div>
     </div>
@@ -421,6 +424,7 @@
           <button type="button" data-idioma="es" aria-pressed="true">ES</button>
           <button type="button" data-idioma="en" aria-pressed="false">EN</button>
         </div>
+        <button class="back" id="btn-contacto-info" data-i18n="contacto.boton">Contacto</button>
         <button class="back" id="btn-info-volver" data-i18n="info.volver">← Volver al análisis</button>
       </div>
     </div>
@@ -450,6 +454,36 @@
     <button type="button" id="info-popup-cerrar" class="infoclose" data-i18n-aria="comun.cerrarAria" aria-label="Cerrar">×</button>
   </div>
   <p id="info-popup-cuerpo">—</p>
+</dialog>
+
+<dialog id="contacto-popup" class="info-popup">
+  <div class="info-popup-head">
+    <h3 data-i18n="contacto.titulo">Contacto</h3>
+    <button type="button" id="contacto-cerrar" class="infoclose" data-i18n-aria="comun.cerrarAria" aria-label="Cerrar">×</button>
+  </div>
+  <p class="lead-note" style="margin:0 0 16px" data-i18n="contacto.intro">¿Encontraste un dato que parece mal, o tenés una sugerencia? Escribinos.</p>
+  <form id="form-contacto" novalidate>
+    <div class="campo">
+      <label for="ct-nombre" data-i18n="contacto.campoNombre">Nombre (opcional)</label>
+      <input type="text" id="ct-nombre" name="nombre" autocomplete="name">
+    </div>
+    <div class="campo">
+      <label for="ct-email" data-i18n="contacto.campoEmail">Tu email</label>
+      <input type="email" id="ct-email" name="email" required autocomplete="email">
+    </div>
+    <div class="campo">
+      <label for="ct-mensaje" data-i18n="contacto.campoMensaje">Mensaje</label>
+      <textarea id="ct-mensaje" name="mensaje" rows="5" required></textarea>
+    </div>
+    <div class="campo-hp" aria-hidden="true">
+      <label for="ct-sitio">Sitio web</label>
+      <input type="text" id="ct-sitio" name="sitio_web" tabindex="-1" autocomplete="off">
+    </div>
+    <p id="contacto-estado" class="contacto-estado hidden" role="status" aria-live="polite"></p>
+    <div class="contacto-acciones">
+      <button type="submit" id="contacto-enviar" class="analizar" data-i18n="contacto.enviar">Enviar</button>
+    </div>
+  </form>
 </dialog>
 
 <script type="module" src="/src/main.ts"></script>

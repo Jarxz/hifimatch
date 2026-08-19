@@ -12,8 +12,15 @@
   "scripts": {
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web",
-    "test": "npm test -w packages/engine && npm test -w packages/data && npm test -w apps/web",
-    "typecheck": "npm run typecheck -w packages/engine && npm run typecheck -w packages/data && npm run typecheck -w apps/web",
+    "test": "npm test -w packages/engine && npm test -w packages/data && npm test -w packages/contact && npm test -w apps/web",
+    "typecheck": "npm run typecheck -w packages/engine && npm run typecheck -w packages/data && npm run typecheck -w packages/contact && npm run typecheck -w apps/web && npm run typecheck:api",
+    "typecheck:api": "tsc --noEmit -p tsconfig.api.json",
     "verify": "npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "resend": "^6.20.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.10.1"
   }
 }

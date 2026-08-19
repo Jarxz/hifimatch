@@ -14,6 +14,8 @@ import { calcularPuntaje, PESOS_DECLARADOS } from '../../../packages/engine/src/
 import type { ComponentePuntaje } from '../../../packages/engine/src/puntaje.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
+import { validarContacto } from '../../../packages/contact/src/validar.ts';
+import type { EntradaContacto } from '../../../packages/contact/src/validar.ts';
 
 import { estado } from './estado.ts';
 import type { NivelUI } from './estado.ts';
@@ -662,6 +664,105 @@ function abrirGuardarPopup(): void {
   abrirPopup(t.guardarPopupTitulo, t.guardarPopupCuerpo);
 }
 
+/** Destino del enlace `mailto:` de respaldo cuando el sitio corre por
+ * `file://` (ahí no se puede llamar a `/api/contact` — ni siquiera resuelve
+ * a un host). Independiente de `CONTACT_TO_EMAIL` (esa es la variable de
+ * entorno del lado del servidor); si esa dirección cambia, actualizar
+ * también acá. */
+const CONTACTO_EMAIL_FALLBACK = 'contacto@thehifimatch.com';
+
+/** `Date.now()` al abrir el diálogo — junto con el momento del envío,
+ * alimenta el chequeo de "muy rápido" de `validarContacto` (ver
+ * `packages/contact/src/validar.ts`). */
+let contactoAbiertoEnMs = 0;
+
+function abrirContactoPopup(): void {
+  const dialog = document.getElementById('contacto-popup') as HTMLDialogElement | null;
+  const form = document.getElementById('form-contacto') as HTMLFormElement | null;
+  const estadoEl = document.getElementById('contacto-estado');
+  if (!dialog || !form || !estadoEl) return;
+  form.reset();
+  estadoEl.classList.add('hidden');
+  estadoEl.classList.remove('exito', 'error');
+  contactoAbiertoEnMs = Date.now();
+  dialog.showModal();
+}
+
+function leerEntradaContacto(form: HTMLFormElement): EntradaContacto {
+  const datos = new FormData(form);
+  return {
+    nombre: String(datos.get('nombre') ?? '').trim(),
+    email: String(datos.get('email') ?? '').trim(),
+    mensaje: String(datos.get('mensaje') ?? ''),
+    honeypot: String(datos.get('sitio_web') ?? ''),
+    cargadoEnMs: contactoAbiertoEnMs,
+    enviadoEnMs: Date.now(),
+  };
+}
+
+function mostrarEstadoContacto(texto: string, clase: 'exito' | 'error' | null): void {
+  const estadoEl = document.getElementById('contacto-estado');
+  if (!estadoEl) return;
+  estadoEl.innerHTML = texto;
+  estadoEl.classList.remove('hidden', 'exito', 'error');
+  if (clase) estadoEl.classList.add(clase);
+}
+
+/** El sitio tiene que seguir funcionando por `file://` (`docs/despliegue.md`)
+ * — ahí un `fetch('/api/contact')` no falla de forma recuperable, la URL
+ * ni siquiera resuelve a un host. Se detecta ANTES de intentar la red y se
+ * muestra directo el enlace `mailto:` con el mensaje precargado, en vez de
+ * un error de red genérico y confuso. */
+function mostrarFallbackMailto(entrada: EntradaContacto): void {
+  const asunto = encodeURIComponent(`Contacto — ${entrada.nombre || 'sin nombre'}`);
+  const cuerpo = encodeURIComponent(entrada.mensaje);
+  const mailto = `mailto:${CONTACTO_EMAIL_FALLBACK}?subject=${asunto}&body=${cuerpo}`;
+  mostrarEstadoContacto(textosDe(idiomaActual).contacto.fallbackMailtoHtml({ mailto }), null);
+}
+
+async function enviarContacto(e: SubmitEvent): Promise<void> {
+  e.preventDefault();
+  const form = e.currentTarget as HTMLFormElement;
+  const boton = document.getElementById('contacto-enviar') as HTMLButtonElement | null;
+  const t = textosDe(idiomaActual).contacto;
+  const entrada = leerEntradaContacto(form);
+
+  // Validación client-side: feedback instantáneo, no es el borde de
+  // seguridad real — eso vuelve a correr server-side en /api/contact.ts.
+  const validacion = validarContacto(entrada);
+  if (!validacion.ok) {
+    mostrarEstadoContacto(t.error[validacion.codigo], 'error');
+    return;
+  }
+
+  if (location.protocol === 'file:') {
+    mostrarFallbackMailto(entrada);
+    return;
+  }
+
+  if (boton) boton.disabled = true;
+  mostrarEstadoContacto(t.enviando, null);
+
+  try {
+    const resp = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entrada),
+    });
+    const json = (await resp.json()) as { ok: boolean; codigo?: keyof typeof t.error };
+    if (json.ok) {
+      mostrarEstadoContacto(t.exito, 'exito');
+      form.reset();
+    } else {
+      mostrarEstadoContacto(t.error[json.codigo ?? 'error-servidor'], 'error');
+    }
+  } catch {
+    mostrarEstadoContacto(t.error['error-servidor'], 'error');
+  } finally {
+    if (boton) boton.disabled = false;
+  }
+}
+
 function inicializarSplash(): void {
   const ticks = document.getElementById('splash-ticks');
   if (!ticks) return;
@@ -690,6 +791,17 @@ function wireEventos(): void {
   infoPopup?.addEventListener('click', (e) => {
     if (e.target === infoPopup) infoPopup.close();
   });
+
+  document.getElementById('btn-contacto-splash')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-config')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-resultado')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-info')?.addEventListener('click', () => abrirContactoPopup());
+  const contactoPopup = document.getElementById('contacto-popup') as HTMLDialogElement | null;
+  document.getElementById('contacto-cerrar')?.addEventListener('click', () => contactoPopup?.close());
+  contactoPopup?.addEventListener('click', (e) => {
+    if (e.target === contactoPopup) contactoPopup.close();
+  });
+  document.getElementById('form-contacto')?.addEventListener('submit', enviarContacto);
 
   document.getElementById('sel-spk-marca')?.addEventListener('change', (e) => setMarca('spk', (e.target as HTMLSelectElement).value));
   document.getElementById('sel-amp-marca')?.addEventListener('change', (e) => setMarca('amp', (e.target as HTMLSelectElement).value));

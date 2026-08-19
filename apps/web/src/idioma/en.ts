@@ -18,6 +18,29 @@ export const en: Textos = {
     cerrarAria: 'Close',
   },
 
+  contacto: {
+    boton: 'Contact',
+    titulo: 'Contact',
+    intro: 'Found a spec that looks off, or have a suggestion? Write to us.',
+    campoNombre: 'Name (optional)',
+    campoEmail: 'Your email',
+    campoMensaje: 'Message',
+    enviar: 'Send',
+    enviando: 'Sending…',
+    exito: "Message sent. Thanks — we'll read it.",
+    error: {
+      'honeypot': "Couldn't send the message. Try again.",
+      'muy-rapido': 'Try again in a moment.',
+      'email-invalido': 'Check the email format.',
+      'mensaje-vacio': "The message can't be empty.",
+      'mensaje-largo': "The message is too long — try shortening it.",
+      'metodo-invalido': "Couldn't send the message. Try again.",
+      'error-servidor': "Couldn't send the message. Try again in a moment.",
+    },
+    fallbackMailtoHtml: (p) =>
+      `This page is open as a local file, so it can't send directly from here. <a href="${p.mailto}">Open your email client</a> with the message already loaded.`,
+  },
+
   splash: {
     entrarAria: 'Enter the compatibility analysis',
     subtitulo: 'hi-fi compatibility analysis',

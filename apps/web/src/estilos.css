@@ -50,6 +50,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 /* IDIOMA */
 .idioma-splash{position:fixed; top:20px; right:22px; z-index:1}
 .segs.idioma button{padding:7px 12px; font-size:11.5px; letter-spacing:.1em}
+.contacto-splash{position:fixed; bottom:20px; right:22px; z-index:1}
 
 /* HEAD */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:grid; grid-template-columns:auto 1fr; grid-template-areas:"hm hright" "hs hright"; align-items:center; column-gap:20px; padding:18px 22px; border-bottom:1px solid var(--line)}
@@ -279,6 +280,22 @@ dialog.info-popup[open]::backdrop{opacity:1}
 .info-popup p b{color:var(--text); font-weight:500}
 .infoclose{background:transparent; border:0; color:var(--faint); font-size:20px; line-height:1; cursor:pointer; padding:0 2px; flex:0 0 auto}
 .infoclose:hover{color:var(--text)}
+
+/* FORMULARIO DE CONTACTO */
+#contacto-popup .campo{margin-top:14px}
+#contacto-popup .campo label{display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--label); margin-bottom:7px}
+#contacto-popup input[type=text], #contacto-popup input[type=email], #contacto-popup textarea{width:100%; font:inherit; font-size:14px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:10px 12px; resize:vertical; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
+#contacto-popup input:hover, #contacto-popup textarea:hover{border-color:var(--line2)}
+#contacto-popup input:focus-visible, #contacto-popup textarea:focus-visible{outline:none; border-color:var(--line2)}
+/* honeypot: posicionado fuera de la pantalla, no display:none/visibility:hidden
+   — algunos bots filtran explícitamente esas dos técnicas clásicas. */
+.campo-hp{position:absolute; left:-9999px; top:-9999px}
+.contacto-estado{font-size:12.5px; margin-top:12px; color:var(--dim)}
+.contacto-estado.exito{color:var(--ok)}
+.contacto-estado.error{color:var(--alert)}
+.contacto-estado a{color:var(--warn)}
+.contacto-estado a:hover{color:var(--text)}
+.contacto-acciones{margin-top:16px; display:flex; justify-content:flex-end}
 
 .info-item summary{cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:16px; user-select:none}
 .info-item summary::-webkit-details-marker{display:none}

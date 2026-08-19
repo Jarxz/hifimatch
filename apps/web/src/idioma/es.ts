@@ -17,6 +17,14 @@ import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos
 import type { CodigoReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
+import type { CodigoContacto } from '../../../../packages/contact/src/validar.ts';
+
+/** Códigos que puede devolver `/api/contact.ts` — superset de
+ * `CodigoContacto` (que sólo cubre lo que valida `validarContacto`, del
+ * lado del formulario) con los 2 códigos que sólo puede producir el
+ * propio borde HTTP (método no-POST, o un fallo real de `manejarContacto`
+ * al llamar a Resend). */
+type CodigoRespuestaContacto = CodigoContacto | 'metodo-invalido' | 'error-servidor';
 
 export const es = {
   meta: {
@@ -29,6 +37,29 @@ export const es = {
     idiomaAria: 'Cambiar idioma',
     infoAria: 'Ver información',
     cerrarAria: 'Cerrar',
+  },
+
+  contacto: {
+    boton: 'Contacto',
+    titulo: 'Contacto',
+    intro: '¿Encontraste un dato que parece mal, o tenés una sugerencia? Escribinos.',
+    campoNombre: 'Nombre (opcional)',
+    campoEmail: 'Tu email',
+    campoMensaje: 'Mensaje',
+    enviar: 'Enviar',
+    enviando: 'Enviando…',
+    exito: 'Mensaje enviado. Gracias — lo vamos a leer.',
+    error: {
+      'honeypot': 'No se pudo enviar el mensaje. Probá de nuevo.',
+      'muy-rapido': 'Probá de nuevo en un momento.',
+      'email-invalido': 'Revisá el formato del email.',
+      'mensaje-vacio': 'El mensaje no puede quedar vacío.',
+      'mensaje-largo': 'El mensaje es demasiado largo — probá acortarlo.',
+      'metodo-invalido': 'No se pudo enviar el mensaje. Probá de nuevo.',
+      'error-servidor': 'No se pudo enviar el mensaje. Probá de nuevo en un momento.',
+    } satisfies Record<CodigoRespuestaContacto, string>,
+    fallbackMailtoHtml: (p: { mailto: string }): string =>
+      `Esta página está abierta como archivo local, así que no se puede enviar directo desde acá. <a href="${p.mailto}">Abrí tu cliente de correo</a> con el mensaje ya cargado.`,
   },
 
   splash: {
