@@ -1402,6 +1402,26 @@ fallar en cada invocación — hay que revisar el log de *runtime* del
 propio request fallido, no asumir que "build verde" implica "función
 funcional".
 
+**Tercera vuelta sobre el mismo punto — el fix del segundo bug reabrió
+el primero, con un mensaje distinto (`TS2835` en vez de `TS5097`).**
+Al agregar `api/package.json` con `type:module`, Vercel detectó que
+`/api/**` ahora es ESM y cambió su resolución de módulos a
+`node16`/`nodenext` — que **exige** extensión en los imports relativos,
+lo opuesto a la primera vuelta (que la **prohibía**, sin
+`allowImportingTsExtensions`). La extensión correcta bajo
+`node16`/`nodenext` no es `.ts` (el archivo fuente) sino **`.js`** (el
+nombre del archivo ya compilado — convención estándar de TypeScript
+para esa resolución, aunque el archivo en disco siga siendo `.ts`).
+`api/contact.ts` importa `../packages/contact/src/contacto.js` — la
+única forma de import de todo el repo que funciona en los tres momentos
+de esta historia: sin extensión servía a medias, `.ts` rompía con
+`allowImportingTsExtensions` deshabilitado, y ahora `.js` es lo único
+compatible con la resolución `node16`/`nodenext` que activa `type:module`.
+Confirmado con `tsc --noEmit -p tsconfig.api.json` (que ya declara
+`moduleResolution:"bundler"`, compatible con la sustitución `.js`→`.ts`
+igual que `node16`/`nodenext`) y con una carga real vía `tsx` del
+módulo completo.
+
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y

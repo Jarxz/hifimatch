@@ -6,30 +6,35 @@
  * `verify`) es necesario para que una regresión acá también rompa el
  * deploy, igual que en los demás workspaces (`docs/despliegue.md`).
  *
- * El import de abajo hacia `packages/contact` va **sin** extensión `.ts`
- * a propósito — es el único import de todo el repo así, y no es un
- * descuido: el compilador de Vercel para `/api/**` no acepta imports
- * relativos con extensión `.ts` explícita (`allowImportingTsExtensions`
- * no está habilitado ahí), a diferencia de `node --test` en el resto del
- * repo, que sí la necesita. Confirmado en producción — con la extensión,
- * la función ni siquiera cargaba (`FUNCTION_INVOCATION_FAILED` en
- * cualquier request). Ver el comentario de cabecera de
- * `packages/contact/src/contacto.ts` para el detalle completo.
+ * El import de abajo hacia `packages/contact` lleva extensión **`.js`**
+ * (no `.ts`, aunque el archivo fuente es `.ts`) — tercera vuelta sobre
+ * el mismo punto, cada una con una causa distinta, documentadas las tres
+ * porque el patrón se repite: `api/package.json` (ver más abajo) declara
+ * `"type":"module"`, y en cuanto Vercel ve un `package.json` ESM cambia
+ * su resolución de módulos a `node16`/`nodenext` — que **exige** la
+ * extensión `.js` en imports relativos (apuntando al nombre del archivo
+ * ya compilado, no al `.ts` fuente; es la convención estándar de
+ * TypeScript bajo esa resolución). Antes de tener `api/package.json`,
+ * ese mismo compilador rechazaba `.ts` con `TS5097` (`.ts` no permitida
+ * sin `allowImportingTsExtensions`); ahora, sin extensión, rechaza con
+ * `TS2835` (`.js` requerida bajo `node16`/`nodenext`). `.js` es la única
+ * forma que funciona en los dos momentos.
  *
- * `api/package.json` (`{"type":"module"}`) es necesario además de lo de
- * arriba, y por una razón distinta: `packages/contact/package.json`
+ * `api/package.json` (`{"type":"module"}`) es necesario por una razón
+ * distinta y anterior a la de arriba: `packages/contact/package.json`
  * declara `"type":"module"` (como todo el resto del repo), así que
  * Vercel compila `contacto.ts` a un `.js` con `export`/`import` real.
  * Sin un `package.json` propio en `/api`, este archivo hereda el `type`
  * del `package.json` de la raíz — que no lo declara, por default
  * CommonJS — y el resultado compilado usaba `require()` para importar un
  * módulo ESM, algo que Node rechaza en tiempo de ejecución
- * (`ERR_REQUIRE_ESM`, confirmado en los logs de runtime de Vercel — el
- * error de build por la extensión `.ts` de arriba ya estaba resuelto en
- * ese punto, este es un segundo bug independiente, no el mismo). Con
- * `api/package.json` declarando `type:module`, Vercel compila este
- * archivo también a ESM real — mismo formato en los dos lados del
- * import, sin mezcla `require`/`import`.
+ * (`ERR_REQUIRE_ESM`, confirmado en los logs de runtime de Vercel — un
+ * bug totalmente independiente del de la extensión, con el mismo
+ * síntoma visible, `FUNCTION_INVOCATION_FAILED`). Con `api/package.json`
+ * declarando `type:module`, Vercel compila este archivo también a ESM
+ * real — mismo formato en los dos lados del import, sin mezcla
+ * `require`/`import` — pero ESM es justo lo que activa la exigencia de
+ * `.js` del párrafo de arriba, así que corregir este bug reabrió aquel.
  *
  * Adaptador delgado: parsea el request, arma el `enviarEmail` real
  * (Resend) y delega toda la validación/lógica en `manejarContacto`
@@ -39,8 +44,8 @@
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
-import { manejarContacto } from '../packages/contact/src/contacto';
-import type { EntradaContacto } from '../packages/contact/src/contacto';
+import { manejarContacto } from '../packages/contact/src/contacto.js';
+import type { EntradaContacto } from '../packages/contact/src/contacto.js';
 
 function comoTexto(v: unknown): string {
   return typeof v === 'string' ? v : '';
