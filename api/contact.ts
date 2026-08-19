@@ -16,6 +16,21 @@
  * cualquier request). Ver el comentario de cabecera de
  * `packages/contact/src/contacto.ts` para el detalle completo.
  *
+ * `api/package.json` (`{"type":"module"}`) es necesario además de lo de
+ * arriba, y por una razón distinta: `packages/contact/package.json`
+ * declara `"type":"module"` (como todo el resto del repo), así que
+ * Vercel compila `contacto.ts` a un `.js` con `export`/`import` real.
+ * Sin un `package.json` propio en `/api`, este archivo hereda el `type`
+ * del `package.json` de la raíz — que no lo declara, por default
+ * CommonJS — y el resultado compilado usaba `require()` para importar un
+ * módulo ESM, algo que Node rechaza en tiempo de ejecución
+ * (`ERR_REQUIRE_ESM`, confirmado en los logs de runtime de Vercel — el
+ * error de build por la extensión `.ts` de arriba ya estaba resuelto en
+ * ese punto, este es un segundo bug independiente, no el mismo). Con
+ * `api/package.json` declarando `type:module`, Vercel compila este
+ * archivo también a ESM real — mismo formato en los dos lados del
+ * import, sin mezcla `require`/`import`.
+ *
  * Adaptador delgado: parsea el request, arma el `enviarEmail` real
  * (Resend) y delega toda la validación/lógica en `manejarContacto`
  * (`packages/contact`, testeado sin red). Sin CORS abierto a propósito —

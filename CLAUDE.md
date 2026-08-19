@@ -1373,6 +1373,35 @@ Verificado con `tsc` standalone (sin `tsconfig.api.json`, con
 `--skipLibCheck` para descartar un error no relacionado de los tipos de
 `resend`/React) que compila limpio con esta estructura.
 
+**Segundo bug de producción, independiente del anterior y encontrado
+después de resolverlo: `ERR_REQUIRE_ESM` — mismo síntoma visible
+(`FUNCTION_INVOCATION_FAILED` en cualquier request), causa distinta.**
+El error de la extensión `.ts` (arriba) ya estaba resuelto en este
+punto; los logs de **runtime** (no de build — distinción que costó dos
+rondas de confusión antes de conseguir el log correcto) mostraban:
+`Error [ERR_REQUIRE_ESM]: require() of ES Module .../packages/contact/
+src/contacto.js from .../api/contact.js not supported`. Causa: **cada
+`package.json` del repo declara `"type":"module"`** (`packages/engine`,
+`packages/data`, `packages/contact`, `apps/web`) **menos el de la
+raíz**, que no lo declara — y `/api` no tiene `package.json` propio, así
+que hereda el de la raíz. Vercel compiló `contacto.ts` a un `.js` con
+`export`/`import` reales (porque el `package.json` de `packages/contact`
+sí dice `type:module`) pero compiló `api/contact.ts` a CommonJS (porque
+el `package.json` que encuentra para `/api` — el de la raíz — no lo
+dice), y el resultado fue un `require()` de CommonJS intentando cargar
+un módulo ESM — algo que Node rechaza en tiempo de ejecución sin
+importar qué diga TypeScript en tiempo de compilación. Fix: `api/
+package.json` nuevo, con el único contenido `{"type":"module"}` — igual
+que cada workspace declara el suyo, `/api` ahora declara el propio en
+vez de heredar el default implícito de la raíz. Con los dos lados en
+ESM real, el `import` de `api/contact.ts` compila a `import` nativo, no
+a `require()`, y el mismatch desaparece. **Lección para la próxima vez
+que este tipo de bug aparezca:** el log de *build* puede estar
+completamente limpio (0 errores de TypeScript) y la función igual
+fallar en cada invocación — hay que revisar el log de *runtime* del
+propio request fallido, no asumir que "build verde" implica "función
+funcional".
+
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y
