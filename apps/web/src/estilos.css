@@ -1,7 +1,7 @@
 :root{
   --bg:#0A0A0B; --panel:#101012; --panel2:#141417;
   --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.20);
-  --text:#ECECEE; --dim:#8C8C93; --faint:#5A5A61; --label:#6E6E75;
+  --text:#ECECEE; --dim:#A3A3AA; --faint:#717178; --label:#85858C;
   --ok:#96B6A2; --warn:#C7AD7C; --alert:#C58474; --dorado:#B8996A;
   --sans:'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif;
   --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
@@ -48,7 +48,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .splash .cierre b{color:var(--text); font-weight:500}
 
 /* IDIOMA */
-.idioma-splash{position:fixed; top:20px; right:22px; z-index:1}
+.idioma-splash{position:fixed; top:20px; right:22px; z-index:21}
 .segs.idioma button{padding:7px 12px; font-size:11.5px; letter-spacing:.1em}
 .contacto-splash{position:fixed; bottom:20px; right:22px; z-index:1}
 .version-splash{position:fixed; bottom:20px; left:22px; z-index:1; color:var(--faint); font-size:10px; letter-spacing:.12em}

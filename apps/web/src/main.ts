@@ -814,12 +814,14 @@ function wireEventos(): void {
   document.getElementById('btn-info')?.addEventListener('click', () => ir('info'));
   document.getElementById('btn-info-volver')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
-  document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
+  // "Guardar" abre la vista previa "Documento" — Análisis 1 (el análisis
+  // vigente) es real; "Análisis 2"/"Comparar"/"Descargar PDF" siguen detrás
+  // del mismo popup de login que antes abría este mismo botón.
+  document.getElementById('btn-guardar')?.addEventListener('click', () => ir('documento'));
 
-  // "Documento" — vista previa interna, sin botón visible (ver CLAUDE.md).
-  // Sólo la pestaña "Análisis 1" (ya activa por defecto, sin listener propio)
-  // muestra contenido real; "Análisis 2"/"Comparar"/"Descargar PDF" reusan
-  // el mismo popup que #btn-guardar.
+  // "Documento" — sólo la pestaña "Análisis 1" (ya activa por defecto, sin
+  // listener propio) muestra contenido real; "Análisis 2"/"Comparar"/
+  // "Descargar PDF" reusan el mismo popup que antes abría #btn-guardar.
   document.getElementById('btn-doc-volver')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-doc-volver-2')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-doc-comparar')?.addEventListener('click', () => abrirGuardarPopup());
@@ -921,12 +923,6 @@ function main(): void {
 
   actualizarTextosDimension();
   refrescar();
-
-  // Único hook de devtools del sitio: "Documento" (#s-documento) no tiene
-  // botón visible a propósito (vista previa interna, ver CLAUDE.md) — se
-  // llega escribiendo ir('documento') en la consola. No agrega ninguna
-  // afordancia de UI, sólo hace alcanzable esa pantalla sin exponerla.
-  (window as unknown as { ir: typeof ir }).ir = ir;
 }
 
 main();

@@ -1551,19 +1551,19 @@ análisis anterior. Verificado con Chrome headless: oculta en "Análisis
 original", visible tras Recalcular, vuelve a ocultarse al volver a
 "Análisis original" y al analizar un sistema nuevo desde cero.
 
-**"Documento" — vista previa interna de "guardar y comparar como PDF",
-sin botón visible en ningún lado.** Pantalla nueva (`#s-documento`,
-mismo patrón `Pantalla`/`ir()` que splash/config/resultado/guía) que
-muestra el análisis actual reformateado como un informe — logo en negro
-sobre fondo blanco (el único lugar del sitio con fondo claro), título,
-fecha, equipo elegido con specs, sala, puntaje y veredicto por
-componente. **Deliberadamente no conectada a ningún botón real de la
-interfaz** — es una referencia de diseño para cuando exista una cuenta
-de usuario, decisión explícita del usuario tras una ronda de preguntas
-de scope: ni siquiera "Guardar" navega ahí (`#btn-guardar` sigue
-exactamente igual que antes, abre el popup de login de siempre). Se
-llega escribiendo `ir('documento')` en la consola — `main()` expone
-`window.ir = ir` sólo para eso, sin agregar ninguna afordancia de UI.
+**"Documento" — "guardar y comparar como PDF", vista previa de la
+mitad real de esa función.** Pantalla nueva (`#s-documento`, mismo
+patrón `Pantalla`/`ir()` que splash/config/resultado/guía) que muestra
+el análisis actual reformateado como un informe — logo en negro sobre
+fondo blanco (el único lugar del sitio con fondo claro), título, fecha,
+equipo elegido con specs, sala, puntaje y veredicto por componente.
+`#btn-guardar` navega ahí directo (`ir('documento')`) — primera versión
+de esta pantalla la dejaba sin ningún botón conectado (referencia de
+diseño interna, sólo alcanzable desde la consola); el usuario probó el
+botón "Guardar" esperando ver justo esta vista y pidió conectarlo, así
+que quedó así: **"Análisis 1" es real y abierto** (el análisis vigente,
+sin login), y sólo lo que de verdad necesita cuentas/backend —
+"Análisis 2", "Comparar", "Descargar PDF" — sigue bloqueado.
 
 Arriba de la hoja blanca, un `.doc-toolbar` (fondo oscuro, igual que el
 resto del cromo del sitio) con pestañas "Análisis 1"/"Análisis 2" y
@@ -1603,10 +1603,48 @@ recalcular, separador decimal por idioma, puntaje sin reclasificar,
 plantillas de componente reusadas, `fechaTexto` pasado tal cual — no es
 un dato del motor, lo arma `main.ts` con `Date` — e inglés sin mezclar
 idiomas). Verificado con Chrome headless: el click en "Guardar" en
-`#s-results` es idéntico a antes (mismo popup, mismo texto); `ir(
-'documento')` pinta contenido real; los tres controles bloqueados abren
-el mismo popup; cambiar de idioma dentro de la pantalla relocaliza todo
-(incluida la fecha); el layout responsive a 390px no rompe.
+`#s-results` navega a `#s-documento` con contenido real; los tres
+controles bloqueados ("Análisis 2"/"Comparar"/"Descargar PDF") abren el
+mismo popup de login; cambiar de idioma dentro de la pantalla
+relocaliza todo (incluida la fecha); el layout responsive a 390px no
+rompe.
+
+**Selector de idioma en la misma esquina en las 5 pantallas, no sólo en
+la portada.** Antes, `.segs.idioma` (ES/EN) vivía en dos lugares
+distintos según la pantalla: fijo arriba a la derecha de todo el
+viewport en la portada (`.idioma-splash`, sin `.head` que le compita
+ese espacio), pero **adentro** de la fila de botones de `.head
+.hright` (junto con Info/Guardar/Contacto/Volver) en
+configurar/resultado/guía/documento — ahí quedaba a mitad de fila, no
+en la esquina, y el punto donde cae cambia según cuántos otros botones
+haya en esa pantalla. Confirmado visualmente (Chrome headless) que se
+notaba: en desktop, "GUARDAR" en la portada de resultados tenía el
+selector pegado al principio de la fila, lejos del borde real. Se
+sacó de `.hright` en las 4 pantallas y se envolvió con el mismo
+`.idioma-splash` que ya usaba la portada — ahora el selector cae
+siempre en el mismo punto fijo de la pantalla (`top:20px; right:22px`)
+sin importar qué pantalla sea. `.idioma-splash` subió su `z-index` de
+1 a 21 (por encima de `.head`, que es 20): `.head` es opaco
+(`background:var(--bg)`) y sin ese cambio el selector hubiera quedado
+tapado detrás de la barra fija en mobile, donde `.head` sí ocupa todo
+el ancho del viewport (a diferencia de desktop, donde `.head` está
+acotado a `max-width:1120px` y el selector cae en el espacio vacío
+más allá de su borde derecho, sin superposición posible). Verificado a
+390px que el selector no tapa ni el wordmark ni los demás botones del
+header, con capturas reales, no sólo con los rectángulos calculados.
+
+**Grises del sitio, un tono más claro — sin llegar al blanco de
+`--text`.** `--dim`/`--label`/`--faint` (`estilos.css` `:root`) subieron
+todos +0x17 por canal (`#8C8C93`→`#A3A3AA`, `#6E6E75`→`#85858C`,
+`#5A5A61`→`#717178`) — mismo incremento parejo en los tres, así se
+conserva el orden de contraste que ya existía entre ellos (`dim` sigue
+siendo el más claro de los tres, `faint` el más oscuro) en vez de
+aplanarlos a un solo tono. `--text` (`#ECECEE`, blanco casi puro) no se
+tocó — sigue siendo la única "más clara que estas tres", como pidió el
+usuario explícitamente ("sin llegar a blanco"). Cambio de una sola
+línea de variables: como el resto del sitio ya lee todo el gris
+secundario a través de estas tres custom properties (nunca un hex
+suelto), no hizo falta tocar ninguna regla más.
 
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
@@ -1631,13 +1669,11 @@ Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos
-  — arquitectura nueva, sin diseñar todavía. La referencia visual de
-  cómo se vería ("Documento", `#s-documento`) ya existe en el código —
-  ver más arriba — pero sin ningún botón real conectado; cuando se
-  diseñe el login, conectar `#btn-guardar` a `ir('documento')` en vez
-  de a `abrirGuardarPopup()` es el cambio mínimo, y "Análisis 2"/
-  "Comparar"/"Descargar PDF" necesitan lógica real (segunda fuente de
-  datos, generación de PDF) donde hoy sólo reusan el mismo popup.
+  — arquitectura nueva, sin diseñar todavía. `#btn-guardar` ya navega a
+  la vista previa ("Documento", `#s-documento`, ver más arriba) con
+  "Análisis 1" real; falta la lógica real detrás de "Análisis 2"/
+  "Comparar"/"Descargar PDF" (segunda fuente de datos, generación de
+  PDF) — hoy los tres sólo reusan el mismo popup de login.
 - **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
   de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
   parte del alcance actual.

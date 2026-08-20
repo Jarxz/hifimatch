@@ -18,7 +18,7 @@
       </div>
     </div>
     <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
-    <div class="version-splash" data-i18n="splash.version">V3.08.26</div>
+    <div class="version-splash" data-i18n="splash.version">V4.08.26</div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
         <div class="mark" aria-hidden="true">
@@ -44,12 +44,14 @@
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="config.hs">Configurar</div>
       <div class="hright">
-        <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
-          <button type="button" data-idioma="es" aria-pressed="true">ES</button>
-          <button type="button" data-idioma="en" aria-pressed="false">EN</button>
-        </div>
         <button class="back" id="btn-contacto-config" data-i18n="contacto.boton">Contacto</button>
         <button class="back" id="btn-volver-splash" data-i18n="config.volver">← Volver</button>
+      </div>
+    </div>
+    <div class="idioma-splash">
+      <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+        <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
 
@@ -217,14 +219,16 @@
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="resultado.hs">Resultado</div>
       <div class="hright">
-        <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
-          <button type="button" data-idioma="es" aria-pressed="true">ES</button>
-          <button type="button" data-idioma="en" aria-pressed="false">EN</button>
-        </div>
         <button class="back" id="btn-info" data-i18n="info.boton">Info</button>
         <button class="back" id="btn-guardar" data-i18n="resultado.guardarBoton">Guardar</button>
         <button class="back" id="btn-contacto-resultado" data-i18n="contacto.boton">Contacto</button>
         <button class="back" id="btn-volver-config" data-i18n="resultado.volver">← Cambiar sistema</button>
+      </div>
+    </div>
+    <div class="idioma-splash">
+      <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+        <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
 
@@ -418,12 +422,14 @@
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="info.hs">Guía del análisis</div>
       <div class="hright">
-        <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
-          <button type="button" data-idioma="es" aria-pressed="true">ES</button>
-          <button type="button" data-idioma="en" aria-pressed="false">EN</button>
-        </div>
         <button class="back" id="btn-contacto-info" data-i18n="contacto.boton">Contacto</button>
         <button class="back" id="btn-info-volver" data-i18n="info.volver">← Volver al análisis</button>
+      </div>
+    </div>
+    <div class="idioma-splash">
+      <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+        <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
 
@@ -446,22 +452,23 @@
   </div>
 </section>
 
-<!-- DOCUMENTO — vista previa interna de "guardar y comparar como PDF" (paywall
-     futuro). Sin botón visible en ninguna pantalla: se llega escribiendo
-     ir('documento') en la consola. Sólo "Análisis 1" tiene contenido real;
-     "Análisis 2"/"Comparar"/"Descargar PDF" reusan el mismo popup de
-     #btn-guardar (ver resultado.guardarPopupTitulo/Cuerpo). -->
+<!-- DOCUMENTO — vista previa de "guardar y comparar como PDF" (paywall
+     futuro). #btn-guardar navega acá; "Análisis 1" (el análisis vigente)
+     es real, "Análisis 2"/"Comparar"/"Descargar PDF" siguen bloqueados
+     detrás del popup de login (ver resultado.guardarPopupTitulo/Cuerpo). -->
 <section class="screen" id="s-documento">
   <div class="wrap">
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="documento.hs">Informe (vista previa)</div>
       <div class="hright">
-        <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
-          <button type="button" data-idioma="es" aria-pressed="true">ES</button>
-          <button type="button" data-idioma="en" aria-pressed="false">EN</button>
-        </div>
         <button class="back" id="btn-contacto-documento" data-i18n="contacto.boton">Contacto</button>
         <button class="back" id="btn-doc-volver" data-i18n="info.volver">← Volver al análisis</button>
+      </div>
+    </div>
+    <div class="idioma-splash">
+      <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+        <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
 
