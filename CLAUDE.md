@@ -2029,14 +2029,20 @@ sin ángulo publicado) + Cambridge Audio CXA81 da EPDR≈1,9 Ω →
 propagándose de un cálculo nuevo hasta el titular, sin errores de
 consola. **311 tests totales** entre los 4 workspaces (antes 278).
 
-**Plano de reflexiones más grande en escritorio grande.** `.card-
-geometria` (la tarjeta de plano+modos+reverberación) se sale del ancho
-de `.wrap` (1120px, pensado para texto) en viewports ≥1300px, con la
-técnica de breakout ancho-en-vw + margen negativo (`min(94vw,1500px)`,
-recentrado con `margin-left:calc((1076px - anchoGrande)/2)`) — el resto
-de las tarjetas (texto) se queda en el ancho legible de siempre;
-verificado con Chrome headless a 1920px que los márgenes izquierdo y
-derecho quedan exactamente simétricos (210px cada uno).
+**Plano isométrico: se ajusta por alto, no por ancho.** Primera vuelta
+(revertida): un "breakout" que sacaba la tarjeta del ancho de `.wrap`
+en pantallas grandes — corregido porque el pedido real era otro, y
+además rompía la consistencia de que todas las tarjetas midan lo mismo.
+`.plan-wrap svg` mantiene `width:100%` (llena la tarjeta, igual que
+cualquier otra) pero suma `max-height:70vh`: en vistas altas (isométrica
+sobre todo) que antes exigían scrollear dentro de la propia tarjeta para
+verlas completas, el gráfico se achica proporcionalmente (ancho y alto
+juntos, por la resolución estándar de CSS para elementos con relación de
+aspecto — `viewBox` sin `width`/`height` en el `<svg>`) hasta entrar en
+la pantalla. Verificado con Chrome headless: el ancho de la tarjeta de
+Geometría vuelve a coincidir exactamente con el de cualquier otra
+tarjeta (1076px = 1076px), y a un viewport de 900px de alto el diagrama
+completo entra sin scroll adicional.
 
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
