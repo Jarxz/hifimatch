@@ -1696,6 +1696,43 @@ defecto): el informe completo pinta plano+medidor+curvas con los colores
 correctos dentro de sus paneles oscuros, sin errores de consola, sin
 overflow horizontal a 390px.
 
+**Dos ajustes sobre el informe recién armado: diseño compacto (mismo
+contenido, más denso) y el plano fijo en vista Superior.** Pedido
+explícito tras ver el primer resultado: "compactos, todos en una
+página, gráficos pequeños". Se bajó el `padding`/`margin` de casi todo
+`.doc-*` en `estilos.css` (paper, secciones, encabezados, calc, flag) y
+se achicaron los gráficos (`.doc-dark-panel svg{max-width:340px}`,
+antes 100%; el medidor de potencia usa `transform:scale(.78)` sobre
+`.doc-dark-panel .meter` en vez de tocar el tamaño real del widget
+compartido con la tarjeta de potencia) — **nada de contenido se sacó**,
+las 8 tarjetas + plano + puntaje + resumen siguen todas ahí, sólo ocupan
+menos alto (medido: ~4770px → ~3170px con el mismo análisis). El plano
+del informe pasa de vista Isométrica a **Superior fija**, sin importar
+qué vista esté activa en la pantalla de resultado — la más compacta y
+legible para un reporte. Esto dejó desactualizado el título reusado
+(`resultado.plano.titulo` decía "Vista isométrica..."); se agregó
+`documento.planoTitulo` ("Plano, escucha y reflexiones (vista
+superior)") específico para el informe en vez de heredar un título que
+ya no describe lo que se ve.
+
+**Bug real, no cosmético: etiquetas de distancia de reflexión
+superpuestas e ilegibles al arrastrar un parlante.** Reportado con una
+captura: dos números (`REFLEXION_TEXTO`, `plano.ts`) se dibujaban
+literalmente uno encima del otro. Causa: hasta 4 reflexiones (lateral,
+trasera, techo, piso) pueden caer del mismo lado, y en las vistas
+ortográficas dos de ellas pueden proyectar muy cerca en pantalla —
+comportamiento esperado de una proyección ortográfica (ver comentario
+de cabecera de `plano.ts`), pero antes las cuatro usaban el mismo offset
+fijo (`dy=-6`) para su texto, así que si los puntos coincidían, el texto
+también. Fix: un contador por lado (`contadorLado`) escalona el `dy` en
+10px por cada reflexión adicional de ese lado — no cambia nada cuando no
+hay colisión (el texto sólo queda unos px más abajo de su propio punto,
+igual de asociado a su marcador), pero garantiza que dos reflexiones del
+mismo lado nunca comparten posición de texto. Test de regresión en
+`plano.test.ts`: arrastra el parlante izquierdo a una esquina y verifica,
+en las 4 vistas, que ningún par de etiquetas del mismo lado repite
+exactamente `(x,y)`.
+
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y

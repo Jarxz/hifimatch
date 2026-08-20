@@ -689,6 +689,7 @@ export function modeloDocumento(
 ): ModeloDocumento {
   const t = textosDe(idioma).resultado;
   const tm = textosDe(idioma).motor;
+  const td = textosDe(idioma).documento;
 
   const equipoFila = (categoria: string, nombre: string, espec: string): string =>
     `<div class="doc-equipo"><div class="doc-equipo-cat">${categoria}</div><div class="doc-equipo-nombre">${nombre}</div><div class="doc-equipo-espec">${espec}</div></div>`;
@@ -698,9 +699,13 @@ export function modeloDocumento(
   if (streamer) equiposHtml += equipoFila(t.itemStreamer, streamer.nombre, especFuente(streamer, idioma));
   if (dac) equiposHtml += equipoFila(t.itemDac, dac.nombre, especFuente(dac, idioma));
 
-  const planoSvg = construirPlanoSvg(sala, datos.disposicion, datos.murosVista, 'isometrica', idioma, false);
+  // Vista Superior fija en el informe (no la que esté activa en la
+  // pantalla de resultado): la más compacta/legible para un reporte —
+  // todo el layout de reflexiones de un vistazo, sin la altura extra
+  // que pide la proyección isométrica.
+  const planoSvg = construirPlanoSvg(sala, datos.disposicion, datos.murosVista, 'superior', idioma, false);
   const planoHtml =
-    `<h2 class="doc-h2">${t.plano.titulo}</h2>` +
+    `<h2 class="doc-h2">${td.planoTitulo}</h2>` +
     `<p class="doc-cuerpo">${t.plano.texto}</p>` +
     panelOscuro(planoSvg) +
     `<h4 class="doc-h4">${t.plano.ubicacionTitulo}</h4>` +

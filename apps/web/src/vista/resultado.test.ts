@@ -760,11 +760,13 @@ test('modeloDocumento: seccionesHtml siempre incluye modos y reverberación (nun
   assert.match(m.seccionesHtml, /Tiempo de reverberación estimado/);
 });
 
-test('modeloDocumento: planoHtml incluye el SVG isométrico y la ubicación de referencia de los parlantes', () => {
+test('modeloDocumento: planoHtml incluye el SVG del plano en vista Superior (fija, no la que esté activa en resultado) y la ubicación de referencia de los parlantes', () => {
   const fix = datosDocumentoFixture('es');
   const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, 'x', 'es');
   assert.match(m.planoHtml, /<svg/);
   assert.match(m.planoHtml, /punto dulce/);
+  // vista Superior no dibuja las etiquetas de muro rotadas ±30° que sí usa isométrica
+  assert.doesNotMatch(m.planoHtml, /transform="rotate\(-?30/);
 });
 
 test('modeloDocumento: resumenHtml reusa fortalezasHtml/debilidadesHtml/recomendacionesHtml de modeloResumenFinal, no redacta de nuevo', () => {

@@ -242,3 +242,19 @@ test('proyeccionSuperior alimenta exactamente el pad/scale que usa construirPlan
   assert.equal(Number(viewBox![1]), sw);
   assert.equal(Number(viewBox![2]), sh);
 });
+
+test('etiquetas de distancia de reflexión: dos del mismo lado nunca comparten la misma posición de texto, ni siquiera cuando sus puntos proyectados caen cerca (parlante arrastrado a una esquina)', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  // parlante izquierdo empujado a la esquina frontal-izquierda: acerca la
+  // reflexión lateral y la trasera (mismo z, ambas listas para el mismo
+  // "lado") al punto donde antes colisionaban en vistas ortográficas.
+  const dispArrastrada = calcularDisposicionManual(SALA_VECTOR, { x: 0.2, y: 0.2 }, disp.parlanteDer);
+  for (const vista of VISTAS) {
+    const svg = construirPlanoSvg(SALA_VECTOR, dispArrastrada, MUROS_TIPICOS, vista, 'es');
+    const textosReflexion = [...svg.matchAll(/<text x="([^"]+)" y="([^"]+)" fill="#C7AD7C"[^>]*text-anchor="(end|start)"/g)];
+    const izq = textosReflexion.filter((m) => m[3] === 'end').map((m) => `${m[1]},${m[2]}`);
+    const der = textosReflexion.filter((m) => m[3] === 'start').map((m) => `${m[1]},${m[2]}`);
+    assert.equal(new Set(izq).size, izq.length, `${vista}: dos etiquetas del lado izquierdo se superponen`);
+    assert.equal(new Set(der).size, der.length, `${vista}: dos etiquetas del lado derecho se superponen`);
+  }
+});

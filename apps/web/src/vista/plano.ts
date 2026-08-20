@@ -309,12 +309,26 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   reflexiones.push({ desde: spkIzq3, punto: { x: disp.reflexionPisoIzq.x, y: disp.reflexionPisoIzq.y, z: 0 }, distanciaM: disp.distanciaPisoIzqM, lado: 'izq' });
   reflexiones.push({ desde: spkDer3, punto: { x: disp.reflexionPisoDer.x, y: disp.reflexionPisoDer.y, z: 0 }, distanciaM: disp.distanciaPisoDerM, lado: 'der' });
 
+  // Hasta 4 reflexiones caen del mismo lado (lateral/trasera/techo/piso),
+  // y en las vistas ortográficas dos de ellas pueden proyectar al mismo
+  // punto de pantalla (ver comentario de cabecera: es una propiedad
+  // esperada de la proyección, no un error de cálculo) — sin este
+  // contador, sus etiquetas de texto caían exactamente una sobre otra,
+  // ilegibles, sobre todo al arrastrar un parlante cerca de una pared.
+  // Escalonar el offset vertical por orden dentro del mismo lado no
+  // cambia nada cuando no hay colisión (las etiquetas ya alejadas de las
+  // demás simplemente quedan unos px más abajo de su propio punto) pero
+  // garantiza que dos reflexiones del mismo lado nunca compartan la
+  // misma posición de texto.
+  const contadorLado: Record<'izq' | 'der', number> = { izq: 0, der: 0 };
   for (const r of reflexiones) {
     s += poli([r.desde, r.punto, dulce3], REFLEXION_PATH);
     s += circulo(r.punto, 2.8, REFLEXION_PUNTO);
     const dx = r.lado === 'izq' ? -8 : 8;
     const anchor = r.lado === 'izq' ? 'end' : 'start';
-    s += texto(r.punto, num(r.distanciaM, 2, idioma) + ' m', REFLEXION_TEXTO + ` text-anchor="${anchor}"`, dx, -6);
+    const dy = -6 - contadorLado[r.lado] * 10;
+    contadorLado[r.lado] += 1;
+    s += texto(r.punto, num(r.distanciaM, 2, idioma) + ' m', REFLEXION_TEXTO + ` text-anchor="${anchor}"`, dx, dy);
   }
 
   // parlantes: caja de alambre (volumen ilustrativo, ver ANCHO/PROFUNDIDAD/ALTO_PARLANTE_M)
