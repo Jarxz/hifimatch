@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V4.08.26',
+    version: 'V5.08.26',
   },
 
   info: {
@@ -239,7 +239,6 @@ export const en: Textos = {
     descargarPdf: 'Download PDF',
     titulo: 'Analysis report',
     equipoTitulo: 'Equipment',
-    componentesTitulo: 'Per-component evaluation',
     disclaimerHtml:
       'Internal preview of an exportable report — reformats data already calculated for <b>Analysis 1</b>, no ' +
       'real PDF is generated yet. <b>Analysis 2</b>, <b>Compare</b>, and <b>Download PDF</b> sit behind sign-in, ' +

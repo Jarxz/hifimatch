@@ -1646,6 +1646,56 @@ línea de variables: como el resto del sitio ya lee todo el gris
 secundario a través de estas tres custom properties (nunca un hex
 suelto), no hizo falta tocar ninguna regla más.
 
+**"Documento" deja de ser un resumen — ahora es el informe completo, con
+todas las tarjetas de evaluación y sus gráficos.** Pedido explícito:
+"que incluya todas las tarjetas de análisis y sus gráficos... que
+contenga toda la info". La lista corta "Evaluación por componente"
+(`componentesHtml`, un `<li>` por componente) se retira — quedaba
+redundante frente a la versión completa — y en su lugar `#doc-secciones`
+recorre las mismas 8 tarjetas posibles que ya pinta la pantalla de
+resultado (potencia, carga, puente+recorrido de streamer, puente+
+recorrido de DAC, modos, reverberación), cada una con capa+veredicto,
+título, frase simple, texto técnico, cálculo, aviso y fuente — sin el
+toggle "Ver detalle técnico": un informe no tiene nada que desplegar,
+todo se muestra de una. `DatosSeccionesDocumento` (nuevo, `resultado.ts`)
+agrupa los modelos de tarjeta que `construirSnapshot()` ya calculaba en
+`main.ts` — cero recálculo del motor, mismo principio que el resto del
+archivo. `#doc-plano` agrega el plano isométrico (SVG real,
+`construirPlanoSvg` en vista isométrica fija) + la ubicación de
+referencia de los parlantes; `#doc-resumen` reusa `fortalezasHtml`/
+`debilidadesHtml`/`recomendacionesHtml`/etc. de `modeloResumenFinal` sin
+redactar de nuevo.
+
+Dos gráficos necesitaban una decisión de diseño: el medidor de potencia
+(`medidor.ts`, DOM) y las curvas modales (`curvamodal.ts`, SVG puro)
+dibujan con colores fijos pensados para fondo oscuro — `plano.ts` y
+`curvamodal.ts` usan hex literales (`#ECECEE`, `#8C8C93`...), no custom
+properties, así que se verían casi invisibles sobre la hoja blanca. En
+vez de mantener una segunda paleta clara para cada gráfico (o tocar esos
+archivos y arriesgar su cobertura de tests, bastante extensa), se
+embeben tal cual dentro de un panel de fondo oscuro (`.doc-dark-panel`,
+mismo `var(--panel)` que el resto del sitio) — se ven exactamente igual
+que en la pantalla de resultado, cero cambios en `plano.ts`/
+`curvamodal.ts`. `medidor.ts` sí necesitó un cambio mínimo:
+`construirEscala`/`actualizarMedidor` ganaron un `prefijo` opcional
+(default `'pw'`, compatible con la única llamada que ya existía) para
+poder tener un segundo medidor en la página (`'doc-pw'`) sin que sus ids
+choquen con el de la tarjeta de potencia — `pintarDocumento` (`pintar.ts`)
+llama a los dos con el prefijo nuevo después de inyectar `seccionesHtml`
+(que ya trae el `<div id="doc-pw-scale">` vacío).
+
+9 tests nuevos/reescritos en `resultado.test.ts` (`datosDocumentoFixture`,
+un helper que arma un `DatosSeccionesDocumento` real corriendo el motor
+de verdad — mismo camino que `construirSnapshot()` — en vez de objetos
+inventados a mano) cubren: streamer/dac sólo aparecen si están elegidos
+y tienen dato, modos/reverberación siempre presentes (nunca "sin-datos",
+techo de severidad de sala), el plano trae un `<svg>` real, el resumen
+reusa el HTML ya armado sin redactar de nuevo. Verificado con Chrome
+headless (KEF LS50 Meta + Rega Brio, sala con agrupamiento de modos por
+defecto): el informe completo pinta plano+medidor+curvas con los colores
+correctos dentro de sus paneles oscuros, sin errores de consola, sin
+overflow horizontal a 390px.
+
 Falta:
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y

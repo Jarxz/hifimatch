@@ -16,7 +16,7 @@ import { nivelPromedioEstimadoDb, CREST_FACTOR_DB } from '../../../../packages/e
 import type { ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
-import type { ResultadoModos } from '../../../../packages/engine/src/modos.ts';
+import type { ResultadoModos, ModoAgrupado } from '../../../../packages/engine/src/modos.ts';
 import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages/engine/src/modos.ts';
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
 import { ABSORCION_MURO, ABSORCION_PISO, ABSORCION_TECHO, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
@@ -27,6 +27,9 @@ import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { num, numConSigno } from '../formato/numeros.ts';
 import { textosDe } from '../idioma/idioma.ts';
 import { especParlante, especAmplificador, especFuente } from '../datos/etiquetas.ts';
+import type { MurosVista } from './plano.ts';
+import { construirPlanoSvg } from './plano.ts';
+import { construirCurvasModalesSvg } from './curvamodal.ts';
 
 export type ClaseVerdicto = 'ok' | 'warn' | 'alert' | 'dim';
 
@@ -585,19 +588,90 @@ export interface ModeloDocumento {
   distanciaTexto: string;
   nivelTexto: string;
   picoTexto: string;
+  planoHtml: string;
   puntajeTexto: string;
   puntajeClase: ClasePuntaje;
-  componentesHtml: string;
+  seccionesHtml: string;
+  resumenHtml: string;
+}
+
+/**
+ * Todo lo que `modeloDocumento` necesita más allá de equipo/sala/puntaje —
+ * son los mismos modelos de tarjeta que ya calculó `construirSnapshot()`
+ * en `main.ts` (cero recálculo del motor), agrupados en un solo objeto
+ * porque son demasiados campos para pasarlos sueltos.
+ */
+export interface DatosSeccionesDocumento {
+  mPot: ModeloTarjetaPotencia;
+  mCarga: ModeloTarjetaCarga;
+  mPuenteStreamer: ModeloTarjetaPuente | null;
+  mRecorridoStreamer: ModeloTarjetaRecorrido | null;
+  mPuenteDac: ModeloTarjetaPuente | null;
+  mRecorridoDac: ModeloTarjetaRecorrido | null;
+  mModos: ModeloTarjetaModos;
+  agrupadosModos: ModoAgrupado[];
+  mReverb: ModeloTarjetaReverberacion;
+  disposicion: DisposicionSala;
+  murosVista: MurosVista;
+  resumenFinal: ModeloResumenFinal;
+}
+
+interface SeccionInput {
+  capa: string;
+  verdictoClase: ClaseVerdicto;
+  verdictoTexto: string;
+  titulo: string;
+  simpleHtml: string;
+  textoHtml: string;
+  calcHtml?: string;
+  avisoHtml?: string | null;
+  extraHtml?: string;
+  fuenteHtml: string;
+  graficoHtml?: string;
+}
+
+/** Una tarjeta de evaluación reformateada como sección del informe: mismo
+ * contenido que ya pinta pintar.ts en la pantalla de resultado (simple +
+ * técnico + cálculo + aviso + fuente), siempre visible — un informe no
+ * tiene "Ver detalle técnico" para desplegar, todo se muestra de una. El
+ * gráfico (medidor/curvas), cuando existe, va envuelto en un panel oscuro
+ * — ver `panelOscuro`. */
+function seccionDocumento(s: SeccionInput): string {
+  return (
+    `<div class="doc-seccion">` +
+    `<div class="doc-seccion-ct"><span class="doc-badge">${s.capa}</span><span class="doc-verdict doc-verdict-${s.verdictoClase}">${s.verdictoTexto}</span></div>` +
+    `<h3 class="doc-seccion-titulo">${s.titulo}</h3>` +
+    `<p class="doc-simple-seccion">${s.simpleHtml}</p>` +
+    `<div class="doc-cuerpo">${s.textoHtml}</div>` +
+    (s.calcHtml ? `<div class="doc-calc">${s.calcHtml}</div>` : '') +
+    (s.avisoHtml ? `<div class="doc-flag">${s.avisoHtml}</div>` : '') +
+    (s.extraHtml ?? '') +
+    (s.graficoHtml ?? '') +
+    `<div class="doc-fuente">${s.fuenteHtml}</div>` +
+    `</div>`
+  );
+}
+
+/** Envuelve un gráfico (SVG del motor, o el medidor de potencia) en un
+ * panel de fondo oscuro dentro de la hoja blanca — el resto del sitio ya
+ * dibuja estos gráficos con colores pensados para fondo oscuro
+ * (`plano.ts`/`curvamodal.ts` usan hex fijos, no custom properties), así
+ * que en vez de mantener una segunda paleta clara para cada uno, el panel
+ * les da el mismo fondo oscuro donde ya se ven bien — sin tocar esos
+ * archivos ni sus tests. */
+function panelOscuro(contenidoHtml: string): string {
+  return `<div class="doc-dark-panel">${contenidoHtml}</div>`;
 }
 
 /**
  * Reformatea los datos ya calculados de un análisis como un informe — sin
  * recalcular nada del motor, mismo principio que `modeloResumenFinal`.
- * Vista previa interna de "Documento" (pantalla sin botón visible, ver
- * CLAUDE.md): reusa las mismas etiquetas de categoría y plantillas de
- * componente que ya usan "La cadena" y "En resumen", para no inventar
- * redacción nueva. `fechaTexto` no es un dato del motor — lo arma
- * `main.ts` con `Date`, se pasa ya formateado.
+ * Vista previa interna de "Documento" (pantalla, ver CLAUDE.md): reusa
+ * las mismas etiquetas de categoría y las mismas tarjetas de modelo que
+ * ya arma `construirSnapshot()` en `main.ts` para la pantalla de
+ * resultado, para no inventar redacción ni gráficos nuevos. `fechaTexto`
+ * no es un dato del motor — lo arma `main.ts` con `Date`, se pasa ya
+ * formateado.
  */
 export function modeloDocumento(
   spk: ParlanteCat,
@@ -609,11 +683,12 @@ export function modeloDocumento(
   nivelTexto: string,
   picoObjetivoDb: number,
   puntaje: { valor: number; clase: ClasePuntaje },
-  componentes: ComponenteResumen[],
+  datos: DatosSeccionesDocumento,
   fechaTexto: string,
   idioma: Idioma
 ): ModeloDocumento {
   const t = textosDe(idioma).resultado;
+  const tm = textosDe(idioma).motor;
 
   const equipoFila = (categoria: string, nombre: string, espec: string): string =>
     `<div class="doc-equipo"><div class="doc-equipo-cat">${categoria}</div><div class="doc-equipo-nombre">${nombre}</div><div class="doc-equipo-espec">${espec}</div></div>`;
@@ -623,15 +698,114 @@ export function modeloDocumento(
   if (streamer) equiposHtml += equipoFila(t.itemStreamer, streamer.nombre, especFuente(streamer, idioma));
   if (dac) equiposHtml += equipoFila(t.itemDac, dac.nombre, especFuente(dac, idioma));
 
-  const tr = textosDe(idioma).motor.resumen;
-  const componentesHtml = componentes
-    .map((c) => {
-      if (c.verdictoClase === 'dim') return `<li>${tr.itemSinDatos({ nombre: c.nombre })}</li>`;
-      return c.detalle
-        ? `<li>${tr.itemConDetalle({ nombre: c.nombre, verdicto: c.verdictoTexto, detalle: c.detalle })}</li>`
-        : `<li>${tr.itemFortaleza({ nombre: c.nombre, verdicto: c.verdictoTexto })}</li>`;
+  const planoSvg = construirPlanoSvg(sala, datos.disposicion, datos.murosVista, 'isometrica', idioma, false);
+  const planoHtml =
+    `<h2 class="doc-h2">${t.plano.titulo}</h2>` +
+    `<p class="doc-cuerpo">${t.plano.texto}</p>` +
+    panelOscuro(planoSvg) +
+    `<h4 class="doc-h4">${t.plano.ubicacionTitulo}</h4>` +
+    `<p class="doc-cuerpo">${modeloUbicacionParlantes(sala, datos.disposicion, idioma)}</p>`;
+
+  const secciones: string[] = [];
+
+  secciones.push(
+    seccionDocumento({
+      capa: t.capaFisica,
+      verdictoClase: datos.mPot.verdictoClase,
+      verdictoTexto: datos.mPot.verdictoTexto,
+      titulo: tm.potencia.titulo,
+      simpleHtml: datos.mPot.simpleHtml,
+      textoHtml: datos.mPot.textoHtml,
+      calcHtml: datos.mPot.calcHtml,
+      avisoHtml: datos.mPot.avisoHtml,
+      extraHtml: `<p class="doc-fuente">${datos.mPot.crestFactorHtml}</p>`,
+      fuenteHtml: datos.mPot.fuenteHtml,
+      graficoHtml: panelOscuro(
+        `<div class="meter"><div class="scale" id="doc-pw-scale"></div>` +
+          `<div class="scap"><span>${tm.potencia.escalaInsuficiente}</span><span>${tm.potencia.escalaEje}</span><span>${tm.potencia.escalaSobra}</span></div></div>`
+      ),
     })
-    .join('');
+  );
+
+  if (!datos.mCarga.sinDatos) {
+    secciones.push(
+      seccionDocumento({
+        capa: t.capaFisica,
+        verdictoClase: datos.mCarga.verdictoClase,
+        verdictoTexto: datos.mCarga.verdictoTexto,
+        titulo: tm.carga.titulo,
+        simpleHtml: datos.mCarga.simpleHtml,
+        textoHtml: datos.mCarga.textoHtml,
+        avisoHtml: datos.mCarga.avisoHtml,
+        fuenteHtml: datos.mCarga.fuenteHtml,
+      })
+    );
+  }
+
+  const fuenteSeccion = (
+    m: ModeloTarjetaPuente | ModeloTarjetaRecorrido | null,
+    titulo: string
+  ): SeccionInput | null => {
+    if (!m || m.sinDatos) return null;
+    return {
+      capa: t.capaFisica,
+      verdictoClase: m.verdictoClase,
+      verdictoTexto: m.verdictoTexto,
+      titulo,
+      simpleHtml: m.simpleHtml,
+      textoHtml: m.textoHtml,
+      calcHtml: m.calcHtml,
+      avisoHtml: m.avisoHtml,
+      fuenteHtml: m.fuenteHtml,
+    };
+  };
+  for (const s of [
+    fuenteSeccion(datos.mPuenteStreamer, tm.puente.tituloStreamer),
+    fuenteSeccion(datos.mRecorridoStreamer, tm.recorrido.tituloStreamer),
+    fuenteSeccion(datos.mPuenteDac, tm.puente.tituloDac),
+    fuenteSeccion(datos.mRecorridoDac, tm.recorrido.tituloDac),
+  ]) {
+    if (s) secciones.push(seccionDocumento(s));
+  }
+
+  const svgModos = construirCurvasModalesSvg(sala, datos.agrupadosModos, idioma);
+  secciones.push(
+    seccionDocumento({
+      capa: t.geometria,
+      verdictoClase: datos.mModos.verdictoClase,
+      verdictoTexto: datos.mModos.verdictoTexto,
+      titulo: tm.modos.titulo,
+      simpleHtml: datos.mModos.simpleHtml,
+      textoHtml: datos.mModos.textoHtml,
+      avisoHtml: datos.mModos.avisoHtml,
+      extraHtml: datos.mModos.sugerenciaHtml ? `<div class="doc-flag">${datos.mModos.sugerenciaHtml}</div>` : '',
+      fuenteHtml: datos.mModos.fuenteHtml,
+      graficoHtml: svgModos ? panelOscuro(svgModos + `<div class="src">${tm.modos.curvasCaption}</div>`) : '',
+    })
+  );
+
+  secciones.push(
+    seccionDocumento({
+      capa: t.geometria,
+      verdictoClase: datos.mReverb.verdictoClase,
+      verdictoTexto: datos.mReverb.verdictoTexto,
+      titulo: tm.reverberacion.titulo,
+      simpleHtml: datos.mReverb.simpleHtml,
+      textoHtml: datos.mReverb.textoHtml,
+      calcHtml: datos.mReverb.calcHtml,
+      fuenteHtml: datos.mReverb.fuenteHtml,
+    })
+  );
+
+  const rf = datos.resumenFinal;
+  const tmr = tm.resumen;
+  const resumenHtml =
+    `<p class="doc-simple-seccion">${rf.comportamientoHtml}</p>` +
+    `<p class="doc-cuerpo">${rf.resumenHtml}</p>` +
+    `<h4 class="doc-h4">${tmr.fortalezasTitulo}</h4><ul class="doc-lista">${rf.fortalezasHtml}</ul>` +
+    `<h4 class="doc-h4">${tmr.debilidadesTitulo}</h4><ul class="doc-lista">${rf.debilidadesHtml}</ul>` +
+    (rf.sinDatosHtml ? `<h4 class="doc-h4">${tmr.sinDatosTitulo}</h4><ul class="doc-lista">${rf.sinDatosHtml}</ul>` : '') +
+    `<h4 class="doc-h4">${tmr.recomendacionTitulo}</h4><ul class="doc-lista">${rf.recomendacionesHtml}</ul>`;
 
   return {
     fechaTexto,
@@ -641,8 +815,10 @@ export function modeloDocumento(
     distanciaTexto: `≈ ${num(distanciaEscuchaM, 1, idioma)} m`,
     nivelTexto,
     picoTexto: `${num(picoObjetivoDb, 0, idioma)} dB`,
+    planoHtml,
     puntajeTexto: `${num(puntaje.valor, 1, idioma)}/10`,
     puntajeClase: puntaje.clase,
-    componentesHtml,
+    seccionesHtml: secciones.join(''),
+    resumenHtml,
   };
 }

@@ -642,39 +642,91 @@ test('modeloPuente en inglés: cita la convención con "confidence" en inglés, 
   assert.doesNotMatch(m.fuenteHtml, /convención|confianza/);
 });
 
-// ---- modeloDocumento (vista previa interna "Documento") ----
+// ---- modeloDocumento (vista previa "Documento", ver CLAUDE.md) ----
 
 const DOC_SPK = parlanteCat('kef-ls50-meta');
 const DOC_AMP = ampCat('rega-brio');
 const DOC_STREAMER = fuenteCat('topping-e30-ii');
 const DOC_DAC = fuenteCat('schiit-modi-plus');
-const DOC_COMPONENTES: ComponenteResumen[] = [
-  { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
-  { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', detalle: '3,5 Ω', avisoHtml: '<b>aviso</b>' },
-  { nombre: 'Reverberación', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
-];
+const DOC_MUROS = { frontal: 'yesoCarton', posterior: 'yesoCarton', izquierdo: 'yesoCarton', derecho: 'yesoCarton' } as const;
+
+/** Arma un `DatosSeccionesDocumento` real (motor + modelos ya calculados,
+ * mismo camino que `construirSnapshot()` en main.ts) para no testear
+ * `modeloDocumento` contra objetos inventados a mano — streamer/dac
+ * opcionales, igual que en la app real. */
+function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null = null, dac: FuenteCat | null = null) {
+  const sala = SALA_REVERB;
+  const disposicion = calcularDisposicion(sala);
+  const spkM = parlanteDelCatalogo(DOC_SPK, idioma);
+  const ampM = amplificadorDelCatalogo(DOC_AMP, idioma);
+
+  const resPot = evaluarPotencia(spkM, ampM, disposicion.distanciaEscuchaM, 'alto');
+  const mPot = modeloPotencia(DOC_SPK, DOC_AMP, resPot, disposicion.distanciaEscuchaM, idioma === 'es' ? 'Alto' : 'High', 100, 'rockpop', idioma);
+  const mCarga = modeloCarga(DOC_SPK, DOC_AMP, evaluarCarga(spkM, ampM), idioma);
+
+  const fuenteModelos = (f: FuenteCat | null) => {
+    if (!f) return { puente: null, recorrido: null };
+    const fM = fuenteDelCatalogo(f, idioma);
+    return {
+      puente: modeloPuente(f, DOC_AMP, evaluarPuenteImpedancias(fM, ampM), idioma),
+      recorrido: modeloRecorrido(f, DOC_AMP, evaluarRecorridoVolumen(fM, ampM), idioma),
+    };
+  };
+  const st = fuenteModelos(streamer);
+  const dc = fuenteModelos(dac);
+
+  const resModos = evaluarModos(sala);
+  const mModos = modeloModos(resModos, idioma);
+  const mReverb = modeloReverberacion(evaluarReverberacion(sala, MATERIALES_TIPICOS), MATERIALES_TIPICOS, idioma);
+
+  const puntaje = { valor: 8.7, clase: 'ok' as const };
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: mPot.verdictoClase, verdictoTexto: mPot.verdictoTexto, avisoHtml: mPot.avisoHtml },
+  ];
+  const resumenFinal = modeloResumenFinal(componentes, puntaje, idioma);
+
+  return {
+    puntaje,
+    datos: {
+      mPot,
+      mCarga,
+      mPuenteStreamer: st.puente,
+      mRecorridoStreamer: st.recorrido,
+      mPuenteDac: dc.puente,
+      mRecorridoDac: dc.recorrido,
+      mModos,
+      agrupadosModos: resModos.agrupados,
+      mReverb,
+      disposicion,
+      murosVista: DOC_MUROS,
+      resumenFinal,
+    },
+  };
+}
 
 test('modeloDocumento: equiposHtml incluye parlante y amplificador siempre; streamer y dac sólo si están elegidos', () => {
-  const sinFuentes = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
-  assert.equal((sinFuentes.equiposHtml.match(/doc-equipo"/g) ?? []).length, 2);
-  assert.doesNotMatch(sinFuentes.equiposHtml, /Streamer|DAC/);
+  const sinFuentes = datosDocumentoFixture('es');
+  const mSin = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, sinFuentes.puntaje, sinFuentes.datos, '19 de agosto de 2026', 'es');
+  assert.equal((mSin.equiposHtml.match(/doc-equipo"/g) ?? []).length, 2);
+  assert.doesNotMatch(mSin.equiposHtml, /Streamer|DAC/);
 
-  const conFuentes = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
-  assert.equal((conFuentes.equiposHtml.match(/doc-equipo"/g) ?? []).length, 4);
-  assert.match(conFuentes.equiposHtml, /Streamer/);
-  assert.match(conFuentes.equiposHtml, />DAC</);
-});
+  const conFuentes = datosDocumentoFixture('es', DOC_STREAMER, DOC_DAC);
+  const mCon = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, conFuentes.puntaje, conFuentes.datos, '19 de agosto de 2026', 'es');
+  assert.equal((mCon.equiposHtml.match(/doc-equipo"/g) ?? []).length, 4);
+  assert.match(mCon.equiposHtml, /Streamer/);
+  assert.match(mCon.equiposHtml, />DAC</);
 
-test('modeloDocumento: el espec de cada equipo reusa especParlante/especAmplificador/especFuente ya existentes, no recalcula nada', () => {
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
-  assert.match(m.equiposHtml, new RegExp(especParlante(DOC_SPK, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.match(m.equiposHtml, new RegExp(especAmplificador(DOC_AMP, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.match(m.equiposHtml, new RegExp(especFuente(DOC_STREAMER, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  // No recalcula specs — reusa los mismos helpers que ya arma "La cadena".
+  assert.match(mCon.equiposHtml, new RegExp(especParlante(DOC_SPK, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(mCon.equiposHtml, new RegExp(especAmplificador(DOC_AMP, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(mCon.equiposHtml, new RegExp(especFuente(DOC_STREAMER, 'es').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
 test('modeloDocumento: sala/distancia formateadas con el separador decimal del idioma (coma en es, punto en en)', () => {
-  const es = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, 'x', 'es');
-  const en = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'High', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, 'x', 'en');
+  const fixEs = datosDocumentoFixture('es');
+  const es = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fixEs.puntaje, fixEs.datos, 'x', 'es');
+  const fixEn = datosDocumentoFixture('en');
+  const en = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'High', 100, fixEn.puntaje, fixEn.datos, 'x', 'en');
   assert.equal(es.anchoLargoTexto, '3,6 × 5,0 m');
   assert.equal(en.anchoLargoTexto, '3.6 × 5.0 m');
   assert.equal(es.distanciaTexto, '≈ 2,6 m');
@@ -682,29 +734,58 @@ test('modeloDocumento: sala/distancia formateadas con el separador decimal del i
 });
 
 test('modeloDocumento: puntajeTexto usa un decimal y puntajeClase es la ya calculada, sin reclasificar', () => {
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'warn' }, DOC_COMPONENTES, 'x', 'es');
+  const fix = datosDocumentoFixture('es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'warn' }, fix.datos, 'x', 'es');
   assert.equal(m.puntajeTexto, '8,7/10');
   assert.equal(m.puntajeClase, 'warn'); // 8,7 normalmente sería "ok" — prueba que no reclasifica
 });
 
-test('modeloDocumento: componentesHtml reusa itemFortaleza/itemConDetalle/itemSinDatos según verdictoClase — no inventa una evaluación nueva', () => {
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, 'x', 'es');
-  assert.equal((m.componentesHtml.match(/<li>/g) ?? []).length, 3);
-  assert.match(m.componentesHtml, /Potencia: Con margen/);
-  assert.match(m.componentesHtml, /Carga: Exige corriente \(3,5 Ω\)/);
-  assert.match(m.componentesHtml, /Reverberación/);
+test('modeloDocumento: seccionesHtml incluye potencia y carga siempre; puente/recorrido sólo si la fuente está elegida y tiene dato', () => {
+  const fixSin = datosDocumentoFixture('es');
+  const mSin = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fixSin.puntaje, fixSin.datos, 'x', 'es');
+  assert.match(mSin.seccionesHtml, /Potencia frente a los picos de la sala/);
+  assert.match(mSin.seccionesHtml, /La carga que ve el amplificador/);
+  assert.doesNotMatch(mSin.seccionesHtml, /streamer → amplificador/);
+
+  const fixCon = datosDocumentoFixture('es', DOC_STREAMER, DOC_DAC);
+  const mCon = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, fixCon.puntaje, fixCon.datos, 'x', 'es');
+  assert.match(mCon.seccionesHtml, /streamer → amplificador/);
+  assert.match(mCon.seccionesHtml, /DAC → amplificador/);
+});
+
+test('modeloDocumento: seccionesHtml siempre incluye modos y reverberación (nunca "sin-datos" en esas dos, ver CLAUDE.md)', () => {
+  const fix = datosDocumentoFixture('es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, 'x', 'es');
+  assert.match(m.seccionesHtml, /Modos de sala/);
+  assert.match(m.seccionesHtml, /Tiempo de reverberación estimado/);
+});
+
+test('modeloDocumento: planoHtml incluye el SVG isométrico y la ubicación de referencia de los parlantes', () => {
+  const fix = datosDocumentoFixture('es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, 'x', 'es');
+  assert.match(m.planoHtml, /<svg/);
+  assert.match(m.planoHtml, /punto dulce/);
+});
+
+test('modeloDocumento: resumenHtml reusa fortalezasHtml/debilidadesHtml/recomendacionesHtml de modeloResumenFinal, no redacta de nuevo', () => {
+  const fix = datosDocumentoFixture('es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, 'x', 'es');
+  assert.match(m.resumenHtml, new RegExp(fix.datos.resumenFinal.comportamientoHtml.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(m.resumenHtml, new RegExp(fix.datos.resumenFinal.fortalezasHtml.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
 test('modeloDocumento: fechaTexto se pasa tal cual — no es un dato del motor, main.ts lo arma con Date', () => {
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'ok' }, DOC_COMPONENTES, '19 de agosto de 2026', 'es');
+  const fix = datosDocumentoFixture('es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, '19 de agosto de 2026', 'es');
   assert.equal(m.fechaTexto, '19 de agosto de 2026');
 });
 
-test('modeloDocumento en inglés: specs y componentes en inglés, sin mezclar idiomas', () => {
-  const componentesEn: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'High', 100, { valor: 8.7, clase: 'ok' }, componentesEn, 'August 19, 2026', 'en');
+test('modeloDocumento en inglés: specs y secciones en inglés, sin mezclar idiomas', () => {
+  const fix = datosDocumentoFixture('en', DOC_STREAMER, DOC_DAC);
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'High', 100, fix.puntaje, fix.datos, 'August 19, 2026', 'en');
   assert.match(m.equiposHtml, /Speakers/);
   assert.match(m.equiposHtml, /Amplifier/);
   assert.doesNotMatch(m.equiposHtml, /Parlantes|Amplificador/);
-  assert.match(m.componentesHtml, /Power: With margin/);
+  assert.match(m.seccionesHtml, /Power against the room.s peaks/);
+  assert.doesNotMatch(m.seccionesHtml, /Potencia frente/);
 });

@@ -14,7 +14,7 @@ import type {
   ModeloDocumento,
 } from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
-import { actualizarMedidor } from './medidor.ts';
+import { actualizarMedidor, construirEscala } from './medidor.ts';
 
 function el(id: string): HTMLElement {
   const e = document.getElementById(id);
@@ -215,7 +215,7 @@ export function pintarResumenFinal(m: ModeloResumenFinal): void {
  * visible — ver CLAUDE.md). Se llama junto con pintarSnapshot para que
  * siempre muestre el análisis vigente, aunque la pantalla misma no tenga
  * ningún punto de entrada real todavía. */
-export function pintarDocumento(m: ModeloDocumento): void {
+export function pintarDocumento(m: ModeloDocumento, margenDbPotencia: number, idioma: Idioma): void {
   el('doc-fecha').textContent = m.fechaTexto;
   el('doc-equipos').innerHTML = m.equiposHtml;
   el('doc-r-wl').textContent = m.anchoLargoTexto;
@@ -223,8 +223,20 @@ export function pintarDocumento(m: ModeloDocumento): void {
   el('doc-r-dist').textContent = m.distanciaTexto;
   el('doc-r-lvl').textContent = m.nivelTexto;
   el('doc-r-peak').textContent = m.picoTexto;
+  el('doc-plano').innerHTML = m.planoHtml;
   const puntajeEl = el('doc-puntaje');
   puntajeEl.textContent = m.puntajeTexto;
   puntajeEl.className = 'doc-puntaje-num doc-puntaje-' + m.puntajeClase;
-  el('doc-componentes').innerHTML = m.componentesHtml;
+  el('doc-secciones').innerHTML = m.seccionesHtml;
+  el('doc-resumen').innerHTML = m.resumenHtml;
+
+  // El medidor de potencia (medidor.ts) es DOM, no texto puro — se
+  // reconstruye acá después de inyectar seccionesHtml (que ya trajo el
+  // <div id="doc-pw-scale"> vacío), con prefijo 'doc-pw' para no chocar
+  // con los ids del medidor de la tarjeta de potencia (prefijo 'pw').
+  const escalaDoc = document.getElementById('doc-pw-scale');
+  if (escalaDoc) {
+    construirEscala(escalaDoc, 'doc-pw');
+    actualizarMedidor(margenDbPotencia, idioma, 'doc-pw');
+  }
 }

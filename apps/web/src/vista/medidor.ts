@@ -18,8 +18,12 @@ function pctDe(v: number): number {
 }
 
 /** Construye los ticks de la escala una sola vez (idempotente: limpia el
- * contenedor antes, así se puede llamar de nuevo sin duplicar nada). */
-export function construirEscala(contenedor: HTMLElement): void {
+ * contenedor antes, así se puede llamar de nuevo sin duplicar nada).
+ * `prefijo` distingue los ids cuando hay más de un medidor en la página
+ * (el de la tarjeta de potencia y el de la vista previa "Documento", ver
+ * `pintarDocumento` en pintar.ts) — 'pw' por defecto para no romper el
+ * único medidor que existía antes de que hiciera falta un segundo. */
+export function construirEscala(contenedor: HTMLElement, prefijo = 'pw'): void {
   contenedor.innerHTML = '';
 
   const axis = document.createElement('div');
@@ -42,26 +46,26 @@ export function construirEscala(contenedor: HTMLElement): void {
 
   const needle = document.createElement('div');
   needle.className = 'needle';
-  needle.id = 'pw-needle';
+  needle.id = prefijo + '-needle';
   contenedor.appendChild(needle);
 
   const readout = document.createElement('div');
   readout.className = 'readout mono';
-  readout.id = 'pw-read';
+  readout.id = prefijo + '-read';
   contenedor.appendChild(readout);
 
   const zone = document.createElement('div');
-  zone.id = 'pw-zone';
+  zone.id = prefijo + '-zone';
   zone.className = 'zone';
   contenedor.appendChild(zone);
 }
 
 /** Mueve la aguja, el readout y la zona coloreada al margen actual. */
-export function actualizarMedidor(margenDb: number, idioma: Idioma): void {
+export function actualizarMedidor(margenDb: number, idioma: Idioma, prefijo = 'pw'): void {
   const pct = pctDe(margenDb);
-  const needle = document.getElementById('pw-needle');
-  const read = document.getElementById('pw-read');
-  const zone = document.getElementById('pw-zone');
+  const needle = document.getElementById(prefijo + '-needle');
+  const read = document.getElementById(prefijo + '-read');
+  const zone = document.getElementById(prefijo + '-zone');
   if (!needle || !read || !zone) return;
 
   needle.style.left = pct + '%';

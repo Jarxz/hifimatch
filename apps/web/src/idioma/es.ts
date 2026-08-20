@@ -72,7 +72,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V4.08.26',
+    version: 'V5.08.26',
   },
 
   info: {
@@ -263,7 +263,6 @@ export const es = {
     descargarPdf: 'Descargar PDF',
     titulo: 'Informe de análisis',
     equipoTitulo: 'Equipo',
-    componentesTitulo: 'Evaluación por componente',
     disclaimerHtml:
       'Vista previa interna de un informe exportable — reformatea los datos ya calculados de <b>Análisis 1</b>, ' +
       'sin generar un PDF real todavía. <b>Análisis 2</b>, <b>Comparar</b> y <b>Descargar PDF</b> quedan detrás ' +

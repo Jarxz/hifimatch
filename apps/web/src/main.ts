@@ -417,8 +417,9 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
     `${num(a.picoObjetivo, 0, idiomaActual)} dB`
   );
 
+  const resumenFinal = modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual);
   pintarPuntaje(snap.mPuntaje);
-  pintarResumenFinal(modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual));
+  pintarResumenFinal(resumenFinal);
 
   ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
   repintarPlano();
@@ -446,10 +447,25 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
       a.nivelTexto,
       a.picoObjetivo,
       { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase },
-      snap.componentesResumen,
+      {
+        mPot: snap.mPot,
+        mCarga: a.mCarga,
+        mPuenteStreamer: a.mPuenteStreamer,
+        mRecorridoStreamer: a.mRecorridoStreamer,
+        mPuenteDac: a.mPuenteDac,
+        mRecorridoDac: a.mRecorridoDac,
+        mModos: a.mModos,
+        agrupadosModos: a.resModos.agrupados,
+        mReverb: a.mReverb,
+        disposicion: snap.disposicion,
+        murosVista: a.murosVista,
+        resumenFinal,
+      },
       fechaTexto,
       idiomaActual
-    )
+    ),
+    snap.resPot.margenDb,
+    idiomaActual
   );
 }
 

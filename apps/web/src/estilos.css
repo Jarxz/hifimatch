@@ -362,11 +362,41 @@ footer.note b{color:var(--dim)}
 .doc-puntaje-num.doc-puntaje-warn{color:var(--paper-warn)}
 .doc-puntaje-num.doc-puntaje-alert{color:var(--paper-alert)}
 .doc-puntaje-rotulo{font-size:11px; color:var(--paper-dim); text-transform:uppercase; letter-spacing:.1em}
-.doc-componentes{list-style:none; margin:0; padding:0}
-.doc-componentes li{font-size:13.5px; color:var(--paper-ink); padding:6px 0; border-bottom:1px solid var(--paper-line)}
-.doc-componentes li:last-child{border-bottom:0}
+.doc-cuerpo{font-size:13.5px; color:var(--paper-ink); line-height:1.6}
+.doc-cuerpo b{font-weight:600}
+.doc-h4{font-size:12.5px; color:var(--paper-ink); font-weight:600; margin:16px 0 6px}
+.doc-lista{margin:0 0 6px; padding-left:18px; font-size:13px; color:var(--paper-ink); line-height:1.7}
 .doc-footer{margin-top:30px; padding-top:16px; border-top:1px solid var(--paper-line); font-size:11px; color:var(--paper-dim); line-height:1.7}
 .doc-footer b{color:var(--paper-ink)}
+
+/* Cada tarjeta de evaluación reformateada como sección del informe — sin
+   el toggle "Ver detalle técnico" de la pantalla de resultado: acá todo
+   se muestra siempre, un informe no tiene nada que desplegar. */
+.doc-seccion{padding:18px 0; border-top:1px solid var(--paper-line)}
+.doc-seccion:first-child{border-top:0; padding-top:6px}
+.doc-seccion-ct{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+.doc-badge{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--paper-dim); border:1px solid var(--paper-line); border-radius:20px; padding:2px 9px}
+.doc-verdict{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:600; margin-left:auto}
+.doc-verdict-ok{color:var(--paper-ok)}
+.doc-verdict-warn{color:var(--paper-warn)}
+.doc-verdict-alert{color:var(--paper-alert)}
+.doc-verdict-dim{color:var(--paper-dim)}
+.doc-seccion-titulo{font-size:16px; font-weight:600; color:var(--paper-ink); margin:0 0 6px}
+.doc-simple-seccion{font-style:italic; color:var(--paper-dim); font-size:13px; margin:0 0 8px}
+.doc-calc{font-family:var(--mono); font-size:12px; color:var(--paper-ink); background:rgba(0,0,0,.03); border-radius:3px; padding:10px 12px; margin-top:8px; line-height:1.7}
+.doc-flag{border-left:2px solid var(--paper-warn); background:rgba(138,106,31,.06); padding:9px 12px; margin-top:8px; font-size:12.5px; color:var(--paper-dim)}
+.doc-flag b{color:var(--paper-ink); font-weight:600}
+.doc-fuente{font-size:10.5px; color:var(--paper-dim); margin-top:8px; line-height:1.5}
+
+/* Los gráficos del motor (plano isométrico, curvas modales, medidor de
+   potencia) se dibujan con colores fijos pensados para fondo oscuro —
+   en vez de mantener una segunda paleta clara sólo para el informe, se
+   embeben tal cual dentro de un panel oscuro, mismo fondo que el resto
+   del sitio, así se ven exactamente igual que en la pantalla de
+   resultado sin tocar plano.ts/curvamodal.ts/medidor.ts ni sus tests. */
+.doc-dark-panel{background:var(--panel); color:var(--text); border-radius:4px; padding:16px; margin-top:10px}
+.doc-dark-panel svg{max-width:100%; height:auto; display:block; margin:0 auto}
+.doc-dark-panel .src{color:var(--faint)}
 
 @media (max-width:640px){
   .doc-paper{padding:26px 20px}
