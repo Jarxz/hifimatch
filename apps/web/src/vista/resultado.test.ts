@@ -287,34 +287,66 @@ test('modeloAmortiguamiento: "óptimo" (DF alto) → sin aviso, calc muestra Z_o
   assert.match(m.calcHtml!, /Z_out/);
 });
 
-test('modeloAmortiguamiento: "crítico" (DF valvular bajo) → aviso con el texto exacto pedido, sin penalizar el DF en sí', () => {
+test('modeloAmortiguamiento: tier de texto "crítico" (ΔdB≈2,85, DF valvular bajo) → título/explicación/acción propios de ese tramo, sin fallback de Zmax', () => {
   const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es'), impedanciaMinOhm: 4, impedanciaMaxOhm: null };
   const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'es'), factorAmortiguamiento: 4 };
   const r = evaluarAmortiguamiento(spkM, ampM);
   const m = modeloAmortiguamiento(r, 'es');
   assert.equal(m.verdictoClase, 'alert');
   assert.equal(m.verdictoTexto, 'Crítico');
-  assert.match(m.avisoHtml!, /Pérdida severa de control de amortiguación/);
+  assert.match(m.textoHtml, /Desviación de nivel fuera del rango/); // titulo del tier "critico"
+  assert.match(m.textoHtml, /mide nivel, no distorsión, excursión ni comportamiento térmico/); // consecuenciaMedible
+  assert.match(m.avisoHtml!, /Combinación no recomendada tal como está/); // accionSugerida
   assert.match(m.avisoHtml!, /se asume/); // impedanciaMaxOhm null → nota del fallback de 25 Ω
+  // nunca juicios de carácter tonal ni mecanismos que este cálculo no mide
+  assert.doesNotMatch(m.textoHtml + m.avisoHtml, /cálid|musical|retumbante|difuso|térmica descontrolada/i);
 });
 
-test('modeloAmortiguamiento: "con reparos" → aviso declara el ΔdB exacto con el texto pedido', () => {
+test('modeloAmortiguamiento: tier de texto "moderado" (ΔdB≈0,69) → explicación y acción propias de ese tramo, "con reparos"', () => {
   const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es'), impedanciaMinOhm: 4, impedanciaMaxOhm: 25 };
   const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'es'), factorAmortiguamiento: 20 };
   const r = evaluarAmortiguamiento(spkM, ampM);
   const m = modeloAmortiguamiento(r, 'es');
   assert.equal(m.verdictoClase, 'warn');
-  assert.match(m.avisoHtml!, /alterará la respuesta tonal del parlante en \+/);
+  assert.match(m.textoHtml, /Realce de nivel moderado en la zona de resonancia/);
+  assert.match(m.avisoHtml!, /Un amplificador con mayor factor de amortiguamiento reduce este realce/);
+  assert.doesNotMatch(m.textoHtml, /calidez|válvulas|jazz|vocal/i); // sin juicio de carácter ni recomendación por género
 });
 
-test('modeloAmortiguamiento en inglés: textos propios, sin mezclar idiomas', () => {
+test('modeloAmortiguamiento: el tier de TEXTO "severo" (1,2–2,5 dB) es independiente de la severidad — puede caer en "warn" o "alert" según el umbral existente (1,5 dB)', () => {
+  const spkBase = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es'), impedanciaMinOhm: 4, impedanciaMaxOhm: 25 };
+  const ampBase = amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'es');
+
+  const casiWarn = modeloAmortiguamiento(evaluarAmortiguamiento(spkBase, { ...ampBase, factorAmortiguamiento: 10 }), 'es'); // ΔdB≈1,31 → warn
+  assert.equal(casiWarn.verdictoClase, 'warn');
+  assert.match(casiWarn.textoHtml, /Desviación de nivel amplia en la respuesta de frecuencia/); // mismo tier de texto "severo"
+
+  const casiAlert = modeloAmortiguamiento(evaluarAmortiguamiento(spkBase, { ...ampBase, factorAmortiguamiento: 8 }), 'es'); // ΔdB≈1,60 → alert
+  assert.equal(casiAlert.verdictoClase, 'alert');
+  assert.match(casiAlert.textoHtml, /Desviación de nivel amplia en la respuesta de frecuencia/); // mismo tier de texto "severo" que el caso "warn" de arriba
+
+  assert.match(casiWarn.avisoHtml!, /Conviene un amplificador con mayor factor de amortiguamiento/);
+  assert.match(casiAlert.avisoHtml!, /Conviene un amplificador con mayor factor de amortiguamiento/);
+});
+
+test('modeloAmortiguamiento: tier "óptimo" no interpola cifras que no aplican y no lleva aviso', () => {
+  const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es'), impedanciaMinOhm: 4, impedanciaMaxOhm: 25 };
+  const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'es'), factorAmortiguamiento: 1000 };
+  const r = evaluarAmortiguamiento(spkM, ampM);
+  const m = modeloAmortiguamiento(r, 'es');
+  assert.equal(m.avisoHtml, null);
+  assert.match(m.textoHtml, /Sin alteración medible de la respuesta/);
+});
+
+test('modeloAmortiguamiento en inglés: tier de texto propio, sin mezclar idiomas', () => {
   const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'en'), impedanciaMinOhm: 4, impedanciaMaxOhm: 25 };
   const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'en'), factorAmortiguamiento: 4 };
   const r = evaluarAmortiguamiento(spkM, ampM);
   const m = modeloAmortiguamiento(r, 'en');
   assert.equal(m.verdictoTexto, 'Critical');
-  assert.match(m.avisoHtml!, /Severe loss of damping control/);
-  assert.doesNotMatch(m.avisoHtml!, /amortiguación/);
+  assert.match(m.textoHtml, /Level deviation outside the range this model considers manageable/);
+  assert.match(m.avisoHtml!, /Not a recommended pairing as-is/);
+  assert.doesNotMatch(m.textoHtml + m.avisoHtml, /amortiguación|desviación/);
 });
 
 // ---- ganancia (puente + recorrido) ----

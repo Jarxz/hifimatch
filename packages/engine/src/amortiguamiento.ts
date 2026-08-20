@@ -30,6 +30,15 @@ export const ZMAX_SUPUESTO_OHM = 25;
 export const DELTA_DB_OPTIMO_MAX = 0.3;
 export const DELTA_DB_WARN_MAX = 1.5;
 
+/** Umbrales de granularidad de TEXTO, no de severidad — `severidad`/
+ * `codigo` arriba siguen gobernados sólo por DELTA_DB_OPTIMO_MAX/
+ * DELTA_DB_WARN_MAX. Permiten una explicación más específica dentro de
+ * la misma severidad: dos casos "alert" (uno a 1,6 dB, otro a 4 dB) no
+ * son igual de graves aunque compartan semáforo — ver `resultado.ts`
+ * (`tierDeAmortiguamiento`). Criterio de este sitio, declarado como tal. */
+export const TEXTO_TIER_MODERADO_MAX_DB = 1.2;
+export const TEXTO_TIER_SEVERO_MAX_DB = 2.5;
+
 export type CodigoAmortiguamiento = 'sin-dato' | 'optimo' | 'con-reparos' | 'critico';
 
 export interface ResultadoAmortiguamiento {

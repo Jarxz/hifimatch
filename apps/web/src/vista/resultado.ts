@@ -15,6 +15,7 @@ import type { Genero } from '../../../../packages/engine/src/genero.ts';
 import { nivelPromedioEstimadoDb, CREST_FACTOR_DB } from '../../../../packages/engine/src/genero.ts';
 import type { ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { ResultadoAmortiguamiento } from '../../../../packages/engine/src/amortiguamiento.ts';
+import { DELTA_DB_OPTIMO_MAX, TEXTO_TIER_MODERADO_MAX_DB, TEXTO_TIER_SEVERO_MAX_DB } from '../../../../packages/engine/src/amortiguamiento.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
 import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha } from '../../../../packages/engine/src/modos.ts';
@@ -226,6 +227,23 @@ export interface ModeloTarjetaAmortiguamiento {
   fuenteHtml: string;
 }
 
+/**
+ * Granularidad de TEXTO dentro de la misma severidad — no reemplaza
+ * `codigo`/`severidad` de `ResultadoAmortiguamiento` (esos siguen
+ * gobernados por DELTA_DB_OPTIMO_MAX/DELTA_DB_WARN_MAX, ver
+ * amortiguamiento.ts), sólo elige cuál de 4 explicaciones mostrar. Un
+ * ΔdB de 1,6 y uno de 4,0 pueden compartir severidad "alert" pero no son
+ * igual de graves — acá se distinguen en la redacción, no en el semáforo.
+ */
+type TierTextoAmortiguamiento = 'optimo' | 'moderado' | 'severo' | 'critico';
+
+function tierDeAmortiguamiento(deltaDb: number): TierTextoAmortiguamiento {
+  if (deltaDb <= DELTA_DB_OPTIMO_MAX) return 'optimo';
+  if (deltaDb <= TEXTO_TIER_MODERADO_MAX_DB) return 'moderado';
+  if (deltaDb <= TEXTO_TIER_SEVERO_MAX_DB) return 'severo';
+  return 'critico';
+}
+
 export function modeloAmortiguamiento(r: ResultadoAmortiguamiento, idioma: Idioma): ModeloTarjetaAmortiguamiento {
   const t = textosDe(idioma);
 
@@ -245,26 +263,22 @@ export function modeloAmortiguamiento(r: ResultadoAmortiguamiento, idioma: Idiom
 
   const zOutFmt = num(r.zOutOhm as number, 2, idioma);
   const zMinFmt = num(r.zMinOhm as number, 1, idioma);
+  const zMaxFmt = num(r.zMaxOhm as number, 1, idioma);
   const deltaDbFmt = num(r.deltaDb as number, 2, idioma);
+  const p = { zOut: zOutFmt, zMin: zMinFmt, zMax: zMaxFmt, deltaDb: deltaDbFmt };
 
-  const textoHtml = t.motor.amortiguamiento.texto({ deltaDb: deltaDbFmt, zOut: zOutFmt });
+  const tier = tierDeAmortiguamiento(r.deltaDb as number);
+  const tt = t.motor.amortiguamiento.tiers[tier];
+  const textoHtml = `<p><b>${tt.titulo}</b></p><p>${tt.explicacionFisica(p)}</p><p>${tt.consecuenciaMedible(p)}</p>`;
 
-  let avisoHtml: string | null = null;
-  if (r.codigo === 'con-reparos') {
-    avisoHtml = t.motor.amortiguamiento.avisoConReparos({ deltaDb: deltaDbFmt });
-  } else if (r.codigo === 'critico') {
-    avisoHtml = t.motor.amortiguamiento.avisoCritico;
-  }
+  // Tier "óptimo" no lleva flag — mismo criterio que carga.ts/reverberacion.ts:
+  // el aviso se reserva para cuando hay algo que conviene revisar.
+  let avisoHtml: string | null = tier === 'optimo' ? null : tt.accionSugerida(p);
   if (r.zMaxEsSupuesto) {
     avisoHtml = avisoHtml ? avisoHtml + '<br>' + t.motor.amortiguamiento.zMaxSupuesto : t.motor.amortiguamiento.zMaxSupuesto;
   }
 
-  const calcHtml = t.motor.amortiguamiento.calc({
-    zOut: zOutFmt,
-    zMin: zMinFmt,
-    zMax: num(r.zMaxOhm as number, 1, idioma),
-    deltaDb: deltaDbFmt,
-  });
+  const calcHtml = t.motor.amortiguamiento.calc(p);
 
   return {
     sinDatos: false,

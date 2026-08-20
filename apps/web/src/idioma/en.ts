@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V11.08.26',
+    version: 'V12.08.26',
   },
 
   info: {
@@ -360,11 +360,38 @@ export const en: Textos = {
       sinDatosTexto:
         'The amplifier’s damping factor or the speaker’s minimum impedance is missing. Without both data points, this interaction can’t be estimated.',
       sinDatosAviso: 'A missing data point does not count as approved. <b>Pending:</b> published damping factor.',
-      texto: (p) =>
-        `The amplifier’s output impedance (Z_out ≈ ${p.zOut} Ω) forms a voltage divider with the speaker’s impedance curve: between the minimum and the bass-resonance peak, that divider lets through <b>${p.deltaDb} dB</b> more or less voltage. This isn’t a judgment on the damping factor by itself (a tube amplifier with a low DF can sound perfect with the right speaker) — it’s the real interaction with THIS speaker’s curve.`,
-      avisoConReparos: (p) =>
-        `The amplifier’s output impedance will alter the speaker’s tonal response by +${p.deltaDb} dB in its resonance zone.`,
-      avisoCritico: 'Severe loss of damping control; a noticeable alteration of the speaker’s factory frequency response.',
+      tiers: {
+        optimo: {
+          titulo: 'No measurable alteration of the response.',
+          explicacionFisica: (p) =>
+            `The amplifier's low output impedance (Z_out ≈ ${p.zOut} Ω) keeps the speaker's frequency response within the measured variation, with no identifiable boost.`,
+          consecuenciaMedible: (p) =>
+            `This speaker's impedance curve (minimum ${p.zMin} Ω, peak ${p.zMax} Ω) doesn't produce a detectable level deviation in any band.`,
+          accionSugerida: () => 'No action needed — a good match for reference listening.',
+        },
+        moderado: {
+          titulo: 'Moderate level boost in the resonance zone.',
+          explicacionFisica: (p) =>
+            `The electrical interaction produces a +${p.deltaDb} dB boost concentrated near the speaker's impedance peak (${p.zMax} Ω), from the amplifier's internal resistance (Z_out ≈ ${p.zOut} Ω).`,
+          consecuenciaMedible: () => 'It’s a level deviation confined to the bass-resonance band, not a change across the rest of the response.',
+          accionSugerida: () =>
+            'An amplifier with a higher damping factor reduces this boost if a flatter response is the goal — verified by listening and, if possible, measuring.',
+        },
+        severo: {
+          titulo: 'Wide level deviation in the frequency response.',
+          explicacionFisica: (p) =>
+            `The amplifier's high output impedance (Z_out ≈ ${p.zOut} Ω) interacts with the speaker's swing between ${p.zMin} Ω minimum and ${p.zMax} Ω maximum, producing a +${p.deltaDb} dB deviation from the published curve.`,
+          consecuenciaMedible: () => 'The deviation is no longer confined to a single boost: it spreads over a wider frequency range around the resonance.',
+          accionSugerida: () => 'An amplifier with a higher damping factor helps, or a speaker with a flatter bass impedance curve.',
+        },
+        critico: {
+          titulo: 'Level deviation outside the range this model considers manageable.',
+          explicacionFisica: (p) =>
+            `The frequency response deviates +${p.deltaDb} dB from the published curve — the interaction between the amplifier's and the speaker's impedance dominates the measured curve's shape in this zone.`,
+          consecuenciaMedible: () => 'It’s a large, localized level deviation — this calculation measures level, not distortion, excursion, or thermal behavior.',
+          accionSugerida: () => 'Not a recommended pairing as-is — a different amplifier (higher damping factor) or a different speaker suits this electronics better.',
+        },
+      },
       calc: (p) =>
         `Z_out = 8 / DF = <b>${p.zOut} Ω</b><br>ΔdB = 20·log₁₀( (${p.zMax}·(${p.zMin}+${p.zOut})) / (${p.zMin}·(${p.zMax}+${p.zOut})) ) = <b>${p.deltaDb} dB</b>`,
       zMaxSupuesto:

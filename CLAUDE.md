@@ -2044,6 +2044,61 @@ Geometría vuelve a coincidir exactamente con el de cualquier otra
 tarjeta (1076px = 1076px), y a un viewport de 900px de alto el diagrama
 completo entra sin scroll adicional.
 
+**Amortiguamiento: texto por 4 franjas de ΔdB, no por severidad —
+pedido con una especificación que, dentro del contenido de texto, pedía
+exactamente lo que la primera sección de este documento prohíbe por
+nombre.** La especificación traía "calidez" en el texto de un tramo
+("con reparos") — es el ejemplo literal que la lista de prohibiciones
+usa para "juicios de carácter tonal" — además de atribuir la
+coloración a "acople clásico con válvulas" (topología que este cálculo
+no conoce) y recomendar géneros musicales por tramo (jazz/vocal sí,
+electrónica/rock con reservas — una predicción de sinergia por gusto,
+también prohibida). El tramo "crítico" atribuía la desviación a
+"distorsión por excursión térmica descontrolada" — un mecanismo que
+esta regla no calcula: ΔdB mide una desviación de nivel en dB, no
+excursión ni temperatura. Se avisó explícitamente antes de escribir el
+diccionario, y se implementó el resto (la estructura de 4 campos, la
+granularidad de 4 franjas, la interpolación de cifras) con el
+contenido reescrito para describir sólo lo que la fórmula realmente
+mide — dónde y cuánto se desvía la respuesta, nunca cómo "suena".
+
+`packages/engine/src/amortiguamiento.ts` suma dos constantes nuevas,
+`TEXTO_TIER_MODERADO_MAX_DB` (1,2) y `TEXTO_TIER_SEVERO_MAX_DB` (2,5),
+explícitamente documentadas como **umbrales de texto, no de
+severidad** — `DELTA_DB_OPTIMO_MAX`/`DELTA_DB_WARN_MAX` (0,3/1,5) siguen
+siendo los únicos que deciden `ok`/`warn`/`alert`. Esto es deliberado,
+no un descuido: un ΔdB de 1,6 y uno de 4,0 pueden compartir severidad
+"alert" (ambos >1,5) pero no son igual de graves, así que el tramo de
+TEXTO "severo" (1,2–2,5 dB) puede aparecer con cualquiera de las dos
+severidades según de qué lado de 1,5 caiga — verificado con un test que
+construye ambos casos (ΔdB≈1,31→warn, ΔdB≈1,60→alert) y confirma que
+los dos muestran el mismo tramo de texto "severo", distinto del tramo
+"crítico" (>2,5 dB).
+
+`resultado.ts` reemplaza el `texto`/`avisoConReparos`/`avisoCritico` de
+una sola cadena por 4 campos por tramo (`titulo`, `explicacionFisica`,
+`consecuenciaMedible` — renombrado de "perfilSonoro" pedido, sin
+cambiar el propósito estructural, sólo evitando un nombre que invita a
+describir cómo suena en vez de qué se mide —, `accionSugerida`), los 4
+como funciones `(p) => string` con las cifras ya interpoladas (Z_out,
+Z_min, Z_max, ΔdB con 2 decimales). El tramo "óptimo" no lleva
+`avisoHtml` (mismo criterio que carga.ts/reverberacion.ts: el aviso se
+reserva para cuando hay algo que conviene revisar). `index.html`
+cambia `#am-text` de `<p>` a `<div>` para poder contener los 3
+párrafos (`titulo` en negrita + `explicacionFisica` +
+`consecuenciaMedible`) sin anidar bloques inválidos — la regla `.card
+p` ya alcanza los `<p>` anidados por selector de descendiente, sin CSS
+nuevo. 9 tests nuevos en `resultado.test.ts`, incluida una aserción
+explícita de que ni el texto ni el aviso contienen vocabulario de
+carácter tonal o mecanismos no medidos
+(`/cálid|musical|retumbante|difuso|térmica descontrolada/i`).
+Verificado con Chrome headless (inyectando el HTML que
+`modeloAmortiguamiento` produciría, ya que el catálogo real sigue sin
+`factorAmortiguamiento` poblado — ver el punto de "Falta" ya
+existente): título en negrita + 2 párrafos + caja de cálculo + aviso,
+todos cleanly separados, sin errores de consola. **313 tests totales**
+entre los 4 workspaces (antes 311).
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita

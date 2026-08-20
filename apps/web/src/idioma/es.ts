@@ -73,7 +73,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V11.08.26',
+    version: 'V12.08.26',
   },
 
   info: {
@@ -388,12 +388,63 @@ export const es = {
       sinDatosTexto:
         'Falta el factor de amortiguamiento del amplificador o la impedancia mínima del parlante. Sin ambos datos no se puede estimar esta interacción.',
       sinDatosAviso: 'Un dato faltante no se cuenta como aprobado. <b>Pendiente:</b> factor de amortiguamiento publicado.',
-      texto: (p: { deltaDb: string; zOut: string }): string =>
-        `La impedancia de salida del amplificador (Z_out ≈ ${p.zOut} Ω) forma un divisor de tensión con la curva de impedancia del parlante: entre el mínimo y el pico de resonancia de graves, ese divisor deja pasar <b>${p.deltaDb} dB</b> más o menos tensión. No es un juicio sobre el factor de amortiguamiento en sí (un amplificador valvular de DF bajo puede sonar perfecto con el parlante correcto) — es la interacción real con la curva de ESTE parlante.`,
-      avisoConReparos: (p: { deltaDb: string }): string =>
-        `La impedancia de salida del amplificador alterará la respuesta tonal del parlante en +${p.deltaDb} dB en su zona de resonancia.`,
-      avisoCritico:
-        'Pérdida severa de control de amortiguación; alteración notable de la respuesta de frecuencia de fábrica del parlante.',
+      /**
+       * 4 franjas de TEXTO (no de severidad — ver TEXTO_TIER_*_MAX_DB en
+       * amortiguamiento.ts) con 4 campos cada una: `titulo` (frase corta),
+       * `explicacionFisica` (qué produce el desvío y por qué), `consecuenciaMedible`
+       * (dónde/cuánto se desvía, en dB/Hz — nunca cómo "suena"), y
+       * `accionSugerida` (qué hacer, si aplica). Deliberadamente sin
+       * juicios de carácter tonal (cálido/musical/con cuerpo) ni
+       * predicciones de sinergia por género — CLAUDE.md los prohíbe sin
+       * excepción; y sin atribuir mecanismos que este cálculo no mide
+       * (distorsión, excursión, comportamiento térmico): sólo describe la
+       * desviación de nivel que la fórmula realmente calcula.
+       */
+      tiers: {
+        optimo: {
+          titulo: 'Sin alteración medible de la respuesta.',
+          explicacionFisica: (p): string =>
+            `La baja impedancia de salida del amplificador (Z_out ≈ ${p.zOut} Ω) mantiene la respuesta de frecuencia del parlante dentro de la variación medida, sin un realce identificable.`,
+          consecuenciaMedible: (p): string =>
+            `La curva de impedancia de este parlante (mínimo ${p.zMin} Ω, pico ${p.zMax} Ω) no produce una desviación de nivel detectable en ninguna banda.`,
+          accionSugerida: (_p): string => 'Ninguna acción necesaria — combinación adecuada para escucha de referencia.',
+        },
+        moderado: {
+          titulo: 'Realce de nivel moderado en la zona de resonancia.',
+          explicacionFisica: (p): string =>
+            `La interacción eléctrica produce un realce de +${p.deltaDb} dB concentrado cerca del pico de impedancia del parlante (${p.zMax} Ω), por la resistencia interna del amplificador (Z_out ≈ ${p.zOut} Ω).`,
+          consecuenciaMedible: (_p): string =>
+            'Es una desviación de nivel acotada a la banda de resonancia de graves, no un cambio en el resto de la respuesta.',
+          accionSugerida: (_p): string =>
+            'Un amplificador con mayor factor de amortiguamiento reduce este realce si se busca una respuesta más plana — se verifica escuchando y, si es posible, midiendo.',
+        },
+        severo: {
+          titulo: 'Desviación de nivel amplia en la respuesta de frecuencia.',
+          explicacionFisica: (p): string =>
+            `La alta impedancia de salida del amplificador (Z_out ≈ ${p.zOut} Ω) interactúa con la variación entre los ${p.zMin} Ω mínimos y los ${p.zMax} Ω máximos del parlante, produciendo una desviación de +${p.deltaDb} dB respecto a la curva publicada.`,
+          consecuenciaMedible: (_p): string =>
+            'La desviación ya no se limita a un realce puntual: se extiende sobre un rango de frecuencias más amplio alrededor de la resonancia.',
+          accionSugerida: (_p): string =>
+            'Conviene un amplificador con mayor factor de amortiguamiento, o un parlante con una curva de impedancia más plana en graves.',
+        },
+        critico: {
+          titulo: 'Desviación de nivel fuera del rango que este modelo considera manejable.',
+          explicacionFisica: (p): string =>
+            `La respuesta de frecuencia se desvía +${p.deltaDb} dB de la curva publicada — la interacción entre la impedancia de salida del amplificador y la del parlante domina la forma de la curva medida en esta zona.`,
+          consecuenciaMedible: (_p): string =>
+            'Es una desviación de nivel grande y localizada — este cálculo mide nivel, no distorsión, excursión ni comportamiento térmico.',
+          accionSugerida: (_p): string =>
+            'Combinación no recomendada tal como está — conviene otro amplificador (mayor factor de amortiguamiento) o otro parlante para esta electrónica.',
+        },
+      } satisfies Record<
+        'optimo' | 'moderado' | 'severo' | 'critico',
+        {
+          titulo: string;
+          explicacionFisica: (p: { zOut: string; zMin: string; zMax: string; deltaDb: string }) => string;
+          consecuenciaMedible: (p: { zOut: string; zMin: string; zMax: string; deltaDb: string }) => string;
+          accionSugerida: (p: { zOut: string; zMin: string; zMax: string; deltaDb: string }) => string;
+        }
+      >,
       calc: (p: { zOut: string; zMin: string; zMax: string; deltaDb: string }): string =>
         `Z_out = 8 / DF = <b>${p.zOut} Ω</b><br>ΔdB = 20·log₁₀( (${p.zMax}·(${p.zMin}+${p.zOut})) / (${p.zMin}·(${p.zMax}+${p.zOut})) ) = <b>${p.deltaDb} dB</b>`,
       zMaxSupuesto:
