@@ -41,6 +41,12 @@ function chipsCoreParlante(p: ParlanteCat, idioma: Idioma): string[] {
   if (p.impedanciaMinOhm !== null) {
     chips.push(`${t.catalogo.min} ${num(p.impedanciaMinOhm, decimalesNaturales(p.impedanciaMinOhm), idioma)} Ω`);
   }
+  if (p.impedanciaMaxOhm !== null) {
+    chips.push(`Z${t.catalogo.max} ${num(p.impedanciaMaxOhm, decimalesNaturales(p.impedanciaMaxOhm), idioma)} Ω`);
+  }
+  if (p.anguloFaseGrados !== null) {
+    chips.push(`θ ${num(p.anguloFaseGrados, decimalesNaturales(p.anguloFaseGrados), idioma)}°`);
+  }
   const rango = rangoPotenciaW(p.potenciaRecMinW, p.potenciaRecMaxW, idioma);
   if (rango) chips.push(rango);
   if (p.maxSplDb !== null) chips.push(`${num(p.maxSplDb, 0, idioma)} dB ${t.catalogo.max}`);
@@ -65,6 +71,9 @@ function chipsCoreAmplificador(a: AmplificadorCat, idioma: Idioma): string[] {
   }
   if (a.cargaMinOhm !== null) {
     chips.push(`${t.catalogo.min} ${num(a.cargaMinOhm, decimalesNaturales(a.cargaMinOhm), idioma)} Ω`);
+  }
+  if (a.factorAmortiguamiento !== null) {
+    chips.push(`DF ${num(a.factorAmortiguamiento, decimalesNaturales(a.factorAmortiguamiento), idioma)}`);
   }
   return chips;
 }

@@ -1,5 +1,5 @@
 /** Puebla los selectores marca→modelo del catálogo y arma el HTML de la tarjeta .info de cada categoría. */
-import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
+import { CATALOGO, MARCA_GENERICA } from '../../../../packages/data/src/catalogo.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { chipsParlante, chipsAmplificador, chipsFuente } from '../datos/etiquetas.ts';
@@ -107,10 +107,11 @@ export function poblarModelos(kind: Kind, marca: string, idioma: Idioma): void {
  * href ni onclick, para que quede claro que es una opción futura — pensado
  * para cuando una tienda quiera linkear su ficha de producto real.
  */
-function infoHtml(tipo: string, chips: string[], descripcion: string, verDescripcion: string, verFicha: string): string {
+function infoHtml(tipo: string, chips: string[], descripcion: string, verDescripcion: string, verFicha: string, notaGenerica: string | null): string {
   const chipsHtml = chips.map((c) => `<span>${c}</span>`).join('');
+  const notaHtml = notaGenerica ? `<div class="info-nota-generico">${notaGenerica}</div>` : '';
   return (
-    `<div class="info"><div class="info-type">${tipo}</div><div class="chips">${chipsHtml}</div>` +
+    `<div class="info">${notaHtml}<div class="info-type">${tipo}</div><div class="chips">${chipsHtml}</div>` +
     `<details class="detalle"><summary>${verDescripcion}</summary><div class="info-desc">${descripcion}</div></details>` +
     `<div class="info-linkwrap"><span class="info-link">${verFicha}</span></div></div>`
   );
@@ -118,13 +119,15 @@ function infoHtml(tipo: string, chips: string[], descripcion: string, verDescrip
 
 export function infoHtmlParlante(p: ParlanteCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma], t.verDescripcion, t.verFicha);
+  const nota = p.marca === MARCA_GENERICA ? t.notaGenerico : null;
+  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma], t.verDescripcion, t.verFicha, nota);
 }
 export function infoHtmlAmplificador(a: AmplificadorCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma], t.verDescripcion, t.verFicha);
+  const nota = a.marca === MARCA_GENERICA ? t.notaGenerico : null;
+  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma], t.verDescripcion, t.verFicha, nota);
 }
 export function infoHtmlFuente(f: FuenteCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma], t.verDescripcion, t.verFicha);
+  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma], t.verDescripcion, t.verFicha, null);
 }

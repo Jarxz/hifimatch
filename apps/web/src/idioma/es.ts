@@ -73,7 +73,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V13.08.26',
+    version: 'V14.08.26',
   },
 
   info: {
@@ -162,6 +162,8 @@ export const es = {
     masDacs: 'Más DACs · próximamente',
     verFicha: 'Ficha del producto · próximamente',
     verDescripcion: 'Ver descripción',
+    notaGenerico:
+      'Perfil genérico (arquetipo): una aproximación física de referencia, no un producto real ni una medición. Conviene elegirlo sólo cuando el equipo real no aparece en el catálogo.',
     dimensionesTitulo: 'Dimensiones de la sala',
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',

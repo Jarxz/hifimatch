@@ -104,3 +104,35 @@ test('Cambridge CXA81 en inglés: "min" en el chip de carga mínima del amplific
   const chips = chipsAmplificador(amplificador('rega-brio'), 'en');
   assert.ok(chips.includes('min 4 Ω'), chips.join(', '));
 });
+
+// ---- chips derivados de impedanciaMaxOhm/anguloFaseGrados/factorAmortiguamiento ----
+// Ningún equipo real del catálogo tiene estos 3 campos poblados todavía (ver
+// CLAUDE.md "Falta"), así que sólo los 3 parlantes y 3 amplificadores
+// genéricos ejercitan esta rama — cero riesgo de regresión sobre los 132
+// equipos reales, que siguen devolviendo exactamente los mismos chips.
+
+test('Genérico (Arquetipo) — Monitor de alta reactividad: agrega chips Zmáx y θ (fase), además de mín', () => {
+  const chips = chipsParlante(parlante('generico-parlante-monitor-reactivo'), 'es');
+  assert.deepEqual(chips.slice(0, 5), ['4 Ω', '86 dB', 'mín 3,5 Ω', 'Zmáx 30 Ω', 'θ -55°']);
+});
+
+test('Genérico (Arquetipo) — Columna estándar en inglés: "Zmax" (no "Zmáx"), mismo signo de fase', () => {
+  const chips = chipsParlante(parlante('generico-parlante-columna-estandar'), 'en');
+  assert.deepEqual(chips.slice(0, 5), ['6 Ω', '89 dB', 'min 4.8 Ω', 'Zmax 24 Ω', 'θ -35°']);
+});
+
+test('Genérico (Arquetipo) — Filtro purista dócil: no dispara chip de fase/Zmáx si esos campos fueran null (guardia de regresión con el propio arquetipo, que sí los declara)', () => {
+  const chips = chipsParlante(parlante('generico-parlante-filtro-docil'), 'es');
+  assert.ok(chips.includes('Zmáx 16 Ω'), chips.join(', '));
+  assert.ok(chips.includes('θ -15°'), chips.join(', '));
+});
+
+test('Genérico (Arquetipo) — Estado sólido, alta corriente: agrega chip DF', () => {
+  const chips = chipsAmplificador(amplificador('generico-ampli-ss-alta-corriente'), 'es');
+  assert.ok(chips.includes('DF 400'), chips.join(', '));
+});
+
+test('Genérico (Arquetipo) — Válvulas, alta impedancia de salida: DF bajo (8), sin chip de 4 Ω (potencia4OhmW null)', () => {
+  const chips = chipsAmplificador(amplificador('generico-ampli-valvular-alta-zout'), 'es');
+  assert.deepEqual(chips, ['35 W / 8 Ω', 'mín 4 Ω', 'DF 8']);
+});

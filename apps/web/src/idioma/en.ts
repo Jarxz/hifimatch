@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V13.08.26',
+    version: 'V14.08.26',
   },
 
   info: {
@@ -136,6 +136,8 @@ export const en: Textos = {
     masDacs: 'More DACs · coming soon',
     verFicha: 'Product page · coming soon',
     verDescripcion: 'View description',
+    notaGenerico:
+      "Generic profile (archetype): a reference physical approximation, not a real product or a measurement. Best used only when the real equipment isn't in the catalog.",
     dimensionesTitulo: 'Room dimensions',
     ancho: 'Width (front)',
     largo: 'Length (depth)',

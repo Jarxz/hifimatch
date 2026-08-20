@@ -9,8 +9,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
+import { evaluarAmortiguamiento } from '../../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
-import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
+import { CATALOGO, MARCA_GENERICA } from '../../../../packages/data/src/catalogo.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './adaptadores.ts';
 
 const EPS = 0.05; // tolerancia estándar del proyecto (motor-mvp.md, cabecera)
@@ -143,4 +144,64 @@ test('idioma "en" cambia fuente/tipo/nombre-de-producto según corresponda', () 
   assert.equal(kefEn.nombre, kefEs.nombre); // nombre de producto no se traduce
   assert.notEqual(kefEn.tipo, kefEs.tipo); // tipo sí
   assert.notEqual(kefEn.sensibilidadDb.fuente, kefEs.sensibilidadDb.fuente); // fuente sí
+});
+
+// ---- Genérico (Arquetipo): los 6 perfiles de respaldo alimentan EPDR,
+// Amortiguamiento y Potencia sin caer en "sin-datos" — ver CLAUDE.md,
+// ronda "Perfiles genéricos de respaldo". Vectores calculados con Node
+// (no a mano), mismo criterio que el resto de este archivo. ----
+
+test('Genérico: los 6 perfiles existen en el catálogo bajo MARCA_GENERICA', () => {
+  const parlantesGenericos = CATALOGO.parlantes.filter((p) => p.marca === MARCA_GENERICA);
+  const amplisGenericos = CATALOGO.amplificadores.filter((a) => a.marca === MARCA_GENERICA);
+  assert.equal(parlantesGenericos.length, 3);
+  assert.equal(amplisGenericos.length, 3);
+});
+
+test('Genérico: Monitor de alta reactividad (Zmín 3,5, θ −55°) + Válvulas alta Zout (DF 8) — EPDR y Amortiguamiento calculan en "alert", nunca "sin-datos"', () => {
+  const spk = parlante('generico-parlante-monitor-reactivo');
+  const amp = amplificador('generico-ampli-valvular-alta-zout');
+
+  const carga = evaluarCarga(spk, amp);
+  assert.notEqual(carga.severidad, 'sin-datos');
+  assert.ok(carga.epdrOhm !== null);
+  assert.ok(Math.abs((carga.epdrOhm as number) - 1.924) < EPS);
+  assert.equal(carga.thetaEsSupuesto, false); // fase declarada por el arquetipo, no el fallback -45°
+  assert.equal(carga.severidad, 'alert');
+  assert.equal(carga.codigo, 'epdr-critico');
+
+  const amort = evaluarAmortiguamiento(spk, amp);
+  assert.notEqual(amort.severidad, 'sin-datos');
+  assert.ok(amort.deltaDb !== null);
+  assert.ok(Math.abs((amort.deltaDb as number) - 1.898) < EPS);
+  assert.equal(amort.zMaxEsSupuesto, false); // Zmáx declarado por el arquetipo, no el fallback de 25 Ω
+  assert.equal(amort.severidad, 'alert');
+  assert.equal(amort.codigo, 'critico');
+});
+
+test('Genérico: Filtro purista dócil (Zmín 6,2, θ −15°) + Estado sólido alta corriente (DF 400) — la combinación más benigna da "ok" en carga y amortiguamiento, con datos igual de completos', () => {
+  const spk = parlante('generico-parlante-filtro-docil');
+  const amp = amplificador('generico-ampli-ss-alta-corriente');
+
+  const carga = evaluarCarga(spk, amp);
+  assert.ok(Math.abs((carga.epdrOhm as number) - 4.925) < EPS);
+  assert.equal(carga.severidad, 'ok');
+
+  const amort = evaluarAmortiguamiento(spk, amp);
+  assert.ok(Math.abs((amort.deltaDb as number) - 0.017) < EPS);
+  assert.equal(amort.severidad, 'ok');
+  assert.equal(amort.codigo, 'optimo');
+});
+
+test('Genérico: Potencia (Hopkins-Stryker) corre de punta a punta para los 6 perfiles — sensibilidadDb/potencia8OhmW nunca faltan', () => {
+  const s1 = evaluarPotencia(parlante('generico-parlante-filtro-docil'), amplificador('generico-ampli-ss-alta-corriente'), 3.0, 'alto');
+  assert.ok(Math.abs(s1.margenDb - 12.2185) < EPS);
+  assert.equal(s1.severidad, 'ok');
+  assert.equal(s1.codigo, 'con-margen');
+  assert.equal(s1.confianza, 'baja'); // hereda la confianza declarada de los datos sintéticos, no se disfraza de "alta"
+
+  const s2 = evaluarPotencia(parlante('generico-parlante-monitor-reactivo'), amplificador('generico-ampli-valvular-alta-zout'), 3.0, 'alto');
+  assert.ok(Math.abs(s2.margenDb - 0.8983) < EPS);
+  assert.equal(s2.severidad, 'warn');
+  assert.equal(s2.codigo, 'justo');
 });

@@ -2123,19 +2123,124 @@ con `getBoundingClientRect` exacto, sin redondear, más capturas de
 pantalla en 390 y 820. Cambio puramente de `estilos.css`, sin tocar
 `main.ts`/`pintar.ts`/HTML.
 
+**Perfiles genéricos (arquetipos) — respaldo para equipos fuera de
+catálogo, primera vez que el catálogo tiene equipos que no son un
+producto real.** Pedido explícito: 3 parlantes + 3 amplificadores bajo
+una marca reservada `MARCA_GENERICA = 'Genérico (Arquetipo)'`
+(`packages/data/src/catalogo.ts`, exportada junto con `PARLANTES_GENERICOS`/
+`AMPLIFICADORES_GENERICOS`, antepuestos al resto de cada categoría — el
+orden visible en el selector no cambia por esto: `marcasUnicas()`
+siempre ordena alfabéticamente por `localeCompare`, sin importar la
+posición en el array fuente). Sirven para aproximar el comportamiento
+eléctrico de un equipo que el usuario tiene pero que no está en el
+catálogo, evaluado por parecido físico (impedancia mínima/de pico,
+ángulo de fase, factor de amortiguamiento) en vez de quedar sin
+análisis. Parlantes: `MONITOR_ALTA_REACTIVIDAD` (Zmín 3,5 Ω, θ −55°,
+Zmáx 30 Ω), `COLUMNA_ESTANDAR` (4,8 Ω, −35°, 24 Ω), `FILTRO_PURISTA_DOCIL`
+(6,2 Ω, −15°, 16 Ω) — de más a menos exigente eléctricamente.
+Amplificadores: `SOLID_STATE_ALTA_CORRIENTE` (DF 400),
+`SOLID_STATE_VINTAGE_AVR` (DF 60), `VALVULAR_ALTA_ZOUT` (DF 8, sin
+potencia4OhmW — un transformador de salida valvular no tiene una
+relación simple de potencia 8→4 Ω).
+
+**El pedido no traía sensibilidadDb ni potencia8OhmW — campos no
+nulos en el esquema (`Parlante`/`Amplificador`, `tipos.ts`) que
+`potencia.ts` exige siempre.** Sin ellos, ni la carga real de estos 6
+perfiles compilaba. Se avisó explícitamente antes de inventar esos
+números (misma doctrina de "no inventes umbrales, pregunta" aplicada
+acá a specs de equipo, no a un umbral del motor) y se propuso un valor
+razonable por arquetipo, coherente con su identidad eléctrica ya
+declarada (más reactivo → sensibilidad más baja de monitor compacto;
+carga más benigna → sensibilidad más alta de crossover simple;
+alta corriente → más vatios que un receptor vintage o un valvular),
+aprobado antes de escribir el catálogo. Todo dato sintético
+(sensibilidadDb, potencia8OhmW, potencia4OhmW) lleva `confianza: 'baja'`
+declarada y una `nota`/`fuente` que dice explícitamente "no es un
+producto real" — nunca se disfraza de medición citada, mismo principio
+de "fuente + confianza" que rige el resto del catálogo.
+
+**Zmín/fase/Zmáx/DF se declaran directamente (no vía los fallbacks ya
+existentes)**, así que `carga.ts` nunca activa `thetaEsSupuesto` (el
+fallback de −45° para nominal ≤4 Ω) ni `amortiguamiento.ts` activa
+`zMaxEsSupuesto` (el fallback de 25 Ω) para estos 6 perfiles — tienen
+su propio valor declarado, más específico que cualquiera de los dos
+supuestos genéricos que ya existían. Verificado con un vector extremo
+(Monitor de alta reactividad + Válvulas alta Zout): EPDR≈1,92 Ω
+("crítico") y ΔdB≈1,90 dB ("crítico") calculan de punta a punta sin
+"sin-datos", y el veredicto general sube hasta "Configuración no
+recomendada" — la cadena completa de severidad respondiendo a specs
+enteramente declaradas por este sitio, no citadas de un fabricante.
+
+**Aviso de aproximación en la tarjeta, arriba de todo.** Cuando el
+equipo elegido tiene `marca === MARCA_GENERICA`,
+`infoHtmlParlante`/`infoHtmlAmplificador` (`vista/selectores.ts`)
+insertan `config.notaGenerico` (bilingüe, "Perfil genérico
+(arquetipo): una aproximación física de referencia, no un producto
+real ni una medición...") como primer elemento de la tarjeta `.info`,
+antes del badge de tipo — no se puede confundir con un producto real
+ni pasarlo por alto. `infoHtmlFuente` (streamers/DACs) no lo necesita:
+esta ronda no agrega arquetipos de fuente.
+
+**Chips nuevos, derivados automáticamente — cero riesgo para los 132
+equipos reales.** `etiquetas.ts` ya derivaba chips de
+`impedanciaMinOhm`/`potenciaRecMinW`/`maxSplDb`/`cargaMinOhm`, pero no
+de `impedanciaMaxOhm`/`anguloFaseGrados`/`factorAmortiguamiento` — los
+3 campos que ningún equipo real tiene poblado todavía (ver más abajo).
+Se agregó el chip para cada uno (`Zmáx 30 Ω`, `θ −55°`, `DF 400`) sólo
+cuando el campo no es `null`, así que los 132 equipos reales del
+catálogo no ganan ningún chip nuevo — sólo lo ejercitan los 6
+genéricos, primeros en poblar esos 3 campos. `θ`/`Ω`/`DF` no necesitan
+traducción (símbolos y una sigla ya estándar en los dos idiomas);
+`Zmáx`/`Zmax` sí reusa `catalogo.max` (`mín`/`min`), ya bilingüe.
+
+**Decisión deliberada, documentada: `marca`/`nombre` de estos 6
+perfiles se quedan en español en las dos versiones del sitio.** El
+esquema declara ambos campos "NO se traduce" para TODO el catálogo,
+real o genérico (`tipos-catalogo.ts`) — funciona para marcas reales
+porque son nombres propios (KEF, Focal), pero "Genérico (Arquetipo)"
+es prosa descriptiva, así que en inglés el selector de marca/modelo
+sigue mostrando el literal en español. Traducirlo de verdad exigiría
+que `marca`/`nombre` dejen de ser un string plano en TODO el catálogo,
+o un shim de traducción por id en cada sitio que hoy interpola
+`.nombre` directo (`vista/selectores.ts`, `vista/pintar.ts`
+"La cadena", `resultado.ts` puente/recorrido/resumen/documento — más
+de diez sitios) — desproporcionado para 6 entradas. En vez de eso, la
+tarjeta `.info` (badge de tipo, chips, descripción, y sobre todo el
+aviso `notaGenerico` de arriba) sí está completamente traducida y
+aparece apenas se elige un modelo — mitiga el hueco sin tocar la
+arquitectura de `marca`/`nombre` que el resto del catálogo ya daba por
+sentada. Verificado con Chrome headless en inglés: el `<select>`
+todavía dice "Genérico (Arque…" pero la tarjeta entera de abajo
+(incluido el aviso) es inglés real, sin mezclar idiomas.
+
+**197 (Falta, obsoleto) — este catálogo pasa a 138 equipos** (38
+parlantes + 37 amplificadores + 30 streamers + 30 dacs + 3 cables, antes
+132) — la primera vez que el conteo sube por perfiles sintéticos, no
+por curaduría de un producto real. 331 tests totales entre los 4
+workspaces (antes 313): 16 en `packages/data` (+4: existencia de los 6
+perfiles, confianza baja, valores de carga/fase/Zmáx, DF exacto), 153
+en `apps/web` (+14: 5 chips nuevos en `etiquetas.test.ts`, 5 en el
+`selectores.test.ts` nuevo — primer test de ese archivo, cubre sólo las
+funciones puras `infoHtml*`, nunca `document` — y 4 de integración
+motor+catálogo en `adaptadores.test.ts`, vectores calculados con Node
+igual que el resto del archivo).
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita
   `amortiguamiento.ts` existen en el esquema (`Parlante`/`Amplificador`
   en `tipos.ts`, `ParlanteCat`/`AmplificadorCat` en `tipos-catalogo.ts`)
-  pero están en `null` para los 35 parlantes y 34 amplificadores del
-  catálogo — ninguna ficha de fabricante consultada hasta ahora publica
-  DF referido a una carga fija de forma consistente entre marcas. Motor
-  y UI ya están listos; falta la ronda de catálogo dedicada a
-  investigar y poblar estos dos campos con fuente y confianza, igual
-  disciplina que el resto. Lo mismo para `anguloFaseGrados` (fase en
-  graves) de EPDR — casi ningún fabricante lo publica; el fallback de
-  -45° para nominal ≤4 Ω cubre el caso común mientras tanto.
+  y siguen en `null` para los 35 parlantes y 34 amplificadores **reales**
+  del catálogo — ninguna ficha de fabricante consultada hasta ahora
+  publica DF referido a una carga fija de forma consistente entre
+  marcas (los 3 parlantes y 3 amplificadores "Genérico (Arquetipo)" sí
+  los declaran, pero son perfiles sintéticos de este sitio, no una
+  medición citada — ver más arriba). Motor y UI ya están listos; falta
+  la ronda de catálogo dedicada a investigar y poblar estos dos campos
+  en equipos reales, con fuente y confianza, igual disciplina que el
+  resto. Lo mismo para `anguloFaseGrados` (fase en graves) de EPDR —
+  casi ningún fabricante lo publica; el fallback de -45° para nominal
+  ≤4 Ω cubre el caso común mientras tanto.
 - **Fricción antes del primer resultado** (colapsar "Materiales de la
   sala" + dimensiones detrás de un `<details>` "Personalizar sala
   (opcional)", presets de sala): señalado por la misma revisión externa
@@ -2144,11 +2249,20 @@ Falta:
   correcto, esto es puramente jerarquía visual en la pantalla de
   configurar.
 - **Componente fuera de catálogo → especificar specs a mano** (en vez
-  de un callejón sin salida al formulario de contacto): el motor ya
-  acepta objetos planos desacoplados del catálogo (`tipos.ts`), así que
-  es viable sin romper doctrina, pero exige decidir primero qué
-  `confianza` le corresponde a un dato que tipeó el propio usuario —
-  sesión aparte.
+  de un callejón sin salida al formulario de contacto): los 6 perfiles
+  "Genérico (Arquetipo)" (ver más arriba) cubren una parte de esto —
+  aproximar por parecido eléctrico cuando el equipo real no está — pero
+  siguen siendo 6 puntos fijos, no un formulario donde el usuario tipee
+  sus propios números. El motor ya acepta objetos planos desacoplados
+  del catálogo (`tipos.ts`), así que un formulario libre es viable sin
+  romper doctrina, pero exige decidir primero qué `confianza` le
+  corresponde a un dato que tipeó el propio usuario — sesión aparte.
+- **Arquetipos genéricos de streamer/DAC**: esta ronda sólo cubrió
+  parlantes y amplificadores (lo pedido); `FuenteCat`/`Fuente` podrían
+  recibir el mismo tratamiento (`salidaV`/`impedanciaSalidaOhm`
+  declarados por arquetipo) si hace falta aproximar el puente de
+  impedancias/recorrido de volumen sin el equipo real en catálogo —
+  sin diseñar todavía.
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y
   registros DNS distintos): recién ahí tiene sentido cambiar

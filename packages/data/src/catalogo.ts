@@ -9,10 +9,188 @@
  * VERIFICAR cada valor contra las fuentes citadas antes de publicar (mismo
  * aviso que llevaba equipos-seed.json — la curaduría es continua, Fase 5).
  */
-import type { Catalogo } from './tipos-catalogo.ts';
+import type { Catalogo, ParlanteCat, AmplificadorCat } from './tipos-catalogo.ts';
+
+/**
+ * Marca reservada para los perfiles genéricos (arquetipos), no un
+ * fabricante real. Sirve para: (a) agruparlos bajo su propia entrada en el
+ * selector marca→modelo, y (b) que la UI (apps/web/src/vista/selectores.ts)
+ * sepa cuándo mostrar el aviso de aproximación — `marca` no se traduce por
+ * diseño de este esquema (ver ParlanteCat/AmplificadorCat en
+ * tipos-catalogo.ts), así que este literal queda igual en los dos idiomas;
+ * el aviso bilingüe (`config.notaGenerico`) es lo que realmente le explica
+ * al usuario en su idioma qué está eligiendo.
+ */
+export const MARCA_GENERICA = 'Genérico (Arquetipo)';
+
+const FUENTE_GENERICA = {
+  es: 'Arquetipo genérico del sitio (no es un producto real)',
+  en: 'Generic site archetype (not a real product)',
+};
+const NOTA_GENERICA = {
+  es: 'valor de referencia elegido para que el arquetipo sea evaluable de punta a punta — no corresponde a la medición de un equipo real',
+  en: 'reference value chosen so the archetype can be evaluated end to end — it does not correspond to a real product measurement',
+};
+const FUENTES_GENERICAS = ['The Hifi Match — valores de referencia declarados por el sitio, no una medición ni una ficha de fabricante'];
+
+/**
+ * Perfiles de respaldo (arquetipos) para cuando el equipo real del usuario
+ * no está en el catálogo. No son productos: son puntos de referencia
+ * físicos, con `confianza: 'baja'` declarada en cada dato — misma
+ * disciplina de "fuente + confianza" que el resto del catálogo, aplicada a
+ * un dato que este sitio construye a propósito en vez de citar de un
+ * fabricante. sensibilidadDb/potencia8OhmW son valores razonables para
+ * cada arquetipo (no vienen de una medición): el motor los exige como
+ * campos no-nulos (packages/engine/src/tipos.ts), así que sin un número acá
+ * ni potencia.ts ni el resto de la evaluación podrían correr.
+ */
+export const PARLANTES_GENERICOS: readonly ParlanteCat[] = [
+  {
+    id: 'generico-parlante-monitor-reactivo',
+    marca: MARCA_GENERICA,
+    nombre: 'Genérico (Arquetipo) — Monitor de alta reactividad',
+    tipo: { es: 'Arquetipo genérico — monitor de 2 vías, carga muy reactiva', en: 'Generic archetype — 2-way monitor, highly reactive load' },
+    descripcion: {
+      es: 'Perfil de referencia, no un producto real: modela un monitor compacto de 2 vías con una curva de impedancia muy reactiva en graves — mínima 3,5 Ω, pico de resonancia 30 Ω, fase −55° en el punto más exigente. Sirve para aproximar el comportamiento eléctrico de un parlante fuera de catálogo con esa clase de carga.',
+      en: 'A reference profile, not a real product: it models a compact 2-way monitor with a highly reactive bass impedance curve — 3.5 Ω minimum, 30 Ω resonance peak, −55° phase at the most demanding point. Used to approximate the electrical behavior of an off-catalog speaker with that kind of load.',
+    },
+    sensibilidadDb: { valor: 86, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    impedanciaNominalOhm: 4,
+    impedanciaMinOhm: 3.5,
+    impedanciaMaxOhm: 30.0,
+    anguloFaseGrados: -55.0,
+    potenciaRecMinW: 25,
+    potenciaRecMaxW: 150,
+    maxSplDb: 108,
+    chipsExtra: [],
+    fuentes: FUENTES_GENERICAS,
+    pendiente: {
+      es: 'perfil sintético (no un producto real): Zmín/Zmáx/fase declarados por diseño de este arquetipo; sensibilidad y potencia recomendada son valores de referencia razonables, no medidos',
+      en: 'synthetic profile (not a real product): Zmin/Zmax/phase are set by this archetype\'s design; sensitivity and recommended power are reasonable reference values, not measured',
+    },
+  },
+  {
+    id: 'generico-parlante-columna-estandar',
+    marca: MARCA_GENERICA,
+    nombre: 'Genérico (Arquetipo) — Columna estándar',
+    tipo: { es: 'Arquetipo genérico — columna de piso, carga moderada', en: 'Generic archetype — floorstanding column, moderate load' },
+    descripcion: {
+      es: 'Perfil de referencia, no un producto real: modela una columna de piso con una curva de impedancia moderada — mínima 4,8 Ω, pico de resonancia 24 Ω, fase −35° en el punto más exigente. Representa una carga eléctrica intermedia, ni particularmente benigna ni particularmente exigente.',
+      en: 'A reference profile, not a real product: it models a floorstanding column with a moderate impedance curve — 4.8 Ω minimum, 24 Ω resonance peak, −35° phase at the most demanding point. Represents an intermediate electrical load, neither especially benign nor especially demanding.',
+    },
+    sensibilidadDb: { valor: 89, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    impedanciaNominalOhm: 6,
+    impedanciaMinOhm: 4.8,
+    impedanciaMaxOhm: 24.0,
+    anguloFaseGrados: -35.0,
+    potenciaRecMinW: 40,
+    potenciaRecMaxW: 200,
+    maxSplDb: 111,
+    chipsExtra: [],
+    fuentes: FUENTES_GENERICAS,
+    pendiente: {
+      es: 'perfil sintético (no un producto real): Zmín/Zmáx/fase declarados por diseño de este arquetipo; sensibilidad y potencia recomendada son valores de referencia razonables, no medidos',
+      en: 'synthetic profile (not a real product): Zmin/Zmax/phase are set by this archetype\'s design; sensitivity and recommended power are reasonable reference values, not measured',
+    },
+  },
+  {
+    id: 'generico-parlante-filtro-docil',
+    marca: MARCA_GENERICA,
+    nombre: 'Genérico (Arquetipo) — Filtro purista dócil',
+    tipo: { es: 'Arquetipo genérico — crossover simple, carga dócil', en: 'Generic archetype — simple crossover, docile load' },
+    descripcion: {
+      es: 'Perfil de referencia, no un producto real: modela un parlante con crossover simple y una curva de impedancia dócil — mínima 6,2 Ω, pico de resonancia 16 Ω, fase −15° en el punto más exigente. Representa la carga eléctrica más benigna de los tres arquetipos.',
+      en: 'A reference profile, not a real product: it models a speaker with a simple crossover and a docile impedance curve — 6.2 Ω minimum, 16 Ω resonance peak, −15° phase at the most demanding point. Represents the most benign electrical load of the three archetypes.',
+    },
+    sensibilidadDb: { valor: 91, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    impedanciaNominalOhm: 8,
+    impedanciaMinOhm: 6.2,
+    impedanciaMaxOhm: 16.0,
+    anguloFaseGrados: -15.0,
+    potenciaRecMinW: 15,
+    potenciaRecMaxW: 100,
+    maxSplDb: 109,
+    chipsExtra: [],
+    fuentes: FUENTES_GENERICAS,
+    pendiente: {
+      es: 'perfil sintético (no un producto real): Zmín/Zmáx/fase declarados por diseño de este arquetipo; sensibilidad y potencia recomendada son valores de referencia razonables, no medidos',
+      en: 'synthetic profile (not a real product): Zmin/Zmax/phase are set by this archetype\'s design; sensitivity and recommended power are reasonable reference values, not measured',
+    },
+  },
+];
+
+export const AMPLIFICADORES_GENERICOS: readonly AmplificadorCat[] = [
+  {
+    id: 'generico-ampli-ss-alta-corriente',
+    marca: MARCA_GENERICA,
+    nombre: 'Genérico (Arquetipo) — Estado sólido, alta corriente',
+    tipo: { es: 'Arquetipo genérico — estado sólido, alta corriente', en: 'Generic archetype — solid state, high current' },
+    descripcion: {
+      es: 'Perfil de referencia, no un producto real: modela un amplificador de estado sólido de alta corriente, con factor de amortiguamiento 400 (impedancia de salida muy baja) y reserva de potencia hacia 4 Ω por encima del umbral de este sitio.',
+      en: 'A reference profile, not a real product: it models a high-current solid-state amplifier, with a damping factor of 400 (very low output impedance) and power reserve into 4 Ω above this site\'s threshold.',
+    },
+    potencia8OhmW: { valor: 150, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    potencia4OhmW: { valor: 280, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    cargaMinOhm: 2,
+    sensEntradaMv: null,
+    impedanciaEntradaOhm: null,
+    factorAmortiguamiento: 400,
+    chipsExtra: [],
+    fuentes: FUENTES_GENERICAS,
+    pendiente: {
+      es: 'perfil sintético (no un producto real): factor de amortiguamiento declarado por diseño de este arquetipo; potencias y carga mínima son valores de referencia razonables, no medidos',
+      en: 'synthetic profile (not a real product): damping factor is set by this archetype\'s design; power figures and minimum load are reasonable reference values, not measured',
+    },
+  },
+  {
+    id: 'generico-ampli-ss-vintage-avr',
+    marca: MARCA_GENERICA,
+    nombre: 'Genérico (Arquetipo) — Estado sólido, receptor vintage',
+    tipo: { es: 'Arquetipo genérico — estado sólido, receptor vintage', en: 'Generic archetype — solid state, vintage receiver' },
+    descripcion: {
+      es: 'Perfil de referencia, no un producto real: modela un receptor/integrado de estado sólido de gama media, con factor de amortiguamiento 60 y una reserva de potencia hacia 4 Ω por debajo del umbral de este sitio.',
+      en: 'A reference profile, not a real product: it models a mid-range solid-state receiver/integrated amplifier, with a damping factor of 60 and a power reserve into 4 Ω below this site\'s threshold.',
+    },
+    potencia8OhmW: { valor: 80, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    potencia4OhmW: { valor: 110, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    cargaMinOhm: 4,
+    sensEntradaMv: null,
+    impedanciaEntradaOhm: null,
+    factorAmortiguamiento: 60,
+    chipsExtra: [],
+    fuentes: FUENTES_GENERICAS,
+    pendiente: {
+      es: 'perfil sintético (no un producto real): factor de amortiguamiento declarado por diseño de este arquetipo; potencias y carga mínima son valores de referencia razonables, no medidos',
+      en: 'synthetic profile (not a real product): damping factor is set by this archetype\'s design; power figures and minimum load are reasonable reference values, not measured',
+    },
+  },
+  {
+    id: 'generico-ampli-valvular-alta-zout',
+    marca: MARCA_GENERICA,
+    nombre: 'Genérico (Arquetipo) — Válvulas, alta impedancia de salida',
+    tipo: { es: 'Arquetipo genérico — válvulas, alta impedancia de salida', en: 'Generic archetype — tubes, high output impedance' },
+    descripcion: {
+      es: 'Perfil de referencia, no un producto real: modela un amplificador valvular push-pull con transformador de salida, factor de amortiguamiento 8 (impedancia de salida alta). No se declara una cifra de potencia a 4 Ω: los transformadores de salida valvulares suelen tener tomas por impedancia, no una relación simple de potencia entre 8 y 4 Ω.',
+      en: 'A reference profile, not a real product: it models a push-pull tube amplifier with an output transformer, damping factor 8 (high output impedance). No 4 Ω power figure is declared: tube output transformers typically use impedance-specific taps, not a simple power relationship between 8 and 4 Ω.',
+    },
+    potencia8OhmW: { valor: 35, fuente: FUENTE_GENERICA, confianza: 'baja', nota: NOTA_GENERICA },
+    potencia4OhmW: null,
+    cargaMinOhm: 4,
+    sensEntradaMv: null,
+    impedanciaEntradaOhm: null,
+    factorAmortiguamiento: 8,
+    chipsExtra: [],
+    fuentes: FUENTES_GENERICAS,
+    pendiente: {
+      es: 'perfil sintético (no un producto real): factor de amortiguamiento declarado por diseño de este arquetipo; potencia y carga mínima son valores de referencia razonables, no medidos',
+      en: 'synthetic profile (not a real product): damping factor is set by this archetype\'s design; power figure and minimum load are reasonable reference values, not measured',
+    },
+  },
+];
 
 export const CATALOGO: Catalogo = {
   parlantes: [
+    ...PARLANTES_GENERICOS,
     {
       id: 'bw-606-s2-anniversary',
       marca: 'Bowers & Wilkins',
@@ -1180,6 +1358,7 @@ export const CATALOGO: Catalogo = {
   ],
 
   amplificadores: [
+    ...AMPLIFICADORES_GENERICOS,
     {
       id: 'advance-paris-a10-classic',
       marca: 'Advance Paris',
