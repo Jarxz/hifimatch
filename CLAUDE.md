@@ -2225,6 +2225,44 @@ funciones puras `infoHtml*`, nunca `document` — y 4 de integración
 motor+catálogo en `adaptadores.test.ts`, vectores calculados con Node
 igual que el resto del archivo).
 
+**La Guía del análisis documenta los perfiles genéricos — pedido
+explícito del usuario tras la ronda anterior ("falta actualizar la
+ventana de info con las modificaciones, indicando modificaciones y
+justificaciones de cálculo como extra al criterio original").** Nueva
+entrada `info.generico` (`es.ts`/`en.ts`), tarjeta `<details>` número
+3 de 12 en `#s-info` (justo después de `info.confianza`, antes de
+`info.potencia` — mismo lugar en `index.html` y en el diccionario, para
+que el orden del HTML documente la relación: "genérico" es una
+extensión directa de la disciplina de fuente/confianza que ya explica
+la tarjeta anterior, no un concepto aislado). El cuerpo declara
+explícitamente que es un **agregado, no un reemplazo** de las 11
+tarjetas ya existentes, y resuelve una tensión que un lector atento
+podría notar: la tarjeta de "confianza" dice que este sitio nunca
+rellena un hueco con un "estándar de mercado" inventado — un perfil
+genérico podría leerse como justamente eso. La diferencia que la
+tarjeta nueva declara: un estándar de mercado se inventaría en
+silencio, adentro de los datos de un producto real con huecos; un
+perfil genérico es una **categoría separada** que el usuario elige a
+propósito, por nombre, nunca sustituida dentro de un equipo real.
+También deja constancia de la justificación de cálculo pedida: EPDR y
+la interacción de amortiguamiento corren con la misma fórmula y el
+mismo umbral que usarían con un equipo real — el perfil genérico sólo
+cambia el origen de los números de entrada (declarados por el sitio,
+confianza baja), nunca la matemática. Deliberadamente **sin** botón
+`.infobtn` propio en la tarjeta de equipo elegido (a diferencia de las
+10 tarjetas de evaluación en `#s-results`, que sí tienen su atajo
+contextual): esos botones se conectan una sola vez al arrancar
+(`main.ts`, `querySelectorAll('.infobtn[data-info]')`), sobre HTML ya
+presente en `index.html`; el `.info` de un equipo elegido se
+reconstruye por completo en cada `pick()` (`selectores.ts`,
+`box.innerHTML = ...`), así que un botón ahí necesitaría delegación de
+evento nueva (mismo problema que ya resolvió `#plan-hint`/RECALCULAR)
+— fuera de alcance de este pedido puntual, que fue sobre la ventana de
+la guía. `idioma.test.ts` (`CLAVES_HTML`) suma `info.generico.cuerpoHtml`
+en su posición real. Verificado con Chrome headless: la tarjeta abre en
+el lugar correcto, con su propio texto (no mezcla con las tarjetas
+vecinas), en los dos idiomas, sin tocar ninguna de las otras 11.
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita

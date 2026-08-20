@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V14.08.26',
+    version: 'V15.08.26',
   },
 
   info: {
@@ -66,6 +66,11 @@ export const en: Textos = {
       titulo: 'Source and confidence of every data point',
       cuerpoHtml:
         "Manufacturers publish some specs poorly — a streamer/DAC's output impedance is almost never on the spec sheet, speaker sensitivity is sometimes measured under optimistic conditions. That's why every catalog entry carries where it came from and a confidence level (<b>high/medium/low</b>): high when it comes from the official spec sheet or an independent measurement that confirms it; medium or low when it has to be inferred or only one source exists. <b>A missing data point is never shown as if the gear were \"fine\"</b> — if a rule is missing the data it needs, that card is hidden from the main analysis and listed under \"Not enough data\" at the end. A gap is never filled with an invented \"market standard\": the real spread of specs across gear (e.g. source output impedance ranging from 10 Ω to 500 Ω) means any single value would, in practice, be a made-up number.",
+    },
+    generico: {
+      titulo: 'Generic profiles (archetypes): when the real equipment isn\'t in the catalog',
+      cuerpoHtml:
+        'Added as an <b>extra on top of the original criteria</b> above, not a replacement: when a user\'s real equipment isn\'t in the catalog, picking one of these 6 profiles under the brand <b>Generic (Archetype)</b> (3 speakers, 3 amplifiers) lets the analysis keep running by physical approximation instead of going unevaluated. Calculation justification: each profile directly declares the data EPDR (load) and the damping interaction need — minimum impedance, peak impedance, and phase angle for speakers; damping factor for amplifiers — so those two cards calculate with the same formula and the same threshold they\'d use with real equipment, never a different one. Sensitivity and power (fields the engine always requires) are filled with a reasonable reference value per archetype, not measured: that\'s why every synthetic figure carries a declared <b>low confidence</b>, and is never shown as if it were a manufacturer spec sheet. This isn\'t the same as "filling a gap with a market standard" (the practice the card above says this site avoids): a generic profile is its own category the user picks on purpose, by name — never silently substituted into a real product\'s data.',
     },
     potencia: {
       titulo: 'Power versus the room\'s peaks',

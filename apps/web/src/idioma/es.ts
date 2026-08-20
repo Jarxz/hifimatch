@@ -73,7 +73,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V14.08.26',
+    version: 'V15.08.26',
   },
 
   info: {
@@ -92,6 +92,11 @@ export const es = {
       titulo: 'Fuente y confianza de cada dato',
       cuerpoHtml:
         'Los fabricantes publican mal algunos datos — la impedancia de salida de streamers/DACs casi nunca está en la ficha, la sensibilidad de parlantes a veces se mide en condiciones optimistas. Por eso cada dato del catálogo lleva de dónde salió y una confianza (<b>alta/media/baja</b>): alta cuando viene de la ficha oficial o de una medición independiente que la confirma; media o baja cuando hay que inferirlo o sólo hay una fuente. <b>Un dato faltante nunca se muestra como si el equipo estuviera "bien"</b> — si falta el dato que una regla necesita, esa tarjeta se oculta del análisis principal y aparece declarada en "Sin datos suficientes", al final. Nunca se rellena un hueco con un "estándar de mercado" inventado: la dispersión real de specs entre equipos (por ejemplo, impedancia de salida de fuentes entre 10 Ω y 500 Ω) hace que cualquier valor único sea, en la práctica, un dato inventado.',
+    },
+    generico: {
+      titulo: 'Perfiles genéricos (arquetipos): cuando el equipo real no está en el catálogo',
+      cuerpoHtml:
+        'Modificación agregada como <b>extra al criterio original</b> de arriba, no un reemplazo: cuando el equipo real de un usuario no está en el catálogo, elegir uno de estos 6 perfiles bajo la marca <b>Genérico (Arquetipo)</b> (3 parlantes, 3 amplificadores) permite seguir corriendo el análisis por aproximación física en vez de quedar sin evaluar. Justificación del cálculo: cada perfil declara directamente los datos que EPDR (carga) y la interacción de amortiguamiento necesitan — impedancia mínima, impedancia de pico y ángulo de fase en parlantes; factor de amortiguamiento en amplificadores — así que esas dos tarjetas calculan con la misma fórmula y el mismo umbral que usarían con un equipo real, nunca una fórmula distinta. Sensibilidad y potencia (campos que el motor exige siempre) se completan con un valor de referencia razonable para cada arquetipo, no medido: por eso todo dato sintético lleva <b>confianza baja</b> declarada, y nunca se muestra como si fuera una ficha de fabricante. No es lo mismo que "rellenar un hueco con un estándar de mercado" (la práctica que la tarjeta de arriba dice que este sitio evita): un perfil genérico es una categoría propia que el usuario elige a propósito por su nombre — nunca se sustituye en silencio dentro de los datos de un producto real.',
     },
     potencia: {
       titulo: 'Potencia frente a los picos de la sala',
