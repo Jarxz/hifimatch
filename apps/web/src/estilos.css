@@ -63,14 +63,34 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .head .hright{grid-area:hright; display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:18px}
 .back{background:transparent; border:0; color:var(--dim); cursor:pointer; font:inherit; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:6px 0; transition:color .2s cubic-bezier(.22,.61,.36,1)}
 .back:hover{color:var(--text)}
-@media (max-width:640px){
-  .head{grid-template-columns:1fr auto; grid-template-areas:"hm hm" "hs hright"; padding:12px 14px; row-gap:6px; column-gap:8px}
+
+/* .idioma-splash es position:fixed, independiente de .head — en escritorio
+   ancho no se nota porque .head (max-width:1120px) queda lejos del borde
+   derecho real del viewport, pero en tablet/teléfono .head pasa a ocupar
+   todo el ancho: sus botones (.hright, "← Cambiar sistema"/"← Volver...")
+   quedan en la misma esquina que ES/EN. En el layout de escritorio,
+   .hright ocupa las DOS filas del grid (centrado verticalmente contra
+   todo el bloque, ver grid-template-areas de .head más arriba) — eso lo
+   deja cerca del borde superior, sin aire para que ES/EN quepa arriba sin
+   pisarlo. Por eso el breakpoint compacto (antes sólo ≤640px, sólo
+   teléfono) se ensancha a ≤1024px: ahí "hright" pasa a compartir SÓLO la
+   segunda fila con el subtítulo (like en teléfono), dejando la primera
+   fila (el título) libre para alinear el selector de idioma. Con las dos
+   filas ya separadas, el borde inferior de ES/EN (fixed, no participa del
+   grid) y el borde superior de "hright" seguían tocándose casi exacto
+   (~0px de margen medido con getBoundingClientRect) — se sube row-gap de
+   6px a 12px para abrir un respiro real entre ambos, con el padding-top
+   del .wrap ajustado en la misma medida para que el contenido de abajo
+   no quede tapado por un header ahora más alto. */
+@media (max-width:1024px){
+  .head{grid-template-columns:1fr auto; grid-template-areas:"hm hm" "hs hright"; padding:12px 14px; row-gap:12px; column-gap:8px}
   .head .hm{font-size:12px}
   .head .hs{font-size:8.5px; margin-top:0}
   .head .hright{gap:7px}
   .back{font-size:9.5px; letter-spacing:.08em}
+  .idioma-splash{top:9px}
   .segs.idioma button{padding:5px 7px; font-size:9px}
-  #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:82px}
+  #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:88px}
 }
 
 /* CONFIG */

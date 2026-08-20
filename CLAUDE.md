@@ -2099,6 +2099,30 @@ existente): título en negrita + 2 párrafos + caja de cálculo + aviso,
 todos cleanly separados, sin errores de consola. **313 tests totales**
 entre los 4 workspaces (antes 311).
 
+**Bug: selector de idioma pisando los botones del header en tablet/
+teléfono.** Reportado por el usuario: en anchos angostos, ES/EN quedaba
+montado sobre "Cambiar sistema"/"Volver al análisis" en vez de alinearse
+con el título "THE HIFI MATCH". Causa raíz, confirmada con
+`getBoundingClientRect` vía Chrome headless (no a simple vista): `.head`
+usa `grid-template-areas:"hm hright" "hs hright"` — como `"hright"`
+aparece en las dos filas, ese área ocupa el bloque completo de 2 filas y
+`align-items:center` lo centra contra las DOS filas juntas, no sólo
+contra la segunda; eso deja "hright" (con los botones de volver) pegado
+al borde superior del header, sin aire para que `.idioma-splash`
+(`position:fixed`, fuera del grid) quepa arriba sin tocarlo. El
+breakpoint compacto que ya reestructuraba esto para separar "hright" en
+su propia fila (antes sólo `≤640px`, sólo teléfono) se ensanchó a
+`≤1024px` para cubrir tablet también — eso resolvió la superposición
+grande, pero midiendo con precisión (no redondeada) el margen entre
+ambos quedó en `-0,34px`: prácticamente tocándose, no una separación
+real. Fix final: `row-gap` de `.head` en ese breakpoint sube de `6px` a
+`12px` (con el `padding-top` de compensación de `.wrap` ajustado en la
+misma medida, `82px`→`88px`) — dejó `~5,7px` de margen real, verificado
+en los 6 anchos de teléfono/tablet relevantes (390/414/640/768/820/1024)
+con `getBoundingClientRect` exacto, sin redondear, más capturas de
+pantalla en 390 y 820. Cambio puramente de `estilos.css`, sin tocar
+`main.ts`/`pintar.ts`/HTML.
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita
