@@ -18,7 +18,7 @@
       </div>
     </div>
     <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
-    <div class="version-splash" data-i18n="splash.version">V6.08.26</div>
+    <div class="version-splash" data-i18n="splash.version">V7.08.26</div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
         <div class="mark" aria-hidden="true">
@@ -453,9 +453,12 @@
 </section>
 
 <!-- DOCUMENTO — vista previa de "guardar y comparar como PDF" (paywall
-     futuro). #btn-guardar navega acá; "Análisis 1" (el análisis vigente)
-     es real, "Análisis 2"/"Comparar"/"Descargar PDF" siguen bloqueados
-     detrás del popup de login (ver resultado.guardarPopupTitulo/Cuerpo). -->
+     futuro), guardada para retomar más adelante. Sin botón visible en
+     ninguna pantalla: #btn-guardar vuelve a abrir el popup de login
+     (resultado.guardarPopupTitulo/Cuerpo), igual que antes de conectarlo.
+     Se llega escribiendo ir('documento') en la consola (window.ir, ver
+     main.ts). Sólo "Análisis 1" tiene contenido real; "Análisis 2"/
+     "Comparar"/"Descargar PDF" reusan el mismo popup de #btn-guardar. -->
 <section class="screen" id="s-documento">
   <div class="wrap">
     <div class="head">

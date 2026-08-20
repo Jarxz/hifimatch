@@ -1551,19 +1551,26 @@ análisis anterior. Verificado con Chrome headless: oculta en "Análisis
 original", visible tras Recalcular, vuelve a ocultarse al volver a
 "Análisis original" y al analizar un sistema nuevo desde cero.
 
-**"Documento" — "guardar y comparar como PDF", vista previa de la
-mitad real de esa función.** Pantalla nueva (`#s-documento`, mismo
+**"Documento" — "guardar y comparar como PDF", guardada para retomar
+más adelante, desconectada de nuevo.** Pantalla (`#s-documento`, mismo
 patrón `Pantalla`/`ir()` que splash/config/resultado/guía) que muestra
 el análisis actual reformateado como un informe — logo en negro sobre
 fondo blanco (el único lugar del sitio con fondo claro), título, fecha,
-equipo elegido con specs, sala, puntaje y veredicto por componente.
-`#btn-guardar` navega ahí directo (`ir('documento')`) — primera versión
-de esta pantalla la dejaba sin ningún botón conectado (referencia de
-diseño interna, sólo alcanzable desde la consola); el usuario probó el
-botón "Guardar" esperando ver justo esta vista y pidió conectarlo, así
-que quedó así: **"Análisis 1" es real y abierto** (el análisis vigente,
-sin login), y sólo lo que de verdad necesita cuentas/backend —
-"Análisis 2", "Comparar", "Descargar PDF" — sigue bloqueado.
+equipo, sala, plano, las 8 tarjetas de evaluación con sus gráficos,
+puntaje y resumen (ver el resto de esta sección para el detalle
+completo de qué pinta). Pasó por dos vueltas: primero sin ningún botón
+conectado (referencia interna, sólo alcanzable desde la consola);
+después `#btn-guardar` navegó ahí directo un tiempo, a pedido del
+usuario; **ahora vuelve al estado original** — `#btn-guardar` abre de
+nuevo el popup de login de siempre (`abrirGuardarPopup()`,
+`resultado.guardarPopupTitulo/Cuerpo` — el cuerpo ya nombra la función
+futura: "guardar tus análisis, compararlos entre sí y descargarlos como
+archivos PDF"), y `#s-documento` queda sin botón visible en ninguna
+pantalla otra vez, para cuando haya una ronda dedicada a diseñar el
+login/backend real. Sigue alcanzable desde la consola —
+`window.ir('documento')`, expuesto en `main()` sólo para esto, sin
+agregar ninguna afordancia de UI— así que sigue siendo revisable/
+iterable sin tener que reconectar nada primero.
 
 Arriba de la hoja blanca, un `.doc-toolbar` (fondo oscuro, igual que el
 resto del cromo del sitio) con pestañas "Análisis 1"/"Análisis 2" y
@@ -1756,11 +1763,14 @@ Falta:
 - **Guardar configuraciones con login**, pantalla de configuraciones
   guardadas y comparación entre ellas: pedido explícitamente como
   trabajo futuro, no de esta ronda. Necesita backend/auth/base de datos
-  — arquitectura nueva, sin diseñar todavía. `#btn-guardar` ya navega a
-  la vista previa ("Documento", `#s-documento`, ver más arriba) con
-  "Análisis 1" real; falta la lógica real detrás de "Análisis 2"/
-  "Comparar"/"Descargar PDF" (segunda fuente de datos, generación de
-  PDF) — hoy los tres sólo reusan el mismo popup de login.
+  — arquitectura nueva, sin diseñar todavía. La vista previa ("Documento",
+  `#s-documento`, ver más arriba) ya existe con "Análisis 1" real y las
+  8 tarjetas + gráficos — queda guardada pero desconectada
+  (`#btn-guardar` vuelve a abrir el popup de login); conectarla de nuevo
+  es un cambio de una línea (`ir('documento')` en vez de
+  `abrirGuardarPopup()`), pero falta la lógica real detrás de
+  "Análisis 2"/"Comparar"/"Descargar PDF" (segunda fuente de datos,
+  generación de PDF) antes de que tenga sentido reconectarla en serio.
 - **Fase 5** (seguir ampliando el catálogo) y la regla de `cables` (sección 5
   de `docs/motor-mvp.md`): trabajo sin fin natural, ninguna de las dos es
   parte del alcance actual.
