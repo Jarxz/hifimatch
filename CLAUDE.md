@@ -2287,6 +2287,111 @@ la guía" en vez de "traer el puntaje de vuelta a pantalla" cuando se
 le preguntó. Verificado con Chrome headless que el nuevo texto abre en
 el lugar correcto, en los dos idiomas.
 
+**El puntaje 1-10 se elimina por completo — pedido explícito del
+usuario, "en todas partes... cambia por el nuevo concepto de
+evaluación" (el veredicto y sus tres estados). Supera a la ronda
+anterior** (que sólo corrigió el texto de la guía, dejando el cálculo
+vivo "por si servía para un comparador futuro"): esta vez no queda
+nada, ni en el motor ni en la UI ni en el informe.
+
+`packages/engine/src/puntaje.ts` y su test se **borran enteros**
+(`calcularPuntaje`, `clasificarPuntaje`, `PESOS_DECLARADOS`,
+`ComponentePuntaje`, `UMBRAL_PUNTAJE_VERDE`/`NARANJO`). Lo único que
+sobrevivía con un consumidor real fuera del propio módulo —
+`peorSeveridad()`, que `veredicto.ts` ya reusaba explícitamente— se
+**relocaliza** a `tipos.ts`, junto a su análoga `peorConfianza()`
+(mismo patrón, mismo archivo); sus 4 tests se mudan con ella a
+`tipos.test.ts`. `veredicto.ts` pasa a ser el único módulo de
+evaluación de conjunto del sitio — su comentario de cabecera ya no
+habla de "coexistir" con un puntaje, sino de haberlo reemplazado por
+completo.
+
+**En `apps/web`, dos piezas dejaban de tener casa propia al borrar
+`puntaje.ts` y había que decidir dónde iban — ninguna de las dos era
+en realidad "sobre el puntaje".** `motor.puntaje.rotulo` ("Criterio
+editorial, no física") ya la reusaba la tarjeta del veredicto en vivo
+(`#veredicto-card`) desde la ronda del veredicto — es un rótulo de
+capa, no del puntaje; se promueve a `resultado.capaCriterioEditorial`,
+mismo nivel que ya tenía `resultado.capaFisica` para la capa física.
+`motor.puntaje.componente` (7 nombres — "Potencia", "Carga", "Modos de
+sala"...) alimenta "Qué conviene hacer" y el resumen del informe, dos
+piezas completamente vivas que no tienen relación con un número 1-10
+más allá de haber compartido el mismo archivo de constantes; pasa a
+`motor.componentes.nombre`, con un tipo `NombreComponenteEvaluacion`
+declarado en `es.ts` en vez de importar el `ComponentePuntaje['nombre']`
+que ya no existe. El resto de `motor.puntaje.*`
+(`filaIncluida`/`filaExcluida`/`aviso`/`criterio`/`notaRecalculo`) sí
+era exclusivo del `modeloPuntaje()` ya muerto en producción desde la
+ronda del veredicto (calculado, nunca pintado) — se borra sin relocalizar.
+
+**`comportamientoHtml` (el párrafo holístico de "En resumen", que sólo
+sobrevive dentro del informe) citaba el puntaje ("con un puntaje de
+8,7/10") — ahora cita el título del veredicto** ("... — Configuración
+totalmente compatible."). `modeloResumenFinal` cambia su segundo
+parámetro de `{valor: number, clase: ClasePuntaje}` a
+`{tituloHtml: string, clase: ClaseVeredictoGeneral}` (tipo local nuevo
+en `resultado.ts`, alias de `'ok'|'warn'|'alert'` — ya no hay un tipo
+`ClasePuntaje` del motor que importar). `modeloDocumento` cambia igual
+su parámetro `puntaje` por `veredicto`, y `ModeloDocumento` cambia
+`puntajeTexto`/`puntajeClase` por `veredictoTituloHtml`/
+`veredictoClase`.
+
+**`main.ts`: el veredicto se calcula una sola vez por snapshot, no dos
+veces con criterios distintos.** Antes, `construirSnapshot()` calculaba
+`puntaje`/`mPuntaje` (para el informe) y `pintarSnapshot()` calculaba
+`veredicto`/`mVeredicto` por separado, en dos sitios con la misma
+entrada. Ahora `calcularVeredicto()`/`modeloVeredicto()` se mueven
+dentro de `construirSnapshot()` (mismo lugar donde ya vivía el cálculo
+de potencia/modos del snapshot) y quedan en `SnapshotAnalisis.veredicto`/
+`.mVeredicto` — `pintarSnapshot()` los reusa tanto para `pintarVeredicto`
+como para alimentar `modeloResumenFinal`/`modeloDocumento`, una sola
+fuente de verdad en vez de dos cálculos paralelos. `InfoClave` pierde
+el miembro `'puntaje'` (ya estaba muerto: ningún `.infobtn` en
+`index.html` lo usaba desde que el bloque del sidebar se retiró).
+
+**La pantalla "Informe (vista previa)" (`#s-documento`) tenía la única
+pieza de UI que todavía *pintaba* un puntaje** (`#doc-puntaje`, el
+bloque bajo el plano). Se rediseña como un bloque "Veredicto general"
+(`documento.veredictoTitulo`, nueva clave) — mismo lugar, mismo rótulo
+de capa (`resultado.capaCriterioEditorial`, no un texto propio), pero
+ahora muestra el título del veredicto en vez de un número, con el
+mismo color por clase (`--paper-ok/warn/alert`, ya existían).
+`pintarDocumento()` pinta `#doc-veredicto-titulo` en vez de
+`#doc-puntaje`; `estilos.css` renombra `.doc-puntaje-*` a
+`.doc-veredicto-*` (font-size baja de 21px a 17px — una frase como
+"Configuración totalmente compatible" necesita más aire que "8,7/10").
+
+**La tarjeta "Puntaje del match (1-10)" de la Guía, que la ronda
+anterior había corregido para decir "ya no aparece en vivo", se borra
+del todo** — junto con su rótulo homólogo. `info.capas.cuerpoHtml`
+(que usaba el puntaje como ejemplo de la capa criterio-editorial) se
+reescribe para citar el veredicto en su lugar.
+
+`docs/motor-mvp.md` sección 7 ("Puntaje del match") se reescribe
+íntegra como documentación de `veredicto.ts` (agrupación peor-de-3-
+estados, tabla de qué agrupa cada uno, redacción del titular, streamer+
+dac simultáneos, vectores de prueba) — no se dejó como una sección
+muerta ni se borró sin reemplazo, mismo criterio que el resto de este
+documento de mantener la referencia técnica viva. La mención de
+reverberación ("no participa del puntaje... es informativa") también
+se corrige: sí participa, en el estado "Sala" del veredicto — esa
+frase ya estaba desactualizada antes de esta ronda (`reverberacion`
+tenía peso propio en `PESOS_DECLARADOS` desde hacía tiempo).
+
+**311 tests totales** entre los 4 workspaces (antes 331): 133 en
+`packages/engine` (antes 147 — se van los 18 de `puntaje.test.ts`,
+vuelven 4 de `peorSeveridad` en `tipos.test.ts`), 147 en `apps/web`
+(antes 153 — se van los 6 de `modeloPuntaje`, ya muerto en producción;
+el resto de tests tocados por el cambio de forma del parámetro
+`puntaje`→`veredicto` se actualizaron in situ, no se sumaron ni
+restaron). `packages/data`/`packages/contact` sin cambios (16/15).
+Verificado con Chrome headless en las 3 pantallas: resultado en vivo
+sin ningún rastro de "puntaje" en el DOM (`document.getElementById
+('pt-puntaje')` es `null`, cero coincidencias de texto), la Guía con
+11 tarjetas (antes 12) sin la de puntaje, y el informe mostrando
+"Configuración soportada, con límites" en `#doc-veredicto-titulo` con
+la clase de color correcta — sin errores de consola en ningún caso.
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita

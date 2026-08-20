@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V16.08.26',
+    version: 'V17.08.26',
   },
 
   info: {
@@ -60,7 +60,7 @@ export const en: Textos = {
     capas: {
       titulo: 'Two kinds of claim: physical and editorial criterion',
       cuerpoHtml:
-        "Everything this site states belongs to one of two categories, and it always declares which. <b>Physical layer:</b> has a formula, a threshold, a data source, and a confidence level — it's refutable, someone can argue a threshold with evidence. It's almost everything you see (power, load, impedance bridge, room modes, reverberation). <b>Editorial-criterion layer:</b> preferences this site declares from its own judgment, not a measurement — today it's just the 1-10 score, which combines the severities above with weights this site chose. Another reasonable site would weigh things differently, and that wouldn't make it \"less correct\": it's a declared opinion, not a fact. The two layers are never mixed visually — every card states which one it is.",
+        "Everything this site states belongs to one of two categories, and it always declares which. <b>Physical layer:</b> has a formula, a threshold, a data source, and a confidence level — it's refutable, someone can argue a threshold with evidence. It's almost everything you see (power, load, impedance bridge, room modes, reverberation). <b>Editorial-criterion layer:</b> preferences this site declares from its own judgment, not a measurement — today it's the overall verdict (see below), which groups the severities above into three states with a criterion this site declares (the worst link of each group, not an average). Another reasonable site would group things differently, and that wouldn't make it \"less correct\": it's a declared opinion, not a fact. The two layers are never mixed visually — every card states which one it is.",
     },
     confianza: {
       titulo: 'Source and confidence of every data point',
@@ -111,11 +111,6 @@ export const en: Textos = {
       titulo: 'The verdict and the three states',
       cuerpoHtml:
         "The result's headline (Power / Electrical match / Room) summarizes the physical cards below without averaging them: each of the three states takes the <b>worst</b> severity among the components it groups — Power is direct; Electrical match is the worst of load, and impedance bridge + volume headroom for streamer and/or DAC; Room is the worst of modes and reverberation. Averaging would dissolve a real problem among several things that are fine (an amplifier falling short on peaks could still average out \"acceptable\" next to an easy load); the worst link is more honest. A component without enough data doesn't count as a caveat — if an entire state has no evaluable component, it's declared \"not enough data\" in gray, never amber or red. The overall headline is the worst of the three states; it's still <b>editorial-criterion layer</b> (how it's grouped and prioritized is this site's own decision), resting on severities that are physics.",
-    },
-    puntaje: {
-      titulo: 'Match score (1-10)',
-      cuerpoHtml:
-        "It no longer headlines or appears on the live result screen — the verdict and its three states (see above) replaced it as the visible summary, because an editorial number opening a physical analysis read as more authoritative than this site wants it to look. The calculation still exists, in the <b>editorial-criterion</b> layer, not physics: a number with one decimal place combining the severities of power, load, room modes, reverberation, and impedance bridge + volume headroom (evaluated separately for streamer and DAC, when both are chosen), with weights this site declares (power 24% · load 20% · modes 10% · reverberation 10% · bridge 10% and headroom 8% per source). A component without enough data isn't included — it neither adds nor subtracts. Today it lives on the \"Report (preview)\" screen (meant for comparing two analyses against each other down the line), which doesn't have a button that opens it yet — it's still a declared opinion about how to weigh the physical findings above, not a new measured fact.",
     },
   },
 
@@ -204,6 +199,7 @@ export const en: Textos = {
     picoObjetivo: 'Target peak',
     evaluacion: 'Evaluation',
     capaFisica: 'Physical layer',
+    capaCriterioEditorial: 'Editorial criterion, not physics',
     geometria: 'Geometry',
     disposicionReferencia: 'Reference layout',
     verDetalle: 'View technical detail',
@@ -261,6 +257,7 @@ export const en: Textos = {
     titulo: 'Analysis report',
     equipoTitulo: 'Equipment',
     planoTitulo: 'Layout, listening position and reflections (top view)',
+    veredictoTitulo: 'Overall verdict',
     disclaimerHtml:
       'Internal preview of an exportable report — reformats data already calculated for <b>Analysis 1</b>, no ' +
       'real PDF is generated yet. <b>Analysis 2</b>, <b>Compare</b>, and <b>Download PDF</b> sit behind sign-in, ' +
@@ -544,10 +541,8 @@ export const en: Textos = {
         `<b>Wall(s) declared open:</b> ${p.muros}. They don't reflect sound — that's why the reverberation calculated above drops, and the isometric view draws no reflection for that wall. The room modes (resonances) in the card above are <b>not adjusted</b> for an opening: they still assume rigid walls at both ends of each axis, so the resonance calculated on that wall's axis is less representative than in a closed room.`,
     },
 
-    puntaje: {
-      titulo: 'Match score',
-      rotulo: 'Editorial criterion, not physics',
-      componente: {
+    componentes: {
+      nombre: {
         potencia: 'Power',
         carga: 'Load',
         modos: 'Room modes',
@@ -557,13 +552,6 @@ export const en: Textos = {
         puenteDac: 'Impedance bridge (DAC)',
         recorridoDac: 'Volume headroom (DAC)',
       },
-      filaIncluida: (p) => `${p.nombre}: ${p.puntos}/10`,
-      filaExcluida: (p) => `${p.nombre}: not enough data, excluded`,
-      aviso: (p) => `Calculated over ${p.evaluados} of ${p.total} components — the rest lacked enough data and were not included (neither added nor subtracted).`,
-      criterio:
-        '<b>Editorial criterion, not a measured figure:</b> combines the severities above with weights this site declares — power 24% · load 20% · room modes 10% · reverberation 10% · impedance bridge 10% and volume headroom 8% per source chosen (streamer and/or DAC, evaluated separately). Another reasonable criterion would weigh things differently.',
-      notaRecalculo:
-        'This score already recalculated power with the new listening distance. The other components (load, room modes, reverberation, bridge/headroom) do not depend on where the speakers are, so the number may stay the same if the power margin remains in the same category.',
     },
 
     veredicto: {
@@ -597,9 +585,9 @@ export const en: Textos = {
     resumen: {
       titulo: 'In summary',
       comportamiento: {
-        ok: (p) => `The system as a whole works well: most of the evaluated aspects are resolved, with a score of ${p.puntaje}/10.`,
-        warn: (p) => `The system works, but a few points are worth checking before calling it done — score ${p.puntaje}/10.`,
-        alert: (p) => `The system has several points worth resolving before considering it a good match — score ${p.puntaje}/10.`,
+        ok: (p) => `The system as a whole works well: most of the evaluated aspects are resolved — ${p.titulo}.`,
+        warn: (p) => `The system works, but a few points are worth checking before calling it done — ${p.titulo}.`,
+        alert: (p) => `The system has several points worth resolving before considering it a good match — ${p.titulo}.`,
       },
       fortalezasTitulo: 'What works well',
       debilidadesTitulo: 'What’s worth checking',

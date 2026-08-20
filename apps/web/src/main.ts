@@ -11,8 +11,6 @@ import { evaluarModos, evaluarNuloEscucha } from '../../../packages/engine/src/m
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
-import { calcularPuntaje, PESOS_DECLARADOS } from '../../../packages/engine/src/puntaje.ts';
-import type { ComponentePuntaje } from '../../../packages/engine/src/puntaje.ts';
 import { calcularVeredicto } from '../../../packages/engine/src/veredicto.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
@@ -37,7 +35,6 @@ import {
   modeloModos,
   modeloReverberacion,
   modeloUbicacionParlantes,
-  modeloPuntaje,
   modeloResumenFinal,
   modeloVeredicto,
   modeloRecomendacionesTop,
@@ -115,8 +112,8 @@ interface SnapshotAnalisis {
    * modos.ts) — a diferencia de `resModos`, que sólo mira dimensiones. */
   resNuloEscucha: ReturnType<typeof evaluarNuloEscucha>;
   mModos: ReturnType<typeof modeloModos>;
-  puntaje: ReturnType<typeof calcularPuntaje>;
-  mPuntaje: ReturnType<typeof modeloPuntaje>;
+  veredicto: ReturnType<typeof calcularVeredicto>;
+  mVeredicto: ReturnType<typeof modeloVeredicto>;
   componentesResumen: ComponenteResumen[];
 }
 
@@ -131,7 +128,7 @@ let disposicionManual: { parlanteIzq: Punto; parlanteDer: Punto } | null = null;
 /** Geometría del último análisis pintado — sólo para poder re-dibujar el
  * plano isométrico cuando el usuario cambia de vista (isométrica/frontal/
  * lateral/superior) o arrastra un parlante, sin recalcular potencia ni
- * puntaje. `null` antes del primer "Analizar". */
+ * veredicto. `null` antes del primer "Analizar". */
 let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista } | null = null;
 
 function repintarPlano(): void {
@@ -300,7 +297,7 @@ function setVistaPlano(vista: Vista): void {
   repintarPlano();
 }
 
-/** Arma el snapshot completo (potencia + puntaje + resumen) de UNA
+/** Arma el snapshot completo (potencia + veredicto + resumen) de UNA
  * disposición de parlantes, reusando la parte compartida ya calculada en
  * `ultimoAnalisis` — no recalcula carga/puente/recorrido/modos/
  * reverberación, sólo lo que sí depende de dónde están los parlantes. */
@@ -315,29 +312,39 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
   const mModos = modeloModos(a.resModos, resNuloEscucha, idiomaActual);
   const severidadModosCombinada: 'ok' | 'warn' = a.resModos.severidad === 'warn' || resNuloEscucha.severidad === 'warn' ? 'warn' : 'ok';
 
-  const componentesPuntaje: ComponentePuntaje[] = [
-    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: a.resCarga.severidad },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: severidadModosCombinada },
-    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: a.resReverb.severidad },
-  ];
-  if (a.streamer) {
-    componentesPuntaje.push(
-      { nombre: 'puenteStreamer', peso: PESOS_DECLARADOS.puenteStreamer, severidad: a.resPuenteStreamer!.severidad },
-      { nombre: 'recorridoStreamer', peso: PESOS_DECLARADOS.recorridoStreamer, severidad: a.resRecorridoStreamer!.severidad }
-    );
-  }
-  if (a.dac) {
-    componentesPuntaje.push(
-      { nombre: 'puenteDac', peso: PESOS_DECLARADOS.puenteDac, severidad: a.resPuenteDac!.severidad },
-      { nombre: 'recorridoDac', peso: PESOS_DECLARADOS.recorridoDac, severidad: a.resRecorridoDac!.severidad }
-    );
-  }
-  const puntaje = calcularPuntaje(componentesPuntaje);
-  const mPuntaje = modeloPuntaje(puntaje, idiomaActual);
+  // "Veredicto" + tres estados — la única evaluación de conjunto del sitio
+  // (ver CLAUDE.md). Depende de resPot/mModos (calculados arriba, propios
+  // de este snapshot) además de los componentes posición-independientes de
+  // `a`, así que se recalcula por snapshot igual que potencia/modos.
+  const veredicto = calcularVeredicto({
+    potencia: resPot.severidad,
+    carga: a.resCarga.severidad,
+    amortiguamiento: a.resAmortiguamiento.severidad,
+    puenteStreamer: a.resPuenteStreamer ? a.resPuenteStreamer.severidad : null,
+    recorridoStreamer: a.resRecorridoStreamer ? a.resRecorridoStreamer.severidad : null,
+    puenteDac: a.resPuenteDac ? a.resPuenteDac.severidad : null,
+    recorridoDac: a.resRecorridoDac ? a.resRecorridoDac.severidad : null,
+    modos: severidadModosCombinada,
+    reverberacion: a.resReverb.severidad,
+  });
+  const mVeredicto = modeloVeredicto(
+    veredicto,
+    {
+      mPot,
+      mCarga: a.mCarga,
+      mAmortiguamiento: a.mAmortiguamiento,
+      mPuenteStreamer: a.mPuenteStreamer,
+      mRecorridoStreamer: a.mRecorridoStreamer,
+      mPuenteDac: a.mPuenteDac,
+      mRecorridoDac: a.mRecorridoDac,
+      mModos,
+      mReverb: a.mReverb,
+    },
+    idiomaActual
+  );
 
   const t = textosDe(idiomaActual);
-  const nombreComponente = t.motor.puntaje.componente;
+  const nombreComponente = t.motor.componentes.nombre;
   const componentesResumen: ComponenteResumen[] = [
     {
       nombre: nombreComponente.potencia,
@@ -398,10 +405,10 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
     });
   }
 
-  return { disposicion, resPot, mPot, resNuloEscucha, mModos, puntaje, mPuntaje, componentesResumen };
+  return { disposicion, resPot, mPot, resNuloEscucha, mModos, veredicto, mVeredicto, componentesResumen };
 }
 
-/** Pinta un snapshot completo — potencia, "La cadena", "Sala", puntaje,
+/** Pinta un snapshot completo — potencia, "La cadena", "Sala", veredicto,
  * "En resumen" y el plano — reusando la parte compartida de
  * `ultimoAnalisis`. Un solo lugar sabe pintar "el resultado de una
  * disposición dada", tanto para el primer "Analizar" como para cada
@@ -443,42 +450,14 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
 
   // resumenFinal ya no se pinta acá (la tarjeta "En resumen" quedó
   // reemplazada por el veredicto + "Qué conviene hacer") pero sigue
-  // calculándose: modeloDocumento (informe) todavía lo consume.
-  const resumenFinal = modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual);
+  // calculándose: modeloDocumento (informe) todavía lo consume. Reusa
+  // snap.mVeredicto (ya calculado en construirSnapshot) en vez de un
+  // puntaje 1-10 aparte — el veredicto es la única evaluación de conjunto
+  // del sitio.
+  const resumenFinal = modeloResumenFinal(snap.componentesResumen, snap.mVeredicto, idiomaActual);
 
-  // El cruce geometría↔modo (evaluarNuloEscucha) ya está combinado con
-  // resModos dentro de snap.mModos.verdictoClase — una sola severidad
-  // "modos" para el veredicto, no dos entradas separadas.
-  const severidadModos: 'ok' | 'warn' = snap.mModos.verdictoClase === 'warn' ? 'warn' : 'ok';
-  const veredicto = calcularVeredicto({
-    potencia: snap.resPot.severidad,
-    carga: a.resCarga.severidad,
-    amortiguamiento: a.resAmortiguamiento.severidad,
-    puenteStreamer: a.resPuenteStreamer ? a.resPuenteStreamer.severidad : null,
-    recorridoStreamer: a.resRecorridoStreamer ? a.resRecorridoStreamer.severidad : null,
-    puenteDac: a.resPuenteDac ? a.resPuenteDac.severidad : null,
-    recorridoDac: a.resRecorridoDac ? a.resRecorridoDac.severidad : null,
-    modos: severidadModos,
-    reverberacion: a.resReverb.severidad,
-  });
   pintarModos(snap.mModos);
-  pintarVeredicto(
-    modeloVeredicto(
-      veredicto,
-      {
-        mPot: snap.mPot,
-        mCarga: a.mCarga,
-        mAmortiguamiento: a.mAmortiguamiento,
-        mPuenteStreamer: a.mPuenteStreamer,
-        mRecorridoStreamer: a.mRecorridoStreamer,
-        mPuenteDac: a.mPuenteDac,
-        mRecorridoDac: a.mRecorridoDac,
-        mModos: snap.mModos,
-        mReverb: a.mReverb,
-      },
-      idiomaActual
-    )
-  );
+  pintarVeredicto(snap.mVeredicto);
   pintarRecomendacionesTop(modeloRecomendacionesTop(snap.componentesResumen, idiomaActual));
 
   ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
@@ -506,7 +485,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
       snap.disposicion.distanciaEscuchaM,
       a.nivelTexto,
       a.picoObjetivo,
-      { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase },
+      snap.mVeredicto,
       {
         mPot: snap.mPot,
         mCarga: a.mCarga,
@@ -532,7 +511,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
 
 /** Vista previa liviana durante el arrastre: sólo redibuja el plano y el
  * párrafo de ubicación con la disposición nueva — no toca potencia,
- * puntaje ni "En resumen" (eso sólo pasa al confirmar con "Recalcular"). */
+ * veredicto ni "En resumen" (eso sólo pasa al confirmar con "Recalcular"). */
 function previsualizarDisposicion(disposicion: DisposicionSala): void {
   if (!ultimoAnalisis || !ultimoPlano) return;
   ultimoPlano = { ...ultimoPlano, disposicion };
@@ -765,8 +744,7 @@ type InfoClave =
   | 'modos'
   | 'reverberacion'
   | 'plano'
-  | 'veredicto'
-  | 'puntaje';
+  | 'veredicto';
 
 function abrirPopup(titulo: string, cuerpoHtml: string): void {
   const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;

@@ -78,3 +78,15 @@ export function peorConfianza(...confianzas: Confianza[]): Confianza {
     ORDEN_CONFIANZA[actual] < ORDEN_CONFIANZA[peor] ? actual : peor
   );
 }
+
+const ORDEN_SEVERIDAD: Record<Exclude<Severidad, 'sin-datos'>, number> = { ok: 0, warn: 1, alert: 2 };
+
+/** La severidad más grave de las dadas — mismo idioma que peorConfianza(),
+ * aplicado a severidad. Usada por veredicto.ts para agrupar el peor
+ * componente de cada estado (Potencia / Acople eléctrico / Sala). */
+export function peorSeveridad(...severidades: Array<Exclude<Severidad, 'sin-datos'>>): Exclude<Severidad, 'sin-datos'> {
+  if (severidades.length === 0) {
+    throw new Error('peorSeveridad necesita al menos una severidad');
+  }
+  return severidades.reduce((peor, actual) => (ORDEN_SEVERIDAD[actual] > ORDEN_SEVERIDAD[peor] ? actual : peor));
+}

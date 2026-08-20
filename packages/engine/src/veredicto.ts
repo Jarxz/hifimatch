@@ -1,27 +1,25 @@
 /**
  * Veredicto consolidado del resultado — CAPA CRITERIO-EDITORIAL, no física
- * (mismo principio que puntaje.ts, ver CLAUDE.md "Las dos capas"). Agrupa
- * las severidades ya calculadas por las reglas físicas en 3 estados
- * ("Potencia", "Acople eléctrico", "Sala") en vez de un único número 1-10:
- * un compuesto ponderado disuelve un problema grave entre varias cosas que
- * están bien (un amplificador que no alcanza en picos puede terminar
- * pareciendo aceptable si el resto promedia bien) — acá gana el peor
- * eslabón de cada grupo, no un promedio. `puntaje.ts` (el 1-10) no se
- * toca: sigue existiendo tal cual para un futuro comparador entre
- * análisis, donde un número relativo sí tiene función (ordenar A contra
- * B). Este módulo es sólo para el resultado individual.
+ * (ver CLAUDE.md, "Las dos capas"). Agrupa las severidades ya calculadas
+ * por las reglas físicas en 3 estados ("Potencia", "Acople eléctrico",
+ * "Sala") en vez de un único número compuesto: un promedio ponderado
+ * disuelve un problema grave entre varias cosas que están bien (un
+ * amplificador que no alcanza en picos puede terminar pareciendo
+ * aceptable si el resto promedia bien) — acá gana el peor eslabón de
+ * cada grupo, no un promedio. Es el único modelo de evaluación general
+ * del sitio: reemplazó por completo a un puntaje 1-10 que existió en una
+ * ronda anterior y fue retirado (ver CLAUDE.md).
  *
- * Reusa `peorSeveridad()` de puntaje.ts — ya estaba exportada
- * explícitamente "por si sirve para otra combinación futura".
+ * Reusa `peorSeveridad()` de tipos.ts, junto a su análoga `peorConfianza()`.
  *
  * Como en el resto del motor: dato faltante nunca es "malo" — "sin-datos"
  * se excluye del cálculo del grupo, nunca cuenta como reparo. Si un grupo
  * entero queda sin ningún componente con dato, el grupo mismo es
  * "sin-datos" (no se inventa un color), y no participa del veredicto
- * general — mismo criterio que ya aplica calcularPuntaje().
+ * general.
  */
+import { peorSeveridad } from './tipos.ts';
 import type { Severidad } from './tipos.ts';
-import { peorSeveridad } from './puntaje.ts';
 
 export type EstadoGrupo = Exclude<Severidad, 'sin-datos'> | 'sin-datos';
 

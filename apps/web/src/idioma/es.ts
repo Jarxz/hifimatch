@@ -16,7 +16,6 @@ import type { CodigoAmortiguamiento } from '../../../../packages/engine/src/amor
 import type { CodigoPuenteImpedancias, CodigoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos.ts';
 import type { CodigoReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
-import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 import type { CodigoContacto } from '../../../../packages/contact/src/contacto.ts';
 
@@ -26,6 +25,22 @@ import type { CodigoContacto } from '../../../../packages/contact/src/contacto.t
  * propio borde HTTP (método no-POST, o un fallo real de `manejarContacto`
  * al llamar a Resend). */
 type CodigoRespuestaContacto = CodigoContacto | 'metodo-invalido' | 'error-servidor';
+
+/** Componentes con nombre de pantalla propio en `motor.componentes.nombre`
+ * (los que no tienen un `nombreCorto` directo en su propia tarjeta, ver
+ * `motor.amortiguamiento.nombreCorto`/`motor.reverberacion.nombreCorto`) —
+ * usados por "Qué conviene hacer" y el resumen del informe (main.ts,
+ * `construirSnapshot`). No es un tipo del motor: es puramente de qué
+ * componentes necesitan una etiqueta acá. */
+type NombreComponenteEvaluacion =
+  | 'potencia'
+  | 'carga'
+  | 'modos'
+  | 'reverberacion'
+  | 'puenteStreamer'
+  | 'recorridoStreamer'
+  | 'puenteDac'
+  | 'recorridoDac';
 
 export const es = {
   meta: {
@@ -73,7 +88,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V16.08.26',
+    version: 'V17.08.26',
   },
 
   info: {
@@ -86,7 +101,7 @@ export const es = {
     capas: {
       titulo: 'Dos tipos de afirmación: física y criterio editorial',
       cuerpoHtml:
-        'Todo lo que este sitio afirma pertenece a una de dos categorías, y siempre se declara cuál. <b>Capa física:</b> tiene fórmula, umbral, fuente del dato y nivel de confianza — es refutable, alguien puede discutir un umbral con argumentos. Es casi todo lo que ves (potencia, carga, puente de impedancias, modos de sala, reverberación). <b>Capa criterio editorial:</b> preferencias que este sitio declara desde su propio criterio, no una medición — hoy es sólo el puntaje 1-10, que combina las severidades de arriba con pesos que este sitio eligió. Otro sitio razonable pesaría distinto, y eso no lo haría "menos correcto": es una opinión declarada, no un dato. Las dos capas nunca se mezclan visualmente — cada tarjeta dice de cuál se trata.',
+        'Todo lo que este sitio afirma pertenece a una de dos categorías, y siempre se declara cuál. <b>Capa física:</b> tiene fórmula, umbral, fuente del dato y nivel de confianza — es refutable, alguien puede discutir un umbral con argumentos. Es casi todo lo que ves (potencia, carga, puente de impedancias, modos de sala, reverberación). <b>Capa criterio editorial:</b> preferencias que este sitio declara desde su propio criterio, no una medición — hoy es el veredicto general (ver más abajo), que agrupa las severidades de arriba en tres estados con un criterio que este sitio declara (el peor eslabón de cada grupo, no un promedio). Otro sitio razonable agruparía distinto, y eso no lo haría "menos correcto": es una opinión declarada, no un dato. Las dos capas nunca se mezclan visualmente — cada tarjeta dice de cuál se trata.',
     },
     confianza: {
       titulo: 'Fuente y confianza de cada dato',
@@ -137,11 +152,6 @@ export const es = {
       titulo: 'El veredicto y los tres estados',
       cuerpoHtml:
         'El titular del resultado (Potencia / Acople eléctrico / Sala) resume las tarjetas físicas de abajo sin promediarlas: cada uno de los tres estados toma la <b>peor</b> severidad entre los componentes que agrupa — Potencia es directa; Acople eléctrico es el peor entre carga, y puente de impedancias + recorrido de volumen de streamer y/o DAC; Sala es el peor entre modos y reverberación. Promediar disolvería un problema real entre varias cosas que están bien (un amplificador que se queda corto en los picos podría promediar "aceptable" junto a una carga fácil); el peor eslabón es más honesto. Un componente sin dato suficiente no cuenta como reparo — si un estado entero queda sin ningún componente evaluable, se declara "sin datos suficientes" en gris, nunca en amarillo o rojo. El titular general es el peor de los tres estados; sigue siendo <b>capa criterio-editorial</b> (cómo se agrupa y se prioriza es una decisión de este sitio), apoyada en severidades que sí son física.',
-    },
-    puntaje: {
-      titulo: 'Puntaje del match (1-10)',
-      cuerpoHtml:
-        'Ya no encabeza ni aparece en la pantalla de resultado en vivo — el veredicto y sus tres estados (ver arriba) lo reemplazaron como resumen visible, porque un número editorial abriendo un análisis físico se leía como más autoritativo de lo que este sitio quiere que parezca. El cálculo sigue existiendo, en la capa de <b>criterio editorial</b>, no física: un número con un decimal que combina las severidades de potencia, carga, modos de sala, reverberación, y puente de impedancias + recorrido de volumen (evaluados por separado para streamer y para DAC, cuando hay ambos elegidos), con pesos que este sitio declara (potencia 24% · carga 20% · modos 10% · reverberación 10% · puente 10% y recorrido 8% por cada fuente). Un componente sin dato suficiente no se incluye — ni suma ni resta. Hoy vive en la pantalla "Informe (vista previa)" (pensada para comparar dos análisis entre sí más adelante), que todavía no tiene un botón que la abra — sigue siendo una opinión declarada sobre cómo ponderar los hallazgos físicos de arriba, no un dato medido nuevo.',
     },
   },
 
@@ -230,6 +240,7 @@ export const es = {
     picoObjetivo: 'Pico objetivo',
     evaluacion: 'Evaluación',
     capaFisica: 'Capa física',
+    capaCriterioEditorial: 'Criterio editorial, no física',
     geometria: 'Geometría',
     disposicionReferencia: 'Disposición de referencia',
     verDetalle: 'Ver detalle técnico',
@@ -286,6 +297,7 @@ export const es = {
     titulo: 'Informe de análisis',
     equipoTitulo: 'Equipo',
     planoTitulo: 'Plano, escucha y reflexiones (vista superior)',
+    veredictoTitulo: 'Veredicto general',
     disclaimerHtml:
       'Vista previa interna de un informe exportable — reformatea los datos ya calculados de <b>Análisis 1</b>, ' +
       'sin generar un PDF real todavía. <b>Análisis 2</b>, <b>Comparar</b> y <b>Descargar PDF</b> quedan detrás ' +
@@ -607,10 +619,8 @@ export const es = {
         `<b>Muro(s) declarado(s) abertura:</b> ${p.muros}. No reflejan sonido — por eso baja la reverberación calculada arriba, y el plano isométrico no dibuja la reflexión de ese muro. Los modos de sala (resonancias) de la tarjeta de arriba <b>no se ajustan</b> para una abertura: siguen asumiendo paredes rígidas en los dos extremos de cada eje, así que la resonancia calculada en el eje de ese muro es menos representativa que en una sala cerrada.`,
     },
 
-    puntaje: {
-      titulo: 'Puntaje del match',
-      rotulo: 'Criterio editorial, no física',
-      componente: {
+    componentes: {
+      nombre: {
         potencia: 'Potencia',
         carga: 'Carga',
         modos: 'Modos de sala',
@@ -619,15 +629,7 @@ export const es = {
         recorridoStreamer: 'Recorrido de volumen (Streamer)',
         puenteDac: 'Puente de impedancias (DAC)',
         recorridoDac: 'Recorrido de volumen (DAC)',
-      } satisfies Record<ComponentePuntaje['nombre'], string>,
-      filaIncluida: (p: { nombre: string; puntos: string }): string => `${p.nombre}: ${p.puntos}/10`,
-      filaExcluida: (p: { nombre: string }): string => `${p.nombre}: sin dato suficiente, no cuenta`,
-      aviso: (p: { evaluados: string; total: string }): string =>
-        `Calculado sobre ${p.evaluados} de ${p.total} componentes — el resto no tenía dato suficiente y no se incluyó (ni suma ni resta).`,
-      criterio:
-        '<b>Criterio editorial, no un dato medido:</b> combina las severidades de arriba con pesos que este sitio declara — potencia 24 % · carga 20 % · modos de sala 10 % · reverberación 10 % · puente de impedancias 10 % y recorrido de volumen 8 % por cada fuente elegida (streamer y/o DAC, evaluados por separado). Otro criterio razonable pesaría distinto.',
-      notaRecalculo:
-        'Este puntaje ya recalculó la potencia con la nueva distancia de escucha. Los demás componentes (carga, modos, reverberación, puente/recorrido) no dependen de dónde están los parlantes, así que el número puede no cambiar si el margen de potencia se mantiene en la misma categoría.',
+      } satisfies Record<NombreComponenteEvaluacion, string>,
     },
 
     veredicto: {
@@ -661,12 +663,12 @@ export const es = {
     resumen: {
       titulo: 'En resumen',
       comportamiento: {
-        ok: (p: { puntaje: string }): string =>
-          `El sistema en conjunto funciona bien: la mayoría de los aspectos evaluados están resueltos, con un puntaje de ${p.puntaje}/10.`,
-        warn: (p: { puntaje: string }): string =>
-          `El sistema funciona, pero conviene revisar algunos puntos antes de darlo por cerrado — puntaje ${p.puntaje}/10.`,
-        alert: (p: { puntaje: string }): string =>
-          `El sistema tiene varios puntos que conviene resolver antes de considerarlo un buen match — puntaje ${p.puntaje}/10.`,
+        ok: (p: { titulo: string }): string =>
+          `El sistema en conjunto funciona bien: la mayoría de los aspectos evaluados están resueltos — ${p.titulo}.`,
+        warn: (p: { titulo: string }): string =>
+          `El sistema funciona, pero conviene revisar algunos puntos antes de darlo por cerrado — ${p.titulo}.`,
+        alert: (p: { titulo: string }): string =>
+          `El sistema tiene varios puntos que conviene resolver antes de considerarlo un buen match — ${p.titulo}.`,
       },
       fortalezasTitulo: 'Lo que funciona bien',
       debilidadesTitulo: 'Lo que conviene revisar',

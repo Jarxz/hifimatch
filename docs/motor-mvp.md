@@ -396,7 +396,7 @@ antes de soltar) podía perder la posición final si el frame de rAF
 todavía no había corrido.
 
 **Arrastrar es sólo vista previa** (redibuja el plano y el párrafo de
-ubicación en vivo) — no toca potencia, puntaje ni "En resumen" hasta que
+ubicación en vivo) — no toca potencia, veredicto ni "En resumen" hasta que
 el usuario confirma con "Recalcular", que congela la posición en curso en
 un snapshot completo y lo publica en una segunda pestaña ("Modificado")
 junto a "Análisis original" (que nunca se pisa). Cambiar de pestaña
@@ -576,10 +576,10 @@ RT60_MIN_OK_S ≤ rt60 ≤ RT60_MAX_OK_S        ok     codigo: 'rt60-ok'     ("E
 rt60 > RT60_MAX_OK_S                        warn   codigo: 'rt60-largo'  ("Muy viva")
 ```
 
-Aparece en "En resumen" (fortaleza si `ok`, debilidad si `warn`) pero
-**no participa del puntaje 1-10 de `puntaje.ts`** — es informativa, igual
-que el plano de reflexiones; los pesos declarados en la sección 7 no
-cambian.
+Aparece en "En resumen" (fortaleza si `ok`, debilidad si `warn`) y
+participa del estado "Sala" del veredicto general (peor-de con modos,
+ver sección 7/`veredicto.ts`) — nunca sube por sí sola a `alert`, mismo
+techo de severidad de sala del resto del motor.
 
 ### Vectores de prueba (sala por defecto, 3,6×5,0×2,4 m)
 ```
@@ -800,96 +800,79 @@ I · WiiM Pro Plus (2,0 V, 10 Ω) → Cambridge CXA81 (370 mV, 43 kΩ)
 
 ---
 
-## 7. Puntaje del match (`puntaje.ts`) — CAPA CRITERIO-EDITORIAL
+## 7. Veredicto general (`veredicto.ts`) — CAPA CRITERIO-EDITORIAL
 
-**Estado: implementada.** A diferencia de todo lo anterior (secciones 2-4bis
-y 6), esto **no es física**: es un único número 1-10 que combina las
-severidades ya calculadas por las reglas de arriba, con pesos que este sitio
-declara desde su criterio. Ver CLAUDE.md, "Las dos capas" — se rotula en
-pantalla como "Criterio editorial, no física", nunca junto a un veredicto de
-capa física.
+**Estado: implementada — única evaluación de conjunto del sitio.** Esta
+sección documentaba antes un puntaje 1-10 (`puntaje.ts`); esa pieza fue
+retirada por completo y reemplazada por este módulo, que agrupa las
+mismas severidades ya calculadas por las reglas de arriba (secciones
+2-4bis y 6) en **3 estados** en vez de un número compuesto. A diferencia
+de todo lo anterior, esto **no es física**: cómo se agrupa y qué gana es
+un criterio que este sitio declara. Ver CLAUDE.md, "Las dos capas" — se
+rotula en pantalla como "Criterio editorial, no física", nunca junto a
+un veredicto de capa física.
 
-`puntaje.ts` no decide severidades — sólo las combina. Recibe una lista de
-`{ nombre, peso, severidad }` por componente (`severidad: null` si el
-componente no aplica a este match, ej. sin streamer ni dac elegido). La
-lista tiene entre 4 y 8 elementos según cuántas fuentes se eligieron —
-ver "Streamer + DAC simultáneos" más abajo.
+`veredicto.ts` no decide severidades — sólo las agrupa. Recibe una
+`EntradaVeredicto` con la severidad ya calculada de cada regla (`null`
+para puente/recorrido si esa fuente no está elegida) y produce 3
+estados:
 
-### Pesos declarados
-
-| Componente | Peso | Por qué |
+| Estado | Componentes que agrupa | Método |
 |---|---|---|
-| Potencia | 24 % | Riesgo real: recorte audible si no alcanza |
-| Carga | 20 % | Riesgo real: amplificador forzado en cargas duras |
-| Modos de sala | 10 % | De la sala, no de la combinación de equipos — mismo techo de severidad que reverberación |
-| Reverberación (RT60) | 10 % | Ídem modos — hallazgo de sala, mismo peso por compartir el mismo techo de severidad |
-| Puente de impedancias (por fuente) | 10 % | Ajuste fino de ganancia, no un riesgo de falla — evaluado por separado para streamer y para DAC |
-| Recorrido de volumen (por fuente) | 8 % | Ergonómico — el sistema funciona igual, sólo cambia la resolución del volumen — evaluado por separado para streamer y para DAC |
+| Potencia | potencia (siempre tiene valor) | directo, sin agrupar |
+| Acople eléctrico | carga, amortiguamiento, puente y recorrido de streamer y/o DAC | peor de los aplicables (`sin-datos` si ninguno aplica) |
+| Sala | modos, reverberación | peor de los dos (nunca `alert` — mismo techo de severidad de sala que ya declaraban las secciones 4bis/4ter) |
 
-Potencia:carga mantiene la razón 1,2:1 de la tabla original de 5
-componentes. Suman 1 (`puntaje.test.ts` lo verifica). **Son un criterio,
-no un dato medido** — otro sitio razonable pesaría distinto.
+### Peor-eslabón, no promedio
 
-### Puntos por severidad
+Cada estado toma la **peor** severidad entre sus componentes
+(`peorSeveridad()`, ahora en `tipos.ts` junto a `peorConfianza()`), nunca
+un promedio: un amplificador que se queda corto en los picos no debe
+promediar "aceptable" sólo porque la carga es fácil. `sin-datos` se
+excluye del cálculo del grupo, igual que en el resto del motor — nunca
+cuenta como reparo. Si el grupo entero queda sin ningún componente con
+dato (ej. "Acople eléctrico" sin carga citada y sin streamer ni dac
+elegidos), el grupo mismo es `sin-datos` (gris en pantalla, nunca un
+color inventado) y no participa del veredicto general.
 
-`ok` = 10 · `warn` = 5 · `alert` = 0. `sin-datos` (o componente no
-aplicable) se **excluye**, no puntúa ni penaliza — mismo principio que el
-resto del proyecto ("dato faltante nunca es `ok`"). El puntaje final es el
-promedio ponderado sólo de los componentes evaluados, re-normalizado sobre
-la suma de sus pesos — así un componente sin dato no arrastra el número
-hacia abajo simplemente por faltar.
+`general` es el peor de los 3 estados que sí tienen valor — Potencia y
+Sala siempre lo tienen (ninguno de los dos puede ser `sin-datos`), así
+que `general` nunca es `sin-datos`: siempre hay al menos un piso físico
+real sobre el que apoyar el veredicto.
 
-`componentesEvaluados`/`componentesTotales` viaja en el resultado para que,
-si faltó algo, el sitio lo declare (aviso explícito: "calculado sobre N de
-M componentes"). `componentesTotales` es **variable** (4 sin ninguna fuente
-elegida, 6 con una, 8 con streamer y DAC a la vez) — refleja cuántos
-componentes son realmente aplicables a este match, no un máximo fijo con
-casilleros vacíos.
+### Redacción del titular (`modeloVeredicto`, `apps/web`)
 
-**Piso de 1,0, nunca 0** (`Math.max(1, Math.round(promedio*10)/10)`): la
-escala declarada es 1-10, con **un decimal** (ej. `8,7`) — antes redondeaba
-a un entero.
-
-### Color del número (`clasificarPuntaje`)
-
-El número en pantalla lleva color — verde/naranjo/rojo — según umbrales
-declarados junto a los pesos (mismo criterio del sitio, no un dato físico):
+El motor sólo entrega códigos (`'ok'|'warn'|'alert'` por estado, más
+`general`); `apps/web/src/vista/resultado.ts` redacta el titular desde
+una matriz fija:
 
 ```
-puntaje ≥ UMBRAL_PUNTAJE_VERDE (8)      clase 'ok'     verde  (--ok)
-UMBRAL_PUNTAJE_NARANJO (5) ≤ puntaje < 8 clase 'warn'   naranjo (--warn)
-puntaje < UMBRAL_PUNTAJE_NARANJO (5)     clase 'alert'  rojo   (--alert)
+algún estado 'alert'                 → "Configuración no recomendada"      (rojo)
+ningún 'alert', algún estado 'warn'  → "Configuración soportada, con límites" (naranjo)
+los 3 estados 'ok'                   → "Configuración totalmente compatible" (verde)
 ```
 
-Alineados a los puntos por severidad de arriba: "todo ok" da 10 (verde),
-"todo warn" da 5 (justo en el borde naranjo), "todo alert" da 1 (rojo). El
-color vive en el número mismo (`<b id="pt-puntaje">`, clases CSS
-`puntaje-ok/warn/alert`), **nunca** con el componente `pintarVerdict` que
-usan los veredictos de capa física (el mismo pill/badge) — sigue rotulado
-"Criterio editorial, no física" y en su propia tarjeta; la distinción de
-capas es de layout y rotulado, no de si hay o no color.
+El subtexto nombra qué estado(s) motivaron el veredicto (`listaY()`,
+`Intl.ListFormat` por locale). El texto de cada estado reusa el
+`verdictoTexto` ya calculado del componente más grave de ese grupo —
+nunca inventa una evaluación nueva.
 
 ### Streamer + DAC simultáneos
 
-Desde que el sitio permite elegir streamer y DAC a la vez (ver CLAUDE.md),
-puente y recorrido se puntúan **por separado para cada fuente** —
-`puenteStreamer`/`recorridoStreamer`/`puenteDac`/`recorridoDac`, cuatro
-componentes en vez de dos, cada uno con su propio peso. Antes se combinaban
-con `peorSeveridad()` (si cualquiera de las dos fuentes tenía un problema,
-el puntaje entero lo reflejaba); ahora un problema en el puente del
-streamer no le baja la nota al puente del DAC — cada fuente vota por sí
-misma. `peorSeveridad()` se queda exportada en `puntaje.ts` (documentada,
-sin este call site) por si sirve para otra combinación a futuro.
+Puente y recorrido entran al bucket "Acople eléctrico" **por separado
+para cada fuente** — `puenteStreamer`/`recorridoStreamer`/`puenteDac`/
+`recorridoDac`, hasta 6 componentes aplicables junto a carga y
+amortiguamiento. Un problema en el puente del streamer puede hacer que
+"Acople eléctrico" sea `alert` aunque el DAC esté perfecto — el peor
+componente del grupo manda, no un promedio ni una combinación previa por
+fuente.
 
-### Vector de prueba
+### Vectores de prueba
 
-Los 8 componentes en `ok` → 10,0/10. Los 8 en `alert` → 1,0/10 (piso, nunca
-0). Sin streamer ni dac, sólo los 4 componentes base — potencia=ok,
-carga=`sin-datos`, modos=warn, reverberación=ok → evaluados sobre 3:
-`(0,24·10 + 0,10·5 + 0,10·10) / 0,44 = 3,9/0,44 ≈ 8,8636` → 8,9/10. Con
-streamer y dac elegidos a la vez, puenteStreamer=alert y puenteDac=ok
-simultáneamente en el mismo resultado (0/10 y 10/10 respectivamente, sin
-contagiarse) — el vector que prueba exactamente la diferencia con el
-`peorSeveridad()` combinado de antes. Vectores completos en
-`packages/engine/src/puntaje.test.ts`.
-```
+`packages/engine/src/veredicto.test.ts` cubre: el peor componente de
+"Acople eléctrico" ganando sobre los demás; el grupo completo en
+`sin-datos` cuando no hay carga citada ni streamer/dac elegidos;
+"Sala" nunca en `alert` aunque modos y reverberación estén ambos en
+`warn`; `general` en `warn` con Potencia y Acople "ok" con sólo Sala en
+`warn`; y `general` nunca `sin-datos` incluso con Acople eléctrico sin
+dato.

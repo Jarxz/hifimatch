@@ -9,8 +9,6 @@ import { calcularDisposicion, calcularDisposicionManual } from '../../../../pack
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import { evaluarReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import type { Materiales } from '../../../../packages/engine/src/reverberacion.ts';
-import { calcularPuntaje, PESOS_DECLARADOS } from '../../../../packages/engine/src/puntaje.ts';
-import type { ComponentePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { Parlante, Amplificador } from '../../../../packages/engine/src/tipos.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
@@ -28,7 +26,6 @@ import {
   modeloModos,
   modeloReverberacion,
   modeloUbicacionParlantes,
-  modeloPuntaje,
   modeloResumenFinal,
   modeloDocumento,
   modeloVeredicto,
@@ -595,85 +592,14 @@ test('modeloUbicacionParlantes: caso asimétrico (parlantes arrastrados a mano) 
   assert.match(html, /2,33 m/); // separación entre ambos (distancia real, no la separación en X)
 });
 
-// ---- puntaje (capa criterio-editorial) ----
-
-const COMPONENTES_BASE_OK: ComponentePuntaje[] = [
-  { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
-  { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'ok' },
-  { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
-  { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: 'ok' },
-];
-
-test('modeloPuntaje: todo "ok" (sin fuentes) da 10/10, detalle con los 4 componentes incluidos, sin aviso', () => {
-  const m = modeloPuntaje(calcularPuntaje(COMPONENTES_BASE_OK), 'es');
-  assert.equal(m.puntaje, 10);
-  assert.equal(m.puntajeTexto, '10,0/10');
-  assert.equal(m.clase, 'ok');
-  assert.equal(m.avisoHtml, null);
-  assert.match(m.detalleHtml, /Potencia: 10\/10/);
-  assert.match(m.criterioHtml, /Criterio editorial/);
-});
-
-test('modeloPuntaje: clase sigue los umbrales de clasificarPuntaje (warn/alert), no siempre "ok"', () => {
-  const mezcla: ComponentePuntaje[] = COMPONENTES_BASE_OK.map((c) => ({ ...c, severidad: 'warn' as const }));
-  assert.equal(modeloPuntaje(calcularPuntaje(mezcla), 'es').clase, 'warn');
-
-  const todoMal: ComponentePuntaje[] = COMPONENTES_BASE_OK.map((c) => ({ ...c, severidad: 'alert' as const }));
-  assert.equal(modeloPuntaje(calcularPuntaje(todoMal), 'es').clase, 'alert');
-});
-
-test('modeloPuntaje: sin streamer ni dac, el aviso declara cuántos de los 4 componentes base se evaluaron', () => {
-  const componentes: ComponentePuntaje[] = [
-    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: null },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
-    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: 'ok' },
-  ];
-  const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
-  assert.match(m.detalleHtml, /Carga: sin dato suficiente, no cuenta/);
-  assert.ok(m.avisoHtml !== null);
-  assert.match(m.avisoHtml!, /3 de 4/);
-});
-
-test('modeloPuntaje: con streamer y dac elegidos, el puente de cada fuente aparece con su propio puntaje — no se combinan', () => {
-  const componentes: ComponentePuntaje[] = [
-    ...COMPONENTES_BASE_OK,
-    { nombre: 'puenteStreamer', peso: PESOS_DECLARADOS.puenteStreamer, severidad: 'alert' },
-    { nombre: 'recorridoStreamer', peso: PESOS_DECLARADOS.recorridoStreamer, severidad: 'ok' },
-    { nombre: 'puenteDac', peso: PESOS_DECLARADOS.puenteDac, severidad: 'ok' },
-    { nombre: 'recorridoDac', peso: PESOS_DECLARADOS.recorridoDac, severidad: 'ok' },
-  ];
-  const m = modeloPuntaje(calcularPuntaje(componentes), 'es');
-  assert.match(m.detalleHtml, /Puente de impedancias \(Streamer\): 0\/10/);
-  assert.match(m.detalleHtml, /Puente de impedancias \(DAC\): 10\/10/);
-});
-
-test('modeloPuntaje: puntajeTexto usa un decimal con el separador del idioma (coma en es, punto en en)', () => {
-  const componentes: ComponentePuntaje[] = [
-    { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: 'ok' },
-    { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: 'warn' },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: 'ok' },
-    { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: 'ok' },
-  ];
-  // (0,24*10 + 0,20*5 + 0,10*10 + 0,10*10) / 0,64 = 5,4/0,64 = 8,4375 → redondea a 8,4
-  const r = calcularPuntaje(componentes);
-  assert.equal(r.puntaje, 8.4);
-  assert.equal(modeloPuntaje(r, 'es').puntajeTexto, '8,4/10');
-  assert.equal(modeloPuntaje(r, 'en').puntajeTexto, '8.4/10');
-});
-
-test('modeloPuntaje en inglés: etiquetas de componente y criterio en inglés, sin mezclar idiomas', () => {
-  const m = modeloPuntaje(calcularPuntaje(COMPONENTES_BASE_OK), 'en');
-  assert.match(m.detalleHtml, /Power: 10\/10/);
-  assert.match(m.criterioHtml, /Editorial criterion/);
-  assert.doesNotMatch(m.detalleHtml, /Potencia/);
-});
-
 // ---- resumen final ----
+// El parámetro "veredicto" de modeloResumenFinal sólo necesita tituloHtml +
+// clase — mismo shape mínimo que ModeloVeredicto ya expone, ver resultado.ts.
 
-const PUNTAJE_OK = { valor: 9, clase: 'ok' as const };
-const PUNTAJE_WARN = { valor: 6, clase: 'warn' as const };
-const PUNTAJE_ALERT = { valor: 3, clase: 'alert' as const };
+const VEREDICTO_OK = { tituloHtml: 'Configuración totalmente compatible', clase: 'ok' as const };
+const VEREDICTO_WARN = { tituloHtml: 'Configuración soportada, con límites', clase: 'warn' as const };
+const VEREDICTO_ALERT = { tituloHtml: 'Configuración no recomendada', clase: 'alert' as const };
+const VEREDICTO_OK_EN = { tituloHtml: 'Fully compatible match', clase: 'ok' as const };
 
 test('modeloResumenFinal: componentes "ok" van a fortalezas, "warn"/"alert" a debilidades; "dim" no cuenta en ninguna', () => {
   const componentes: ComponenteResumen[] = [
@@ -682,7 +608,7 @@ test('modeloResumenFinal: componentes "ok" van a fortalezas, "warn"/"alert" a de
     { nombre: 'Puente de impedancias', verdictoClase: 'alert', verdictoTexto: 'Puente insuficiente', avisoHtml: '<b>Aviso de puente</b>' },
     { nombre: 'Modos de sala', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, PUNTAJE_WARN, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_WARN, 'es');
   assert.match(m.fortalezasHtml, /Potencia: Con margen/);
   assert.doesNotMatch(m.fortalezasHtml, /Carga|Puente|Modos/);
   assert.match(m.debilidadesHtml, /Carga: Exige corriente/);
@@ -696,7 +622,7 @@ test('modeloResumenFinal: "dim" (sin-datos) no cuenta ni como fortaleza ni como 
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
     { nombre: 'Puente de impedancias', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_OK, 'es');
   assert.match(m.resumenHtml, /De 1 componentes evaluados: 1 sin observaciones y 0 con algo para revisar/);
   assert.doesNotMatch(m.fortalezasHtml, /Puente/);
   assert.doesNotMatch(m.debilidadesHtml, /Puente/);
@@ -707,13 +633,13 @@ test('modeloResumenFinal: "dim" aparece en sinDatosHtml — ya no se publica com
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
     { nombre: 'Puente de impedancias (Streamer)', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_OK, 'es');
   assert.match(m.sinDatosHtml, /Puente de impedancias \(Streamer\): no se evaluó/);
 });
 
 test('modeloResumenFinal: sin ningún componente "dim", sinDatosHtml queda vacío — no se menciona cuando todo tenía dato', () => {
   const componentes: ComponenteResumen[] = [{ nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null }];
-  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_OK, 'es');
   assert.equal(m.sinDatosHtml, '');
 });
 
@@ -721,7 +647,7 @@ test('modeloResumenFinal: con "detalle" numérico, se agrega entre paréntesis j
   const componentes: ComponenteResumen[] = [
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', detalle: '+4,8 dB', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_OK, 'es');
   assert.match(m.fortalezasHtml, /Potencia: Con margen \(\+4,8 dB\)/);
 });
 
@@ -730,7 +656,7 @@ test('modeloResumenFinal: las recomendaciones incluyen TODAS las debilidades con
     { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: '<b>Aviso de carga</b>' },
     { nombre: 'Puente de impedancias', verdictoClase: 'alert', verdictoTexto: 'Puente insuficiente', avisoHtml: '<b>Aviso de puente</b>' },
   ];
-  const m = modeloResumenFinal(componentes, PUNTAJE_ALERT, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_ALERT, 'es');
   assert.match(m.recomendacionesHtml, /Aviso de puente/);
   assert.match(m.recomendacionesHtml, /Aviso de carga/);
   assert.equal((m.recomendacionesHtml.match(/<li>/g) ?? []).length, 2);
@@ -740,7 +666,7 @@ test('modeloResumenFinal: debilidad sin avisoHtml no genera una recomendación v
   const componentes: ComponenteResumen[] = [
     { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, PUNTAJE_WARN, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_WARN, 'es');
   assert.equal((m.recomendacionesHtml.match(/<li>/g) ?? []).length, 1);
   assert.match(m.recomendacionesHtml, /No hay ningún punto pendiente/);
 });
@@ -750,14 +676,14 @@ test('modeloResumenFinal: todo "ok" → recomendación de cierre positivo, sin f
     { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
     { nombre: 'Carga', verdictoClase: 'ok', verdictoTexto: 'Cubierto', avisoHtml: null },
   ];
-  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
+  const m = modeloResumenFinal(componentes, VEREDICTO_OK, 'es');
   assert.match(m.debilidadesHtml, /Ningún componente evaluado quedó con algo para revisar/);
   assert.match(m.recomendacionesHtml, /No hay ningún punto pendiente/);
 });
 
 test('modeloResumenFinal en inglés: textos en inglés, sin mezclar idiomas', () => {
   const componentes: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
-  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'en');
+  const m = modeloResumenFinal(componentes, VEREDICTO_OK_EN, 'en');
   assert.match(m.fortalezasHtml, /Power: With margin/);
   assert.match(m.debilidadesHtml, /No evaluated component came out with something worth checking/);
   assert.match(m.recomendacionesHtml, /Nothing pending/);
@@ -765,26 +691,27 @@ test('modeloResumenFinal en inglés: textos en inglés, sin mezclar idiomas', ()
 
 // ---- modeloResumenFinal: comportamientoHtml (párrafo holístico) ----
 
-test('modeloResumenFinal: comportamientoHtml varía según la clase del puntaje (ok/warn/alert), siempre incluye el número', () => {
+test('modeloResumenFinal: comportamientoHtml varía según la clase del veredicto (ok/warn/alert), siempre incluye su título', () => {
   const componentes: ComponenteResumen[] = [{ nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null }];
-  const mOk = modeloResumenFinal(componentes, PUNTAJE_OK, 'es');
-  const mWarn = modeloResumenFinal(componentes, PUNTAJE_WARN, 'es');
-  const mAlert = modeloResumenFinal(componentes, PUNTAJE_ALERT, 'es');
+  const mOk = modeloResumenFinal(componentes, VEREDICTO_OK, 'es');
+  const mWarn = modeloResumenFinal(componentes, VEREDICTO_WARN, 'es');
+  const mAlert = modeloResumenFinal(componentes, VEREDICTO_ALERT, 'es');
   assert.match(mOk.comportamientoHtml, /funciona bien/);
-  assert.match(mOk.comportamientoHtml, /9\/10/);
+  assert.match(mOk.comportamientoHtml, /Configuración totalmente compatible/);
   assert.match(mWarn.comportamientoHtml, /conviene revisar/);
-  assert.match(mWarn.comportamientoHtml, /6\/10/);
+  assert.match(mWarn.comportamientoHtml, /Configuración soportada, con límites/);
   assert.match(mAlert.comportamientoHtml, /varios puntos que conviene resolver/);
-  assert.match(mAlert.comportamientoHtml, /3\/10/);
+  assert.match(mAlert.comportamientoHtml, /Configuración no recomendada/);
   assert.notEqual(mOk.comportamientoHtml, mWarn.comportamientoHtml);
   assert.notEqual(mWarn.comportamientoHtml, mAlert.comportamientoHtml);
 });
 
 test('modeloResumenFinal en inglés: comportamientoHtml en inglés, sin mezclar idiomas', () => {
   const componentes: ComponenteResumen[] = [{ nombre: 'Power', verdictoClase: 'ok', verdictoTexto: 'With margin', avisoHtml: null }];
-  const m = modeloResumenFinal(componentes, PUNTAJE_OK, 'en');
+  const m = modeloResumenFinal(componentes, VEREDICTO_OK_EN, 'en');
   assert.match(m.comportamientoHtml, /works well/);
-  assert.doesNotMatch(m.comportamientoHtml, /funciona bien/);
+  assert.match(m.comportamientoHtml, /Fully compatible match/);
+  assert.doesNotMatch(m.comportamientoHtml, /funciona bien|Configuración/);
 });
 
 // ---- idioma 'en': mismos números, texto en inglés ----
@@ -861,14 +788,14 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
   const mModos = modeloModos(resModos, resNuloEscucha, idioma);
   const mReverb = modeloReverberacion(evaluarReverberacion(sala, MATERIALES_TIPICOS), MATERIALES_TIPICOS, idioma);
 
-  const puntaje = { valor: 8.7, clase: 'ok' as const };
+  const veredicto = { tituloHtml: idioma === 'es' ? 'Configuración totalmente compatible' : 'Fully compatible match', clase: 'ok' as const };
   const componentes: ComponenteResumen[] = [
     { nombre: 'Potencia', verdictoClase: mPot.verdictoClase, verdictoTexto: mPot.verdictoTexto, avisoHtml: mPot.avisoHtml },
   ];
-  const resumenFinal = modeloResumenFinal(componentes, puntaje, idioma);
+  const resumenFinal = modeloResumenFinal(componentes, veredicto, idioma);
 
   return {
-    puntaje,
+    veredicto,
     datos: {
       mPot,
       mCarga,
@@ -889,12 +816,12 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
 
 test('modeloDocumento: equiposHtml incluye parlante y amplificador siempre; streamer y dac sólo si están elegidos', () => {
   const sinFuentes = datosDocumentoFixture('es');
-  const mSin = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, sinFuentes.puntaje, sinFuentes.datos, '19 de agosto de 2026', 'es');
+  const mSin = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, sinFuentes.veredicto, sinFuentes.datos, '19 de agosto de 2026', 'es');
   assert.equal((mSin.equiposHtml.match(/doc-equipo"/g) ?? []).length, 2);
   assert.doesNotMatch(mSin.equiposHtml, /Streamer|DAC/);
 
   const conFuentes = datosDocumentoFixture('es', DOC_STREAMER, DOC_DAC);
-  const mCon = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, conFuentes.puntaje, conFuentes.datos, '19 de agosto de 2026', 'es');
+  const mCon = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, conFuentes.veredicto, conFuentes.datos, '19 de agosto de 2026', 'es');
   assert.equal((mCon.equiposHtml.match(/doc-equipo"/g) ?? []).length, 4);
   assert.match(mCon.equiposHtml, /Streamer/);
   assert.match(mCon.equiposHtml, />DAC</);
@@ -907,45 +834,58 @@ test('modeloDocumento: equiposHtml incluye parlante y amplificador siempre; stre
 
 test('modeloDocumento: sala/distancia formateadas con el separador decimal del idioma (coma en es, punto en en)', () => {
   const fixEs = datosDocumentoFixture('es');
-  const es = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fixEs.puntaje, fixEs.datos, 'x', 'es');
+  const es = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fixEs.veredicto, fixEs.datos, 'x', 'es');
   const fixEn = datosDocumentoFixture('en');
-  const en = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'High', 100, fixEn.puntaje, fixEn.datos, 'x', 'en');
+  const en = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'High', 100, fixEn.veredicto, fixEn.datos, 'x', 'en');
   assert.equal(es.anchoLargoTexto, '3,6 × 5,0 m');
   assert.equal(en.anchoLargoTexto, '3.6 × 5.0 m');
   assert.equal(es.distanciaTexto, '≈ 2,6 m');
   assert.equal(en.distanciaTexto, '≈ 2.6 m');
 });
 
-test('modeloDocumento: puntajeTexto usa un decimal y puntajeClase es la ya calculada, sin reclasificar', () => {
+test('modeloDocumento: veredictoTituloHtml/veredictoClase pasan tal cual el veredicto ya calculado, sin redactar de nuevo', () => {
   const fix = datosDocumentoFixture('es');
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, { valor: 8.7, clase: 'warn' }, fix.datos, 'x', 'es');
-  assert.equal(m.puntajeTexto, '8,7/10');
-  assert.equal(m.puntajeClase, 'warn'); // 8,7 normalmente sería "ok" — prueba que no reclasifica
+  const m = modeloDocumento(
+    DOC_SPK,
+    DOC_AMP,
+    null,
+    null,
+    SALA_REVERB,
+    2.6,
+    'Alto',
+    100,
+    { tituloHtml: 'Configuración soportada, con límites', clase: 'warn' },
+    fix.datos,
+    'x',
+    'es'
+  );
+  assert.equal(m.veredictoTituloHtml, 'Configuración soportada, con límites');
+  assert.equal(m.veredictoClase, 'warn');
 });
 
 test('modeloDocumento: seccionesHtml incluye potencia y carga siempre; puente/recorrido sólo si la fuente está elegida y tiene dato', () => {
   const fixSin = datosDocumentoFixture('es');
-  const mSin = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fixSin.puntaje, fixSin.datos, 'x', 'es');
+  const mSin = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fixSin.veredicto, fixSin.datos, 'x', 'es');
   assert.match(mSin.seccionesHtml, /Potencia frente a los picos de la sala/);
   assert.match(mSin.seccionesHtml, /La carga que ve el amplificador/);
   assert.doesNotMatch(mSin.seccionesHtml, /el streamer y el amplificador/);
 
   const fixCon = datosDocumentoFixture('es', DOC_STREAMER, DOC_DAC);
-  const mCon = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, fixCon.puntaje, fixCon.datos, 'x', 'es');
+  const mCon = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, fixCon.veredicto, fixCon.datos, 'x', 'es');
   assert.match(mCon.seccionesHtml, /el streamer y el amplificador/);
   assert.match(mCon.seccionesHtml, /el DAC y el amplificador/);
 });
 
 test('modeloDocumento: seccionesHtml siempre incluye modos y reverberación (nunca "sin-datos" en esas dos, ver CLAUDE.md)', () => {
   const fix = datosDocumentoFixture('es');
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, 'x', 'es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.veredicto, fix.datos, 'x', 'es');
   assert.match(m.seccionesHtml, /Modos de sala/);
   assert.match(m.seccionesHtml, /Tiempo de reverberación estimado/);
 });
 
 test('modeloDocumento: planoHtml incluye el SVG del plano en vista Superior (fija, no la que esté activa en resultado) y la ubicación de referencia de los parlantes', () => {
   const fix = datosDocumentoFixture('es');
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, 'x', 'es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.veredicto, fix.datos, 'x', 'es');
   assert.match(m.planoHtml, /<svg/);
   assert.match(m.planoHtml, /punto dulce/);
   // vista Superior no dibuja las etiquetas de muro rotadas ±30° que sí usa isométrica
@@ -954,20 +894,20 @@ test('modeloDocumento: planoHtml incluye el SVG del plano en vista Superior (fij
 
 test('modeloDocumento: resumenHtml reusa fortalezasHtml/debilidadesHtml/recomendacionesHtml de modeloResumenFinal, no redacta de nuevo', () => {
   const fix = datosDocumentoFixture('es');
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, 'x', 'es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.veredicto, fix.datos, 'x', 'es');
   assert.match(m.resumenHtml, new RegExp(fix.datos.resumenFinal.comportamientoHtml.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(m.resumenHtml, new RegExp(fix.datos.resumenFinal.fortalezasHtml.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
 test('modeloDocumento: fechaTexto se pasa tal cual — no es un dato del motor, main.ts lo arma con Date', () => {
   const fix = datosDocumentoFixture('es');
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.puntaje, fix.datos, '19 de agosto de 2026', 'es');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fix.veredicto, fix.datos, '19 de agosto de 2026', 'es');
   assert.equal(m.fechaTexto, '19 de agosto de 2026');
 });
 
 test('modeloDocumento en inglés: specs y secciones en inglés, sin mezclar idiomas', () => {
   const fix = datosDocumentoFixture('en', DOC_STREAMER, DOC_DAC);
-  const m = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'High', 100, fix.puntaje, fix.datos, 'August 19, 2026', 'en');
+  const m = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'High', 100, fix.veredicto, fix.datos, 'August 19, 2026', 'en');
   assert.match(m.equiposHtml, /Speakers/);
   assert.match(m.equiposHtml, /Amplifier/);
   assert.doesNotMatch(m.equiposHtml, /Parlantes|Amplificador/);

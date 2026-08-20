@@ -227,10 +227,9 @@ function pintarEstadoGrupo(prefijo: string, g: ModeloEstadoGrupo): void {
   el(`est-${prefijo}-detalle`).textContent = g.detalleTexto;
 }
 
-/** "Veredicto" + "Tres estados" — reemplaza al puntaje 1-10 como
- * encabezado del resultado (ver CLAUDE.md, "Veredicto y tres estados").
- * `puntaje.ts` sigue calculándose (para el futuro comparador y para el
- * informe/"Documento"), pero ya no se pinta acá. */
+/** "Veredicto" + "Tres estados" — la única evaluación de conjunto del
+ * sitio (ver CLAUDE.md, "Veredicto y tres estados"); reemplazó por
+ * completo a un puntaje 1-10 de una ronda anterior, ya retirado. */
 export function pintarVeredicto(m: ModeloVeredicto): void {
   const card = el('veredicto-card');
   card.className = 'card veredicto-card veredicto-' + m.clase;
@@ -260,9 +259,9 @@ export function pintarDocumento(m: ModeloDocumento, margenDbPotencia: number, id
   el('doc-r-lvl').textContent = m.nivelTexto;
   el('doc-r-peak').textContent = m.picoTexto;
   el('doc-plano').innerHTML = m.planoHtml;
-  const puntajeEl = el('doc-puntaje');
-  puntajeEl.textContent = m.puntajeTexto;
-  puntajeEl.className = 'doc-puntaje-num doc-puntaje-' + m.puntajeClase;
+  const veredictoEl = el('doc-veredicto-titulo');
+  veredictoEl.textContent = m.veredictoTituloHtml;
+  veredictoEl.className = 'doc-veredicto-titulo doc-veredicto-' + m.veredictoClase;
   el('doc-secciones').innerHTML = m.seccionesHtml;
   el('doc-resumen').innerHTML = m.resumenHtml;
 

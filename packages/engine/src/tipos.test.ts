@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { peorConfianza } from './tipos.ts';
+import { peorConfianza, peorSeveridad } from './tipos.ts';
 
 test('peorConfianza — un solo valor se devuelve igual', () => {
   assert.equal(peorConfianza('alta'), 'alta');
@@ -20,4 +20,21 @@ test('peorConfianza — el orden de los argumentos no importa', () => {
 
 test('peorConfianza — sin argumentos tira error en vez de devolver algo arbitrario', () => {
   assert.throws(() => peorConfianza());
+});
+
+test('peorSeveridad — alert le gana a warn y a ok', () => {
+  assert.equal(peorSeveridad('ok', 'warn', 'alert'), 'alert');
+  assert.equal(peorSeveridad('alert', 'ok'), 'alert');
+});
+
+test('peorSeveridad — warn le gana a ok si no hay alert', () => {
+  assert.equal(peorSeveridad('ok', 'warn'), 'warn');
+});
+
+test('peorSeveridad — un solo valor se devuelve igual', () => {
+  assert.equal(peorSeveridad('ok'), 'ok');
+});
+
+test('peorSeveridad — sin argumentos tira error en vez de devolver algo arbitrario', () => {
+  assert.throws(() => peorSeveridad());
 });

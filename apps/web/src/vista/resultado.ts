@@ -22,7 +22,6 @@ import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha } from '../../.
 import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, VENTANA_NULO_MODAL } from '../../../../packages/engine/src/modos.ts';
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
 import { ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
-import type { ResultadoPuntaje, ClasePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { ResultadoVeredicto } from '../../../../packages/engine/src/veredicto.ts';
 import type { DisposicionSala, Sala } from '../../../../packages/engine/src/sala.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
@@ -627,50 +626,6 @@ export function modeloUbicacionParlantes(sala: Sala, disp: DisposicionSala, idio
   });
 }
 
-export interface ModeloPuntaje {
-  puntaje: number;
-  puntajeTexto: string;
-  /** 'ok'/'warn'/'alert' según los umbrales declarados en puntaje.ts
-   * (clasificarPuntaje) — colorea el número, pero nunca como un pill de
-   * veredicto (pintarVerdict): sigue siendo capa criterio-editorial, no
-   * física, y se mantiene rotulado como tal en pantalla. */
-  clase: ClasePuntaje;
-  detalleHtml: string;
-  avisoHtml: string | null;
-  criterioHtml: string;
-}
-
-/** CAPA CRITERIO-EDITORIAL — ver puntaje.ts. El número lleva color (ok/warn/
- * alert) para que se lea de un vistazo, pero nunca se pinta con el mismo
- * componente de pill que un veredicto de capa física (pintarVerdict) — la
- * distinción sigue siendo de layout/rotulado, no de si hay o no color. */
-export function modeloPuntaje(r: ResultadoPuntaje, idioma: Idioma): ModeloPuntaje {
-  const t = textosDe(idioma);
-  const nombreLabel = t.motor.puntaje.componente;
-
-  const detalleHtml = r.detalle
-    .map((d) =>
-      d.incluido
-        ? t.motor.puntaje.filaIncluida({ nombre: nombreLabel[d.nombre], puntos: String(d.puntos) })
-        : t.motor.puntaje.filaExcluida({ nombre: nombreLabel[d.nombre] })
-    )
-    .join('<br>');
-
-  const avisoHtml =
-    r.componentesEvaluados < r.componentesTotales
-      ? t.motor.puntaje.aviso({ evaluados: String(r.componentesEvaluados), total: String(r.componentesTotales) })
-      : null;
-
-  return {
-    puntaje: r.puntaje,
-    puntajeTexto: `${num(r.puntaje, 1, idioma)}/10`,
-    clase: r.clase,
-    detalleHtml,
-    avisoHtml,
-    criterioHtml: t.motor.puntaje.criterio,
-  };
-}
-
 /** Un componente ya evaluado (potencia, carga, puente de una fuente,
  * recorrido de una fuente, o modos), con su nombre ya traducido y listo
  * para mostrar en el resumen — reusa exactamente lo que ya calculó su
@@ -697,6 +652,13 @@ export interface ModeloResumenFinal {
   recomendacionesHtml: string;
 }
 
+/** Clase general 'ok'/'warn'/'alert' del veredicto (ver veredicto.ts) — la
+ * única evaluación de conjunto del sitio desde que se retiró el puntaje
+ * 1-10 (ver CLAUDE.md). Alias local en vez de importar un tipo del motor
+ * porque acá sólo hace falta la unión de 3 literales, igual que ya la usa
+ * `ModeloVeredicto.clase` sin un tipo con nombre. */
+export type ClaseVeredictoGeneral = 'ok' | 'warn' | 'alert';
+
 /**
  * Recapitulación en lenguaje simple de lo que ya mostraron las tarjetas de
  * arriba — no evalúa nada nuevo, sólo reorganiza y detalla. "dim"
@@ -711,12 +673,12 @@ export interface ModeloResumenFinal {
  * redactó — una por cada debilidad encontrada, no sólo la peor, para que
  * el detalle físico quede completo. `comportamientoHtml` es la sola
  * oración que resume "cómo se comporta el match completo" — reusa el
- * puntaje 1-10 ya calculado (capa criterio-editorial, ver puntaje.ts), no
- * inventa una evaluación nueva.
+ * título del veredicto ya redactado (capa criterio-editorial, ver
+ * veredicto.ts), no inventa una evaluación nueva.
  */
 export function modeloResumenFinal(
   componentes: ComponenteResumen[],
-  puntaje: { valor: number; clase: ClasePuntaje },
+  veredicto: { tituloHtml: string; clase: ClaseVeredictoGeneral },
   idioma: Idioma
 ): ModeloResumenFinal {
   const t = textosDe(idioma).motor.resumen;
@@ -725,7 +687,7 @@ export function modeloResumenFinal(
   const debilidades = componentes.filter((c) => c.verdictoClase === 'warn' || c.verdictoClase === 'alert');
   const sinDatos = componentes.filter((c) => c.verdictoClase === 'dim');
 
-  const comportamientoHtml = t.comportamiento[puntaje.clase]({ puntaje: String(puntaje.valor) });
+  const comportamientoHtml = t.comportamiento[veredicto.clase]({ titulo: veredicto.tituloHtml });
 
   const resumenHtml = t.resumenConteo({
     evaluados: String(componentes.length - sinDatos.length),
@@ -809,9 +771,9 @@ function peorEntre<T extends { verdictoClase: ClaseVerdicto }>(items: Array<T | 
 
 /**
  * "Veredicto" (frase única) + "Tres estados" (Potencia / Acople eléctrico
- * / Sala) — CAPA CRITERIO-EDITORIAL, reemplaza al puntaje 1-10 como
- * encabezado del resultado (`puntaje.ts` se queda intacto, sigue vivo
- * para un futuro comparador entre análisis). `v` ya trae el código de
+ * / Sala) — CAPA CRITERIO-EDITORIAL, la única evaluación de conjunto del
+ * sitio (reemplazó por completo a un puntaje 1-10 de una ronda anterior,
+ * ya retirado — ver CLAUDE.md). `v` ya trae el código de
  * cada grupo calculado por `calcularVeredicto()` (motor, peor-eslabón-
  * gana, no promedio); acá sólo se redacta: el titular sale de una matriz
  * fija (algún grupo "alert" → no recomendada; si no, algún "warn" →
@@ -875,14 +837,14 @@ export interface ModeloDocumento {
   nivelTexto: string;
   picoTexto: string;
   planoHtml: string;
-  puntajeTexto: string;
-  puntajeClase: ClasePuntaje;
+  veredictoTituloHtml: string;
+  veredictoClase: ClaseVeredictoGeneral;
   seccionesHtml: string;
   resumenHtml: string;
 }
 
 /**
- * Todo lo que `modeloDocumento` necesita más allá de equipo/sala/puntaje —
+ * Todo lo que `modeloDocumento` necesita más allá de equipo/sala/veredicto —
  * son los mismos modelos de tarjeta que ya calculó `construirSnapshot()`
  * en `main.ts` (cero recálculo del motor), agrupados en un solo objeto
  * porque son demasiados campos para pasarlos sueltos.
@@ -969,7 +931,7 @@ export function modeloDocumento(
   distanciaEscuchaM: number,
   nivelTexto: string,
   picoObjetivoDb: number,
-  puntaje: { valor: number; clase: ClasePuntaje },
+  veredicto: { tituloHtml: string; clase: ClaseVeredictoGeneral },
   datos: DatosSeccionesDocumento,
   fechaTexto: string,
   idioma: Idioma
@@ -1125,8 +1087,8 @@ export function modeloDocumento(
     nivelTexto,
     picoTexto: `${num(picoObjetivoDb, 0, idioma)} dB`,
     planoHtml,
-    puntajeTexto: `${num(puntaje.valor, 1, idioma)}/10`,
-    puntajeClase: puntaje.clase,
+    veredictoTituloHtml: veredicto.tituloHtml,
+    veredictoClase: veredicto.clase,
     seccionesHtml: secciones.join(''),
     resumenHtml,
   };
