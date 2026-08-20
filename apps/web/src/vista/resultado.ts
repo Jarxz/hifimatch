@@ -16,10 +16,10 @@ import { nivelPromedioEstimadoDb, CREST_FACTOR_DB } from '../../../../packages/e
 import type { ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
-import type { ResultadoModos, ModoAgrupado } from '../../../../packages/engine/src/modos.ts';
-import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages/engine/src/modos.ts';
+import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha } from '../../../../packages/engine/src/modos.ts';
+import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, VENTANA_NULO_MODAL } from '../../../../packages/engine/src/modos.ts';
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
-import { ABSORCION_MURO, ABSORCION_PISO, ABSORCION_TECHO, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
+import { ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ResultadoPuntaje, ClasePuntaje } from '../../../../packages/engine/src/puntaje.ts';
 import type { ResultadoVeredicto } from '../../../../packages/engine/src/veredicto.ts';
 import type { DisposicionSala, Sala } from '../../../../packages/engine/src/sala.ts';
@@ -345,39 +345,72 @@ export interface ModeloTarjetaModos {
   fuenteHtml: string;
 }
 
-export function modeloModos(r: ResultadoModos, idioma: Idioma): ModeloTarjetaModos {
+/**
+ * `resNulo` es el cruce geometría↔modo (¿el punto de escucha calculado cae
+ * en el nulo del primer modo axial de largo?) — a diferencia del resto de
+ * `r` (que sólo depende de las dimensiones), `resNulo` depende de la
+ * disposición de parlantes, así que quien llama tiene que recalcularlo en
+ * cada "Analizar"/arrastre+Recalcular (ver `evaluarNuloEscucha` en
+ * modos.ts). La severidad final es el peor de los dos — ni el agrupamiento
+ * ni el nulo se pisan entre sí, cualquiera de los dos alcanza para "warn".
+ */
+export function modeloModos(r: ResultadoModos, resNulo: ResultadoNuloEscucha, idioma: Idioma): ModeloTarjetaModos {
   const t = textosDe(idioma);
   const eje = t.motor.modos.eje;
 
   const techoFmt = String(TECHO_AGRUPAMIENTO_HZ);
+  const hayAgrupados = r.agrupados.length > 0;
+  const hayNulo = resNulo.codigo === 'nulo-cerca';
 
   const textoHtml =
     r.severidad === 'ok'
       ? t.motor.modos.textoOk({ techo: techoFmt })
       : t.motor.modos.textoWarn({ n: String(r.agrupados.length), techo: techoFmt });
 
-  const avisoHtml =
-    r.agrupados.length > 0
-      ? r.agrupados
-          .map((a) =>
-            t.motor.modos.parAgrupado({
-              a: `${eje[a.modoA.eje]} · ${a.modoA.orden}`,
-              b: `${eje[a.modoB.eje]} · ${a.modoB.orden}`,
-              frecuenciaA: num(a.modoA.frecuenciaHz, 1, idioma),
-              frecuenciaB: num(a.modoB.frecuenciaHz, 1, idioma),
-            })
-          )
-          .join('<br>')
-      : null;
+  const verdictoClase: ClaseVerdicto = hayNulo || r.severidad === 'warn' ? 'warn' : 'ok';
+  const verdictoTexto = hayNulo
+    ? hayAgrupados
+      ? t.motor.modos.verdictoAmbos
+      : t.motor.modos.verdictoNulo
+    : t.motor.modos.verdicto[r.codigo];
+  const simpleHtml = hayNulo ? (hayAgrupados ? t.motor.modos.simpleAmbos : t.motor.modos.simpleNulo) : t.motor.modos.simple[r.codigo];
+
+  const partesAviso: string[] = [];
+  if (hayAgrupados) {
+    partesAviso.push(
+      r.agrupados
+        .map((a) =>
+          t.motor.modos.parAgrupado({
+            a: `${eje[a.modoA.eje]} · ${a.modoA.orden}`,
+            b: `${eje[a.modoB.eje]} · ${a.modoB.orden}`,
+            frecuenciaA: num(a.modoA.frecuenciaHz, 1, idioma),
+            frecuenciaB: num(a.modoB.frecuenciaHz, 1, idioma),
+          })
+        )
+        .join('<br>')
+    );
+  }
+  if (hayNulo) {
+    partesAviso.push(t.motor.modos.nuloEscucha({ frecuencia: num(resNulo.frecuenciaHz, 1, idioma) }));
+  }
+  const avisoHtml = partesAviso.length > 0 ? partesAviso.join('<br><br>') : null;
+
+  const partesSugerencia: string[] = [];
+  if (hayAgrupados) partesSugerencia.push(t.motor.modos.sugerencia);
+  if (hayNulo) partesSugerencia.push(t.motor.modos.sugerenciaNulo);
+  const sugerenciaHtml = partesSugerencia.length > 0 ? partesSugerencia.join(' ') : null;
 
   return {
-    verdictoClase: r.severidad,
-    verdictoTexto: t.motor.modos.verdicto[r.codigo],
-    simpleHtml: t.motor.modos.simple[r.codigo],
+    verdictoClase,
+    verdictoTexto,
+    simpleHtml,
     textoHtml,
     avisoHtml,
-    sugerenciaHtml: r.agrupados.length > 0 ? t.motor.modos.sugerencia : null,
-    fuenteHtml: t.motor.modos.fuente({ techo: techoFmt, umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)) }),
+    sugerenciaHtml,
+    fuenteHtml:
+      t.motor.modos.fuente({ techo: techoFmt, umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)) }) +
+      ' ' +
+      t.motor.modos.fuenteNulo({ ventana: String(Math.round(VENTANA_NULO_MODAL * 100)) }),
   };
 }
 
@@ -399,34 +432,70 @@ function materialLabel(material: MaterialCualquiera, t: ReturnType<typeof textos
 export function modeloReverberacion(r: ResultadoReverberacion, materiales: Materiales, idioma: Idioma): ModeloTarjetaReverberacion {
   const t = textosDe(idioma);
 
-  // 1 decimal, no 2: la ecuación de Sabine (sin ajuste) pierde precisión
-  // justo en salas domésticas chicas con mucha absorción — mostrar 2
-  // decimales es más precisión de la que el modelo puede sostener.
+  // 1 decimal, no 2: la ecuación de Sabine/Eyring (sin ajuste) pierde
+  // precisión justo en salas domésticas chicas con mucha absorción —
+  // mostrar 2 decimales es más precisión de la que el modelo puede
+  // sostener. RT60 final = promedio de las bandas 500 Hz y 2000 Hz.
   const textoHtml = t.motor.reverberacion.texto({
     rt60: num(r.rt60S, 1, idioma),
     min: num(RT60_MIN_OK_S, 1, idioma),
     max: num(RT60_MAX_OK_S, 1, idioma),
+    fs: num(r.frecuenciaSchroederHz, 0, idioma),
   });
 
   const s = t.motor.reverberacion.superficies;
+  const idx500Hz = 1;
   const fila = (nombre: string, superficieM2: number, alpha: number, absorcion: number) => ({
     nombre,
     superficie: num(superficieM2, 2, idioma),
     alpha: num(alpha, 2, idioma),
     absorcion: num(absorcion, 2, idioma),
   });
+  const bandaFila = (b: ResultadoReverberacion['bandas'][number]) => ({
+    hz: String(b.hz),
+    alphaBar: num(b.alphaBar, 2, idioma),
+    rt60: num(b.rt60S, 2, idioma),
+    metodo: b.metodo === 'sabine' ? 'Sabine' : 'Eyring',
+  });
   const calcHtml = t.motor.reverberacion.calc({
     filas: [
-      fila(`${s.frontal} (${materialLabel(materiales.muroFrontal, t)})`, r.superficieFrontalM2, ABSORCION_MURO[materiales.muroFrontal], r.absorcionFrontalSabines),
-      fila(`${s.posterior} (${materialLabel(materiales.muroPosterior, t)})`, r.superficiePosteriorM2, ABSORCION_MURO[materiales.muroPosterior], r.absorcionPosteriorSabines),
-      fila(`${s.izquierdo} (${materialLabel(materiales.muroIzquierdo, t)})`, r.superficieIzquierdaM2, ABSORCION_MURO[materiales.muroIzquierdo], r.absorcionIzquierdaSabines),
-      fila(`${s.derecho} (${materialLabel(materiales.muroDerecho, t)})`, r.superficieDerechaM2, ABSORCION_MURO[materiales.muroDerecho], r.absorcionDerechaSabines),
-      fila(`${s.piso} (${materialLabel(materiales.piso, t)})`, r.superficiePisoM2, ABSORCION_PISO[materiales.piso], r.absorcionPisoSabines),
-      fila(`${s.techo} (${materialLabel(materiales.techo, t)})`, r.superficieTechoM2, ABSORCION_TECHO[materiales.techo], r.absorcionTechoSabines),
+      fila(
+        `${s.frontal} (${materialLabel(materiales.muroFrontal, t)})`,
+        r.superficieFrontalM2,
+        ABSORCION_MURO_BANDAS[materiales.muroFrontal][idx500Hz],
+        r.absorcionFrontalSabines
+      ),
+      fila(
+        `${s.posterior} (${materialLabel(materiales.muroPosterior, t)})`,
+        r.superficiePosteriorM2,
+        ABSORCION_MURO_BANDAS[materiales.muroPosterior][idx500Hz],
+        r.absorcionPosteriorSabines
+      ),
+      fila(
+        `${s.izquierdo} (${materialLabel(materiales.muroIzquierdo, t)})`,
+        r.superficieIzquierdaM2,
+        ABSORCION_MURO_BANDAS[materiales.muroIzquierdo][idx500Hz],
+        r.absorcionIzquierdaSabines
+      ),
+      fila(
+        `${s.derecho} (${materialLabel(materiales.muroDerecho, t)})`,
+        r.superficieDerechaM2,
+        ABSORCION_MURO_BANDAS[materiales.muroDerecho][idx500Hz],
+        r.absorcionDerechaSabines
+      ),
+      fila(`${s.piso} (${materialLabel(materiales.piso, t)})`, r.superficiePisoM2, ABSORCION_PISO_BANDAS[materiales.piso][idx500Hz], r.absorcionPisoSabines),
+      fila(
+        `${s.techo} (${materialLabel(materiales.techo, t)})`,
+        r.superficieTechoM2,
+        ABSORCION_TECHO_BANDAS[materiales.techo][idx500Hz],
+        r.absorcionTechoSabines
+      ),
     ],
     absorcionTotal: num(r.absorcionTotalSabines, 2, idioma),
     volumen: num(r.volumenM3, 1, idioma),
     rt60: num(r.rt60S, 2, idioma),
+    bandas: r.bandas.map(bandaFila),
+    schroeder: num(r.frecuenciaSchroederHz, 0, idioma),
   });
 
   return {

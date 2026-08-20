@@ -116,3 +116,53 @@ export function paresMasImportantes(agrupados: ModoAgrupado[]): ModoAgrupado[] {
 function promedioHz(par: ModoAgrupado): number {
   return (par.modoA.frecuenciaHz + par.modoB.frecuenciaHz) / 2;
 }
+
+/**
+ * Cruce geometría↔modo: ¿el punto de escucha calculado cae en el nulo de
+ * presión del primer modo axial de largo? Para una sala rígida, el modo
+ * axial n=1 a lo largo de un eje tiene forma de onda estacionaria
+ * cos(π·y/L): antinodos (presión máxima) en los dos muros (y=0, y=L) y un
+ * único nodo (presión mínima, "nulo") exactamente en el centro, y=L/2 —
+ * ahí ese modo en particular se cancela casi por completo, sea cual sea su
+ * amplitud real en la sala (que este modelo no mide). Es geometría de sala
+ * rígida, la misma salvedad que el resto de sala.ts/modos.ts.
+ *
+ * Ventana de ±10% de L alrededor del punto medio — criterio de este sitio
+ * (no una convención publicada), dado explícitamente para esta regla.
+ */
+export const VENTANA_NULO_MODAL = 0.1;
+
+export type CodigoNuloEscucha = 'nulo-lejos' | 'nulo-cerca';
+
+export interface ResultadoNuloEscucha {
+  frecuenciaHz: number; // f1 del modo axial de largo (orden 1)
+  puntoMedioM: number; // L/2 — el nulo exacto
+  distanciaAlMedioM: number;
+  ventanaM: number; // L · VENTANA_NULO_MODAL
+  /** Techo `warn`, nunca `alert`/`error` — igual que el resto de las reglas
+   * de sala (CLAUDE.md, "Severidad y bloque de sala"): esto predice desde
+   * una sala rígida y se verifica escuchando, no calculando. */
+  severidad: 'ok' | 'warn';
+  codigo: CodigoNuloEscucha;
+}
+
+/** `escuchaYM` es la coordenada de profundidad (eje "largo") del punto de
+ * escucha calculado por sala.ts (`DisposicionSala.puntoDulce.y`) — depende
+ * de la disposición de parlantes, así que a diferencia de `evaluarModos()`
+ * (que sólo mira dimensiones) esto hay que recalcularlo cada vez que la
+ * disposición cambia (arrastre + Recalcular). */
+export function evaluarNuloEscucha(sala: Sala, escuchaYM: number): ResultadoNuloEscucha {
+  const frecuenciaHz = frecuenciaModoAxialHz(sala.largoM, 1);
+  const puntoMedioM = sala.largoM / 2;
+  const distanciaAlMedioM = Math.abs(escuchaYM - puntoMedioM);
+  const ventanaM = sala.largoM * VENTANA_NULO_MODAL;
+  const dentro = distanciaAlMedioM <= ventanaM;
+  return {
+    frecuenciaHz,
+    puntoMedioM,
+    distanciaAlMedioM,
+    ventanaM,
+    severidad: dentro ? 'warn' : 'ok',
+    codigo: dentro ? 'nulo-cerca' : 'nulo-lejos',
+  };
+}

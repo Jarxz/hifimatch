@@ -1,6 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluarModos, paresMasImportantes, TECHO_MODOS_HZ, TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, TOP_N_AGRUPADOS } from './modos.ts';
+import {
+  evaluarModos,
+  evaluarNuloEscucha,
+  paresMasImportantes,
+  TECHO_MODOS_HZ,
+  TECHO_AGRUPAMIENTO_HZ,
+  UMBRAL_AGRUPAMIENTO,
+  TOP_N_AGRUPADOS,
+  VENTANA_NULO_MODAL,
+} from './modos.ts';
+import { calcularDisposicion } from './sala.ts';
 
 test('lista de modos: cada modo tiene frecuencia ≤ TECHO_MODOS_HZ, ordenados ascendente', () => {
   const r = evaluarModos({ anchoM: 3.6, largoM: 5.0, altoM: 2.4 });
@@ -115,4 +125,57 @@ test('paresMasImportantes con menos agrupamientos que TOP_N_AGRUPADOS devuelve t
 
 test('paresMasImportantes con lista vacía devuelve lista vacía', () => {
   assert.deepEqual(paresMasImportantes([]), []);
+});
+
+// ---- evaluarNuloEscucha: cruce geometría↔modo (punto de escucha vs. nulo del modo axial de largo) ----
+
+test('sala por defecto: la disposición de referencia (y≈3,126 m) NO cae en la ventana del nulo (centro=2,5 m, ventana=±0,5 m) → "ok"', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const disp = calcularDisposicion(sala);
+  // filaEscuchaM = clamp(offsetFrente+1.0=1.75, offsetFrente+separacion*1.2=0.75+1.98*1.2=3.126, L-0.6=4.4) = 3.126
+  assert.ok(Math.abs(disp.puntoDulce.y - 3.126) < 0.001, `y=${disp.puntoDulce.y}`);
+  const r = evaluarNuloEscucha(sala, disp.puntoDulce.y);
+  assert.ok(Math.abs(r.puntoMedioM - 2.5) < 1e-9);
+  assert.ok(Math.abs(r.ventanaM - 0.5) < 1e-9); // 10% de 5,0 m
+  assert.ok(Math.abs(r.distanciaAlMedioM - 0.626) < 0.001);
+  assert.equal(r.severidad, 'ok');
+  assert.equal(r.codigo, 'nulo-lejos');
+  // f1 = 343/(2·5,0) = 34,3 Hz
+  assert.ok(Math.abs(r.frecuenciaHz - 34.3) < 1e-9);
+});
+
+test('escucha exactamente en el centro (y=L/2) → nulo exacto, "warn"', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarNuloEscucha(sala, 2.5);
+  assert.equal(r.distanciaAlMedioM, 0);
+  assert.equal(r.severidad, 'warn');
+  assert.equal(r.codigo, 'nulo-cerca');
+});
+
+test('borde de la ventana (±10% de L, cerrado): justo dentro → "warn", justo fuera → "ok"', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // L=5,0 → ventana=0,5 m, centro=2,5 m
+  const justoDentro = evaluarNuloEscucha(sala, 2.5 + 0.5); // exactamente en el borde: <=, cuenta como dentro
+  assert.equal(justoDentro.severidad, 'warn');
+  assert.equal(justoDentro.codigo, 'nulo-cerca');
+
+  const justoFuera = evaluarNuloEscucha(sala, 2.5 + 0.501);
+  assert.equal(justoFuera.severidad, 'ok');
+  assert.equal(justoFuera.codigo, 'nulo-lejos');
+});
+
+test('VENTANA_NULO_MODAL es 10% (criterio del sitio, declarado explícitamente para esta regla)', () => {
+  assert.equal(VENTANA_NULO_MODAL, 0.1);
+});
+
+test('severidad nunca es "alert"/"error" — mismo techo de severidad de sala que el resto del motor (CLAUDE.md)', () => {
+  const casos: Array<[{ anchoM: number; largoM: number; altoM: number }, number]> = [
+    [{ anchoM: 3.6, largoM: 5.0, altoM: 2.4 }, 2.5], // exactamente en el nulo — el caso más "grave" posible
+    [{ anchoM: 3.6, largoM: 5.0, altoM: 2.4 }, 0.1],
+    [{ anchoM: 7, largoM: 9, altoM: 3.5 }, 4.5],
+  ];
+  for (const [sala, y] of casos) {
+    const r = evaluarNuloEscucha(sala, y);
+    assert.notEqual(r.severidad as string, 'alert');
+    assert.notEqual(r.severidad as string, 'error');
+  }
 });

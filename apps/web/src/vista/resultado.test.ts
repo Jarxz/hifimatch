@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
-import { evaluarModos } from '../../../../packages/engine/src/modos.ts';
+import { evaluarModos, evaluarNuloEscucha } from '../../../../packages/engine/src/modos.ts';
 import { calcularDisposicion, calcularDisposicionManual } from '../../../../packages/engine/src/sala.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import { evaluarReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
@@ -258,9 +258,13 @@ test('modeloRecorrido: "sin-datos" es clase "dim"; "warn" cuando el margen super
 
 // ---- modos de sala ----
 
+const SALA_MODOS = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+const NULO_LEJOS = evaluarNuloEscucha(SALA_MODOS, 0.1); // y muy cerca del muro frontal, lejos del centro (2,5 m)
+const NULO_CERCA = evaluarNuloEscucha(SALA_MODOS, 2.5); // exactamente en el centro → nulo
+
 test('modeloModos: sala 3,6×5,0×2,4 (razón 3:2 ancho/alto) → "warn", con el par de agrupamiento en el aviso', () => {
-  const r = evaluarModos({ anchoM: 3.6, largoM: 5.0, altoM: 2.4 });
-  const m = modeloModos(r, 'es');
+  const r = evaluarModos(SALA_MODOS);
+  const m = modeloModos(r, NULO_LEJOS, 'es');
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Modos agrupados');
   assert.ok(m.avisoHtml !== null);
@@ -272,13 +276,38 @@ test('modeloModos: sala 3,6×5,0×2,4 (razón 3:2 ancho/alto) → "warn", con el
   assert.notEqual(m.sugerenciaHtml, m.avisoHtml); // consejo accionable, no la lista de pares
 });
 
-test('modeloModos: sala 2,5×3,0×2,2 sin agrupamiento → "ok", sin aviso ni sugerencia', () => {
-  const r = evaluarModos({ anchoM: 2.5, largoM: 3.0, altoM: 2.2 });
-  const m = modeloModos(r, 'es');
+test('modeloModos: sala 2,5×3,0×2,2 sin agrupamiento y escucha lejos del centro → "ok", sin aviso ni sugerencia', () => {
+  const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
+  const r = evaluarModos(sala);
+  const m = modeloModos(r, evaluarNuloEscucha(sala, 0.1), 'es');
   assert.equal(m.verdictoClase, 'ok');
   assert.equal(m.verdictoTexto, 'Bien distribuidos');
   assert.equal(m.avisoHtml, null);
   assert.equal(m.sugerenciaHtml, null);
+});
+
+test('modeloModos: escucha en el nulo (sin agrupamiento) → "warn", verdicto y textos propios del nulo, no los de agrupamiento', () => {
+  const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 }; // sin agrupamiento (ver test de arriba)
+  const r = evaluarModos(sala);
+  const m = modeloModos(r, evaluarNuloEscucha(sala, sala.largoM / 2), 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Nulo en el punto de escucha');
+  assert.match(m.simpleHtml, /hueco de graves/);
+  assert.ok(m.avisoHtml !== null);
+  assert.match(m.avisoHtml!, /nulo modal/);
+  assert.ok(m.sugerenciaHtml !== null);
+  assert.match(m.sugerenciaHtml!, /mover el punto de escucha/);
+});
+
+test('modeloModos: agrupamiento Y nulo a la vez → "warn", verdicto combinado, aviso con las dos partes', () => {
+  const r = evaluarModos(SALA_MODOS);
+  const m = modeloModos(r, NULO_CERCA, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Modos agrupados y nulo en la escucha');
+  assert.match(m.avisoHtml!, /ancho/); // sigue trayendo los pares agrupados
+  assert.match(m.avisoHtml!, /nulo modal/); // y la explicación del nulo
+  assert.match(m.sugerenciaHtml!, /reposicionar/);
+  assert.match(m.sugerenciaHtml!, /mover el punto de escucha/);
 });
 
 test('modeloModos nunca es "alert" ni "dim" — el techo de severidad de sala es "warn" (CLAUDE.md)', () => {
@@ -288,17 +317,28 @@ test('modeloModos nunca es "alert" ni "dim" — el techo de severidad de sala es
     { anchoM: 4, largoM: 4, altoM: 2.5 },
   ];
   for (const sala of salas) {
-    const clase = modeloModos(evaluarModos(sala), 'es').verdictoClase;
-    assert.ok(clase === 'ok' || clase === 'warn', `clase inesperada: ${clase}`);
+    for (const y of [0.1, sala.largoM / 2]) {
+      const clase = modeloModos(evaluarModos(sala), evaluarNuloEscucha(sala, y), 'es').verdictoClase;
+      assert.ok(clase === 'ok' || clase === 'warn', `clase inesperada: ${clase}`);
+    }
   }
 });
 
 test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas', () => {
-  const r = evaluarModos({ anchoM: 3.6, largoM: 5.0, altoM: 2.4 });
-  const m = modeloModos(r, 'en');
+  const r = evaluarModos(SALA_MODOS);
+  const m = modeloModos(r, NULO_LEJOS, 'en');
   assert.equal(m.verdictoTexto, 'Clustered modes');
   assert.match(m.textoHtml, /mode pair/);
   assert.doesNotMatch(m.textoHtml, /par\(es\)/);
+});
+
+test('modeloModos en inglés: nulo de escucha usa los textos propios, sin mezclar idiomas', () => {
+  const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
+  const r = evaluarModos(sala);
+  const m = modeloModos(r, evaluarNuloEscucha(sala, sala.largoM / 2), 'en');
+  assert.equal(m.verdictoTexto, 'Null at the listening spot');
+  assert.match(m.avisoHtml!, /modal null/);
+  assert.doesNotMatch(m.avisoHtml!, /nulo modal/);
 });
 
 // ---- reverberación (RT60, materiales por superficie) ----
@@ -321,12 +361,12 @@ const MATERIALES_MUY_TRATADOS: Materiales = {
   techo: 'panelAcustico',
 };
 const MATERIALES_INTERMEDIOS: Materiales = {
-  muroFrontal: 'madera',
+  muroFrontal: 'panelAcustico',
   muroPosterior: 'madera',
   muroIzquierdo: 'madera',
   muroDerecho: 'madera',
   piso: 'alfombra',
-  techo: 'panelAcustico',
+  techo: 'yesoCarton',
 };
 
 test('modeloReverberacion: muros/techo yeso cartón + piso madera laminado → "warn" ("Muy viva"), calc muestra el desglose por superficie', () => {
@@ -687,7 +727,8 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
   const dc = fuenteModelos(dac);
 
   const resModos = evaluarModos(sala);
-  const mModos = modeloModos(resModos, idioma);
+  const resNuloEscucha = evaluarNuloEscucha(sala, disposicion.puntoDulce.y);
+  const mModos = modeloModos(resModos, resNuloEscucha, idioma);
   const mReverb = modeloReverberacion(evaluarReverberacion(sala, MATERIALES_TIPICOS), MATERIALES_TIPICOS, idioma);
 
   const puntaje = { valor: 8.7, clase: 'ok' as const };

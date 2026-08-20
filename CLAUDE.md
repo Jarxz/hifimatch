@@ -1856,6 +1856,102 @@ nuevos de `modeloVeredicto`/`modeloRecomendacionesTop` en
 `resultado.test.ts`, más el crecimiento de catálogo de rondas
 anteriores que ya estaba contado aparte).
 
+**Reverberación multibanda (Sabine/Eyring por tercio de octava) y cruce
+geometría↔modo (nulo de escucha) — pedido con una especificación externa
+muy detallada, con un punto que chocaba de frente con doctrina ya
+declarada.** La especificación pedía, entre otras cosas, que el cruce
+geometría↔modo pudiera marcar severidad `'CRÍTICO'` (alert) — eso viola
+directamente "ninguna regla de sala emite severidad `error`" (sección
+"Severidad y bloque de sala" de este documento, reforzada un rato antes
+en la misma sesión al escribir `veredicto.ts`, cuyo tipo `sala: 'ok' |
+'warn'` ni siquiera tiene un tercer valor). Se avisó explícitamente antes
+de tocar código y se implementó el resto tal cual, con esa severidad
+recortada a `warn` — la física del nulo es real y se calcula igual, sólo
+cambia el techo de alarma, igual que ya regía para modos/reverberación.
+
+`packages/engine/src/reverberacion.ts` se reescribió por completo: los
+coeficientes de absorción pasan de un solo valor por material a un
+triple `[125 Hz, 500 Hz, 2000 Hz]` (`ABSORCION_MURO_BANDAS`/
+`ABSORCION_PISO_BANDAS`/`ABSORCION_TECHO_BANDAS` — los de piso
+`maderaLaminado`/`porcelanato` y los 4 de techo, que la especificación no
+traía, se completaron con el mismo criterio de "literatura típica" que
+ya regía la tabla original, documentado inline; techo reusa exactamente
+los 4 triples de muro, porque en el modelo de Sabine la orientación de
+una superficie no cambia su coeficiente). Cada banda calcula su propia
+ᾱ (absorción promedio) y elige fórmula: Sabine (RT60=0,161·V/A) si
+ᾱ≤0,20, Eyring (RT60=0,161·V/(−S·ln(1−ᾱ))) si ᾱ>0,20 — 0,20 es el
+umbral que recomienda la literatura de acústica arquitectónica para
+cuándo Sabine empieza a sobreestimar el RT60 en salas muy absorbentes
+(no un criterio inventado por el sitio, a diferencia del 5%/150 Hz de
+`modos.ts`, que si lo es y sigue declarado como tal). El RT60 final que
+se muestra es el promedio de las bandas 500 Hz y 2000 Hz — simplificación
+de este sitio, no el "T_mid" de 500+1000 Hz de ISO 3382 (exigiría una
+cuarta banda que este modelo no tiene). Encima, la frecuencia de
+Schroeder (fs=2000·√(RT60/V)) se agrega al resultado y a la tarjeta, con
+la nota de que por debajo de fs el comportamiento lo dominan resonancias
+individuales (remite a "Modos de sala"), no reverberación difusa. La
+tarjeta de detalle técnico ahora muestra el desglose superficie por
+superficie a 500 Hz (banda de referencia, igual que antes) seguido del
+panorama de las 3 bandas con su método (Sabine/Eyring) cada una, el RT60
+final y fs. `evaluarReverberacion()` sigue devolviendo severidad
+`'ok'|'warn'` sobre el mismo rango 0,3–0,6 s de siempre — sólo cambió
+cómo se llega al número, no el umbral. 8 tests de `reverberacion.test.ts`
+recalculados con vectores exactos (computados con Node, no a mano —
+Eyring involucra logaritmos, y a mano es demasiado fácil de errar) más 2
+tests nuevos de propiedad (Eyring da un RT60 menor que el Sabine ingenuo
+para la misma ᾱ; ninguna banda da un RT60 no-finito o negativo). Un test
+preexistente de `resultado.test.ts` (`MATERIALES_INTERMEDIOS`, un mix
+"tratado a medias" que antes daba "ok") tuvo que cambiar de materiales:
+bajo el modelo de 3 bandas, panel acústico en el techo entero (18 m²)
+resultó demasiado absorbente en agudos para seguir cayendo en rango —
+se movió ese panel a un solo muro, mismo espíritu del test, dentro del
+rango de nuevo.
+
+`packages/engine/src/modos.ts` gana `evaluarNuloEscucha(sala, escuchaYM)`
+— el cruce geometría↔modo. Físicamente sólido: el modo axial n=1 de un
+eje tiene forma de onda estacionaria cos(π·y/L), con antinodos (presión
+máxima) en los dos muros y un único nodo (nulo de presión) exactamente
+en el centro, y=L/2 — ahí ese modo en particular se cancela casi por
+completo, sea cual sea su amplitud real (que este modelo no mide). Es
+geometría de sala rígida, la misma salvedad que sala.ts/modos.ts.
+`VENTANA_NULO_MODAL=0,10` (±10% de L alrededor del centro) es criterio
+de este sitio, dado explícitamente para esta regla — declarado como tal,
+no vestido de convención publicada. A diferencia de `evaluarModos()`
+(que sólo mira dimensiones y se calcula una vez por "Analizar"), esto
+depende de `disposicion.puntoDulce.y` — cambia con cada arrastre +
+Recalcular, así que se recalcula por snapshot. 6 tests nuevos en
+`modos.test.ts`, incluido uno que confirma que la disposición de
+referencia de la sala por defecto (y≈3,126 m, centro=2,5 m,
+ventana=±0,5 m) NO cae en el nulo — el feature no dispara falsos
+positivos en el estado de fábrica del sitio.
+
+Cablear el nulo de escucha en la tarjeta "Modos de sala" existente (en
+vez de crear una tarjeta nueva) obligó a mover cuándo se calcula esa
+tarjeta: `mModos` salió de `UltimoAnalisis` (calculado una sola vez por
+"Analizar", como venía) y pasó a `SnapshotAnalisis` (recalculado en
+`construirSnapshot`/pintado en `pintarSnapshot`, junto a potencia) —
+`resModos` (agrupamiento, sólo dimensiones) se sigue calculando una sola
+vez. `modeloModos(r, resNulo, idioma)` ahora combina las dos señales:
+severidad = peor de las dos (agrupamiento `warn` y/o nulo `warn`
+alcanzan igual), con 4 combinaciones de verdicto/texto/simpleHtml
+("Bien distribuidos" / "Modos agrupados" / "Nulo en el punto de
+escucha" / "Modos agrupados y nulo en la escucha") y el aviso + la
+sugerencia acumulan las partes que aplican en vez de pisarse. La misma
+severidad combinada alimenta tanto el puntaje 1-10 (componente "modos")
+como el bucket "Sala" del veredicto — una sola fuente de verdad, no dos
+cálculos por separado. `resultado.test.ts` suma 4 tests nuevos (nulo
+solo, agrupamiento+nulo a la vez, e inglés) sobre los ya existentes.
+
+Verificado extremo a extremo con Chrome headless (CDP crudo): forzando
+Largo=5,5 m (con la sala por defecto, la disposición de referencia sin
+arrastrar cae dentro de la ventana del nulo con esa profundidad) más
+KEF LS50 Meta + Rega Brio, la tarjeta "Modos de sala" muestra el
+verdicto combinado "Modos agrupados y nulo en la escucha" con las dos
+explicaciones concatenadas, y "Tiempo de reverberación" muestra el
+desglose de 3 bandas (125 Hz Eyring, 500/2000 Hz Sabine en ese vector),
+el RT60 final y fs≈358 Hz — sin errores ni excepciones de consola.
+**278 tests totales** entre los 4 workspaces (antes 266).
+
 Falta:
 - **Fricción antes del primer resultado** (colapsar "Materiales de la
   sala" + dimensiones detrás de un `<details>` "Personalizar sala

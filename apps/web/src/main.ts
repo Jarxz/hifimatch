@@ -6,7 +6,7 @@ import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/
 import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
-import { evaluarModos } from '../../../packages/engine/src/modos.ts';
+import { evaluarModos, evaluarNuloEscucha } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
@@ -92,7 +92,6 @@ interface UltimoAnalisis {
   resRecorridoDac: ResultadoRecorridoVolumen | null;
   mRecorridoDac: ReturnType<typeof modeloRecorrido> | null;
   resModos: ReturnType<typeof evaluarModos>;
-  mModos: ReturnType<typeof modeloModos>;
   resReverb: ReturnType<typeof evaluarReverberacion>;
   mReverb: ReturnType<typeof modeloReverberacion>;
   avisoReverb: string | null;
@@ -107,6 +106,10 @@ interface SnapshotAnalisis {
   disposicion: DisposicionSala;
   resPot: ReturnType<typeof evaluarPotencia>;
   mPot: ReturnType<typeof modeloPotencia>;
+  /** Depende de `disposicion.puntoDulce.y` (cruce geometría↔modo, ver
+   * modos.ts) — a diferencia de `resModos`, que sólo mira dimensiones. */
+  resNuloEscucha: ReturnType<typeof evaluarNuloEscucha>;
+  mModos: ReturnType<typeof modeloModos>;
   puntaje: ReturnType<typeof calcularPuntaje>;
   mPuntaje: ReturnType<typeof modeloPuntaje>;
   componentesResumen: ComponenteResumen[];
@@ -300,10 +303,17 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
   const resPot = evaluarPotencia(a.parlanteM, a.ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl]);
   const mPot = modeloPotencia(a.spk, a.amp, resPot, disposicion.distanciaEscuchaM, a.nivelTexto, a.picoObjetivo, estado.genero, idiomaActual);
 
+  // Cruce geometría↔modo: depende de dónde cae el punto dulce en ESTA
+  // disposición, así que se recalcula por snapshot (como potencia), no una
+  // sola vez por "Analizar" como resModos (que sólo mira dimensiones).
+  const resNuloEscucha = evaluarNuloEscucha(a.sala, disposicion.puntoDulce.y);
+  const mModos = modeloModos(a.resModos, resNuloEscucha, idiomaActual);
+  const severidadModosCombinada: 'ok' | 'warn' = a.resModos.severidad === 'warn' || resNuloEscucha.severidad === 'warn' ? 'warn' : 'ok';
+
   const componentesPuntaje: ComponentePuntaje[] = [
     { nombre: 'potencia', peso: PESOS_DECLARADOS.potencia, severidad: resPot.severidad },
     { nombre: 'carga', peso: PESOS_DECLARADOS.carga, severidad: a.resCarga.severidad },
-    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: a.resModos.severidad },
+    { nombre: 'modos', peso: PESOS_DECLARADOS.modos, severidad: severidadModosCombinada },
     { nombre: 'reverberacion', peso: PESOS_DECLARADOS.reverberacion, severidad: a.resReverb.severidad },
   ];
   if (a.streamer) {
@@ -332,7 +342,7 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
       avisoHtml: mPot.avisoHtml,
     },
     { nombre: nombreComponente.carga, verdictoClase: a.mCarga.verdictoClase, verdictoTexto: a.mCarga.verdictoTexto, avisoHtml: a.mCarga.avisoHtml },
-    { nombre: nombreComponente.modos, verdictoClase: a.mModos.verdictoClase, verdictoTexto: a.mModos.verdictoTexto, avisoHtml: a.mModos.sugerenciaHtml },
+    { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
     {
       nombre: t.motor.reverberacion.nombreCorto,
       verdictoClase: a.mReverb.verdictoClase,
@@ -377,7 +387,7 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
     });
   }
 
-  return { disposicion, resPot, mPot, puntaje, mPuntaje, componentesResumen };
+  return { disposicion, resPot, mPot, resNuloEscucha, mModos, puntaje, mPuntaje, componentesResumen };
 }
 
 /** Pinta un snapshot completo — potencia, "La cadena", "Sala", puntaje,
@@ -425,6 +435,10 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   // calculándose: modeloDocumento (informe) todavía lo consume.
   const resumenFinal = modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual);
 
+  // El cruce geometría↔modo (evaluarNuloEscucha) ya está combinado con
+  // resModos dentro de snap.mModos.verdictoClase — una sola severidad
+  // "modos" para el veredicto, no dos entradas separadas.
+  const severidadModos: 'ok' | 'warn' = snap.mModos.verdictoClase === 'warn' ? 'warn' : 'ok';
   const veredicto = calcularVeredicto({
     potencia: snap.resPot.severidad,
     carga: a.resCarga.severidad,
@@ -432,9 +446,10 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
     recorridoStreamer: a.resRecorridoStreamer ? a.resRecorridoStreamer.severidad : null,
     puenteDac: a.resPuenteDac ? a.resPuenteDac.severidad : null,
     recorridoDac: a.resRecorridoDac ? a.resRecorridoDac.severidad : null,
-    modos: a.resModos.severidad,
+    modos: severidadModos,
     reverberacion: a.resReverb.severidad,
   });
+  pintarModos(snap.mModos);
   pintarVeredicto(
     modeloVeredicto(
       veredicto,
@@ -445,7 +460,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
         mRecorridoStreamer: a.mRecorridoStreamer,
         mPuenteDac: a.mPuenteDac,
         mRecorridoDac: a.mRecorridoDac,
-        mModos: a.mModos,
+        mModos: snap.mModos,
         mReverb: a.mReverb,
       },
       idiomaActual
@@ -486,7 +501,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
         mRecorridoStreamer: a.mRecorridoStreamer,
         mPuenteDac: a.mPuenteDac,
         mRecorridoDac: a.mRecorridoDac,
-        mModos: a.mModos,
+        mModos: snap.mModos,
         agrupadosModos: a.resModos.agrupados,
         mReverb: a.mReverb,
         disposicion: snap.disposicion,
@@ -632,9 +647,12 @@ function renderizarResultado(): void {
     derecho: materiales.muroDerecho,
   };
 
+  // resModos sólo depende de las dimensiones — se calcula una vez acá,
+  // como el resto de ultimoAnalisis. El veredicto/pintado de la tarjeta
+  // "Modos de sala" se recalcula por snapshot (construirSnapshot/
+  // pintarSnapshot) porque ahora también depende de dónde cae el punto
+  // dulce (evaluarNuloEscucha) — ver SnapshotAnalisis.mModos.
   const resModos = evaluarModos(sala);
-  const mModos = modeloModos(resModos, idiomaActual);
-  pintarModos(mModos);
   pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
 
   const resReverb = evaluarReverberacion(sala, materiales);
@@ -665,7 +683,6 @@ function renderizarResultado(): void {
     resRecorridoDac,
     mRecorridoDac,
     resModos,
-    mModos,
     resReverb,
     mReverb,
     avisoReverb,

@@ -72,7 +72,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V8.08.26',
+    version: 'V9.08.26',
   },
 
   info: {
@@ -426,10 +426,14 @@ export const es = {
         'modos-distribuidos': 'Bien distribuidos',
         'modos-agrupados': 'Modos agrupados',
       } satisfies Record<CodigoModos, string>,
+      verdictoNulo: 'Nulo en el punto de escucha',
+      verdictoAmbos: 'Modos agrupados y nulo en la escucha',
       simple: {
         'modos-distribuidos': 'Los graves de la sala están razonablemente parejos.',
         'modos-agrupados': 'Hay frecuencias graves que probablemente sonarán reforzadas.',
       } satisfies Record<CodigoModos, string>,
+      simpleNulo: 'Tu posición de escucha cae en el hueco de graves de un modo en particular.',
+      simpleAmbos: 'Hay graves reforzados en una frecuencia y, además, un hueco en otra — conviene revisar la posición de escucha.',
       eje: { ancho: 'ancho', largo: 'largo', alto: 'alto' } satisfies Record<EjeSala, string>,
       textoOk: (p: { techo: string }): string =>
         `Las resonancias de graves de la sala están razonablemente distribuidas por debajo de ${p.techo} Hz — no se detectan coincidencias que refuercen una frecuencia en particular.`,
@@ -439,6 +443,12 @@ export const es = {
         `${p.a} (${p.frecuenciaA} Hz) y ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p: { techo: string; umbral: string }): string =>
         `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
+      fuenteNulo: (p: { ventana: string }): string =>
+        `El nulo de escucha compara el punto de escucha calculado contra el centro exacto de la sala en profundidad (L/2, el nodo de presión del modo axial de largo de orden 1), con una ventana de ±${p.ventana}% de L — criterio del sitio, no una convención publicada.`,
+      nuloEscucha: (p: { frecuencia: string }): string =>
+        `<b>Punto de escucha cerca del nulo modal:</b> el punto dulce cae cerca del centro exacto de la sala en profundidad — la zona donde el primer modo axial de largo (${p.frecuencia} Hz) tiene su nulo de presión. Ese modo en particular puede sonar muy débil justo ahí; se verifica escuchando, y suele bastar con mover el punto de escucha o los parlantes unos centímetros.`,
+      sugerenciaNulo:
+        'Conviene mover el punto de escucha (o los parlantes) unos centímetros hacia adelante o atrás para salir del nulo — se verifica escuchando, el hueco de graves de ese modo debería notarse mucho menos apenas unos centímetros afuera del centro exacto.',
       sugerencia:
         'Conviene reposicionar los parlantes o el punto de escucha, o tratar acústicamente esas frecuencias — se verifica escuchando y midiendo en el espacio real. Un filtro paramétrico (EQ activo) centrado cerca de esas frecuencias también puede atenuar el refuerzo, pero ajustarlo bien exige medir la sala real: este modelo no tiene la amplitud ni la fase medidas como para proponer un Q o una atenuación en dB.',
       curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
@@ -459,8 +469,8 @@ export const es = {
         'rt60-ok': 'El tiempo de reverberación está en un rango cómodo para escuchar.',
         'rt60-largo': 'La sala refleja mucho — puede sonar con eco o poco definida.',
       } satisfies Record<CodigoReverberacion, string>,
-      texto: (p: { rt60: string; min: string; max: string }): string =>
-        `RT60 estimado: <b>≈${p.rt60} s</b>. El rango cómodo declarado para escucha crítica en una sala doméstica es ${p.min}–${p.max} s (una sala de concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de espacio). La ecuación de Sabine (sin ajuste) pierde precisión justo en salas chicas con mucha absorción — conviene leerlo como orden de magnitud, no como una cifra exacta.`,
+      texto: (p: { rt60: string; min: string; max: string; fs: string }): string =>
+        `RT60 estimado: <b>≈${p.rt60} s</b> (promedio de las bandas 500 Hz y 2000 Hz). El rango cómodo declarado para escucha crítica en una sala doméstica es ${p.min}–${p.max} s (una sala de concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de espacio). Por encima de ≈${p.fs} Hz (la frecuencia de Schroeder de esta sala) el campo sonoro es lo bastante denso para que un tiempo de reverberación único tenga sentido; por debajo, el comportamiento está dominado por resonancias individuales — ver "Modos de sala" arriba, no por reverberación difusa. La ecuación (Sabine o Eyring según cuánto absorbe cada banda) pierde precisión igual en salas chicas — conviene leerlo como orden de magnitud, no como una cifra exacta.`,
       superficies: {
         frontal: 'Muro frontal',
         posterior: 'Muro posterior',
@@ -474,12 +484,17 @@ export const es = {
         absorcionTotal: string;
         volumen: string;
         rt60: string;
+        bandas: Array<{ hz: string; alphaBar: string; rt60: string; metodo: string }>;
+        schroeder: string;
       }): string =>
         p.filas.map((f) => `${f.nombre}: ${f.superficie} m² × ${f.alpha} = ${f.absorcion} sabines`).join('<br>') +
-        `<br>Absorción total: <b>${p.absorcionTotal} sabines</b><br>` +
-        `RT60 = 0,161 × ${p.volumen} / ${p.absorcionTotal} = <b>${p.rt60} s</b>`,
+        `<br>Absorción total (banda 500 Hz): <b>${p.absorcionTotal} sabines</b> — volumen: ${p.volumen} m³<br><br>` +
+        `<b>Las 3 bandas:</b><br>` +
+        p.bandas.map((b) => `${b.hz} Hz: ᾱ=${b.alphaBar} → RT60 = ${b.rt60} s (${b.metodo})`).join('<br>') +
+        `<br><br>RT60 final (promedio 500+2000 Hz): <b>${p.rt60} s</b>` +
+        `<br>Frecuencia de Schroeder: fs ≈ <b>${p.schroeder} Hz</b>`,
       fuente:
-        '<b>Fórmula:</b> ecuación de Sabine, RT60 = 0,161·V/A (V = volumen, A = absorción total en sabines), sumada superficie por superficie — no un coeficiente único para toda la sala, ni siquiera un único valor de "muro": cada muro se orienta y se declara aparte. Los coeficientes de absorción por material son criterio del sitio: valores típicos de literatura de acústica arquitectónica (banda media, ~500 Hz–1 kHz), no una medición de tu sala real. "Vacío" usa el coeficiente de referencia histórico de Sabine para una abertura (α=1,0: nada de lo que llega ahí vuelve a la sala). Se verifica midiendo con un decibelímetro o una app de RT60.',
+        '<b>Fórmula:</b> ecuación de Sabine (RT60 = 0,161·V/A) para bandas con absorción promedio ᾱ≤0,20; ecuación de Eyring (RT60 = 0,161·V/(−S·ln(1−ᾱ))) por encima de ese umbral, donde Sabine sobreestima el tiempo de reverberación — criterio de literatura de acústica arquitectónica, no inventado por el sitio. Se calcula por separado en 3 bandas (125/500/2000 Hz), sumando superficie por superficie en cada una — no un coeficiente único para toda la sala, ni siquiera un único valor de "muro": cada muro se orienta y se declara aparte. Los coeficientes de absorción por material y banda son criterio del sitio: valores típicos de literatura de acústica arquitectónica, no una medición de tu sala real. "Vacío" usa el coeficiente de referencia histórico de Sabine para una abertura (α=1,0 en las 3 bandas: nada de lo que llega ahí vuelve a la sala). Se verifica midiendo con un decibelímetro o una app de RT60.',
       avisoVacio: (p: { muros: string }): string =>
         `<b>Muro(s) declarado(s) abertura:</b> ${p.muros}. No reflejan sonido — por eso baja la reverberación calculada arriba, y el plano isométrico no dibuja la reflexión de ese muro. Los modos de sala (resonancias) de la tarjeta de arriba <b>no se ajustan</b> para una abertura: siguen asumiendo paredes rígidas en los dos extremos de cada eje, así que la resonancia calculada en el eje de ese muro es menos representativa que en una sala cerrada.`,
     },

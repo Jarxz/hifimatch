@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V8.08.26',
+    version: 'V9.08.26',
   },
 
   info: {
@@ -399,10 +399,14 @@ export const en: Textos = {
         'modos-distribuidos': 'Well distributed',
         'modos-agrupados': 'Clustered modes',
       },
+      verdictoNulo: 'Null at the listening spot',
+      verdictoAmbos: 'Clustered modes and a null at the listening spot',
       simple: {
         'modos-distribuidos': 'The room’s bass is reasonably even.',
         'modos-agrupados': 'Some bass frequencies will likely sound reinforced.',
       },
+      simpleNulo: 'Your listening position sits in the bass null of one particular mode.',
+      simpleAmbos: 'Bass is reinforced at one frequency and, on top of that, there’s a null at another — worth checking the listening position.',
       eje: { ancho: 'width', largo: 'length', alto: 'height' },
       textoOk: (p) =>
         `The room's bass resonances are reasonably distributed below ${p.techo} Hz — no coincidences reinforcing a particular frequency were found.`,
@@ -411,6 +415,12 @@ export const en: Textos = {
       parAgrupado: (p) => `${p.a} (${p.frecuenciaA} Hz) and ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p) =>
         `<b>Criterion:</b> rigid, rectangular room model, axial modes only. Clustering = two modes on different axes within ${p.umbral}% of each other, below ${p.techo} Hz — a site criterion, not a published convention; verified by measuring/listening.`,
+      fuenteNulo: (p) =>
+        `The listening null check compares the calculated listening spot against the room's exact depth-wise center (L/2, the pressure node of the first-order axial length mode), with a ±${p.ventana}% of L window — a site criterion, not a published convention.`,
+      nuloEscucha: (p) =>
+        `<b>Listening spot near a modal null:</b> the sweet spot sits close to the room's exact depth-wise center — the zone where the first axial length mode (${p.frecuencia} Hz) has its pressure null. That particular mode can sound very weak right there; verified by listening, and usually just moving the listening spot or the speakers a few centimeters is enough.`,
+      sugerenciaNulo:
+        'Try moving the listening spot (or the speakers) a few centimeters forward or back to get out of the null — verified by listening; that mode\'s bass dip should be much less noticeable just a few centimeters off the exact center.',
       sugerencia:
         'Try repositioning the speakers or the listening spot, or treat those frequencies acoustically — verified by listening and measuring in the real space. A parametric filter (active EQ) centered near those frequencies can also attenuate the buildup, but tuning it well requires measuring the real room: this model doesn’t have measured amplitude or phase to propose a specific Q or dB cut.',
       curvaOrden: (p) => `order ${p.orden} (${p.frecuencia} Hz)`,
@@ -432,7 +442,7 @@ export const en: Textos = {
         'rt60-largo': 'The room reflects a lot — it can sound echoey or smeared.',
       },
       texto: (p) =>
-        `Estimated RT60: <b>≈${p.rt60} s</b>. The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space). Sabine's equation (unadjusted) loses accuracy exactly in small rooms with a lot of absorption — read this as an order of magnitude, not an exact figure.`,
+        `Estimated RT60: <b>≈${p.rt60} s</b> (average of the 500 Hz and 2000 Hz bands). The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space). Above ≈${p.fs} Hz (this room's Schroeder frequency) the sound field is dense enough for a single reverberation time to make sense; below it, behavior is dominated by individual resonances — see "Room modes" above, not diffuse reverberation. The equation (Sabine or Eyring depending on how much each band absorbs) still loses accuracy in small rooms — read this as an order of magnitude, not an exact figure.`,
       superficies: {
         frontal: 'Front wall',
         posterior: 'Rear wall',
@@ -443,10 +453,13 @@ export const en: Textos = {
       },
       calc: (p) =>
         p.filas.map((f) => `${f.nombre}: ${f.superficie} m² × ${f.alpha} = ${f.absorcion} sabins`).join('<br>') +
-        `<br>Total absorption: <b>${p.absorcionTotal} sabins</b><br>` +
-        `RT60 = 0.161 × ${p.volumen} / ${p.absorcionTotal} = <b>${p.rt60} s</b>`,
+        `<br>Total absorption (500 Hz band): <b>${p.absorcionTotal} sabins</b> — volume: ${p.volumen} m³<br><br>` +
+        `<b>All 3 bands:</b><br>` +
+        p.bandas.map((b) => `${b.hz} Hz: ᾱ=${b.alphaBar} → RT60 = ${b.rt60} s (${b.metodo})`).join('<br>') +
+        `<br><br>Final RT60 (500+2000 Hz average): <b>${p.rt60} s</b>` +
+        `<br>Schroeder frequency: fs ≈ <b>${p.schroeder} Hz</b>`,
       fuente:
-        "<b>Formula:</b> Sabine's equation, RT60 = 0.161·V/A (V = volume, A = total absorption in sabins), summed surface by surface — not a single coefficient for the whole room, not even a single \"wall\" value: each wall is oriented and declared separately. Per-material absorption coefficients are a site criterion: typical values from architectural acoustics literature (mid-band, ~500 Hz–1 kHz), not a measurement of your real room. \"Open\" uses Sabine's historical reference coefficient for an opening (α=1.0: nothing that reaches it comes back into the room). Verified by measuring with an SPL meter or an RT60 app.",
+        "<b>Formula:</b> Sabine's equation (RT60 = 0.161·V/A) for bands with average absorption ᾱ≤0.20; Eyring's equation (RT60 = 0.161·V/(−S·ln(1−ᾱ))) above that threshold, where Sabine overestimates reverberation time — a criterion from architectural acoustics literature, not invented by the site. Computed separately in 3 bands (125/500/2000 Hz), summed surface by surface in each — not a single coefficient for the whole room, not even a single \"wall\" value: each wall is oriented and declared separately. Per-material, per-band absorption coefficients are a site criterion: typical values from architectural acoustics literature, not a measurement of your real room. \"Open\" uses Sabine's historical reference coefficient for an opening (α=1.0 in all 3 bands: nothing that reaches it comes back into the room). Verified by measuring with an SPL meter or an RT60 app.",
       avisoVacio: (p) =>
         `<b>Wall(s) declared open:</b> ${p.muros}. They don't reflect sound — that's why the reverberation calculated above drops, and the isometric view draws no reflection for that wall. The room modes (resonances) in the card above are <b>not adjusted</b> for an opening: they still assume rigid walls at both ends of each axis, so the resonance calculated on that wall's axis is less representative than in a closed room.`,
     },
