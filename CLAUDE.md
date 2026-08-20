@@ -2263,6 +2263,30 @@ en su posición real. Verificado con Chrome headless: la tarjeta abre en
 el lugar correcto, con su propio texto (no mezcla con las tarjetas
 vecinas), en los dos idiomas, sin tocar ninguna de las otras 11.
 
+**Bug de documentación real, encontrado por el usuario probando el
+sitio: la tarjeta "Puntaje del match (1-10)" de la Guía seguía
+describiéndolo como visible ("el número lleva color... para que se lea
+de un vistazo"), pero el rediseño del veredicto (ronda "Contexto no es
+resultado", más arriba en este documento) ya lo había sacado por
+completo de `#s-results` — `#pt-puntaje` y el resto de sus ids no
+existen más en `index.html`.** Confirmado con Chrome headless antes de
+tocar nada: `document.getElementById('pt-puntaje')` es `null` y ningún
+"X,X/10" aparece en el texto de la pantalla de resultado en vivo — el
+usuario tenía razón, no era una percepción. `info.puntaje.cuerpoHtml`
+(`es.ts`/`en.ts`) se reescribió para decir la verdad actual: ya no
+encabeza ni aparece en vivo (el veredicto lo reemplazó como resumen
+visible), el cálculo sigue existiendo en la capa criterio-editorial
+sin cambios (mismos pesos, mismo criterio de exclusión de componentes
+sin dato), y hoy vive en la pantalla "Informe (vista previa)"
+(`#s-documento`) — que, como ya declara la ronda del informe más
+arriba, tampoco tiene un botón que la abra todavía. Alcance
+deliberadamente acotado: sólo el texto de la guía, sin tocar
+`puntaje.ts`, `#s-documento` ni reintroducir el bloque en
+`#s-results` — el usuario eligió explícitamente "arreglar el texto de
+la guía" en vez de "traer el puntaje de vuelta a pantalla" cuando se
+le preguntó. Verificado con Chrome headless que el nuevo texto abre en
+el lugar correcto, en los dos idiomas.
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita

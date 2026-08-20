@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V15.08.26',
+    version: 'V16.08.26',
   },
 
   info: {
@@ -115,7 +115,7 @@ export const en: Textos = {
     puntaje: {
       titulo: 'Match score (1-10)',
       cuerpoHtml:
-        "It's the only piece of the site that lives in the <b>editorial-criterion</b> layer, not physics — a number with one decimal place combining the severities of power, load, room modes, reverberation, and impedance bridge + volume headroom (evaluated separately for streamer and DAC, when both are chosen), with weights this site declares (power 24% · load 20% · modes 10% · reverberation 10% · bridge 10% and headroom 8% per source). A component without enough data isn't included — it neither adds nor subtracts, and the site states how many of up to 8 possible components could actually be evaluated. The number is colored (green/orange/red) so it reads at a glance, but it's still a declared opinion about how to weigh the physical findings above, not a new measured fact.",
+        "It no longer headlines or appears on the live result screen — the verdict and its three states (see above) replaced it as the visible summary, because an editorial number opening a physical analysis read as more authoritative than this site wants it to look. The calculation still exists, in the <b>editorial-criterion</b> layer, not physics: a number with one decimal place combining the severities of power, load, room modes, reverberation, and impedance bridge + volume headroom (evaluated separately for streamer and DAC, when both are chosen), with weights this site declares (power 24% · load 20% · modes 10% · reverberation 10% · bridge 10% and headroom 8% per source). A component without enough data isn't included — it neither adds nor subtracts. Today it lives on the \"Report (preview)\" screen (meant for comparing two analyses against each other down the line), which doesn't have a button that opens it yet — it's still a declared opinion about how to weigh the physical findings above, not a new measured fact.",
     },
   },
 

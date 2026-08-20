@@ -73,7 +73,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V15.08.26',
+    version: 'V16.08.26',
   },
 
   info: {
@@ -141,7 +141,7 @@ export const es = {
     puntaje: {
       titulo: 'Puntaje del match (1-10)',
       cuerpoHtml:
-        'Es la única pieza del sitio que vive en la capa de <b>criterio editorial</b>, no física — un número con un decimal que combina las severidades de potencia, carga, modos de sala, reverberación, y puente de impedancias + recorrido de volumen (evaluados por separado para streamer y para DAC, cuando hay ambos elegidos), con pesos que este sitio declara (potencia 24% · carga 20% · modos 10% · reverberación 10% · puente 10% y recorrido 8% por cada fuente). Un componente sin dato suficiente no se incluye — ni suma ni resta, y el sitio declara cuántos de hasta 8 componentes posibles sí se pudieron evaluar. El número lleva color (verde/naranjo/rojo) para que se lea de un vistazo, pero sigue siendo una opinión declarada sobre cómo ponderar los hallazgos físicos de arriba, no un dato medido nuevo.',
+        'Ya no encabeza ni aparece en la pantalla de resultado en vivo — el veredicto y sus tres estados (ver arriba) lo reemplazaron como resumen visible, porque un número editorial abriendo un análisis físico se leía como más autoritativo de lo que este sitio quiere que parezca. El cálculo sigue existiendo, en la capa de <b>criterio editorial</b>, no física: un número con un decimal que combina las severidades de potencia, carga, modos de sala, reverberación, y puente de impedancias + recorrido de volumen (evaluados por separado para streamer y para DAC, cuando hay ambos elegidos), con pesos que este sitio declara (potencia 24% · carga 20% · modos 10% · reverberación 10% · puente 10% y recorrido 8% por cada fuente). Un componente sin dato suficiente no se incluye — ni suma ni resta. Hoy vive en la pantalla "Informe (vista previa)" (pensada para comparar dos análisis entre sí más adelante), que todavía no tiene un botón que la abra — sigue siendo una opinión declarada sobre cómo ponderar los hallazgos físicos de arriba, no un dato medido nuevo.',
     },
   },
 
