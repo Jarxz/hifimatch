@@ -15,6 +15,9 @@ import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packag
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from '../datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from '../datos/etiquetas.ts';
+import { calcularVeredicto } from '../../../../packages/engine/src/veredicto.ts';
+import type { EntradaVeredicto } from '../../../../packages/engine/src/veredicto.ts';
+import type { ClaseVerdicto } from './resultado.ts';
 import {
   modeloPotencia,
   modeloCarga,
@@ -26,9 +29,17 @@ import {
   modeloPuntaje,
   modeloResumenFinal,
   modeloDocumento,
+  modeloVeredicto,
+  modeloRecomendacionesTop,
 } from './resultado.ts';
 import type { ComponenteResumen } from './resultado.ts';
 import { num } from '../formato/numeros.ts';
+
+/** 'dim' (pantalla) y 'sin-datos' (motor) son el mismo concepto con otro
+ * nombre en cada capa — ver ClaseVerdicto en resultado.ts. */
+function claseASeveridad(c: ClaseVerdicto): 'ok' | 'warn' | 'alert' | 'sin-datos' {
+  return c === 'dim' ? 'sin-datos' : c;
+}
 
 function parlanteCat(id: string): ParlanteCat {
   const p = CATALOGO.parlantes.find((x) => x.id === id);
@@ -325,7 +336,7 @@ test('modeloReverberacion: muros/techo yeso cartón + piso madera laminado → "
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Muy viva');
   assert.match(m.simpleHtml, /refleja mucho/);
-  assert.match(m.textoHtml, new RegExp(num(r.rt60S, 2, 'es')));
+  assert.match(m.textoHtml, new RegExp('≈' + num(r.rt60S, 1, 'es')));
   assert.match(m.calcHtml, /Placa yeso cartón/);
   assert.match(m.calcHtml, /Madera laminado/);
   assert.match(m.calcHtml, new RegExp(num(r.absorcionTotalSabines, 2, 'es')));
@@ -745,12 +756,12 @@ test('modeloDocumento: seccionesHtml incluye potencia y carga siempre; puente/re
   const mSin = modeloDocumento(DOC_SPK, DOC_AMP, null, null, SALA_REVERB, 2.6, 'Alto', 100, fixSin.puntaje, fixSin.datos, 'x', 'es');
   assert.match(mSin.seccionesHtml, /Potencia frente a los picos de la sala/);
   assert.match(mSin.seccionesHtml, /La carga que ve el amplificador/);
-  assert.doesNotMatch(mSin.seccionesHtml, /streamer → amplificador/);
+  assert.doesNotMatch(mSin.seccionesHtml, /el streamer y el amplificador/);
 
   const fixCon = datosDocumentoFixture('es', DOC_STREAMER, DOC_DAC);
   const mCon = modeloDocumento(DOC_SPK, DOC_AMP, DOC_STREAMER, DOC_DAC, SALA_REVERB, 2.6, 'Alto', 100, fixCon.puntaje, fixCon.datos, 'x', 'es');
-  assert.match(mCon.seccionesHtml, /streamer → amplificador/);
-  assert.match(mCon.seccionesHtml, /DAC → amplificador/);
+  assert.match(mCon.seccionesHtml, /el streamer y el amplificador/);
+  assert.match(mCon.seccionesHtml, /el DAC y el amplificador/);
 });
 
 test('modeloDocumento: seccionesHtml siempre incluye modos y reverberación (nunca "sin-datos" en esas dos, ver CLAUDE.md)', () => {
@@ -790,4 +801,110 @@ test('modeloDocumento en inglés: specs y secciones en inglés, sin mezclar idio
   assert.doesNotMatch(m.equiposHtml, /Parlantes|Amplificador/);
   assert.match(m.seccionesHtml, /Power against the room.s peaks/);
   assert.doesNotMatch(m.seccionesHtml, /Potencia frente/);
+});
+
+// ---- modeloVeredicto / modeloRecomendacionesTop (veredicto + 3 estados, reemplaza al puntaje como encabezado) ----
+
+function veredictoDe(datos: ReturnType<typeof datosDocumentoFixture>['datos']) {
+  const entrada: EntradaVeredicto = {
+    potencia: claseASeveridad(datos.mPot.verdictoClase) as 'ok' | 'warn' | 'alert',
+    carga: claseASeveridad(datos.mCarga.verdictoClase),
+    puenteStreamer: datos.mPuenteStreamer ? claseASeveridad(datos.mPuenteStreamer.verdictoClase) : null,
+    recorridoStreamer: datos.mRecorridoStreamer ? claseASeveridad(datos.mRecorridoStreamer.verdictoClase) : null,
+    puenteDac: datos.mPuenteDac ? claseASeveridad(datos.mPuenteDac.verdictoClase) : null,
+    recorridoDac: datos.mRecorridoDac ? claseASeveridad(datos.mRecorridoDac.verdictoClase) : null,
+    modos: datos.mModos.verdictoClase as 'ok' | 'warn',
+    reverberacion: datos.mReverb.verdictoClase as 'ok' | 'warn',
+  };
+  return calcularVeredicto(entrada);
+}
+
+test('modeloVeredicto: todo "ok" → título "totalmente compatible", clase "ok"', () => {
+  const fix = datosDocumentoFixture('es');
+  // el fixture real (KEF LS50 Meta + Rega Brio, sala por defecto) ya trae
+  // carga/modos en "warn" — se fuerzan los 4 componentes base a "ok" a
+  // propósito para aislar el caso "todo bien", sin depender de que el
+  // vector de catálogo elegido para las pruebas dé esa combinación.
+  fix.datos.mPot = { ...fix.datos.mPot, verdictoClase: 'ok', verdictoTexto: 'Con margen' };
+  fix.datos.mCarga = { ...fix.datos.mCarga, verdictoClase: 'ok', verdictoTexto: 'Cubierto' };
+  fix.datos.mModos = { ...fix.datos.mModos, verdictoClase: 'ok', verdictoTexto: 'Sin agrupamiento' };
+  fix.datos.mReverb = { ...fix.datos.mReverb, verdictoClase: 'ok', verdictoTexto: 'En rango' };
+  const v = veredictoDe(fix.datos);
+  const m = modeloVeredicto(v, fix.datos, 'es');
+  assert.equal(m.clase, 'ok');
+  assert.equal(m.tituloHtml, 'Configuración totalmente compatible');
+  assert.equal(m.potencia.clase, 'ok');
+  assert.equal(m.sala.clase, 'ok');
+});
+
+test('modeloVeredicto: potencia "alert" → título "no recomendada", subtexto nombra "Potencia"', () => {
+  const fix = datosDocumentoFixture('es');
+  fix.datos.mPot = { ...fix.datos.mPot, verdictoClase: 'alert', verdictoTexto: 'Insuficiente' };
+  const v = veredictoDe(fix.datos);
+  const m = modeloVeredicto(v, fix.datos, 'es');
+  assert.equal(m.clase, 'alert');
+  assert.equal(m.tituloHtml, 'Configuración no recomendada');
+  assert.match(m.subtextoHtml, /Potencia/);
+  assert.equal(m.potencia.estadoTexto, 'Insuficiente'); // etiqueta genérica por clase (estadoPotencia.alert)
+  assert.equal(m.potencia.detalleTexto, 'Insuficiente'); // reusa el verdictoTexto real de mPot, no inventa uno
+});
+
+test('modeloVeredicto: acopleElectrico usa el peor de carga/puente/recorrido — el detalleTexto es el verdictoTexto de ESE componente, no uno inventado', () => {
+  const fix = datosDocumentoFixture('es', DOC_STREAMER, null);
+  // carga a "ok" explícito para que el único "warn" del grupo sea, sin
+  // ambigüedad, el puente del streamer — si no, ambos podrían empatar en
+  // severidad y el resultado dependería del orden interno, no de la regla.
+  fix.datos.mCarga = { ...fix.datos.mCarga, verdictoClase: 'ok', verdictoTexto: 'Cubierto' };
+  fix.datos.mPuenteStreamer = fix.datos.mPuenteStreamer && { ...fix.datos.mPuenteStreamer, verdictoClase: 'warn', verdictoTexto: 'Puente ajustado' };
+  const v = veredictoDe(fix.datos);
+  const m = modeloVeredicto(v, fix.datos, 'es');
+  assert.equal(m.acopleElectrico.clase, 'warn');
+  assert.equal(m.acopleElectrico.detalleTexto, 'Puente ajustado');
+});
+
+test('modeloVeredicto: acopleElectrico "sin-datos" (carga sin dato, sin streamer ni dac) → clase "dim", texto propio de sin-datos, y no cambia el veredicto general', () => {
+  const fixBase = datosDocumentoFixture('es');
+  const generalBase = veredictoDe(fixBase.datos).general;
+
+  const fixSinDatos = datosDocumentoFixture('es');
+  fixSinDatos.datos.mCarga = { ...fixSinDatos.datos.mCarga, sinDatos: true, verdictoClase: 'dim' };
+  const v = veredictoDe(fixSinDatos.datos);
+  const m = modeloVeredicto(v, fixSinDatos.datos, 'es');
+  assert.equal(m.acopleElectrico.clase, 'dim');
+  assert.equal(m.acopleElectrico.estadoTexto, 'Sin datos suficientes');
+  // el grupo sin dato se excluye del cálculo — el veredicto general queda
+  // igual que si carga nunca hubiera entrado en el promedio (no hay
+  // promedio: el general sigue siendo el peor de potencia/sala, sin que
+  // "sin-datos" en acople lo mueva a mejor ni a peor).
+  assert.equal(v.general, generalBase);
+});
+
+test('modeloVeredicto en inglés: título y estados en inglés, sin mezclar idiomas', () => {
+  const fix = datosDocumentoFixture('en');
+  const v = veredictoDe(fix.datos);
+  const m = modeloVeredicto(v, fix.datos, 'en');
+  assert.match(m.tituloHtml, /match/i);
+  assert.doesNotMatch(m.tituloHtml, /Configuración/);
+  assert.doesNotMatch(m.potencia.estadoTexto + m.acopleElectrico.estadoTexto + m.sala.estadoTexto, /Suficiente|Correcto|Ajustada|Insuficiente|Conflicto|reparos|rango/);
+});
+
+test('modeloRecomendacionesTop: máximo 3, "alert" antes que "warn"', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'A', verdictoClase: 'warn', verdictoTexto: 'x', avisoHtml: 'aviso A' },
+    { nombre: 'B', verdictoClase: 'alert', verdictoTexto: 'x', avisoHtml: 'aviso B' },
+    { nombre: 'C', verdictoClase: 'warn', verdictoTexto: 'x', avisoHtml: 'aviso C' },
+    { nombre: 'D', verdictoClase: 'alert', verdictoTexto: 'x', avisoHtml: 'aviso D' },
+  ];
+  const html = modeloRecomendacionesTop(componentes, 'es', 3);
+  assert.equal((html.match(/<li>/g) ?? []).length, 3);
+  // las dos "alert" (B, D) van antes que la primera "warn" que entra (A)
+  assert.ok(html.indexOf('aviso B') < html.indexOf('aviso A'));
+  assert.ok(html.indexOf('aviso D') < html.indexOf('aviso A'));
+  assert.doesNotMatch(html, /aviso C/); // cuarta en la cola, no entra en el top 3
+});
+
+test('modeloRecomendacionesTop: sin nada que recomendar → mensaje de "todo ok"', () => {
+  const componentes: ComponenteResumen[] = [{ nombre: 'A', verdictoClase: 'ok', verdictoTexto: 'x', avisoHtml: null }];
+  const html = modeloRecomendacionesTop(componentes, 'es');
+  assert.match(html, /No hay ningún punto pendiente/);
 });

@@ -72,7 +72,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V7.08.26',
+    version: 'V8.08.26',
   },
 
   info: {
@@ -121,6 +121,11 @@ export const es = {
       titulo: 'Vista isométrica y reflexiones tempranas',
       cuerpoHtml:
         'El diagrama dibuja la sala a escala, con la disposición de referencia de los parlantes (triángulo simétrico) y el <b>punto dulce</b> — el vértice de ese triángulo, la posición de escucha que ese cálculo asume. Cada punto marcado sobre una pared, el techo o el piso es una <b>primera reflexión</b>: el camino que recorre el sonido desde el parlante, rebotando en esa superficie, hasta llegar al punto dulce — calculado con el método de imagen especular (el mismo que usan los estudios de acústica para ubicar puntos de tratamiento). Cada reflexión muestra su distancia total en metros. Un muro declarado "vacío" no dibuja su reflexión, porque no hay pared de la que rebotar. El botón "Vista" cambia el ángulo de cámara (isométrica/frontal/lateral/superior) sin recalcular nada — es la misma geometría, mirada desde otro lado.',
+    },
+    veredicto: {
+      titulo: 'El veredicto y los tres estados',
+      cuerpoHtml:
+        'El titular del resultado (Potencia / Acople eléctrico / Sala) resume las tarjetas físicas de abajo sin promediarlas: cada uno de los tres estados toma la <b>peor</b> severidad entre los componentes que agrupa — Potencia es directa; Acople eléctrico es el peor entre carga, y puente de impedancias + recorrido de volumen de streamer y/o DAC; Sala es el peor entre modos y reverberación. Promediar disolvería un problema real entre varias cosas que están bien (un amplificador que se queda corto en los picos podría promediar "aceptable" junto a una carga fácil); el peor eslabón es más honesto. Un componente sin dato suficiente no cuenta como reparo — si un estado entero queda sin ningún componente evaluable, se declara "sin datos suficientes" en gris, nunca en amarillo o rojo. El titular general es el peor de los tres estados; sigue siendo <b>capa criterio-editorial</b> (cómo se agrupa y se prioriza es una decisión de este sitio), apoyada en severidades que sí son física.',
     },
     puntaje: {
       titulo: 'Puntaje del match (1-10)',
@@ -215,6 +220,10 @@ export const es = {
     geometria: 'Geometría',
     disposicionReferencia: 'Disposición de referencia',
     verDetalle: 'Ver detalle técnico',
+    recomendacionesTitulo: 'Qué conviene hacer',
+    evidenciaTitulo: 'Ver evidencia técnica completa',
+    fichaTitulo: 'La cadena y los datos de sala',
+    fichaSubtitulo: 'Supuestos, fuentes y nivel de confianza · guardar e informe',
     plano: {
       titulo: 'Vista isométrica, escucha y reflexiones',
       texto:
@@ -344,8 +353,9 @@ export const es = {
     },
 
     puente: {
-      tituloStreamer: 'Puente de impedancias: streamer → amplificador',
-      tituloDac: 'Puente de impedancias: DAC → amplificador',
+      tituloStreamer: '¿Conectan bien el streamer y el amplificador?',
+      tituloDac: '¿Conectan bien el DAC y el amplificador?',
+      subtitulo: 'Puente de impedancias',
       verdicto: {
         'sin-dato': 'Sin dato',
         'puente-correcto': 'Puente correcto',
@@ -378,8 +388,9 @@ export const es = {
     },
 
     recorrido: {
-      tituloStreamer: 'Recorrido del volumen: streamer',
-      tituloDac: 'Recorrido del volumen: DAC',
+      tituloStreamer: '¿Vas a usar bien el dial de volumen con el streamer?',
+      tituloDac: '¿Vas a usar bien el dial de volumen con el DAC?',
+      subtitulo: 'Recorrido del volumen',
       verdicto: {
         'sin-dato': 'Sin dato',
         insuficiente: 'Insuficiente',
@@ -449,7 +460,7 @@ export const es = {
         'rt60-largo': 'La sala refleja mucho — puede sonar con eco o poco definida.',
       } satisfies Record<CodigoReverberacion, string>,
       texto: (p: { rt60: string; min: string; max: string }): string =>
-        `RT60 estimado: <b>${p.rt60} s</b>. El rango cómodo declarado para escucha crítica en una sala doméstica es ${p.min}–${p.max} s (una sala de concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de espacio).`,
+        `RT60 estimado: <b>≈${p.rt60} s</b>. El rango cómodo declarado para escucha crítica en una sala doméstica es ${p.min}–${p.max} s (una sala de concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de espacio). La ecuación de Sabine (sin ajuste) pierde precisión justo en salas chicas con mucha absorción — conviene leerlo como orden de magnitud, no como una cifra exacta.`,
       superficies: {
         frontal: 'Muro frontal',
         posterior: 'Muro posterior',
@@ -494,6 +505,34 @@ export const es = {
         '<b>Criterio editorial, no un dato medido:</b> combina las severidades de arriba con pesos que este sitio declara — potencia 24 % · carga 20 % · modos de sala 10 % · reverberación 10 % · puente de impedancias 10 % y recorrido de volumen 8 % por cada fuente elegida (streamer y/o DAC, evaluados por separado). Otro criterio razonable pesaría distinto.',
       notaRecalculo:
         'Este puntaje ya recalculó la potencia con la nueva distancia de escucha. Los demás componentes (carga, modos, reverberación, puente/recorrido) no dependen de dónde están los parlantes, así que el número puede no cambiar si el margen de potencia se mantiene en la misma categoría.',
+    },
+
+    veredicto: {
+      nombrePotencia: 'Potencia',
+      nombreAcople: 'Acople eléctrico',
+      nombreSala: 'Sala',
+      tituloAlert: 'Configuración no recomendada',
+      tituloWarn: 'Configuración soportada, con límites',
+      tituloOk: 'Configuración totalmente compatible',
+      subtextoAlert: (p: { grupos: string }): string => `Se detectaron incompatibilidades críticas en ${p.grupos}.`,
+      subtextoWarn: (p: { grupos: string }): string => `El sistema funciona, pero conviene atender ${p.grupos}.`,
+      subtextoOk: 'Todos los componentes operan dentro de los márgenes esperados.',
+      estadoPotencia: {
+        ok: 'Suficiente',
+        warn: 'Ajustada',
+        alert: 'Insuficiente',
+      } satisfies Record<'ok' | 'warn' | 'alert', string>,
+      estadoAcople: {
+        ok: 'Correcto',
+        warn: 'Con reparos',
+        alert: 'Conflicto',
+      } satisfies Record<'ok' | 'warn' | 'alert', string>,
+      estadoAcopleSinDatos: 'Sin datos suficientes',
+      estadoSala: {
+        ok: 'En rango',
+        warn: 'Con reparos',
+      } satisfies Record<'ok' | 'warn', string>,
+      sinDatosDetalle: 'No hay dato suficiente para evaluar este grupo.',
     },
 
     resumen: {

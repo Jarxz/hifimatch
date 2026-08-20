@@ -9,9 +9,9 @@ import type {
   ModeloTarjetaRecorrido,
   ModeloTarjetaModos,
   ModeloTarjetaReverberacion,
-  ModeloPuntaje,
-  ModeloResumenFinal,
   ModeloDocumento,
+  ModeloVeredicto,
+  ModeloEstadoGrupo,
 } from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { actualizarMedidor, construirEscala } from './medidor.ts';
@@ -180,35 +180,36 @@ export function pintarCurvasModales(svg: string, caption: string): void {
   cont.innerHTML = svg + `<div class="src">${caption}</div>`;
 }
 
-/** Capa criterio-editorial (puntaje.ts) — nunca usa pintarVerdict (el pill
- * de veredicto de capa física); el número lleva color (clase puntaje-ok/
- * warn/alert) pero sigue siendo un <b> simple, no un pill, y sigue
- * rotulado "Criterio editorial, no física" en el marcado estático. */
-export function pintarPuntaje(m: ModeloPuntaje): void {
-  const puntajeEl = el('pt-puntaje');
-  puntajeEl.textContent = m.puntajeTexto;
-  puntajeEl.className = 'puntaje-' + m.clase;
-  el('pt-detalle').innerHTML = m.detalleHtml;
-  pintarFlag('pt-flag', m.avisoHtml, true);
-  el('pt-criterio').innerHTML = m.criterioHtml;
+/** Un grupo de "Tres estados" (Potencia / Acople eléctrico / Sala) —
+ * `prefijo` es 'potencia'|'acople'|'sala', matching los ids de
+ * index.html (`est-<prefijo>-nombre/estado/detalle`). */
+function pintarEstadoGrupo(prefijo: string, g: ModeloEstadoGrupo): void {
+  el(`est-${prefijo}`).className = 'estado-item est-' + g.clase;
+  el(`est-${prefijo}-nombre`).textContent = g.nombre;
+  const estadoEl = el(`est-${prefijo}-estado`);
+  estadoEl.textContent = g.estadoTexto;
+  estadoEl.className = 'est-estado est-' + g.clase;
+  el(`est-${prefijo}-detalle`).textContent = g.detalleTexto;
 }
 
-/** Recapitulación en lenguaje simple — no evalúa nada nuevo, reorganiza y
- * detalla lo que ya mostraron las tarjetas de arriba (ver
- * modeloResumenFinal). */
-export function pintarResumenFinal(m: ModeloResumenFinal): void {
-  el('rf-comportamiento').textContent = m.comportamientoHtml;
-  el('rf-resumen').textContent = m.resumenHtml;
-  el('rf-fortalezas').innerHTML = m.fortalezasHtml;
-  el('rf-debilidades').innerHTML = m.debilidadesHtml;
-  const sinDatosWrap = el('rf-sindatos-wrap');
-  if (m.sinDatosHtml) {
-    sinDatosWrap.classList.remove('hidden');
-    el('rf-sindatos').innerHTML = m.sinDatosHtml;
-  } else {
-    sinDatosWrap.classList.add('hidden');
-  }
-  el('rf-recomendaciones').innerHTML = m.recomendacionesHtml;
+/** "Veredicto" + "Tres estados" — reemplaza al puntaje 1-10 como
+ * encabezado del resultado (ver CLAUDE.md, "Veredicto y tres estados").
+ * `puntaje.ts` sigue calculándose (para el futuro comparador y para el
+ * informe/"Documento"), pero ya no se pinta acá. */
+export function pintarVeredicto(m: ModeloVeredicto): void {
+  const card = el('veredicto-card');
+  card.className = 'card veredicto-card veredicto-' + m.clase;
+  el('vd-titulo').textContent = m.tituloHtml;
+  el('vd-subtexto').textContent = m.subtextoHtml;
+  pintarEstadoGrupo('potencia', m.potencia);
+  pintarEstadoGrupo('acople', m.acopleElectrico);
+  pintarEstadoGrupo('sala', m.sala);
+}
+
+/** "Qué conviene hacer" — máximo 3 recomendaciones, las de mayor
+ * severidad primero (ver `modeloRecomendacionesTop`). */
+export function pintarRecomendacionesTop(html: string): void {
+  el('top-recomendaciones').innerHTML = html;
 }
 
 /** Pinta la vista previa interna "Documento" (#s-documento, sin botón

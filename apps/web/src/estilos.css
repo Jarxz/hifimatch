@@ -160,10 +160,6 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .miss{color:var(--warn); font-size:12.5px; margin-right:auto}
 
 /* RESULTS */
-.grid{display:grid; grid-template-columns:280px 1fr; gap:18px; margin-top:18px}
-@media (max-width:860px){ .grid{grid-template-columns:1fr} }
-.rail .blk{border:1px solid var(--line); border-radius:4px; padding:6px 16px; margin-bottom:12px}
-.rail h2, .main h2{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--dorado); font-weight:400; margin:0 0 10px}
 .chainitem{padding:11px 0; border-bottom:1px solid var(--line)}
 .chainitem:last-child{border-bottom:0}
 .chainitem .ci-cat{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
@@ -172,10 +168,56 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .chainitem .ci-comment{font-size:11.5px; color:var(--faint); margin-top:4px; font-style:italic}
 .rr{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--dim); padding:5px 0}
 .rr b{font-family:var(--mono); color:var(--text); font-weight:500}
-.rr b#pt-puntaje{font-size:26px; font-weight:600; letter-spacing:.01em}
-.rr b#pt-puntaje.puntaje-ok{color:var(--ok)}
-.rr b#pt-puntaje.puntaje-warn{color:var(--warn)}
-.rr b#pt-puntaje.puntaje-alert{color:var(--alert)}
+
+/* 01 Veredicto — único bloque que declara color por severidad en toda la
+   página (ver CLAUDE.md "Un solo color en toda la página"); el resto del
+   sitio sigue usando --dorado para títulos, así que este bloque se
+   distingue con su propio borde/fondo en vez de competir por el mismo
+   tono. Clase final la pone pintarVeredicto (pintar.ts): veredicto-ok|
+   warn|alert. */
+.veredicto-card{border-left:4px solid var(--line2); background:transparent; padding-top:14px; padding-bottom:16px; transition:border-color .2s, background-color .2s}
+.veredicto-card.veredicto-ok{border-left-color:var(--ok); background:rgba(150,182,162,.05)}
+.veredicto-card.veredicto-warn{border-left-color:var(--warn); background:rgba(199,173,124,.05)}
+.veredicto-card.veredicto-alert{border-left-color:var(--alert); background:rgba(197,132,116,.05)}
+.veredicto-card .ct{margin-bottom:10px}
+.veredicto-card .ct .infobtn{margin-left:auto}
+.vd-titulo{font-weight:500; font-size:24px; margin:4px 0 4px; letter-spacing:.005em; color:var(--text)}
+.veredicto-ok .vd-titulo{color:var(--ok)}
+.veredicto-warn .vd-titulo{color:var(--warn)}
+.veredicto-alert .vd-titulo{color:var(--alert)}
+.vd-subtexto{color:var(--dim); font-size:14px; margin:0 0 16px}
+.estados-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+@media (max-width:720px){ .estados-grid{grid-template-columns:1fr} }
+.estado-item{border-top:1px solid var(--line); padding-top:10px}
+.est-nombre{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
+.est-estado{font-size:14px; font-weight:600; margin-top:4px}
+.est-estado.est-ok{color:var(--ok)}
+.est-estado.est-warn{color:var(--warn)}
+.est-estado.est-alert{color:var(--alert)}
+.est-estado.est-dim{color:var(--dim); font-weight:500}
+.est-detalle{font-size:12.5px; color:var(--dim); margin-top:4px; line-height:1.5}
+
+/* 04 Evidencia — un solo <details> nativo envuelve las tarjetas técnicas
+   ya existentes (potencia/carga/puente×2/recorrido×2) sin tocarlas; el
+   veredicto de arriba ya cuenta la historia, esto es la letra chica. */
+.detalle-evidencia{margin-bottom:12px}
+.detalle-evidencia > summary{cursor:pointer; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); padding:10px 2px; list-style:none; display:flex; align-items:center; justify-content:space-between; user-select:none; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+.detalle-evidencia > summary:hover{color:var(--dim)}
+.detalle-evidencia > summary:focus-visible{outline:2px solid var(--line2); outline-offset:-2px}
+.detalle-evidencia > summary::after{content:''; flex:0 0 auto; width:8px; height:8px; border-right:1px solid var(--faint); border-bottom:1px solid var(--faint); transform:rotate(45deg); transition:transform .2s}
+.detalle-evidencia[open] > summary::after{transform:rotate(225deg)}
+.detalle-evidencia[open] > summary{border-bottom-color:transparent}
+.detalle-evidencia > .card:first-of-type{margin-top:12px}
+
+/* 06 Ficha al pie — La cadena + datos de sala, contexto ya ingresado por
+   el usuario, no resultado; vive después de la evidencia y la geometría. */
+.ficha-final{margin-top:8px; padding-top:14px; border-top:1px solid var(--line2)}
+.ficha-final h2{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--dorado); font-weight:400; margin:0 0 4px}
+.ficha-subtitulo{font-size:11.5px; color:var(--faint); margin:0 0 14px}
+.ficha-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+@media (max-width:640px){ .ficha-grid{grid-template-columns:1fr} }
+.blk{border:1px solid var(--line); border-radius:4px; padding:6px 16px; margin-bottom:12px}
+.blk h3{font-weight:400; font-size:14px; letter-spacing:.04em; text-transform:uppercase; color:var(--dorado); margin:8px 0 6px}
 
 .card{border:1px solid var(--line); border-radius:4px; padding:6px 20px; margin-bottom:12px}
 .card .ct{display:flex; align-items:center; gap:12px; margin-bottom:4px}
@@ -183,6 +225,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .verdict{margin-left:auto; font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:600}
 .verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.alert{color:var(--alert)}
 .card h3{font-weight:400; font-size:21px; margin:8px 0 4px; letter-spacing:.01em; color:var(--dorado)}
+.card p.subtitulo-tecnico{color:var(--faint); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin:0 0 6px}
 .card p{color:var(--dim); font-size:14px; margin:6px 0}
 .card p b{color:var(--text); font-weight:500}
 .card p.simple{color:var(--text); font-size:15px; font-style:italic; margin:4px 0 8px}

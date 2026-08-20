@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V7.08.26',
+    version: 'V8.08.26',
   },
 
   info: {
@@ -96,6 +96,11 @@ export const en: Textos = {
       titulo: 'Isometric view and early reflections',
       cuerpoHtml:
         "The diagram draws the room to scale, with the speakers' reference layout (a symmetric triangle) and the <b>sweet spot</b> — that triangle's apex, the listening position that calculation assumes. Every point marked on a wall, the ceiling, or the floor is a <b>first reflection</b>: the path sound travels from the speaker, bouncing off that surface, to the sweet spot — calculated with the mirror-image method (the same one acoustics studios use to place treatment). Each reflection shows its total distance in meters. A wall declared \"open\" draws no reflection there, because there's no wall to bounce off. The \"View\" button changes the camera angle (isometric/front/side/top) without recalculating anything — it's the same geometry, seen from another angle.",
+    },
+    veredicto: {
+      titulo: 'The verdict and the three states',
+      cuerpoHtml:
+        "The result's headline (Power / Electrical match / Room) summarizes the physical cards below without averaging them: each of the three states takes the <b>worst</b> severity among the components it groups — Power is direct; Electrical match is the worst of load, and impedance bridge + volume headroom for streamer and/or DAC; Room is the worst of modes and reverberation. Averaging would dissolve a real problem among several things that are fine (an amplifier falling short on peaks could still average out \"acceptable\" next to an easy load); the worst link is more honest. A component without enough data doesn't count as a caveat — if an entire state has no evaluable component, it's declared \"not enough data\" in gray, never amber or red. The overall headline is the worst of the three states; it's still <b>editorial-criterion layer</b> (how it's grouped and prioritized is this site's own decision), resting on severities that are physics.",
     },
     puntaje: {
       titulo: 'Match score (1-10)',
@@ -190,6 +195,10 @@ export const en: Textos = {
     geometria: 'Geometry',
     disposicionReferencia: 'Reference layout',
     verDetalle: 'View technical detail',
+    recomendacionesTitulo: 'What to do next',
+    evidenciaTitulo: 'See full technical evidence',
+    fichaTitulo: 'The chain and room data',
+    fichaSubtitulo: 'Assumptions, sources and confidence level · save & report',
     plano: {
       titulo: 'Isometric view, listening position and reflections',
       texto:
@@ -319,8 +328,9 @@ export const en: Textos = {
     },
 
     puente: {
-      tituloStreamer: 'Impedance bridge: streamer → amplifier',
-      tituloDac: 'Impedance bridge: DAC → amplifier',
+      tituloStreamer: 'Do the streamer and amplifier connect well?',
+      tituloDac: 'Do the DAC and amplifier connect well?',
+      subtitulo: 'Impedance bridge',
       verdicto: {
         'sin-dato': 'No data',
         'puente-correcto': 'Bridge correct',
@@ -352,8 +362,9 @@ export const en: Textos = {
     },
 
     recorrido: {
-      tituloStreamer: 'Volume headroom: streamer',
-      tituloDac: 'Volume headroom: DAC',
+      tituloStreamer: 'Will you get good use of the volume dial with the streamer?',
+      tituloDac: 'Will you get good use of the volume dial with the DAC?',
+      subtitulo: 'Volume headroom',
       verdicto: {
         'sin-dato': 'No data',
         insuficiente: 'Insufficient',
@@ -421,7 +432,7 @@ export const en: Textos = {
         'rt60-largo': 'The room reflects a lot — it can sound echoey or smeared.',
       },
       texto: (p) =>
-        `Estimated RT60: <b>${p.rt60} s</b>. The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space).`,
+        `Estimated RT60: <b>≈${p.rt60} s</b>. The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space). Sabine's equation (unadjusted) loses accuracy exactly in small rooms with a lot of absorption — read this as an order of magnitude, not an exact figure.`,
       superficies: {
         frontal: 'Front wall',
         posterior: 'Rear wall',
@@ -460,6 +471,34 @@ export const en: Textos = {
         '<b>Editorial criterion, not a measured figure:</b> combines the severities above with weights this site declares — power 24% · load 20% · room modes 10% · reverberation 10% · impedance bridge 10% and volume headroom 8% per source chosen (streamer and/or DAC, evaluated separately). Another reasonable criterion would weigh things differently.',
       notaRecalculo:
         'This score already recalculated power with the new listening distance. The other components (load, room modes, reverberation, bridge/headroom) do not depend on where the speakers are, so the number may stay the same if the power margin remains in the same category.',
+    },
+
+    veredicto: {
+      nombrePotencia: 'Power',
+      nombreAcople: 'Electrical match',
+      nombreSala: 'Room',
+      tituloAlert: 'Not a recommended match',
+      tituloWarn: 'Workable match, with limits',
+      tituloOk: 'Fully compatible match',
+      subtextoAlert: (p) => `Critical incompatibilities found in ${p.grupos}.`,
+      subtextoWarn: (p) => `The system works, but it's worth addressing ${p.grupos}.`,
+      subtextoOk: 'Every component operates within the expected margins.',
+      estadoPotencia: {
+        ok: 'Sufficient',
+        warn: 'Tight',
+        alert: 'Insufficient',
+      },
+      estadoAcople: {
+        ok: 'Correct',
+        warn: 'Has caveats',
+        alert: 'Conflict',
+      },
+      estadoAcopleSinDatos: 'Not enough data',
+      estadoSala: {
+        ok: 'In range',
+        warn: 'Has caveats',
+      },
+      sinDatosDetalle: 'Not enough data to evaluate this group.',
     },
 
     resumen: {

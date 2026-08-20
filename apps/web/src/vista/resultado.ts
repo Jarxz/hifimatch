@@ -21,10 +21,11 @@ import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO } from '../../../../packages
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
 import { ABSORCION_MURO, ABSORCION_PISO, ABSORCION_TECHO, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ResultadoPuntaje, ClasePuntaje } from '../../../../packages/engine/src/puntaje.ts';
+import type { ResultadoVeredicto } from '../../../../packages/engine/src/veredicto.ts';
 import type { DisposicionSala, Sala } from '../../../../packages/engine/src/sala.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
-import { num, numConSigno } from '../formato/numeros.ts';
+import { num, numConSigno, listaY } from '../formato/numeros.ts';
 import { textosDe } from '../idioma/idioma.ts';
 import { especParlante, especAmplificador, especFuente } from '../datos/etiquetas.ts';
 import type { MurosVista } from './plano.ts';
@@ -398,8 +399,11 @@ function materialLabel(material: MaterialCualquiera, t: ReturnType<typeof textos
 export function modeloReverberacion(r: ResultadoReverberacion, materiales: Materiales, idioma: Idioma): ModeloTarjetaReverberacion {
   const t = textosDe(idioma);
 
+  // 1 decimal, no 2: la ecuación de Sabine (sin ajuste) pierde precisión
+  // justo en salas domésticas chicas con mucha absorción — mostrar 2
+  // decimales es más precisión de la que el modelo puede sostener.
   const textoHtml = t.motor.reverberacion.texto({
-    rt60: num(r.rt60S, 2, idioma),
+    rt60: num(r.rt60S, 1, idioma),
     min: num(RT60_MIN_OK_S, 1, idioma),
     max: num(RT60_MAX_OK_S, 1, idioma),
   });
@@ -578,6 +582,120 @@ export function modeloResumenFinal(
       : `<li>${t.recomendacionTodoOk}</li>`;
 
   return { comportamientoHtml, resumenHtml, fortalezasHtml, debilidadesHtml, sinDatosHtml, recomendacionesHtml };
+}
+
+/** Máximo 3, las de mayor severidad primero — "qué conviene hacer" antes
+ * que nada más en la pantalla, no una lista larga. Mismas plantillas que
+ * ya usa `modeloResumenFinal` (`recomendacionConAviso`/`recomendacionTodoOk`)
+ * — no redacta de nuevo, sólo prioriza y recorta. */
+export function modeloRecomendacionesTop(componentes: ComponenteResumen[], idioma: Idioma, maximo = 3): string {
+  const t = textosDe(idioma).motor.resumen;
+  const orden: Record<ClaseVerdicto, number> = { alert: 0, warn: 1, ok: 2, dim: 3 };
+  const conAviso = componentes
+    .filter((c): c is ComponenteResumen & { avisoHtml: string } => c.avisoHtml !== null && (c.verdictoClase === 'warn' || c.verdictoClase === 'alert'))
+    .sort((a, b) => orden[a.verdictoClase] - orden[b.verdictoClase])
+    .slice(0, maximo);
+  return conAviso.length > 0
+    ? conAviso.map((c) => `<li>${t.recomendacionConAviso({ nombre: c.nombre, aviso: c.avisoHtml })}</li>`).join('')
+    : `<li>${t.recomendacionTodoOk}</li>`;
+}
+
+export interface ModeloEstadoGrupo {
+  nombre: string;
+  clase: ClaseVerdicto;
+  estadoTexto: string;
+  detalleTexto: string;
+}
+
+export interface ModeloVeredicto {
+  tituloHtml: string;
+  subtextoHtml: string;
+  clase: 'ok' | 'warn' | 'alert';
+  potencia: ModeloEstadoGrupo;
+  acopleElectrico: ModeloEstadoGrupo;
+  sala: ModeloEstadoGrupo;
+}
+
+interface EntradasEstadoGrupo {
+  mPot: ModeloTarjetaPotencia;
+  mCarga: ModeloTarjetaCarga;
+  mPuenteStreamer: ModeloTarjetaPuente | null;
+  mRecorridoStreamer: ModeloTarjetaRecorrido | null;
+  mPuenteDac: ModeloTarjetaPuente | null;
+  mRecorridoDac: ModeloTarjetaRecorrido | null;
+  mModos: ModeloTarjetaModos;
+  mReverb: ModeloTarjetaReverberacion;
+}
+
+/** El peor de los items dados, por clase de veredicto (dim < ok < warn <
+ * alert) — mismo orden que `peorSeveridad()` del motor, aplicado acá
+ * sobre los objetos de pantalla (que ya traen su propio texto) en vez de
+ * sobre el código crudo, para no tener que volver a cruzar contra el
+ * nombre localizado de cada componente. */
+function peorEntre<T extends { verdictoClase: ClaseVerdicto }>(items: Array<T | null>): T | null {
+  const orden: Record<ClaseVerdicto, number> = { dim: -1, ok: 0, warn: 1, alert: 2 };
+  const aplicables = items.filter((i): i is T => i !== null && i.verdictoClase !== 'dim');
+  if (aplicables.length === 0) return null;
+  return aplicables.reduce((peor, actual) => (orden[actual.verdictoClase] > orden[peor.verdictoClase] ? actual : peor));
+}
+
+/**
+ * "Veredicto" (frase única) + "Tres estados" (Potencia / Acople eléctrico
+ * / Sala) — CAPA CRITERIO-EDITORIAL, reemplaza al puntaje 1-10 como
+ * encabezado del resultado (`puntaje.ts` se queda intacto, sigue vivo
+ * para un futuro comparador entre análisis). `v` ya trae el código de
+ * cada grupo calculado por `calcularVeredicto()` (motor, peor-eslabón-
+ * gana, no promedio); acá sólo se redacta: el titular sale de una matriz
+ * fija (algún grupo "alert" → no recomendada; si no, algún "warn" →
+ * soportada con límites; si no, compatible), y el texto de cada estado
+ * reusa el `verdictoTexto` del componente más grave de ese grupo — nunca
+ * inventa una evaluación nueva.
+ */
+export function modeloVeredicto(v: ResultadoVeredicto, e: EntradasEstadoGrupo, idioma: Idioma): ModeloVeredicto {
+  const t = textosDe(idioma).motor.veredicto;
+
+  const nombreGrupo: Record<'potencia' | 'acopleElectrico' | 'sala', string> = {
+    potencia: t.nombrePotencia,
+    acopleElectrico: t.nombreAcople,
+    sala: t.nombreSala,
+  };
+
+  const enFalta = (['potencia', 'acopleElectrico', 'sala'] as const).filter((k) => v[k] === v.general).map((k) => nombreGrupo[k]);
+  const gruposTexto = listaY(enFalta, idioma);
+
+  const tituloHtml = v.general === 'alert' ? t.tituloAlert : v.general === 'warn' ? t.tituloWarn : t.tituloOk;
+  const subtextoHtml =
+    v.general === 'alert' ? t.subtextoAlert({ grupos: gruposTexto }) : v.general === 'warn' ? t.subtextoWarn({ grupos: gruposTexto }) : t.subtextoOk;
+
+  const peorPotencia = e.mPot; // potencia siempre tiene un único componente, es directo
+  const peorAcople = peorEntre([e.mCarga, e.mPuenteStreamer, e.mRecorridoStreamer, e.mPuenteDac, e.mRecorridoDac]);
+  const peorSala = peorEntre([e.mModos, e.mReverb]);
+
+  const estadoAcopleTexto = v.acopleElectrico === 'sin-datos' ? t.estadoAcopleSinDatos : t.estadoAcople[v.acopleElectrico];
+
+  return {
+    tituloHtml,
+    subtextoHtml,
+    clase: v.general,
+    potencia: {
+      nombre: t.nombrePotencia,
+      clase: v.potencia,
+      estadoTexto: t.estadoPotencia[v.potencia],
+      detalleTexto: peorPotencia.verdictoTexto,
+    },
+    acopleElectrico: {
+      nombre: t.nombreAcople,
+      clase: v.acopleElectrico === 'sin-datos' ? 'dim' : v.acopleElectrico,
+      estadoTexto: estadoAcopleTexto,
+      detalleTexto: peorAcople ? peorAcople.verdictoTexto : t.sinDatosDetalle,
+    },
+    sala: {
+      nombre: t.nombreSala,
+      clase: v.sala,
+      estadoTexto: t.estadoSala[v.sala],
+      detalleTexto: peorSala ? peorSala.verdictoTexto : t.sinDatosDetalle,
+    },
+  };
 }
 
 export interface ModeloDocumento {

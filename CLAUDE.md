@@ -1740,7 +1740,136 @@ mismo lado nunca comparten posición de texto. Test de regresión en
 en las 4 vistas, que ningún par de etiquetas del mismo lado repite
 exactamente `(x,y)`.
 
+**El veredicto y los tres estados reemplazan al puntaje 1-10 como
+encabezado del resultado — el mayor rediseño de la pantalla de resultado
+hasta ahora.** Disparado por una revisión externa de UX (6 puntos,
+priorizados por impacto): el puntaje encabezando el análisis era la
+contradicción más visible del sitio (un número editorial abriendo un
+análisis que se vende como físico), y el usuario, tras ver un primer
+plan de sólo reposicionarlo, lo llevó más lejos con un mockup propio y
+una matriz de decisión completa. **`puntaje.ts` no se tocó** — sigue
+1-10, con pesos declarados, calculándose igual que siempre; queda vivo
+para un futuro comparador entre análisis (A vs. B, donde un número
+relativo sí tiene función) y sigue alimentando el informe ("Documento").
+Lo que cambió es qué encabeza la pantalla de resultado en vivo.
+
+`packages/engine/src/veredicto.ts` (nuevo, 11 tests) agrupa las
+severidades ya calculadas por las reglas físicas en tres estados
+—**Potencia**, **Acople eléctrico** (carga + puente de impedancias +
+recorrido de volumen de streamer y/o DAC) y **Sala** (modos +
+reverberación)— tomando el **peor** componente de cada grupo, no un
+promedio: promediar disuelve un problema grave entre varias cosas que
+están bien (un amplificador que no alcanza en los picos podría
+promediar "aceptable" junto a una carga fácil). Reusa `peorSeveridad()`
+de `puntaje.ts`, que ya estaba exportada "por si sirve para otra
+combinación futura" — lo es. Mismo principio de siempre: un componente
+"sin-datos" no cuenta como reparo; si un grupo entero queda sin ningún
+componente con dato, el grupo es "sin-datos" (nunca un color), y el
+veredicto general —el peor de los tres grupos— nunca puede ser
+"sin-datos" porque potencia y sala siempre tienen valor. El veredicto
+general sigue siendo **capa criterio-editorial** (cómo se agrupa y qué
+gana es una decisión de este sitio), apoyado en severidades que sí son
+física — mismo principio dual que `puntaje.ts`, ahora con dos piezas en
+esa capa en vez de una.
+
+`modeloVeredicto` (`resultado.ts`) redacta el titular desde una matriz
+fija que dio el usuario: algún grupo "alert" → "Configuración no
+recomendada" (rojo); ninguno "alert" pero algún "warn" → "Configuración
+soportada, con límites" (dorado/ámbar); los tres "ok" → "Configuración
+totalmente compatible" (verde). El subtexto nombra qué grupo(s)
+motivaron el veredicto, unidos con `listaY()` (nuevo en
+`formato/numeros.ts`, `Intl.ListFormat` por locale — "Potencia, Acople
+eléctrico y Sala", no el `join(' y ')` a mano que se probó primero y
+daba "Potencia y Acople eléctrico y Sala", gramaticalmente mal con 3+
+items). El texto de cada estado (`detalleTexto`) reusa el
+`verdictoTexto` ya calculado del componente más grave de ese grupo
+(`peorEntre()`, ordena por `ClaseVerdicto` igual que `peorSeveridad()`
+del motor) — nunca inventa una evaluación nueva, mismo principio de
+"reusar, no redactar de nuevo" que ya regía en "En resumen".
+
+**Un solo color en toda la página, con un problema real: `--dorado`
+(títulos, en todas partes) y `--warn` (severidad) son tonos casi
+idénticos.** El usuario lo señaló explícitamente y pidió no resolverlo
+retitulando el sitio entero (fuera de alcance) — la tarjeta del
+veredicto se distingue con su propio tratamiento en vez de competir por
+el mismo tono: `border-left:4px solid` + fondo muy sutil, coloreados por
+clase (`veredicto-ok/warn/alert`, mapeados a los tokens `--ok`/`--warn`/
+`--alert` que ya existían — el usuario los llamó `--success`/`--warn`/
+`--danger` en su mensaje, pero ya había variables equivalentes, así que
+no se agregó un segundo set de nombres). El titular (`.vd-titulo`)
+también lleva ese color, satisfaciendo el pedido explícito de "tono
+visual" en la matriz. Los tres bloques de estado (`.estado-item`) llevan
+badges coloreados igual (`.est-ok/warn/alert`), con **`.est-dim` para
+"sin datos suficientes" en gris apagado, nunca ámbar** — pedido
+explícito del usuario ("son cosas opuestas y compiten por el mismo
+espacio visual").
+
+**Contexto no es resultado — La cadena y los datos de sala bajan al
+pie.** El sidebar de dos columnas (`.grid`/`.rail`/`.main`) desaparece
+por completo: la pantalla de resultado pasa a una sola columna
+apilada — veredicto, "Qué conviene hacer" (`modeloRecomendacionesTop`,
+nuevo en `resultado.ts`: hasta 3 recomendaciones con `avisoHtml`,
+"alert" antes que "warn", reusando los mismos textos que ya redactaba
+cada regla), la evidencia técnica completa (potencia/carga/puente×2/
+recorrido×2, sin tocar su contenido interno) detrás de un `<details>`
+colapsado por defecto (`Ver evidencia técnica completa`), la tarjeta de
+Geometría (plano+modos+reverberación, sin cambios), y al final
+`.ficha-final` — "La cadena y los datos de sala" con "La cadena" y
+"Sala" (mismos ids `#chain`/`#r-*` de siempre, sólo reubicados). La
+tarjeta "En resumen" se retira de la pantalla de resultado (superada
+por veredicto + recomendaciones) pero **`modeloResumenFinal` sigue
+calculándose** en `main.ts` porque `modeloDocumento` (el informe) sigue
+consumiéndola — sólo se dejó de pintar en `#s-results`
+(`pintarResumenFinal` se borró de `pintar.ts` por quedar sin uso; el
+informe arma su propio HTML de resumen, no pasa por esa función).
+
+**Nomenclatura llana y RT60 sin falsa precisión, integrados en la misma
+pasada** (dos puntos ya aprobados en la ronda de revisión externa, que
+el usuario pidió absorber acá en vez de posponerlos): los títulos de
+puente/recorrido pasan a preguntas en lenguaje simple ("¿Conectan bien
+el streamer y el amplificador?", "¿Vas a usar bien el dial de volumen
+con el streamer?"), con el término técnico ("Puente de impedancias",
+"Recorrido del volumen") como subtítulo chico debajo
+(`.subtitulo-tecnico`, nuevo). El RT60 baja de 2 a 1 decimal con
+prefijo "≈" y suma una frase declarando que Sabine pierde precisión en
+salas chicas con mucha absorción — mismo criterio de "declarar el
+límite del modelo" que ya regía el resto del motor.
+
+**Guía y botón "i" del veredicto.** Nueva entrada `info.veredicto` en
+"Guía del análisis" (entre `info.plano` e `info.puntaje` — explica el
+mecanismo de agrupar-por-peor antes de la explicación del 1-10 que
+sigue existiendo para el comparador) y su propio `.infobtn` en la
+tarjeta del veredicto, mismo patrón que las demás tarjetas.
+`idioma.test.ts` (`CLAVES_HTML`) suma `info.veredicto.cuerpoHtml` en su
+posición real. La tarjeta del veredicto lleva el mismo rótulo
+`motor.puntaje.rotulo` ("Criterio editorial, no física") que ya existía
+para el puntaje — declarar la capa, no un texto nuevo.
+
+Verificado extremo a extremo con Chrome headless (CDP crudo, KEF LS50
+Meta + Rega Brio + WiiM Pro Plus + Topping E30 II, la sala por
+defecto): veredicto "Configuración soportada, con límites" en dorado,
+los tres estados con sus badges, evidencia colapsada y expandida,
+geometría y ficha al pie, capturas en desktop (1400px) y mobile
+(390px), sin errores ni excepciones de consola. 266 tests totales entre
+los 4 workspaces (antes 197 — sube por `veredicto.test.ts` y los tests
+nuevos de `modeloVeredicto`/`modeloRecomendacionesTop` en
+`resultado.test.ts`, más el crecimiento de catálogo de rondas
+anteriores que ya estaba contado aparte).
+
 Falta:
+- **Fricción antes del primer resultado** (colapsar "Materiales de la
+  sala" + dimensiones detrás de un `<details>` "Personalizar sala
+  (opcional)", presets de sala): señalado por la misma revisión externa
+  que disparó el veredicto, explícitamente no implementado esta ronda —
+  el gating real de "Analizar" (sólo pide parlante + amplificador) ya es
+  correcto, esto es puramente jerarquía visual en la pantalla de
+  configurar.
+- **Componente fuera de catálogo → especificar specs a mano** (en vez
+  de un callejón sin salida al formulario de contacto): el motor ya
+  acepta objetos planos desacoplados del catálogo (`tipos.ts`), así que
+  es viable sin romper doctrina, pero exige decidir primero qué
+  `confianza` le corresponde a un dato que tipeó el propio usuario —
+  sesión aparte.
 - **Verificar `thehifimatch.com` en Resend** (Resend → Domains, no es
   el mismo paso que agregar el dominio en Vercel — son paneles y
   registros DNS distintos): recién ahí tiene sentido cambiar

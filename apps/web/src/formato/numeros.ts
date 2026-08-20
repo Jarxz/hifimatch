@@ -36,3 +36,17 @@ export function numConSigno(v: number, decimales: number, idioma: Idioma): strin
 export function coord(v: number, decimales = 1): string {
   return v.toFixed(decimales);
 }
+
+const cacheLista = new Map<Idioma, Intl.ListFormat>();
+
+/** Une nombres con la conjunción "y"/"and" del idioma — con coma de
+ * Oxford cuando hay 3 o más ("A, B y C"), a diferencia de un
+ * `join(' y ')` a mano que da "A y B y C". */
+export function listaY(items: string[], idioma: Idioma): string {
+  let f = cacheLista.get(idioma);
+  if (!f) {
+    f = new Intl.ListFormat(LOCALE[idioma], { style: 'long', type: 'conjunction' });
+    cacheLista.set(idioma, f);
+  }
+  return f.format(items);
+}

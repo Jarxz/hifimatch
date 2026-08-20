@@ -12,6 +12,7 @@ import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../package
 import type { Genero } from '../../../packages/engine/src/genero.ts';
 import { calcularPuntaje, PESOS_DECLARADOS } from '../../../packages/engine/src/puntaje.ts';
 import type { ComponentePuntaje } from '../../../packages/engine/src/puntaje.ts';
+import { calcularVeredicto } from '../../../packages/engine/src/veredicto.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 import { validarContacto } from '../../../packages/contact/src/contacto.ts';
@@ -36,6 +37,8 @@ import {
   modeloUbicacionParlantes,
   modeloPuntaje,
   modeloResumenFinal,
+  modeloVeredicto,
+  modeloRecomendacionesTop,
   modeloDocumento,
 } from './vista/resultado.ts';
 import type { ComponenteResumen } from './vista/resultado.ts';
@@ -49,8 +52,8 @@ import {
   pintarModos,
   pintarCurvasModales,
   pintarReverberacion,
-  pintarPuntaje,
-  pintarResumenFinal,
+  pintarVeredicto,
+  pintarRecomendacionesTop,
   pintarDocumento,
 } from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
@@ -417,9 +420,38 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
     `${num(a.picoObjetivo, 0, idiomaActual)} dB`
   );
 
+  // resumenFinal ya no se pinta acá (la tarjeta "En resumen" quedó
+  // reemplazada por el veredicto + "Qué conviene hacer") pero sigue
+  // calculándose: modeloDocumento (informe) todavía lo consume.
   const resumenFinal = modeloResumenFinal(snap.componentesResumen, { valor: snap.puntaje.puntaje, clase: snap.puntaje.clase }, idiomaActual);
-  pintarPuntaje(snap.mPuntaje);
-  pintarResumenFinal(resumenFinal);
+
+  const veredicto = calcularVeredicto({
+    potencia: snap.resPot.severidad,
+    carga: a.resCarga.severidad,
+    puenteStreamer: a.resPuenteStreamer ? a.resPuenteStreamer.severidad : null,
+    recorridoStreamer: a.resRecorridoStreamer ? a.resRecorridoStreamer.severidad : null,
+    puenteDac: a.resPuenteDac ? a.resPuenteDac.severidad : null,
+    recorridoDac: a.resRecorridoDac ? a.resRecorridoDac.severidad : null,
+    modos: a.resModos.severidad,
+    reverberacion: a.resReverb.severidad,
+  });
+  pintarVeredicto(
+    modeloVeredicto(
+      veredicto,
+      {
+        mPot: snap.mPot,
+        mCarga: a.mCarga,
+        mPuenteStreamer: a.mPuenteStreamer,
+        mRecorridoStreamer: a.mRecorridoStreamer,
+        mPuenteDac: a.mPuenteDac,
+        mRecorridoDac: a.mRecorridoDac,
+        mModos: a.mModos,
+        mReverb: a.mReverb,
+      },
+      idiomaActual
+    )
+  );
+  pintarRecomendacionesTop(modeloRecomendacionesTop(snap.componentesResumen, idiomaActual));
 
   ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
   repintarPlano();
@@ -684,7 +716,7 @@ function cambiarIdioma(idioma: Idioma): void {
   renderizarResultado();
 }
 
-type InfoClave = 'capas' | 'confianza' | 'potencia' | 'carga' | 'ganancia' | 'modos' | 'reverberacion' | 'plano' | 'puntaje';
+type InfoClave = 'capas' | 'confianza' | 'potencia' | 'carga' | 'ganancia' | 'modos' | 'reverberacion' | 'plano' | 'veredicto' | 'puntaje';
 
 function abrirPopup(titulo: string, cuerpoHtml: string): void {
   const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
