@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluarCarga } from './carga.ts';
+import { evaluarCarga, EPDR_ALERT_OHM, EPDR_WARN_OHM, FASE_SUPUESTA_GRADOS } from './carga.ts';
 import type { Parlante, Amplificador } from './tipos.ts';
 
 // Mismos fixtures que potencia.test.ts (= packages/data/src/catalogo.ts).
@@ -13,6 +13,8 @@ const kef: Parlante = {
   impedanciaMinOhm: 3.5,
   potenciaRecMinW: 40,
   potenciaRecMaxW: 100,
+  anguloFaseGrados: null,
+  impedanciaMaxOhm: null,
 };
 
 const klipsch: Parlante = {
@@ -24,6 +26,8 @@ const klipsch: Parlante = {
   impedanciaMinOhm: null,
   potenciaRecMinW: null,
   potenciaRecMaxW: 100,
+  anguloFaseGrados: null,
+  impedanciaMaxOhm: null,
 };
 
 const cambridge: Amplificador = {
@@ -35,6 +39,7 @@ const cambridge: Amplificador = {
   cargaMinOhm: null,
   sensEntradaMv: 370,
   impedanciaEntradaOhm: 43000,
+  factorAmortiguamiento: null,
 };
 
 const rega: Amplificador = {
@@ -46,6 +51,7 @@ const rega: Amplificador = {
   cargaMinOhm: 4,
   sensEntradaMv: 210,
   impedanciaEntradaOhm: 47000,
+  factorAmortiguamiento: null,
 };
 
 test('KEF (minZ 3,5) + Cambridge CXA81 (80/120): dura, potente (80≥60) → Cubierto', () => {
@@ -80,6 +86,7 @@ test('regresión: ampli de 55W sin dato a 4Ω, especie dura → Exige corriente 
     cargaMinOhm: null,
     sensEntradaMv: null,
     impedanciaEntradaOhm: null,
+    factorAmortiguamiento: null,
   };
   const r = evaluarCarga(kef, ampMediocre);
   assert.equal(r.severidad, 'warn');
@@ -97,6 +104,7 @@ test('reserva de corriente resuelve una carga dura aunque la potencia bruta sea 
     cargaMinOhm: null,
     sensEntradaMv: null,
     impedanciaEntradaOhm: null,
+    factorAmortiguamiento: null,
   };
   const r = evaluarCarga(kef, ampReserva);
   assert.equal(r.severidad, 'ok');
@@ -138,4 +146,81 @@ test('límite exacto ratio p4/p8=1.7 cuenta como "reserva" (≥1.7, cerrado por 
   const r = evaluarCarga(kef, ampLimite);
   assert.equal(r.severidad, 'ok');
   assert.equal(r.codigo, 'cubierto');
+});
+
+// ---- EPDR (equivalent peak dissipation resistance) ----
+
+test('EPDR: condición de frontera θ=0° → EPDR = impedanciaMinOhm exacto (carga puramente resistiva, sin estrés extra)', () => {
+  const parlante: Parlante = { ...kef, anguloFaseGrados: 0, impedanciaMinOhm: 3.5 };
+  const r = evaluarCarga(parlante, cambridge); // cambridge resuelve (potente: 80≥60) → severidadBase 'ok'
+  assert.equal(r.thetaGrados, 0);
+  assert.equal(r.thetaEsSupuesto, false);
+  assert.ok(r.epdrOhm !== null);
+  assert.ok(Math.abs(r.epdrOhm! - 3.5) < 1e-9, `epdrOhm=${r.epdrOhm}`);
+});
+
+test('EPDR: sin ángulo publicado y nominal >4 Ω → no se calcula EPDR, sólo cuenta la reserva de corriente (regresión)', () => {
+  const r = evaluarCarga(kef, cambridge); // kef: nominal 8 Ω, anguloFaseGrados null
+  assert.equal(r.thetaGrados, null);
+  assert.equal(r.epdrOhm, null);
+  assert.equal(r.severidad, 'ok');
+  assert.equal(r.codigo, 'cubierto');
+});
+
+test('EPDR: ángulo de fase real más exigente que el fallback → "epdr-ajustado" (warn) aunque la reserva de corriente esté cubierta', () => {
+  // |Z|=4,3 Ω, θ=-60° (vector de referencia tipo B&W Nautilus 802): EPDR = 4,3/(1+sen60°) ≈ 2,304 Ω → [2,3) → warn
+  const parlante: Parlante = { ...kef, impedanciaMinOhm: 4.3, anguloFaseGrados: -60 };
+  const r = evaluarCarga(parlante, cambridge); // cambridge resuelve → severidadBase 'ok'
+  assert.equal(r.thetaEsSupuesto, false);
+  assert.ok(r.epdrOhm !== null && r.epdrOhm > 2 && r.epdrOhm < 3, `epdrOhm=${r.epdrOhm}`);
+  assert.ok(r.epdrOhm! >= EPDR_ALERT_OHM && r.epdrOhm! < EPDR_WARN_OHM);
+  assert.equal(r.severidad, 'warn');
+  assert.equal(r.codigo, 'epdr-ajustado');
+});
+
+test('EPDR: ángulo de fase muy exigente → "epdr-critico" (alert), un nivel que carga.ts no tenía antes de EPDR', () => {
+  // |Z|=3,0 Ω, θ=-75°: EPDR = 3,0/(1+sen75°) ≈ 1,526 Ω → <2,0 → alert
+  const parlante: Parlante = { ...kef, impedanciaMinOhm: 3.0, anguloFaseGrados: -75 };
+  const r = evaluarCarga(parlante, cambridge);
+  assert.ok(r.epdrOhm !== null && r.epdrOhm < EPDR_ALERT_OHM, `epdrOhm=${r.epdrOhm}`);
+  assert.equal(r.severidad, 'alert');
+  assert.equal(r.codigo, 'epdr-critico');
+});
+
+test('EPDR: sin ángulo publicado, nominal ≤4 Ω → fallback de -45° (criterio del sitio, declarado como supuesto)', () => {
+  const parlante: Parlante = { ...kef, impedanciaNominalOhm: 4, impedanciaMinOhm: 3.0, anguloFaseGrados: null };
+  const r = evaluarCarga(parlante, cambridge);
+  assert.equal(r.thetaGrados, FASE_SUPUESTA_GRADOS);
+  assert.equal(r.thetaEsSupuesto, true);
+  // EPDR = 3,0/(1+sen45°) ≈ 1,757 Ω → <2,0 → alert
+  assert.ok(r.epdrOhm !== null && r.epdrOhm < EPDR_ALERT_OHM, `epdrOhm=${r.epdrOhm}`);
+  assert.equal(r.severidad, 'alert');
+  assert.equal(r.codigo, 'epdr-critico');
+});
+
+test('EPDR: fase moderada (θ=-30°, |Z|=5) da EPDR≥3,0 → "ok", no cambia la severidad base', () => {
+  const parlante: Parlante = { ...kef, impedanciaMinOhm: 5, anguloFaseGrados: -30 };
+  const r = evaluarCarga(parlante, cambridge);
+  assert.ok(r.epdrOhm !== null && r.epdrOhm >= EPDR_WARN_OHM, `epdrOhm=${r.epdrOhm}`);
+  assert.equal(r.severidad, 'ok');
+  assert.equal(r.codigo, 'carga-benigna'); // impedanciaMinOhm=5 > 4 ⇒ "dura" es false, codigoBase ya era "carga-benigna"
+});
+
+test('EPDR: severidadBase ya "warn" (exige-corriente) y EPDR también "alert" → gana "alert"/"epdr-critico", peor-de-los-dos', () => {
+  const parlante: Parlante = { ...kef, impedanciaMinOhm: 3.0, anguloFaseGrados: -75 };
+  const r = evaluarCarga(parlante, rega); // rega NO resuelve (50<60, ratio 1,46<1,7) → severidadBase 'warn'
+  assert.equal(r.severidad, 'alert'); // alert > warn
+  assert.equal(r.codigo, 'epdr-critico');
+});
+
+test('EPDR: severidadBase "warn" y EPDR "ok" → se queda en "warn"/"exige-corriente" (EPDR no mejora un problema real)', () => {
+  const parlante: Parlante = { ...kef, impedanciaMinOhm: 5, anguloFaseGrados: -10 }; // fase benigna, EPDR alto
+  const r = evaluarCarga(parlante, rega);
+  assert.equal(r.severidad, 'ok'); // impedanciaMinOhm=5 > 4 ⇒ no es "dura" en absoluto
+  // caso de control: forzar "dura" con impedanciaMinOhm=4 y fase benigna
+  const parlanteDuro: Parlante = { ...kef, impedanciaMinOhm: 4, anguloFaseGrados: -10 };
+  const r2 = evaluarCarga(parlanteDuro, rega);
+  assert.ok(r2.epdrOhm !== null && r2.epdrOhm >= EPDR_WARN_OHM, `epdrOhm=${r2.epdrOhm}`);
+  assert.equal(r2.severidad, 'warn');
+  assert.equal(r2.codigo, 'exige-corriente'); // el código lo sigue explicando la reserva de corriente, no EPDR
 });

@@ -28,6 +28,7 @@ export type EstadoGrupo = Exclude<Severidad, 'sin-datos'> | 'sin-datos';
 export interface EntradaVeredicto {
   potencia: Exclude<Severidad, 'sin-datos'>; // potencia siempre tiene valor (nunca sin-datos)
   carga: Severidad;
+  amortiguamiento: Severidad; // interacción DF↔curva de impedancia — ver amortiguamiento.ts
   puenteStreamer: Severidad | null; // null = streamer no elegido
   recorridoStreamer: Severidad | null;
   puenteDac: Severidad | null; // null = dac no elegido
@@ -52,7 +53,7 @@ function sinFaltantes(...valores: Array<Severidad | null>): Array<Exclude<Severi
 }
 
 export function calcularVeredicto(e: EntradaVeredicto): ResultadoVeredicto {
-  const valoresAcople = sinFaltantes(e.carga, e.puenteStreamer, e.recorridoStreamer, e.puenteDac, e.recorridoDac);
+  const valoresAcople = sinFaltantes(e.carga, e.amortiguamiento, e.puenteStreamer, e.recorridoStreamer, e.puenteDac, e.recorridoDac);
   const acopleElectrico: EstadoGrupo = valoresAcople.length > 0 ? peorSeveridad(...valoresAcople) : 'sin-datos';
   const sala = peorSeveridad(e.modos, e.reverberacion) as 'ok' | 'warn';
   const grupos = acopleElectrico === 'sin-datos' ? [e.potencia, sala] : [e.potencia, acopleElectrico, sala];

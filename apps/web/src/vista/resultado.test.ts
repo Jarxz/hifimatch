@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
+import { evaluarAmortiguamiento } from '../../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { evaluarModos, evaluarNuloEscucha } from '../../../../packages/engine/src/modos.ts';
 import { calcularDisposicion, calcularDisposicionManual } from '../../../../packages/engine/src/sala.ts';
@@ -21,6 +22,7 @@ import type { ClaseVerdicto } from './resultado.ts';
 import {
   modeloPotencia,
   modeloCarga,
+  modeloAmortiguamiento,
   modeloPuente,
   modeloRecorrido,
   modeloModos,
@@ -218,6 +220,101 @@ test('modeloCarga: carga dura sin reserva ni potencia → "warn"', () => {
   const m = modeloCarga(spk, amp, r, 'es');
   assert.equal(m.verdictoClase, 'warn');
   assert.ok(m.avisoHtml);
+});
+
+test('modeloCarga: sin ángulo de fase (regresión) → calcHtml es null, no se muestra caja de cálculo de EPDR', () => {
+  const spk = parlanteCat('kef-ls50-meta'); // nominal 8 Ω, anguloFaseGrados null en el catálogo → sin fallback
+  const amp = ampCat('cambridge-cxa81');
+  const r = evaluarCarga(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'));
+  const m = modeloCarga(spk, amp, r, 'es');
+  assert.equal(m.calcHtml, null);
+});
+
+test('modeloCarga: EPDR crítico → verdictoTexto/simpleHtml propios, calcHtml con la fórmula, aviso reusa el consejo de reserva de corriente', () => {
+  const spk: ParlanteCat = { ...parlanteCat('kef-ls50-meta'), impedanciaMinOhm: 3.0, anguloFaseGrados: -75 };
+  const amp = ampCat('cambridge-cxa81'); // resuelve por potencia bruta → severidadBase 'ok', EPDR es quien manda
+  const r = evaluarCarga(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'));
+  const m = modeloCarga(spk, amp, r, 'es');
+  assert.equal(m.verdictoClase, 'alert');
+  assert.equal(m.verdictoTexto, 'EPDR crítico');
+  assert.match(m.simpleHtml, /ángulo de fase/);
+  assert.match(m.textoHtml, /EPDR/);
+  assert.ok(m.calcHtml !== null);
+  assert.match(m.calcHtml!, /EPDR = /);
+  assert.match(m.calcHtml!, /-75/); // ángulo de fase citado, no supuesto
+  assert.ok(m.avisoHtml);
+});
+
+test('modeloCarga: EPDR con ángulo supuesto (fallback -45°, nominal ≤4 Ω) → calcHtml declara que es un supuesto, no un dato citado', () => {
+  const spk: ParlanteCat = { ...parlanteCat('kef-ls50-meta'), impedanciaNominalOhm: 4, impedanciaMinOhm: 3.0, anguloFaseGrados: null };
+  const amp = ampCat('cambridge-cxa81');
+  const r = evaluarCarga(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'));
+  const m = modeloCarga(spk, amp, r, 'es');
+  assert.match(m.calcHtml!, /-45/);
+  assert.match(m.calcHtml!, /se asume/);
+});
+
+test('modeloCarga en inglés: EPDR crítico usa los textos propios, sin mezclar idiomas', () => {
+  const spk: ParlanteCat = { ...parlanteCat('kef-ls50-meta'), impedanciaMinOhm: 3.0, anguloFaseGrados: -75 };
+  const amp = ampCat('cambridge-cxa81');
+  const r = evaluarCarga(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'));
+  const m = modeloCarga(spk, amp, r, 'en');
+  assert.equal(m.verdictoTexto, 'EPDR critical');
+  assert.match(m.textoHtml, /phase angle/);
+  assert.doesNotMatch(m.textoHtml, /ángulo de fase/);
+});
+
+// ---- amortiguamiento (interacción DF↔curva de impedancia) ----
+
+test('modeloAmortiguamiento: "sin-datos" (catálogo real, sin factorAmortiguamiento poblado todavía) → tarjeta oculta, no "ok"', () => {
+  const spkM = parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es');
+  const ampM = amplificadorDelCatalogo(ampCat('rega-brio'), 'es');
+  const r = evaluarAmortiguamiento(spkM, ampM);
+  const m = modeloAmortiguamiento(r, 'es');
+  assert.equal(m.sinDatos, true);
+  assert.equal(m.verdictoClase, 'dim');
+  assert.notEqual(m.verdictoClase, 'ok');
+});
+
+test('modeloAmortiguamiento: "óptimo" (DF alto) → sin aviso, calc muestra Z_out/ΔdB', () => {
+  const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es'), impedanciaMinOhm: 4, impedanciaMaxOhm: 25 };
+  const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'es'), factorAmortiguamiento: 200 };
+  const r = evaluarAmortiguamiento(spkM, ampM);
+  const m = modeloAmortiguamiento(r, 'es');
+  assert.equal(m.verdictoClase, 'ok');
+  assert.equal(m.verdictoTexto, 'Óptimo');
+  assert.equal(m.avisoHtml, null);
+  assert.match(m.calcHtml!, /Z_out/);
+});
+
+test('modeloAmortiguamiento: "crítico" (DF valvular bajo) → aviso con el texto exacto pedido, sin penalizar el DF en sí', () => {
+  const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es'), impedanciaMinOhm: 4, impedanciaMaxOhm: null };
+  const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'es'), factorAmortiguamiento: 4 };
+  const r = evaluarAmortiguamiento(spkM, ampM);
+  const m = modeloAmortiguamiento(r, 'es');
+  assert.equal(m.verdictoClase, 'alert');
+  assert.equal(m.verdictoTexto, 'Crítico');
+  assert.match(m.avisoHtml!, /Pérdida severa de control de amortiguación/);
+  assert.match(m.avisoHtml!, /se asume/); // impedanciaMaxOhm null → nota del fallback de 25 Ω
+});
+
+test('modeloAmortiguamiento: "con reparos" → aviso declara el ΔdB exacto con el texto pedido', () => {
+  const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'es'), impedanciaMinOhm: 4, impedanciaMaxOhm: 25 };
+  const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'es'), factorAmortiguamiento: 20 };
+  const r = evaluarAmortiguamiento(spkM, ampM);
+  const m = modeloAmortiguamiento(r, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.match(m.avisoHtml!, /alterará la respuesta tonal del parlante en \+/);
+});
+
+test('modeloAmortiguamiento en inglés: textos propios, sin mezclar idiomas', () => {
+  const spkM = { ...parlanteDelCatalogo(parlanteCat('kef-ls50-meta'), 'en'), impedanciaMinOhm: 4, impedanciaMaxOhm: 25 };
+  const ampM = { ...amplificadorDelCatalogo(ampCat('cambridge-cxa81'), 'en'), factorAmortiguamiento: 4 };
+  const r = evaluarAmortiguamiento(spkM, ampM);
+  const m = modeloAmortiguamiento(r, 'en');
+  assert.equal(m.verdictoTexto, 'Critical');
+  assert.match(m.avisoHtml!, /Severe loss of damping control/);
+  assert.doesNotMatch(m.avisoHtml!, /amortiguación/);
 });
 
 // ---- ganancia (puente + recorrido) ----
@@ -714,6 +811,7 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
   const resPot = evaluarPotencia(spkM, ampM, disposicion.distanciaEscuchaM, 'alto');
   const mPot = modeloPotencia(DOC_SPK, DOC_AMP, resPot, disposicion.distanciaEscuchaM, idioma === 'es' ? 'Alto' : 'High', 100, 'rockpop', idioma);
   const mCarga = modeloCarga(DOC_SPK, DOC_AMP, evaluarCarga(spkM, ampM), idioma);
+  const mAmortiguamiento = modeloAmortiguamiento(evaluarAmortiguamiento(spkM, ampM), idioma);
 
   const fuenteModelos = (f: FuenteCat | null) => {
     if (!f) return { puente: null, recorrido: null };
@@ -742,6 +840,7 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
     datos: {
       mPot,
       mCarga,
+      mAmortiguamiento,
       mPuenteStreamer: st.puente,
       mRecorridoStreamer: st.recorrido,
       mPuenteDac: dc.puente,
@@ -850,6 +949,7 @@ function veredictoDe(datos: ReturnType<typeof datosDocumentoFixture>['datos']) {
   const entrada: EntradaVeredicto = {
     potencia: claseASeveridad(datos.mPot.verdictoClase) as 'ok' | 'warn' | 'alert',
     carga: claseASeveridad(datos.mCarga.verdictoClase),
+    amortiguamiento: claseASeveridad(datos.mAmortiguamiento.verdictoClase),
     puenteStreamer: datos.mPuenteStreamer ? claseASeveridad(datos.mPuenteStreamer.verdictoClase) : null,
     recorridoStreamer: datos.mRecorridoStreamer ? claseASeveridad(datos.mRecorridoStreamer.verdictoClase) : null,
     puenteDac: datos.mPuenteDac ? claseASeveridad(datos.mPuenteDac.verdictoClase) : null,
@@ -901,6 +1001,16 @@ test('modeloVeredicto: acopleElectrico usa el peor de carga/puente/recorrido —
   const m = modeloVeredicto(v, fix.datos, 'es');
   assert.equal(m.acopleElectrico.clase, 'warn');
   assert.equal(m.acopleElectrico.detalleTexto, 'Puente ajustado');
+});
+
+test('modeloVeredicto: acopleElectrico también considera amortiguamiento — cuando es el peor del grupo, su texto es el que se muestra', () => {
+  const fix = datosDocumentoFixture('es');
+  fix.datos.mCarga = { ...fix.datos.mCarga, verdictoClase: 'ok', verdictoTexto: 'Cubierto' };
+  fix.datos.mAmortiguamiento = { ...fix.datos.mAmortiguamiento, sinDatos: false, verdictoClase: 'alert', verdictoTexto: 'Crítico' };
+  const v = veredictoDe(fix.datos);
+  const m = modeloVeredicto(v, fix.datos, 'es');
+  assert.equal(m.acopleElectrico.clase, 'alert');
+  assert.equal(m.acopleElectrico.detalleTexto, 'Crítico');
 });
 
 test('modeloVeredicto: acopleElectrico "sin-datos" (carga sin dato, sin streamer ni dac) → clase "dim", texto propio de sin-datos, y no cambia el veredicto general', () => {

@@ -12,6 +12,7 @@
  */
 import type { CodigoPotencia } from '../../../../packages/engine/src/potencia.ts';
 import type { CodigoCarga } from '../../../../packages/engine/src/carga.ts';
+import type { CodigoAmortiguamiento } from '../../../../packages/engine/src/amortiguamiento.ts';
 import type { CodigoPuenteImpedancias, CodigoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos.ts';
 import type { CodigoReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
@@ -72,7 +73,7 @@ export const es = {
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V9.08.26',
+    version: 'V10.08.26',
   },
 
   info: {
@@ -100,7 +101,12 @@ export const es = {
     carga: {
       titulo: 'La carga que ve el amplificador',
       cuerpoHtml:
-        'La impedancia de un parlante no es un número fijo — baja en ciertas frecuencias, y esa caída (impedancia mínima) es la que realmente exige corriente al amplificador, no la impedancia nominal de la ficha. Esta tarjeta compara esa impedancia mínima contra lo que el amplificador puede sostener: si la carga es exigente (impedancia mínima baja), el resultado depende de si el amplificador tiene <b>reserva de corriente</b> (duplica su potencia al bajar a la mitad la impedancia, señal de una fuente de alimentación robusta) o simplemente <b>potencia bruta</b> de sobra. Cuando el fabricante no publica la impedancia mínima del parlante, la tarjeta no se muestra en el análisis principal — aparece declarada en "Sin datos suficientes".',
+        'La impedancia de un parlante no es un número fijo — baja en ciertas frecuencias, y esa caída (impedancia mínima) es la que realmente exige corriente al amplificador, no la impedancia nominal de la ficha. Esta tarjeta compara esa impedancia mínima contra lo que el amplificador puede sostener: si la carga es exigente (impedancia mínima baja), el resultado depende de si el amplificador tiene <b>reserva de corriente</b> (duplica su potencia al bajar a la mitad la impedancia, señal de una fuente de alimentación robusta) o simplemente <b>potencia bruta</b> de sobra. Además, cuando el catálogo tiene (o se puede asumir de forma conservadora) el <b>ángulo de fase</b> más exigente en graves, se calcula la EPDR (resistencia equivalente de disipación de pico): un parlante reactivo exige más corriente de la que su impedancia mínima sola sugiere, y la EPDR puede marcar un problema que la sola magnitud no muestra. Cuando el fabricante no publica la impedancia mínima del parlante, la tarjeta no se muestra en el análisis principal — aparece declarada en "Sin datos suficientes".',
+    },
+    amortiguamiento: {
+      titulo: '¿La impedancia de salida del amplificador colorea el sonido?',
+      cuerpoHtml:
+        'La impedancia de salida del amplificador (derivada del factor de amortiguamiento publicado, Z_out = 8/DF) forma un <b>divisor de tensión</b> con la curva de impedancia del parlante: en el pico de resonancia de graves, donde la impedancia es más alta, ese divisor deja pasar relativamente más tensión que en el mínimo — una coloración tonal real y calculable, no una intuición. Esta tarjeta no penaliza un factor de amortiguamiento bajo en sí mismo (eso descartaría sin motivo electrónica valvular, que puede sonar perfectamente bien con el parlante correcto): lo que importa es la interacción con la curva de ESE parlante, expresada en decibeles de desviación entre el pico y el mínimo de impedancia. Necesita el factor de amortiguamiento del amplificador y la impedancia mínima del parlante — si el fabricante no publica el pico de impedancia (resonancia de graves), se asume un valor típico de referencia (25 Ω), declarado como tal en la tarjeta.',
     },
     ganancia: {
       titulo: 'Puente de impedancias y recorrido de volumen',
@@ -324,12 +330,16 @@ export const es = {
         'exige-corriente': 'Exige corriente',
         cubierto: 'Cubierto',
         'carga-benigna': 'Carga benigna',
+        'epdr-critico': 'EPDR crítico',
+        'epdr-ajustado': 'EPDR ajustado',
       } satisfies Record<CodigoCarga, string>,
       simple: {
         'sin-dato': 'No hay dato suficiente para evaluar esta carga.',
         'exige-corriente': 'Esta combinación pide más corriente de la que este amplificador reserva.',
         cubierto: 'El amplificador maneja bien esta carga.',
         'carga-benigna': 'Una carga fácil, sin riesgo para el amplificador.',
+        'epdr-critico': 'El ángulo de fase de este parlante exige mucha más corriente de la que sugiere su impedancia mínima sola.',
+        'epdr-ajustado': 'El ángulo de fase de este parlante exige algo más de corriente de la que sugiere su impedancia mínima sola.',
       } satisfies Record<CodigoCarga, string>,
       sinDatosTexto:
         'No hay una medición precisa de la impedancia mínima de este parlante. Las mediciones independientes no reportan caídas críticas, pero <b>sin el dato no se afirma que sea una carga fácil</b>.',
@@ -350,6 +360,46 @@ export const es = {
       benignaTexto: 'La impedancia se mantiene alta; es una carga fácil para cualquier amplificador.',
       fuente: (p: { nomZ: string; minZ: string }): string =>
         `<b>Fuente:</b> impedancia nominal ${p.nomZ} Ω, mínima ${p.minZ} Ω (fábrica / medición). <span class="conf">confianza media</span>`,
+      epdrTexto: (p: { epdr: string; theta: string }): string =>
+        `Con un ángulo de fase de <b>${p.theta}°</b> en el punto más exigente, la resistencia equivalente de disipación de pico (EPDR) es <b>${p.epdr} Ω</b> — más baja que la impedancia mínima sola, porque un parlante reactivo exige más corriente de la que su magnitud sugiere.`,
+      epdrCalc: (p: { minZ: string; theta: string; epdr: string }): string =>
+        `EPDR = ${p.minZ} / (1 + |sen(${p.theta}°)|) = <b>${p.epdr} Ω</b>`,
+      epdrSupuesto:
+        'Ángulo de fase no publicado: se asume <b>-45°</b>, un supuesto conservador para impedancia nominal ≤4 Ω — criterio de este sitio, no una medición de este parlante.',
+      epdrFuente:
+        'Ángulo de fase citado por el fabricante o una medición independiente.',
+    },
+
+    amortiguamiento: {
+      titulo: '¿La impedancia de salida del amplificador colorea el sonido?',
+      nombreCorto: 'Amortiguamiento',
+      verdicto: {
+        'sin-dato': 'Sin dato',
+        optimo: 'Óptimo',
+        'con-reparos': 'Con reparos',
+        critico: 'Crítico',
+      } satisfies Record<CodigoAmortiguamiento, string>,
+      simple: {
+        'sin-dato': 'No hay dato suficiente para evaluar esta interacción.',
+        optimo: 'La impedancia de salida del amplificador no altera la respuesta del parlante.',
+        'con-reparos': 'La impedancia de salida del amplificador colorea un poco la respuesta del parlante en graves.',
+        critico: 'La impedancia de salida del amplificador altera claramente la respuesta del parlante en graves.',
+      } satisfies Record<CodigoAmortiguamiento, string>,
+      sinDatosTexto:
+        'Falta el factor de amortiguamiento del amplificador o la impedancia mínima del parlante. Sin ambos datos no se puede estimar esta interacción.',
+      sinDatosAviso: 'Un dato faltante no se cuenta como aprobado. <b>Pendiente:</b> factor de amortiguamiento publicado.',
+      texto: (p: { deltaDb: string; zOut: string }): string =>
+        `La impedancia de salida del amplificador (Z_out ≈ ${p.zOut} Ω) forma un divisor de tensión con la curva de impedancia del parlante: entre el mínimo y el pico de resonancia de graves, ese divisor deja pasar <b>${p.deltaDb} dB</b> más o menos tensión. No es un juicio sobre el factor de amortiguamiento en sí (un amplificador valvular de DF bajo puede sonar perfecto con el parlante correcto) — es la interacción real con la curva de ESTE parlante.`,
+      avisoConReparos: (p: { deltaDb: string }): string =>
+        `La impedancia de salida del amplificador alterará la respuesta tonal del parlante en +${p.deltaDb} dB en su zona de resonancia.`,
+      avisoCritico:
+        'Pérdida severa de control de amortiguación; alteración notable de la respuesta de frecuencia de fábrica del parlante.',
+      calc: (p: { zOut: string; zMin: string; zMax: string; deltaDb: string }): string =>
+        `Z_out = 8 / DF = <b>${p.zOut} Ω</b><br>ΔdB = 20·log₁₀( (${p.zMax}·(${p.zMin}+${p.zOut})) / (${p.zMin}·(${p.zMax}+${p.zOut})) ) = <b>${p.deltaDb} dB</b>`,
+      zMaxSupuesto:
+        'Impedancia de pico de graves no publicada: se asume <b>25 Ω</b>, un valor típico de referencia — criterio de este sitio, no una medición de este parlante.',
+      fuente:
+        '<b>Fórmula:</b> Z_out = 8/DF (el factor de amortiguamiento se publica referido a 8 Ω); ΔdB = 20·log₁₀(Zmax·(Zmin+Zout) / (Zmin·(Zmax+Zout))) — la diferencia de atenuación del divisor de tensión entre el pico y el mínimo de impedancia del parlante. No penaliza un factor de amortiguamiento bajo en sí (evita descartar electrónica valvular sin motivo): sólo cuenta la interacción real con la curva de impedancia de este parlante.',
     },
 
     puente: {

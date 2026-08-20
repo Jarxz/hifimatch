@@ -23,6 +23,13 @@ export interface Parlante {
   impedanciaMinOhm: number | null; // null ⇒ la regla de carga da "sin-datos"
   potenciaRecMinW: number | null;
   potenciaRecMaxW: number | null;
+  /** Ángulo de fase (grados) en el punto más exigente de graves — casi
+   * nunca publicado; ver carga.ts (EPDR) para el criterio de reemplazo
+   * cuando falta. null ⇒ no hay dato citado todavía. */
+  anguloFaseGrados: number | null;
+  /** Impedancia máxima (pico de resonancia de graves) — casi nunca
+   * publicada; ver amortiguamiento.ts. null ⇒ no hay dato citado todavía. */
+  impedanciaMaxOhm: number | null;
 }
 
 export interface Amplificador {
@@ -34,6 +41,10 @@ export interface Amplificador {
   cargaMinOhm: number | null;
   sensEntradaMv: number | null;
   impedanciaEntradaOhm: number | null;
+  /** Factor de amortiguamiento publicado (referido a 8 Ω) — casi nunca
+   * publicado fuera de la ficha técnica de fábrica; ver
+   * amortiguamiento.ts. null ⇒ no hay dato citado todavía. */
+  factorAmortiguamiento: number | null;
 }
 
 /**

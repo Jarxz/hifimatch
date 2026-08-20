@@ -53,6 +53,7 @@ const cambridgeCxa81: Amplificador = {
   cargaMinOhm: null,
   sensEntradaMv: 370,
   impedanciaEntradaOhm: 43000,
+  factorAmortiguamiento: null,
 };
 
 const rega: Amplificador = {
@@ -64,6 +65,7 @@ const rega: Amplificador = {
   cargaMinOhm: 4,
   sensEntradaMv: 210,
   impedanciaEntradaOhm: 47000,
+  factorAmortiguamiento: null,
 };
 
 const nad: Amplificador = {
@@ -75,6 +77,7 @@ const nad: Amplificador = {
   cargaMinOhm: 2,
   sensEntradaMv: 200,
   impedanciaEntradaOhm: null,
+  factorAmortiguamiento: null,
 };
 
 const denon: Amplificador = {
@@ -86,6 +89,7 @@ const denon: Amplificador = {
   cargaMinOhm: null,
   sensEntradaMv: 110,
   impedanciaEntradaOhm: 30000,
+  factorAmortiguamiento: null,
 };
 
 const hegel: Amplificador = {
@@ -97,6 +101,7 @@ const hegel: Amplificador = {
   cargaMinOhm: 2,
   sensEntradaMv: null,
   impedanciaEntradaOhm: null,
+  factorAmortiguamiento: null,
 };
 
 test('A · Topping E30 II → Cambridge CXA81: ratioZ=2150 → Puente correcto; margenV=5,68 → Recorrido sano', () => {

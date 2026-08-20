@@ -47,7 +47,7 @@ export const en: Textos = {
     cta: 'Analyze a system',
     pie: 'based on physics · measured specs',
     cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V9.08.26',
+    version: 'V10.08.26',
   },
 
   info: {
@@ -75,7 +75,12 @@ export const en: Textos = {
     carga: {
       titulo: 'The load the amplifier sees',
       cuerpoHtml:
-        "A speaker's impedance isn't one fixed number — it dips at certain frequencies, and that dip (minimum impedance) is what actually demands current from the amplifier, not the nominal impedance on the spec sheet. This card compares that minimum impedance against what the amplifier can sustain: if the load is demanding (low minimum impedance), the result depends on whether the amplifier has <b>current reserve</b> (doubles its power when impedance halves, a sign of a robust power supply) or simply has <b>raw power</b> to spare. When the manufacturer doesn't publish the speaker's minimum impedance, the card is hidden from the main analysis — it's listed under \"Not enough data\".",
+        "A speaker's impedance isn't one fixed number — it dips at certain frequencies, and that dip (minimum impedance) is what actually demands current from the amplifier, not the nominal impedance on the spec sheet. This card compares that minimum impedance against what the amplifier can sustain: if the load is demanding (low minimum impedance), the result depends on whether the amplifier has <b>current reserve</b> (doubles its power when impedance halves, a sign of a robust power supply) or simply has <b>raw power</b> to spare. On top of that, when the catalog has (or can conservatively assume) the most demanding <b>phase angle</b> in the bass region, EPDR (equivalent peak dissipation resistance) is calculated: a reactive speaker demands more current than its minimum impedance alone suggests, and EPDR can reveal a problem the magnitude alone wouldn't show. When the manufacturer doesn't publish the speaker's minimum impedance, the card is hidden from the main analysis — it's listed under \"Not enough data\".",
+    },
+    amortiguamiento: {
+      titulo: 'Does the amplifier’s output impedance color the sound?',
+      cuerpoHtml:
+        "The amplifier's output impedance (derived from the published damping factor, Z_out = 8/DF) forms a <b>voltage divider</b> with the speaker's impedance curve: at the bass-resonance peak, where impedance is highest, that divider lets through relatively more voltage than at the minimum — a real, calculable tonal coloration, not a hunch. This card doesn't penalize a low damping factor by itself (that would unfairly dismiss tube electronics, which can sound perfectly good with the right speaker): what matters is the interaction with THAT speaker's curve, expressed in decibels of deviation between the impedance peak and minimum. It needs the amplifier's damping factor and the speaker's minimum impedance — if the manufacturer doesn't publish the impedance peak (bass resonance), a typical reference value (25 Ω) is assumed, declared as such on the card.",
     },
     ganancia: {
       titulo: 'Impedance bridge and volume headroom',
@@ -300,12 +305,16 @@ export const en: Textos = {
         'exige-corriente': 'Demands current',
         cubierto: 'Covered',
         'carga-benigna': 'Benign load',
+        'epdr-critico': 'EPDR critical',
+        'epdr-ajustado': 'EPDR tight',
       },
       simple: {
         'sin-dato': 'Not enough data to assess this load.',
         'exige-corriente': 'This pairing demands more current than this amplifier has in reserve.',
         cubierto: 'The amplifier handles this load well.',
         'carga-benigna': 'An easy load, no risk to the amplifier.',
+        'epdr-critico': 'This speaker’s phase angle demands far more current than its minimum impedance alone suggests.',
+        'epdr-ajustado': 'This speaker’s phase angle demands somewhat more current than its minimum impedance alone suggests.',
       },
       sinDatosTexto:
         'There is no precise measurement of this speaker’s minimum impedance. Independent measurements do not report critical dips, but <b>a missing data point is never counted as a pass</b>.',
@@ -325,6 +334,43 @@ export const en: Textos = {
       benignaTexto: 'The impedance stays high; it is an easy load for any amplifier.',
       fuente: (p) =>
         `<b>Source:</b> nominal impedance ${p.nomZ} Ω, minimum ${p.minZ} Ω (factory / measurement). <span class="conf">medium confidence</span>`,
+      epdrTexto: (p) =>
+        `With a phase angle of <b>${p.theta}°</b> at the most demanding point, the equivalent peak dissipation resistance (EPDR) is <b>${p.epdr} Ω</b> — lower than the minimum impedance alone, because a reactive speaker demands more current than its modulus suggests.`,
+      epdrCalc: (p) => `EPDR = ${p.minZ} / (1 + |sin(${p.theta}°)|) = <b>${p.epdr} Ω</b>`,
+      epdrSupuesto:
+        'Phase angle not published: <b>-45°</b> is assumed, a conservative assumption for nominal impedance ≤4 Ω — a site criterion, not a measurement of this speaker.',
+      epdrFuente: 'Phase angle cited by the manufacturer or an independent measurement.',
+    },
+
+    amortiguamiento: {
+      titulo: 'Does the amplifier’s output impedance color the sound?',
+      nombreCorto: 'Damping',
+      verdicto: {
+        'sin-dato': 'No data',
+        optimo: 'Optimal',
+        'con-reparos': 'Has caveats',
+        critico: 'Critical',
+      },
+      simple: {
+        'sin-dato': 'Not enough data to assess this interaction.',
+        optimo: 'The amplifier’s output impedance does not alter the speaker’s response.',
+        'con-reparos': 'The amplifier’s output impedance slightly colors the speaker’s bass response.',
+        critico: 'The amplifier’s output impedance clearly alters the speaker’s bass response.',
+      },
+      sinDatosTexto:
+        'The amplifier’s damping factor or the speaker’s minimum impedance is missing. Without both data points, this interaction can’t be estimated.',
+      sinDatosAviso: 'A missing data point does not count as approved. <b>Pending:</b> published damping factor.',
+      texto: (p) =>
+        `The amplifier’s output impedance (Z_out ≈ ${p.zOut} Ω) forms a voltage divider with the speaker’s impedance curve: between the minimum and the bass-resonance peak, that divider lets through <b>${p.deltaDb} dB</b> more or less voltage. This isn’t a judgment on the damping factor by itself (a tube amplifier with a low DF can sound perfect with the right speaker) — it’s the real interaction with THIS speaker’s curve.`,
+      avisoConReparos: (p) =>
+        `The amplifier’s output impedance will alter the speaker’s tonal response by +${p.deltaDb} dB in its resonance zone.`,
+      avisoCritico: 'Severe loss of damping control; a noticeable alteration of the speaker’s factory frequency response.',
+      calc: (p) =>
+        `Z_out = 8 / DF = <b>${p.zOut} Ω</b><br>ΔdB = 20·log₁₀( (${p.zMax}·(${p.zMin}+${p.zOut})) / (${p.zMin}·(${p.zMax}+${p.zOut})) ) = <b>${p.deltaDb} dB</b>`,
+      zMaxSupuesto:
+        'Bass-resonance peak impedance not published: <b>25 Ω</b> is assumed, a typical reference value — a site criterion, not a measurement of this speaker.',
+      fuente:
+        '<b>Formula:</b> Z_out = 8/DF (damping factor is published referred to 8 Ω); ΔdB = 20·log₁₀(Zmax·(Zmin+Zout) / (Zmin·(Zmax+Zout))) — the voltage-divider attenuation difference between the speaker’s impedance peak and minimum. Doesn’t penalize a low damping factor by itself (avoids dismissing tube electronics without cause): it only counts the real interaction with this speaker’s impedance curve.',
     },
 
     puente: {

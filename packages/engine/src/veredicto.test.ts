@@ -6,6 +6,7 @@ import type { EntradaVeredicto } from './veredicto.ts';
 const BASE: EntradaVeredicto = {
   potencia: 'ok',
   carga: 'ok',
+  amortiguamiento: 'sin-datos', // catálogo sin DF/impedanciaMaxOhm poblados todavía — mismo estado real de hoy
   puenteStreamer: null,
   recorridoStreamer: null,
   puenteDac: null,
@@ -78,4 +79,15 @@ test('general: potencia "alert" domina sobre acople/sala "ok" — el peor eslab�
 test('general nunca es "sin-datos": potencia y sala siempre tienen valor, incluso si acopleElectrico no', () => {
   const v = calcularVeredicto({ ...BASE, carga: 'sin-datos' });
   assert.notEqual(v.general, 'sin-datos');
+});
+
+test('acopleElectrico: amortiguamiento "alert" domina aunque carga/puente/recorrido estén "ok" — el peor eslabón sigue siendo cualquiera de los 6 componentes aplicables', () => {
+  const v = calcularVeredicto({ ...BASE, amortiguamiento: 'alert' });
+  assert.equal(v.acopleElectrico, 'alert');
+  assert.equal(v.general, 'alert');
+});
+
+test('acopleElectrico: amortiguamiento "sin-datos" (catálogo sin DF poblado, estado real de hoy) no arrastra el grupo — mismo criterio que "sin-datos" en cualquier otro componente', () => {
+  const v = calcularVeredicto({ ...BASE, carga: 'warn', amortiguamiento: 'sin-datos' });
+  assert.equal(v.acopleElectrico, 'warn'); // sigue reflejando el problema real de carga, no se diluye ni se oculta
 });

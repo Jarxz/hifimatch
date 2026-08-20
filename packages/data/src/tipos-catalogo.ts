@@ -29,6 +29,8 @@ export interface ParlanteCat {
   sensibilidadDb: DatoCitado<number>; // dB/2.83V·m
   impedanciaNominalOhm: number;
   impedanciaMinOhm: number | null;
+  impedanciaMaxOhm: number | null; // pico de resonancia de graves — ver packages/engine/src/amortiguamiento.ts
+  anguloFaseGrados: number | null; // punto más exigente de graves — ver packages/engine/src/carga.ts (EPDR)
   potenciaRecMinW: number | null;
   potenciaRecMaxW: number | null;
   maxSplDb: number | null;
@@ -48,6 +50,7 @@ export interface AmplificadorCat {
   cargaMinOhm: number | null;
   sensEntradaMv: number | null;
   impedanciaEntradaOhm: number | null;
+  factorAmortiguamiento: number | null; // referido a 8 Ω — ver packages/engine/src/amortiguamiento.ts
   chipsExtra: readonly Localizado[];
   fuentes: readonly string[];
   pendiente?: Localizado;

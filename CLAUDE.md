@@ -1952,7 +1952,105 @@ desglose de 3 bandas (125 Hz Eyring, 500/2000 Hz Sabine en ese vector),
 el RT60 final y fs≈358 Hz — sin errores ni excepciones de consola.
 **278 tests totales** entre los 4 workspaces (antes 266).
 
+**Acople eléctrico: EPDR en la carga, nueva regla de amortiguamiento —
+pedido con una especificación externa que traía una fórmula de EPDR
+matemáticamente inconsistente en su propia condición de frontera.** La
+fórmula original pedida, `EPDR = R_θ / (1 + cos θ)`, da `EPDR = R/2` en
+θ=0° (carga puramente resistiva) — pero por definición, un resistor puro
+no tiene estrés reactivo que contar: su EPDR tiene que ser exactamente
+su propia resistencia. La fórmula además invertía la dirección física
+(EPDR *subía* hacia R a medida que crecía el ángulo, cuando el punto
+entero de EPDR —Otala— es mostrar que las cargas reactivas son *más*
+exigentes que su módulo, no menos). Se avisó explícitamente antes de
+tocar código; la especificación revisada trajo la fórmula corregida,
+`EPDR = |Z| / (1 + |sen θ|)`, que sí cumple `EPDR(0°) = |Z|` exacto y
+decrece monótonamente con `|θ|` — la que se implementó.
+
+`packages/engine/src/carga.ts` combina dos preguntas distintas,
+peor-de-las-dos (mismo patrón que modos+nulo de la ronda anterior): la
+reserva de corriente bruta que ya existía, y EPDR cuando hay ángulo de
+fase (real o supuesto). El catálogo casi nunca publica el ángulo de
+fase en graves — cuando falta, se asume θ=-45° para cualquier parlante
+de impedancia **nominal** ≤4 Ω (no impedancia mínima: son campos
+distintos), declarado explícitamente como supuesto conservador del
+sitio, nunca mostrado como si fuera un dato citado. Nuevos códigos
+`epdr-critico`/`epdr-ajustado` (EPDR<2,0 Ω / <3,0 Ω) — **la primera vez
+que `evaluarCarga()` puede devolver `alert`**, algo que nunca hacía
+antes: no es una regla de sala (esas sí tienen techo `warn` por
+doctrina, ver más abajo), es una regla eléctrica, con el mismo rango de
+severidad que ya tenían carga/puente/recorrido en `tipos.ts`
+(`Severidad = 'ok'|'warn'|'alert'|'sin-datos'`) — sencillamente nunca
+había un camino que llegara a `alert` hasta ahora. 9 tests nuevos:
+frontera θ=0°, ángulo real vs. supuesto, los dos umbrales, y que EPDR
+"ok" no mejora un problema real de reserva de corriente ya detectado
+(peor-de-las-dos, no promedio).
+
+**`packages/engine/src/amortiguamiento.ts` (nuevo)** — pregunta
+distinta a carga.ts: la impedancia de salida del amplificador (derivada
+del factor de amortiguamiento, `Z_out = 8/DF`) forma un divisor de
+tensión con la curva de impedancia del parlante, y ese divisor deja
+pasar más o menos tensión en el pico de resonancia de graves que en el
+mínimo — una coloración tonal real y calculable. La fórmula del divisor
+(`ΔdB = 20·log₁₀(Zmax·(Zmin+Zout) / (Zmin·(Zmax+Zout)))`) se verificó
+por álgebra: para Zmax>Zmin siempre da ΔdB>0, sin necesitar `abs()`.
+Deliberadamente **no** penaliza un factor de amortiguamiento bajo por sí
+solo (evita descartar sin motivo electrónica valvular, que puede sonar
+perfectamente bien con el parlante correcto) — sólo cuenta la
+interacción real con la curva de ESE parlante. Umbrales ΔdB≤0,3 dB
+óptimo / ≤1,5 dB con reparos / >1,5 dB crítico. `impedanciaMaxOhm`
+(pico de resonancia) usa un fallback de 25 Ω cuando el parlante no lo
+publica, declarado como tal (`zMaxEsSupuesto`) — nunca mostrado como
+dato citado. **Ninguno de los dos campos que esta regla necesita
+(`factorAmortiguamiento` del ampli, `impedanciaMaxOhm` del parlante)
+está poblado todavía en el catálogo** — ver "Falta" más abajo, ya
+señalado en una ronda anterior como el motivo por el que esta regla no
+existía aún. La regla en sí está completa y probada (13 tests): hasta
+que una ronda de catálogo futura cargue datos reales, la tarjeta
+"Amortiguamiento" se queda oculta (`sin-datos`) para todos los equipos
+del sitio — mismo patrón que cualquier otro campo del catálogo con
+cobertura parcial.
+
+`packages/engine/src/veredicto.ts` suma `amortiguamiento` como sexto
+componente del bucket "Acople eléctrico" (junto a carga, puente y
+recorrido de streamer/dac) — mismo `peorSeveridad()` de siempre.
+`resultado.ts` gana `modeloAmortiguamiento` (mismo patrón que
+`modeloCarga`: `sinDatos`/`calcHtml` opcional) y `ModeloTarjetaCarga`
+gana un `calcHtml` nuevo que muestra la fórmula de EPDR cuando se pudo
+calcular, **independiente de si terminó siendo la parte más grave del
+veredicto o no** — transparencia completa del cálculo, no sólo cuando
+"gana". Tarjeta nueva en `index.html` (`card-amortiguamiento`, entre
+Carga y Puente) con el mismo esqueleto `<details>` que el resto
+(simple/técnico/calc/aviso/fuente) y su propia entrada en la Guía del
+análisis (`info.amortiguamiento`) + botón "i". Verificado extremo a
+extremo con Chrome headless: KEF R3 Meta (nominal 4 Ω, minZ 3,2 Ω,
+sin ángulo publicado) + Cambridge Audio CXA81 da EPDR≈1,9 Ω →
+"EPDR crítico" → Acople eléctrico "Conflicto" → veredicto general
+"Configuración no recomendada" — la cadena completa de severidad
+propagándose de un cálculo nuevo hasta el titular, sin errores de
+consola. **311 tests totales** entre los 4 workspaces (antes 278).
+
+**Plano de reflexiones más grande en escritorio grande.** `.card-
+geometria` (la tarjeta de plano+modos+reverberación) se sale del ancho
+de `.wrap` (1120px, pensado para texto) en viewports ≥1300px, con la
+técnica de breakout ancho-en-vw + margen negativo (`min(94vw,1500px)`,
+recentrado con `margin-left:calc((1076px - anchoGrande)/2)`) — el resto
+de las tarjetas (texto) se queda en el ancho legible de siempre;
+verificado con Chrome headless a 1920px que los márgenes izquierdo y
+derecho quedan exactamente simétricos (210px cada uno).
+
 Falta:
+- **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
+  pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita
+  `amortiguamiento.ts` existen en el esquema (`Parlante`/`Amplificador`
+  en `tipos.ts`, `ParlanteCat`/`AmplificadorCat` en `tipos-catalogo.ts`)
+  pero están en `null` para los 35 parlantes y 34 amplificadores del
+  catálogo — ninguna ficha de fabricante consultada hasta ahora publica
+  DF referido a una carga fija de forma consistente entre marcas. Motor
+  y UI ya están listos; falta la ronda de catálogo dedicada a
+  investigar y poblar estos dos campos con fuente y confianza, igual
+  disciplina que el resto. Lo mismo para `anguloFaseGrados` (fase en
+  graves) de EPDR — casi ningún fabricante lo publica; el fallback de
+  -45° para nominal ≤4 Ω cubre el caso común mientras tanto.
 - **Fricción antes del primer resultado** (colapsar "Materiales de la
   sala" + dimensiones detrás de un `<details>` "Personalizar sala
   (opcional)", presets de sala): señalado por la misma revisión externa

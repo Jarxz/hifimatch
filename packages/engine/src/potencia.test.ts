@@ -15,6 +15,8 @@ const klipsch: Parlante = {
   impedanciaMinOhm: null,
   potenciaRecMinW: null,
   potenciaRecMaxW: 100,
+  anguloFaseGrados: null,
+  impedanciaMaxOhm: null,
 };
 
 const kef: Parlante = {
@@ -26,6 +28,8 @@ const kef: Parlante = {
   impedanciaMinOhm: 3.5,
   potenciaRecMinW: 40,
   potenciaRecMaxW: 100,
+  anguloFaseGrados: null,
+  impedanciaMaxOhm: null,
 };
 
 const cambridge: Amplificador = {
@@ -37,6 +41,7 @@ const cambridge: Amplificador = {
   cargaMinOhm: null,
   sensEntradaMv: 370,
   impedanciaEntradaOhm: 43000,
+  factorAmortiguamiento: null,
 };
 
 const rega: Amplificador = {
@@ -48,6 +53,7 @@ const rega: Amplificador = {
   cargaMinOhm: 4,
   sensEntradaMv: 210,
   impedanciaEntradaOhm: 47000,
+  factorAmortiguamiento: null,
 };
 
 test('Vector A — Klipsch + Cambridge CXA81, 2.5m, alto: margen +6,07 → Con margen', () => {
@@ -91,6 +97,7 @@ test('aviso extra: amplificador por debajo de potenciaRecMinW del parlante', () 
     cargaMinOhm: null,
     sensEntradaMv: null,
     impedanciaEntradaOhm: null,
+    factorAmortiguamiento: null,
   };
   // KEF pide desde 40W (potenciaRecMinW); este ampli da 30W < 40W.
   const r = evaluarPotencia(kef, ampSubpotente, 2.5, 'moderado');

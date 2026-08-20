@@ -4,6 +4,7 @@ import { calcularDisposicion, calcularDisposicionManual } from '../../../package
 import type { Sala, DisposicionSala, Punto } from '../../../packages/engine/src/sala.ts';
 import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
+import { evaluarAmortiguamiento } from '../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import { evaluarModos, evaluarNuloEscucha } from '../../../packages/engine/src/modos.ts';
@@ -30,6 +31,7 @@ import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
 import {
   modeloPotencia,
   modeloCarga,
+  modeloAmortiguamiento,
   modeloPuente,
   modeloRecorrido,
   modeloModos,
@@ -47,6 +49,7 @@ import {
   pintarSala,
   pintarPotencia,
   pintarCarga,
+  pintarAmortiguamiento,
   pintarGanancia,
   pintarPlano,
   pintarModos,
@@ -83,6 +86,8 @@ interface UltimoAnalisis {
   dac: ReturnType<typeof buscarFuente> | null;
   resCarga: ReturnType<typeof evaluarCarga>;
   mCarga: ReturnType<typeof modeloCarga>;
+  resAmortiguamiento: ReturnType<typeof evaluarAmortiguamiento>;
+  mAmortiguamiento: ReturnType<typeof modeloAmortiguamiento>;
   resPuenteStreamer: ResultadoPuenteImpedancias | null;
   mPuenteStreamer: ReturnType<typeof modeloPuente> | null;
   resRecorridoStreamer: ResultadoRecorridoVolumen | null;
@@ -342,6 +347,12 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
       avisoHtml: mPot.avisoHtml,
     },
     { nombre: nombreComponente.carga, verdictoClase: a.mCarga.verdictoClase, verdictoTexto: a.mCarga.verdictoTexto, avisoHtml: a.mCarga.avisoHtml },
+    {
+      nombre: t.motor.amortiguamiento.nombreCorto,
+      verdictoClase: a.mAmortiguamiento.verdictoClase,
+      verdictoTexto: a.mAmortiguamiento.verdictoTexto,
+      avisoHtml: a.mAmortiguamiento.avisoHtml,
+    },
     { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
     {
       nombre: t.motor.reverberacion.nombreCorto,
@@ -442,6 +453,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   const veredicto = calcularVeredicto({
     potencia: snap.resPot.severidad,
     carga: a.resCarga.severidad,
+    amortiguamiento: a.resAmortiguamiento.severidad,
     puenteStreamer: a.resPuenteStreamer ? a.resPuenteStreamer.severidad : null,
     recorridoStreamer: a.resRecorridoStreamer ? a.resRecorridoStreamer.severidad : null,
     puenteDac: a.resPuenteDac ? a.resPuenteDac.severidad : null,
@@ -456,6 +468,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
       {
         mPot: snap.mPot,
         mCarga: a.mCarga,
+        mAmortiguamiento: a.mAmortiguamiento,
         mPuenteStreamer: a.mPuenteStreamer,
         mRecorridoStreamer: a.mRecorridoStreamer,
         mPuenteDac: a.mPuenteDac,
@@ -497,6 +510,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
       {
         mPot: snap.mPot,
         mCarga: a.mCarga,
+        mAmortiguamiento: a.mAmortiguamiento,
         mPuenteStreamer: a.mPuenteStreamer,
         mRecorridoStreamer: a.mRecorridoStreamer,
         mPuenteDac: a.mPuenteDac,
@@ -602,6 +616,12 @@ function renderizarResultado(): void {
   const mCarga = modeloCarga(spk, amp, resCarga, idiomaActual);
   pintarCarga(mCarga);
 
+  // Igual que resCarga: no depende de la disposición de parlantes, sólo
+  // del equipo elegido — se calcula una sola vez por "Analizar".
+  const resAmortiguamiento = evaluarAmortiguamiento(parlanteM, ampM);
+  const mAmortiguamiento = modeloAmortiguamiento(resAmortiguamiento, idiomaActual);
+  pintarAmortiguamiento(mAmortiguamiento);
+
   let resPuenteStreamer: ResultadoPuenteImpedancias | null = null;
   let resRecorridoStreamer: ResultadoRecorridoVolumen | null = null;
   let mPuenteStreamer: ReturnType<typeof modeloPuente> | null = null;
@@ -674,6 +694,8 @@ function renderizarResultado(): void {
     dac,
     resCarga,
     mCarga,
+    resAmortiguamiento,
+    mAmortiguamiento,
     resPuenteStreamer,
     mPuenteStreamer,
     resRecorridoStreamer,
@@ -733,7 +755,18 @@ function cambiarIdioma(idioma: Idioma): void {
   renderizarResultado();
 }
 
-type InfoClave = 'capas' | 'confianza' | 'potencia' | 'carga' | 'ganancia' | 'modos' | 'reverberacion' | 'plano' | 'veredicto' | 'puntaje';
+type InfoClave =
+  | 'capas'
+  | 'confianza'
+  | 'potencia'
+  | 'carga'
+  | 'amortiguamiento'
+  | 'ganancia'
+  | 'modos'
+  | 'reverberacion'
+  | 'plano'
+  | 'veredicto'
+  | 'puntaje';
 
 function abrirPopup(titulo: string, cuerpoHtml: string): void {
   const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;

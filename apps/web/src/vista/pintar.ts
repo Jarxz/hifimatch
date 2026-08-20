@@ -5,6 +5,7 @@
 import type {
   ModeloTarjetaPotencia,
   ModeloTarjetaCarga,
+  ModeloTarjetaAmortiguamiento,
   ModeloTarjetaPuente,
   ModeloTarjetaRecorrido,
   ModeloTarjetaModos,
@@ -41,6 +42,21 @@ function pintarFlag(id: string, avisoHtml: string | null, esSinDatos: boolean): 
     flag.innerHTML = avisoHtml;
   } else {
     flag.className = 'flag hidden';
+  }
+}
+
+/** Caja `.calc` opcional — a diferencia de potencia/puente/recorrido
+ * (siempre tienen cálculo), carga y amortiguamiento sólo lo muestran
+ * cuando el dato de base (ángulo de fase / factor de amortiguamiento)
+ * permitió calcularlo. */
+function pintarCalcOpcional(id: string, calcHtml: string | null): void {
+  const calc = el(id);
+  if (calcHtml) {
+    calc.classList.remove('hidden');
+    calc.innerHTML = calcHtml;
+  } else {
+    calc.classList.add('hidden');
+    calc.innerHTML = '';
   }
 }
 
@@ -96,8 +112,27 @@ export function pintarCarga(m: ModeloTarjetaCarga): void {
   pintarVerdict('z-verdict', false, m.verdictoClase, m.verdictoTexto);
   el('z-simple').textContent = m.simpleHtml;
   el('z-text').innerHTML = m.textoHtml;
+  pintarCalcOpcional('z-calc', m.calcHtml);
   pintarFlag('z-flag', m.avisoHtml, false);
   el('z-src').innerHTML = m.fuenteHtml;
+}
+
+/** Igual patrón que pintarCarga: tarjeta entera oculta si falta el factor
+ * de amortiguamiento o la impedancia mínima (sin-datos, catálogo todavía
+ * sin poblar estos campos para ningún equipo). */
+export function pintarAmortiguamiento(m: ModeloTarjetaAmortiguamiento): void {
+  const card = el('card-amortiguamiento');
+  if (m.sinDatos) {
+    card.classList.add('hidden');
+    return;
+  }
+  card.classList.remove('hidden');
+  pintarVerdict('am-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('am-simple').textContent = m.simpleHtml;
+  el('am-text').innerHTML = m.textoHtml;
+  pintarCalcOpcional('am-calc', m.calcHtml);
+  pintarFlag('am-flag', m.avisoHtml, false);
+  el('am-src').innerHTML = m.fuenteHtml;
 }
 
 /**

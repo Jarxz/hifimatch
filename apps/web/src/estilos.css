@@ -298,6 +298,22 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 
 .plan-wrap{display:flex; justify-content:center; margin:6px 0 4px}
 .plan-wrap svg{width:100%; height:auto; max-width:100%}
+
+/* En escritorio grande, la tarjeta de Geometría (plano de reflexiones +
+   modos + reverberación) se sale del ancho de .wrap (1120px, pensado para
+   texto) y aprovecha más del monitor — el resto de las tarjetas (texto)
+   se queda en el ancho legible de siempre. Técnica de "breakout": ancho en
+   vw (relativo al viewport, no al padre ya acotado) + margin-left negativo
+   calculado para recentrar la caja más ancha sobre el mismo eje. */
+@media (min-width:1300px){
+  .card-geometria{
+    --ancho-normal:1076px; /* .wrap max-width 1120px menos 22px de padding a cada lado */
+    --ancho-grande:min(94vw,1500px);
+    width:var(--ancho-grande);
+    max-width:var(--ancho-grande);
+    margin-left:calc((var(--ancho-normal) - var(--ancho-grande)) / 2);
+  }
+}
 .legend{display:flex; flex-wrap:wrap; gap:14px 20px; justify-content:center; margin-top:14px; font-size:11.5px; color:var(--dim)}
 .legend span{display:inline-flex; align-items:center; gap:7px}
 .legend i{width:16px; height:0; display:inline-block}

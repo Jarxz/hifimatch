@@ -25,6 +25,8 @@ export function parlanteDelCatalogo(p: ParlanteCat, idioma: Idioma): Parlante {
     },
     impedanciaNominalOhm: p.impedanciaNominalOhm,
     impedanciaMinOhm: p.impedanciaMinOhm,
+    impedanciaMaxOhm: p.impedanciaMaxOhm,
+    anguloFaseGrados: p.anguloFaseGrados,
     potenciaRecMinW: p.potenciaRecMinW,
     potenciaRecMaxW: p.potenciaRecMaxW,
   };
@@ -50,6 +52,7 @@ export function amplificadorDelCatalogo(a: AmplificadorCat, idioma: Idioma): Amp
     cargaMinOhm: a.cargaMinOhm,
     sensEntradaMv: a.sensEntradaMv,
     impedanciaEntradaOhm: a.impedanciaEntradaOhm,
+    factorAmortiguamiento: a.factorAmortiguamiento,
   };
 }
 

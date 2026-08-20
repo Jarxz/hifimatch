@@ -14,6 +14,7 @@ import type { ResultadoPotencia } from '../../../../packages/engine/src/potencia
 import type { Genero } from '../../../../packages/engine/src/genero.ts';
 import { nivelPromedioEstimadoDb, CREST_FACTOR_DB } from '../../../../packages/engine/src/genero.ts';
 import type { ResultadoCarga } from '../../../../packages/engine/src/carga.ts';
+import type { ResultadoAmortiguamiento } from '../../../../packages/engine/src/amortiguamiento.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
 import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha } from '../../../../packages/engine/src/modos.ts';
@@ -139,6 +140,7 @@ export interface ModeloTarjetaCarga {
   verdictoTexto: string;
   simpleHtml: string;
   textoHtml: string;
+  calcHtml: string | null; // EPDR — sólo cuando hay ángulo de fase (real o supuesto) para calcularlo
   avisoHtml: string | null;
   avisoEsSinDatos: boolean;
   fuenteHtml: string;
@@ -154,6 +156,7 @@ export function modeloCarga(spk: ParlanteCat, amp: AmplificadorCat, r: Resultado
       verdictoTexto: t.motor.carga.verdicto[r.codigo],
       simpleHtml: t.motor.carga.simple[r.codigo],
       textoHtml: t.motor.carga.sinDatosTexto,
+      calcHtml: null,
       avisoHtml: t.motor.carga.sinDatosAviso,
       avisoEsSinDatos: true,
       fuenteHtml: t.motor.carga.sinDatosFuente({ nomZ: num(spk.impedanciaNominalOhm, 0, idioma) }),
@@ -165,7 +168,10 @@ export function modeloCarga(spk: ParlanteCat, amp: AmplificadorCat, r: Resultado
   let textoHtml: string;
   let avisoHtml: string | null;
 
-  if (r.severidad === 'warn') {
+  if (r.codigo === 'epdr-critico' || r.codigo === 'epdr-ajustado') {
+    textoHtml = t.motor.carga.epdrTexto({ epdr: num(r.epdrOhm as number, 1, idioma), theta: num(r.thetaGrados as number, 0, idioma) });
+    avisoHtml = t.motor.carga.warnAviso;
+  } else if (r.codigo === 'exige-corriente') {
     textoHtml = t.motor.carga.warnTexto({ minZ: minZFmt });
     avisoHtml = t.motor.carga.warnAviso;
   } else if (r.dura && r.reserva) {
@@ -183,15 +189,93 @@ export function modeloCarga(spk: ParlanteCat, amp: AmplificadorCat, r: Resultado
     avisoHtml = null;
   }
 
+  // EPDR: se muestra el cálculo cuando se pudo hacer, independiente de si
+  // terminó siendo la parte más grave del veredicto o no — transparencia
+  // completa, no sólo cuando "gana".
+  let calcHtml: string | null = null;
+  if (r.epdrOhm !== null) {
+    const thetaFmt = num(r.thetaGrados as number, 0, idioma);
+    calcHtml =
+      t.motor.carga.epdrCalc({ minZ: minZFmt, theta: thetaFmt, epdr: num(r.epdrOhm, 1, idioma) }) +
+      '<br>' +
+      (r.thetaEsSupuesto ? t.motor.carga.epdrSupuesto : t.motor.carga.epdrFuente);
+  }
+
   return {
     sinDatos: false,
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.carga.verdicto[r.codigo],
     simpleHtml: t.motor.carga.simple[r.codigo],
     textoHtml,
+    calcHtml,
     avisoHtml,
     avisoEsSinDatos: false,
     fuenteHtml: t.motor.carga.fuente({ nomZ: num(spk.impedanciaNominalOhm, 0, idioma), minZ: minZFmt }),
+  };
+}
+
+export interface ModeloTarjetaAmortiguamiento {
+  sinDatos: boolean;
+  verdictoClase: ClaseVerdicto;
+  verdictoTexto: string;
+  simpleHtml: string;
+  textoHtml: string;
+  calcHtml: string | null;
+  avisoHtml: string | null;
+  avisoEsSinDatos: boolean;
+  fuenteHtml: string;
+}
+
+export function modeloAmortiguamiento(r: ResultadoAmortiguamiento, idioma: Idioma): ModeloTarjetaAmortiguamiento {
+  const t = textosDe(idioma);
+
+  if (r.severidad === 'sin-datos') {
+    return {
+      sinDatos: true,
+      verdictoClase: 'dim',
+      verdictoTexto: t.motor.amortiguamiento.verdicto[r.codigo],
+      simpleHtml: t.motor.amortiguamiento.simple[r.codigo],
+      textoHtml: t.motor.amortiguamiento.sinDatosTexto,
+      calcHtml: null,
+      avisoHtml: t.motor.amortiguamiento.sinDatosAviso,
+      avisoEsSinDatos: true,
+      fuenteHtml: t.motor.amortiguamiento.fuente,
+    };
+  }
+
+  const zOutFmt = num(r.zOutOhm as number, 2, idioma);
+  const zMinFmt = num(r.zMinOhm as number, 1, idioma);
+  const deltaDbFmt = num(r.deltaDb as number, 2, idioma);
+
+  const textoHtml = t.motor.amortiguamiento.texto({ deltaDb: deltaDbFmt, zOut: zOutFmt });
+
+  let avisoHtml: string | null = null;
+  if (r.codigo === 'con-reparos') {
+    avisoHtml = t.motor.amortiguamiento.avisoConReparos({ deltaDb: deltaDbFmt });
+  } else if (r.codigo === 'critico') {
+    avisoHtml = t.motor.amortiguamiento.avisoCritico;
+  }
+  if (r.zMaxEsSupuesto) {
+    avisoHtml = avisoHtml ? avisoHtml + '<br>' + t.motor.amortiguamiento.zMaxSupuesto : t.motor.amortiguamiento.zMaxSupuesto;
+  }
+
+  const calcHtml = t.motor.amortiguamiento.calc({
+    zOut: zOutFmt,
+    zMin: zMinFmt,
+    zMax: num(r.zMaxOhm as number, 1, idioma),
+    deltaDb: deltaDbFmt,
+  });
+
+  return {
+    sinDatos: false,
+    verdictoClase: r.severidad,
+    verdictoTexto: t.motor.amortiguamiento.verdicto[r.codigo],
+    simpleHtml: t.motor.amortiguamiento.simple[r.codigo],
+    textoHtml,
+    calcHtml,
+    avisoHtml,
+    avisoEsSinDatos: false,
+    fuenteHtml: t.motor.amortiguamiento.fuente,
   };
 }
 
@@ -688,6 +772,7 @@ export interface ModeloVeredicto {
 interface EntradasEstadoGrupo {
   mPot: ModeloTarjetaPotencia;
   mCarga: ModeloTarjetaCarga;
+  mAmortiguamiento: ModeloTarjetaAmortiguamiento;
   mPuenteStreamer: ModeloTarjetaPuente | null;
   mRecorridoStreamer: ModeloTarjetaRecorrido | null;
   mPuenteDac: ModeloTarjetaPuente | null;
@@ -737,7 +822,7 @@ export function modeloVeredicto(v: ResultadoVeredicto, e: EntradasEstadoGrupo, i
     v.general === 'alert' ? t.subtextoAlert({ grupos: gruposTexto }) : v.general === 'warn' ? t.subtextoWarn({ grupos: gruposTexto }) : t.subtextoOk;
 
   const peorPotencia = e.mPot; // potencia siempre tiene un único componente, es directo
-  const peorAcople = peorEntre([e.mCarga, e.mPuenteStreamer, e.mRecorridoStreamer, e.mPuenteDac, e.mRecorridoDac]);
+  const peorAcople = peorEntre([e.mCarga, e.mAmortiguamiento, e.mPuenteStreamer, e.mRecorridoStreamer, e.mPuenteDac, e.mRecorridoDac]);
   const peorSala = peorEntre([e.mModos, e.mReverb]);
 
   const estadoAcopleTexto = v.acopleElectrico === 'sin-datos' ? t.estadoAcopleSinDatos : t.estadoAcople[v.acopleElectrico];
@@ -791,6 +876,7 @@ export interface ModeloDocumento {
 export interface DatosSeccionesDocumento {
   mPot: ModeloTarjetaPotencia;
   mCarga: ModeloTarjetaCarga;
+  mAmortiguamiento: ModeloTarjetaAmortiguamiento;
   mPuenteStreamer: ModeloTarjetaPuente | null;
   mRecorridoStreamer: ModeloTarjetaRecorrido | null;
   mPuenteDac: ModeloTarjetaPuente | null;
@@ -928,8 +1014,25 @@ export function modeloDocumento(
         titulo: tm.carga.titulo,
         simpleHtml: datos.mCarga.simpleHtml,
         textoHtml: datos.mCarga.textoHtml,
+        calcHtml: datos.mCarga.calcHtml ?? undefined,
         avisoHtml: datos.mCarga.avisoHtml,
         fuenteHtml: datos.mCarga.fuenteHtml,
+      })
+    );
+  }
+
+  if (!datos.mAmortiguamiento.sinDatos) {
+    secciones.push(
+      seccionDocumento({
+        capa: t.capaFisica,
+        verdictoClase: datos.mAmortiguamiento.verdictoClase,
+        verdictoTexto: datos.mAmortiguamiento.verdictoTexto,
+        titulo: tm.amortiguamiento.titulo,
+        simpleHtml: datos.mAmortiguamiento.simpleHtml,
+        textoHtml: datos.mAmortiguamiento.textoHtml,
+        calcHtml: datos.mAmortiguamiento.calcHtml ?? undefined,
+        avisoHtml: datos.mAmortiguamiento.avisoHtml,
+        fuenteHtml: datos.mAmortiguamiento.fuenteHtml,
       })
     );
   }

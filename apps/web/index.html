@@ -18,7 +18,7 @@
       </div>
     </div>
     <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
-    <div class="version-splash" data-i18n="splash.version">V9.08.26</div>
+    <div class="version-splash" data-i18n="splash.version">V10.08.26</div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
         <div class="mark" aria-hidden="true">
@@ -291,8 +291,22 @@
         <p id="z-text">—</p>
         <details class="detalle">
           <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+          <div class="calc hidden" id="z-calc"></div>
           <div class="flag hidden" id="z-flag"></div>
           <div class="src" id="z-src"></div>
+        </details>
+      </div>
+
+      <div class="card" id="card-amortiguamiento">
+        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="am-verdict">—</span><button type="button" class="infobtn" data-info="amortiguamiento" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
+        <h3 data-i18n="motor.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</h3>
+        <p class="simple" id="am-simple">—</p>
+        <p id="am-text">—</p>
+        <details class="detalle">
+          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+          <div class="calc hidden" id="am-calc"></div>
+          <div class="flag hidden" id="am-flag"></div>
+          <div class="src" id="am-src"></div>
         </details>
       </div>
 
@@ -353,7 +367,7 @@
       </div>
     </details>
 
-    <div class="card">
+    <div class="card card-geometria">
       <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" style="color:var(--dim)" data-i18n="resultado.disposicionReferencia">Disposición de referencia</span><button type="button" class="infobtn" data-info="plano" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
       <h3 data-i18n="resultado.plano.titulo">Plano, escucha y reflexiones</h3>
       <p data-i18n="resultado.plano.texto">Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
@@ -450,6 +464,7 @@
     <details class="card info-item"><summary><h3 data-i18n="info.confianza.titulo">—</h3></summary><p data-i18n-html="info.confianza.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.potencia.titulo">—</h3></summary><p data-i18n-html="info.potencia.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.carga.titulo">—</h3></summary><p data-i18n-html="info.carga.cuerpoHtml">—</p></details>
+    <details class="card info-item"><summary><h3 data-i18n="info.amortiguamiento.titulo">—</h3></summary><p data-i18n-html="info.amortiguamiento.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.ganancia.titulo">—</h3></summary><p data-i18n-html="info.ganancia.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.modos.titulo">—</h3></summary><p data-i18n-html="info.modos.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.reverberacion.titulo">—</h3></summary><p data-i18n-html="info.reverberacion.cuerpoHtml">—</p></details>
