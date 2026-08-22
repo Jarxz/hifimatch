@@ -43,11 +43,13 @@ export const en: Textos = {
 
   splash: {
     entrarAria: 'Enter the compatibility analysis',
-    subtitulo: 'hi-fi compatibility analysis',
+    subtitulo: 'hi-fi compatibility analysis · based on physics',
+    remate: 'you listen and decide',
     cta: 'Analyze a system',
-    pie: 'based on physics · measured specs',
-    cierreHtml: '<b>The Hifi Match</b> gives you the information.<br>You listen and decide.',
-    version: 'V17.08.26',
+    proofReglas: 'physical rules, each with a declared formula and threshold',
+    proofEquipos: 'curated pieces of gear, each spec sourced and confidence-rated',
+    proofAnalisis: 'analysis built on verified data',
+    version: 'V18.08.26',
   },
 
   info: {
@@ -138,6 +140,8 @@ export const en: Textos = {
     verDescripcion: 'View description',
     notaGenerico:
       "Generic profile (archetype): a reference physical approximation, not a real product or a measurement. Best used only when the real equipment isn't in the catalog.",
+    personalizarSala: 'Customize the room',
+    resumenSala: (p) => `${p.ancho} × ${p.largo} × ${p.alto} m · ${p.muro} + ${p.piso}`,
     dimensionesTitulo: 'Room dimensions',
     ancho: 'Width (front)',
     largo: 'Length (depth)',

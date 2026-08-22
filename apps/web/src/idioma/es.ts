@@ -80,15 +80,17 @@ export const es = {
 
   splash: {
     entrarAria: 'Entrar al análisis de compatibilidad',
-    subtitulo: 'análisis de compatibilidad hi-fi',
+    subtitulo: 'análisis de compatibilidad hi-fi · basado en física',
+    remate: 'tú escuchas y decides',
     cta: 'Analizar un sistema',
-    pie: 'basado en física · specs medidos',
-    cierreHtml: '<b>The Hifi Match</b> te da la información.<br>Tú escuchas y decides.',
+    proofReglas: 'reglas físicas, cada una con fórmula y umbral declarado',
+    proofEquipos: 'equipos curados, con fuente y confianza por dato',
+    proofAnalisis: 'análisis con datos comprobados',
     // Marca de versión, no texto de producto traducible — mismo valor en
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
-    version: 'V17.08.26',
+    version: 'V18.08.26',
   },
 
   info: {
@@ -179,6 +181,9 @@ export const es = {
     verDescripcion: 'Ver descripción',
     notaGenerico:
       'Perfil genérico (arquetipo): una aproximación física de referencia, no un producto real ni una medición. Conviene elegirlo sólo cuando el equipo real no aparece en el catálogo.',
+    personalizarSala: 'Personalizar sala',
+    resumenSala: (p: { ancho: string; largo: string; alto: string; muro: string; piso: string }): string =>
+      `${p.ancho} × ${p.largo} × ${p.alto} m · ${p.muro} + ${p.piso}`,
     dimensionesTitulo: 'Dimensiones de la sala',
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',

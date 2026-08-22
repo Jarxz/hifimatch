@@ -11,3 +11,6 @@ apps/web/dist/
 .env
 .env.local
 .env*.local
+
+# Maquetas de diseño locales — exploración visual, nunca se commitea ni se despliega.
+/mockup-rediseno/

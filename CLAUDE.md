@@ -2392,6 +2392,104 @@ sin ningún rastro de "puntaje" en el DOM (`document.getElementById
 "Configuración soportada, con límites" en `#doc-veredicto-titulo` con
 la clase de color correcta — sin errores de consola en ningún caso.
 
+**Rediseño de portada, "Personalizar sala" colapsado y transición con
+deslizamiento — portado desde una maqueta local de diseño
+(`mockup-rediseno/`, nunca commiteada, en `.gitignore`), no diseñado
+desde cero.** El usuario pidió una revisión de diseñador senior sobre
+el sitio completo; el resultado fue una maqueta standalone de 3
+páginas HTML iterada en varias rondas de feedback, y luego la
+instrucción de aplicar lo aprobado al sitio real. El puerto se hizo
+pieza por pieza, verificando primero cuánto de la maqueta ya coincidía
+con el sitio real antes de tocar código — bastante, como queda abajo.
+
+**Portada:** `.subm` ("análisis de compatibilidad hi-fi") se fusiona
+con el antiguo `.foot` ("basado en física · specs medidos") en una
+sola línea arriba del logo; abajo, una línea nueva `.remate` ("TÚ
+ESCUCHAS Y DECIDES", mayúsculas por CSS, no en el texto del
+diccionario) reemplaza el `.cierre` de dos frases — la primera
+("The Hifi Match te da la información") se descarta, la segunda queda
+sola y más corta. `splash.pie`/`splash.cierreHtml` se borran de
+`es.ts`/`en.ts` (y de `idioma.test.ts`) por quedar sin uso. Debajo del
+botón "Analizar un sistema", una fila nueva de 3 cifras (`.proof`) con
+contador rápido desde 0 al cargar (`iniciarContadorProof()` en
+`main.ts`, `requestAnimationFrame` + easing de salida, arranca ~1,1s
+después de cargar para no competir con la animación del logo; respeta
+`prefers-reduced-motion` yendo directo al valor final). **Las cifras de
+la maqueta (9 reglas, 160+ equipos) eran inventadas** — se verificaron
+antes de escribirlas: `export function evaluar*` en
+`packages/engine/src/*.ts` da exactamente **8** (potencia, carga,
+amortiguamiento, puente de impedancias, recorrido de volumen, modos,
+nulo de escucha, reverberación); `catalogo.test.ts` confirma **138**
+equipos reales (35 parlantes + 34 amplificadores + 3 y 3 "Genérico
+(Arquetipo)" + 30 streamers + 30 dacs + 3 cables). Se muestra "130+" en
+vez de "138" a propósito: una cifra redondeada hacia abajo se mantiene
+cierta aunque el catálogo siga creciendo, sin exigir tocar la portada
+en cada ronda de catálogo futura — mismo criterio de no prometer un
+número que se pueda desactualizar solo.
+
+**Tarjeta de veredicto: sin cambios.** La maqueta pedía "menos
+naranjo / sin difuminado / sin punto en el badge / título en gris" —
+los cuatro ya eran ciertos en el sitio real antes de este puerto
+(`--warn` ya venía atenuado, `.veredicto-card` nunca tuvo gradiente,
+`.layer` nunca tuvo un punto y ya es `--faint`) — ese feedback había
+sido sobre la propia maqueta, construida desde cero con sus propios
+defaults, no sobre una regresión del sitio real. Deliberadamente **no**
+se tocó el color por severidad de `.vd-titulo`
+(`.veredicto-warn .vd-titulo{color:var(--warn)}` etc.) pese a la
+ambigüedad del pedido original sobre la maqueta ("a ese mismo título
+dejalo en gris") — es una decisión ya tomada y documentada en la ronda
+del veredicto ("tono visual", más arriba), y nada en los mensajes de
+esta ronda la nombra directamente: se prefirió no deshacer una decisión
+de diseño explícita sin una instrucción clara sobre el sitio real.
+
+**Configurar en dos pasos.** "Define la cadena" pasa a vivir dentro de
+una caja (`.cfg-lead-box`, mismo padding vertical de 6px que ya
+estandariza el resto de tarjetas del sitio) en vez de flotar suelto —
+pedido explícito ("debería estar en un cuadro similar a la otra página
+de resultados"). Parlante/amplificador (requeridos) y streamer/DAC
+(opcionales) se quedan exactamente como estaban, siempre visibles.
+"Dimensiones de la sala" + "Materiales de la sala" + nivel + género —
+todo lo que ya tenía un default razonable y nunca bloqueaba "Analizar"
+— pasa a vivir detrás de un `<details class="room-toggle">` colapsado
+por defecto ("Personalizar sala · opcional"), con un resumen de una
+línea (`#room-summary-desc`, `config.resumenSala`) sincronizado en vivo
+con cada cambio de dimensión/material y con el idioma
+(`actualizarResumenSala()`, llamada desde
+`setDim`/`setMuroFrontal`/`setPiso`/`cambiarIdioma`/`main()`) — nunca
+queda desactualizado ni en blanco. Debajo de 640px el resumen se oculta
+(sólo queda "Personalizar sala · opcional") para no desbordar. Resuelve
+la mitad del punto de fricción que la revisión externa de UX había
+dejado señalado y explícitamente diferido (la otra mitad, presets de
+sala, sigue sin diseñar — se retira igual de "Falta" por no haber
+quedado nunca como un ítem propio, sólo una mención de paso).
+
+**Transición entre pantallas: deslizamiento en vez de sólo fundido.**
+`vista/pantallas.ts` ya envolvía cada cambio de pantalla en
+`document.startViewTransition()`; sólo le faltaban keyframes propios —
+sin ellos, el navegador usa el fundido cruzado por defecto. Dos
+keyframes nuevos (`pantalla-sale`/`pantalla-entra`, translateY ±3,5% +
+opacity, misma curva `cubic-bezier(.22,.61,.36,1)` que ya usa el resto
+del sitio) reemplazan la regla genérica de duración/timing que había
+antes — cero cambios en `pantallas.ts`, es puramente CSS sobre los
+mismos pseudo-elementos `::view-transition-old(root)`/
+`::view-transition-new(root)` que ya existían. Verificado con Chrome
+headless leyendo `document.getAnimations()` ~120ms después de un click:
+a diferencia de la transición cross-document que la maqueta no pudo
+verificar en este mismo entorno (limitación ya documentada en una ronda
+anterior), la transición same-document del sitio real sí es
+observable — las animaciones `pantalla-sale`/`pantalla-entra` aparecen
+corriendo de verdad, no sólo declaradas en CSS.
+
+Verificado extremo a extremo con Chrome headless (`file://` sobre el
+build real): portada con las tres cifras contando hasta su valor final,
+configurar colapsado y expandido con el resumen sincronizándose al
+mover un slider, elección de equipo real vía los selects marca→modelo
+ya poblados, "Analizar" hasta el resultado con la tarjeta de veredicto
+intacta, y las mismas pantallas a 390px de ancho — sin errores de
+consola en ningún paso. 311 tests sin cambios (esta ronda no tocó el
+motor ni agregó lógica testeable nueva, sólo estructura/copy/CSS de
+`apps/web`).
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita
@@ -2408,13 +2506,12 @@ Falta:
   resto. Lo mismo para `anguloFaseGrados` (fase en graves) de EPDR —
   casi ningún fabricante lo publica; el fallback de -45° para nominal
   ≤4 Ω cubre el caso común mientras tanto.
-- **Fricción antes del primer resultado** (colapsar "Materiales de la
-  sala" + dimensiones detrás de un `<details>` "Personalizar sala
-  (opcional)", presets de sala): señalado por la misma revisión externa
-  que disparó el veredicto, explícitamente no implementado esta ronda —
-  el gating real de "Analizar" (sólo pide parlante + amplificador) ya es
-  correcto, esto es puramente jerarquía visual en la pantalla de
-  configurar.
+- **Presets de sala** ("living con placa yeso, piso flotante, un
+  ventanal"): la otra mitad del punto de fricción de la revisión
+  externa de UX, la que este puerto no tocó (el colapso detrás de
+  `<details>` sí se implementó — ver más arriba). Falta definir qué
+  presets existen, a qué combinación de los 6 materiales + qué supuesto
+  de dimensiones mapea cada uno, y dónde vive esa data.
 - **Componente fuera de catálogo → especificar specs a mano** (en vez
   de un callejón sin salida al formulario de contacto): los 6 perfiles
   "Genérico (Arquetipo)" (ver más arriba) cubren una parte de esto —

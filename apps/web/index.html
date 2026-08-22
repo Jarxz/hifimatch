@@ -18,9 +18,10 @@
       </div>
     </div>
     <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
-    <div class="version-splash" data-i18n="splash.version">V17.08.26</div>
+    <div class="version-splash" data-i18n="splash.version">V18.08.26</div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
+        <div class="subm" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</div>
         <div class="mark" aria-hidden="true">
           <b class="the">THE</b>
           <span class="hm-wrap">
@@ -29,10 +30,22 @@
           </span>
         </div>
         <div class="ticks" id="splash-ticks" aria-hidden="true"></div>
-        <div class="subm" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi</div>
+        <div class="remate" data-i18n="splash.remate">tú escuchas y decides</div>
         <div class="cta"><span data-i18n="splash.cta">Analizar un sistema</span> <span aria-hidden="true">→</span></div>
-        <div class="foot" data-i18n="splash.pie">basado en física · specs medidos</div>
-        <div class="cierre" data-i18n-html="splash.cierreHtml"><b>The Hifi Match</b> te da la información.<br>Tú escuchas y decides.</div>
+        <div class="proof">
+          <div class="proof-item">
+            <div class="proof-num" data-count-to="8">0</div>
+            <div class="proof-label" data-i18n="splash.proofReglas">reglas físicas, cada una con fórmula y umbral declarado</div>
+          </div>
+          <div class="proof-item">
+            <div class="proof-num" data-count-to="130+">0</div>
+            <div class="proof-label" data-i18n="splash.proofEquipos">equipos curados, con fuente y confianza por dato</div>
+          </div>
+          <div class="proof-item">
+            <div class="proof-num" data-count-to="100%">0</div>
+            <div class="proof-label" data-i18n="splash.proofAnalisis">análisis con datos comprobados</div>
+          </div>
+        </div>
       </button>
     </div>
   </div>
@@ -55,8 +68,10 @@
       </div>
     </div>
 
-    <h1 class="lead" data-i18n="config.lead">Define la cadena</h1>
-    <p class="lead-note" data-i18n="config.leadNote">Elige un amplificador y un par de parlantes, y dale las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
+    <div class="cfg-lead-box">
+      <h1 class="lead" data-i18n="config.lead">Define la cadena</h1>
+      <p class="lead-note" data-i18n="config.leadNote">Elige un amplificador y un par de parlantes, y dale las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
+    </div>
 
     <div class="split">
       <div class="picker">
@@ -96,7 +111,13 @@
       </div>
     </div>
 
-    <div class="room">
+    <details class="room-toggle" id="room-toggle">
+      <summary class="room-summary">
+        <span class="room-summary-title" data-i18n="config.personalizarSala">Personalizar sala</span>
+        <span class="room-summary-desc" id="room-summary-desc">—</span>
+        <span class="req" data-i18n="config.opcionalFuente">opcional</span>
+      </summary>
+      <div class="room">
       <h3 data-i18n="config.dimensionesTitulo">Dimensiones de la sala</h3>
       <div class="dims">
         <div class="dim">
@@ -198,7 +219,8 @@
         <span class="rl" data-i18n="config.distanciaResultante">Distancia de escucha resultante</span>
         <div class="derived">≈ <b id="v-dist">—</b> · <span data-i18n="config.volumenPrefix">volumen</span> <b id="v-vol">—</b></div>
       </div>
-    </div>
+      </div>
+    </details>
 
     <div class="soon">
       <span class="st" data-i18n="config.proximamente">Próximamente</span>

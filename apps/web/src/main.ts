@@ -242,6 +242,7 @@ function setMarca(kind: 'spk' | 'amp' | 'streamer' | 'dac', marca: string): void
 function setDim(dim: 'W' | 'L' | 'H', valor: number): void {
   estado[dim] = valor;
   actualizarTextosDimension();
+  actualizarResumenSala();
   refrescar();
 }
 
@@ -258,6 +259,7 @@ function setNivel(lvl: NivelUI): void {
 // el manejo de aria-pressed que sí necesitan los grupos de botones .segs.
 function setMuroFrontal(muro: MaterialMuro): void {
   estado.muroFrontal = muro;
+  actualizarResumenSala();
 }
 function setMuroPosterior(muro: MaterialMuro): void {
   estado.muroPosterior = muro;
@@ -270,6 +272,7 @@ function setMuroDerecho(muro: MaterialMuro): void {
 }
 function setPiso(piso: MaterialPiso): void {
   estado.piso = piso;
+  actualizarResumenSala();
 }
 function setTecho(techo: MaterialTecho): void {
   estado.techo = techo;
@@ -723,6 +726,7 @@ function cambiarIdioma(idioma: Idioma): void {
   guardarIdioma(idioma);
   aplicarCromoEstatico(idioma);
   actualizarTextosDimension();
+  actualizarResumenSala();
 
   (['spk', 'amp', 'streamer', 'dac'] as const).forEach((kind) => {
     const valor = estado[kind];
@@ -874,13 +878,69 @@ async function enviarContacto(e: SubmitEvent): Promise<void> {
 
 function inicializarSplash(): void {
   const ticks = document.getElementById('splash-ticks');
-  if (!ticks) return;
-  const alturas = [8, 12, 8, 16, 8, 12, 8, 22, 8, 12, 8, 16, 8, 12, 8];
-  for (const h of alturas) {
-    const i = document.createElement('i');
-    i.style.height = h + 'px';
-    ticks.appendChild(i);
+  if (ticks) {
+    const alturas = [8, 12, 8, 16, 8, 12, 8, 22, 8, 12, 8, 16, 8, 12, 8];
+    for (const h of alturas) {
+      const i = document.createElement('i');
+      i.style.height = h + 'px';
+      ticks.appendChild(i);
+    }
   }
+  iniciarContadorProof();
+}
+
+/** Cuenta rápido de 0 al valor final de cada `.proof-num` — el sufijo ("+",
+ * "%") vive en el propio `data-count-to` y se conserva tal cual, nunca se
+ * cuenta. Arranca ~1,1s después de cargar, el mismo momento en que asienta
+ * la animación del logo (`.the`/`.hm-base`, ver estilos.css) y en que
+ * `.proof` termina su propio fundido — se lee como un solo gesto, no dos
+ * animaciones sueltas. Con prefers-reduced-motion va directo al valor
+ * final, sin conteo (mismo criterio que el resto de las animaciones del
+ * sitio). */
+function iniciarContadorProof(): void {
+  const numeros = document.querySelectorAll<HTMLElement>('.proof-num[data-count-to]');
+  if (!numeros.length) return;
+  const reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducido) {
+    numeros.forEach((el) => {
+      el.textContent = el.dataset.countTo ?? '';
+    });
+    return;
+  }
+  const contar = (el: HTMLElement): void => {
+    const m = (el.dataset.countTo ?? '').match(/^(\d+)(.*)$/);
+    if (!m) return;
+    const destino = parseInt(m[1]!, 10);
+    const sufijo = m[2] ?? '';
+    const inicio = performance.now();
+    const duracionMs = 900;
+    const easeOutQuart = (t: number): number => 1 - Math.pow(1 - t, 4);
+    const frame = (ahora: number): void => {
+      const t = Math.min(1, (ahora - inicio) / duracionMs);
+      el.textContent = Math.round(destino * easeOutQuart(t)) + sufijo;
+      if (t < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  };
+  setTimeout(() => numeros.forEach(contar), 1100);
+}
+
+/** Resumen de una línea que muestra `<details class="room-toggle">` cuando
+ * está colapsado ("Personalizar sala"): dimensiones + muro frontal + piso —
+ * suficiente para confirmar que hay un default razonable sin tener que
+ * abrirlo. Se llama en cada cambio de dimensión/material y de idioma
+ * (los nombres de material están traducidos). */
+function actualizarResumenSala(): void {
+  const t = textosDe(idiomaActual).config;
+  const el = document.getElementById('room-summary-desc');
+  if (!el) return;
+  el.textContent = t.resumenSala({
+    ancho: num(estado.W, 1, idiomaActual),
+    largo: num(estado.L, 1, idiomaActual),
+    alto: num(estado.H, 2, idiomaActual),
+    muro: t.materiales[estado.muroFrontal],
+    piso: t.materiales[estado.piso],
+  });
 }
 
 function wireEventos(): void {
@@ -997,6 +1057,7 @@ function main(): void {
   if (escala) construirEscala(escala);
 
   actualizarTextosDimension();
+  actualizarResumenSala();
   refrescar();
 
   // Único hook de devtools del sitio: "Documento" (#s-documento) queda
