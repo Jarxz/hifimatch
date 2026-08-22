@@ -2521,6 +2521,24 @@ llenar el espacio vacío alrededor del bloque central, algo que sólo
 sobra en pantallas anchas — en mobile el contenido ya ocupa todo el
 ancho. 311 tests sin cambios (decoración pura, sin lógica testeable).
 
+**Logo de portada más grande/pesado, y los 3 contadores nunca se
+apilan.** Dos ajustes puntuales sobre el puerto de la maqueta, pedidos
+tras verla lado a lado con el sitio real. `.mark` pasa de `34px`/peso
+600 fijos a `clamp(32px, 6.5vw, 60px)`/peso 800 — clamp propio, no el
+`clamp(26px,5.8vw,72px)` literal de la maqueta: ese piso quedaba más
+chico que el tamaño anterior en teléfono, una regresión que la maqueta
+no tenía que evitar porque nunca compartió breakpoints con el sitio
+real. Las animaciones de entrada (`the-in`/`hm-in`) suman
+`filter:blur()` + `scale()` al fundido/deslizamiento que ya tenían
+(mismo espíritu que el "rise"/"riseSlide" de la maqueta: se asienta,
+no llega de golpe), con radios más chicos porque acá el bloque es más
+compacto. `.splash .proof` pasa de `flex-wrap:wrap` (se apilaba
+verticalmente bajo cierto ancho) a `nowrap` siempre, con una segunda
+capa bajo 640px (`gap`/`font-size` más chicos, `flex:1 1 0` por ítem en
+vez de `max-width` fijo) para que los 3 números quepan en una sola
+fila incluso en teléfono — pedido explícito, verificado hasta 360px de
+ancho sin overflow. 311 tests sin cambios (puramente CSS).
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita

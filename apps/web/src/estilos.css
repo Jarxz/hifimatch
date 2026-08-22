@@ -45,17 +45,26 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .splash{min-height:88vh; display:grid; place-items:center; text-align:center; position:relative; z-index:1}
 .enter{background:transparent; border:0; cursor:pointer; color:inherit; font:inherit; display:inline-block; padding:8px}
 .enter:focus-visible{outline:2px solid var(--line2); outline-offset:8px}
-.mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .16em; font-weight:300; font-size:34px; color:var(--text)}
-.mark b{font-weight:600}
-.mark .the{color:var(--dorado); opacity:0; animation:the-in .45s ease forwards}
+/* Tamaño y peso subidos para acercarse a la maqueta (font-size fijo de
+   34px/peso 600 → clamp responsivo hasta 60px/peso 800) — clamp en vez del
+   clamp(26px,5.8vw,72px) literal de la maqueta: ese piso quedaba MÁS chico
+   que el tamaño anterior en teléfono (26px < 34px), una regresión que la
+   maqueta nunca tuvo que evitar porque no comparte breakpoints con el
+   sitio real. */
+.mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .16em; font-weight:300; font-size:clamp(32px, 6.5vw, 60px); color:var(--text)}
+.mark b{font-weight:800}
+.mark .the{color:var(--dorado); opacity:0; animation:the-in .9s cubic-bezier(.16,.9,.3,1) forwards}
 .hm-wrap{position:relative; display:inline-flex}
 .hm-base, .hm-fill{display:inline-flex; align-items:baseline; gap:.16em}
 .hm-base .mword, .hm-fill .mword{display:inline-flex; gap:.05em}
-.hm-base{opacity:0; transform:translateX(-22px); animation:hm-in .6s cubic-bezier(.22,.61,.36,1) .5s forwards}
+.hm-base{opacity:0; transform:translateX(-22px); animation:hm-in 1s cubic-bezier(.16,.9,.3,1) .5s forwards}
 .hm-fill{position:absolute; left:0; top:0; color:var(--dorado); clip-path:inset(0 100% 0 0); transition:clip-path .5s cubic-bezier(.22,.61,.36,1); pointer-events:none}
 .enter:hover .hm-fill{clip-path:inset(0 0% 0 0)}
-@keyframes the-in{ from{opacity:0} to{opacity:1} }
-@keyframes hm-in{ from{opacity:0; transform:translateX(-22px)} to{opacity:1; transform:translateX(0)} }
+/* Fundido con leve desenfoque + escala ("se asienta", no "llega de golpe")
+   — mismo espíritu que la maqueta (rise/riseSlide), radios más chicos
+   porque acá el bloque es más compacto. */
+@keyframes the-in{ from{opacity:0; transform:translateY(14px) scale(.98); filter:blur(4px)} to{opacity:1; transform:translateY(0) scale(1); filter:blur(0)} }
+@keyframes hm-in{ from{opacity:0; transform:translateX(-22px) scale(.98); filter:blur(4px)} to{opacity:1; transform:translateX(0) scale(1); filter:blur(0)} }
 @media (prefers-reduced-motion:reduce){
   .mark .the{animation:none; opacity:1}
   .hm-base{animation:none; opacity:1; transform:none}
@@ -77,10 +86,21 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    frases: 3 números (reglas del motor / equipos del catálogo / % con datos
    comprobados) que cuentan rápido desde 0 al cargar (ver iniciarContadorProof
    en main.ts), sincronizados con el mismo delay que esta propia aparición. */
-.splash .proof{margin-top:48px; display:flex; justify-content:center; gap:40px; flex-wrap:wrap; opacity:0; animation:proof-in .6s cubic-bezier(.22,.61,.36,1) 1.1s forwards}
-.proof-item{max-width:170px}
-.proof-num{font-family:var(--mono); font-size:26px; font-weight:600; color:var(--dorado)}
+.splash .proof{margin-top:48px; display:flex; justify-content:center; gap:40px; flex-wrap:nowrap; opacity:0; animation:proof-in .6s cubic-bezier(.22,.61,.36,1) 1.1s forwards}
+.proof-item{max-width:170px; min-width:0}
+.proof-num{font-family:var(--mono); font-size:26px; font-weight:600; color:var(--dorado); white-space:nowrap}
 .proof-label{color:var(--faint); font-size:11px; line-height:1.5; margin-top:6px}
+/* Los 3 números se quedan en una sola línea horizontal también en teléfono
+   y tablet (pedido explícito) — nunca se apilan verticalmente. flex:1 en
+   vez de max-width fijo: cada tercio se reparte el ancho real disponible;
+   min-width:0 evita el mínimo intrínseco por defecto de un flex item, que
+   si no se declara puede impedir que el texto se achique/envuelva. */
+@media (max-width:640px){
+  .splash .proof{gap:10px}
+  .proof-item{max-width:none; min-width:0; flex:1 1 0}
+  .proof-num{font-size:18px}
+  .proof-label{font-size:9px; line-height:1.35}
+}
 @keyframes proof-in{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
 
 /* IDIOMA */
