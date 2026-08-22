@@ -876,6 +876,54 @@ async function enviarContacto(e: SubmitEvent): Promise<void> {
   }
 }
 
+/** Fórmula de proyección isométrica 30° — misma que usa `vista/plano.ts`
+ * para el plano de reflexiones real (`sx=(x−y)·cos30, sy=(x+y)·sin30−z`).
+ * Reimplementada localmente (no importada) a propósito: acá es puramente
+ * decorativa, con proporciones arbitrarias que no representan ninguna sala
+ * real, así que acoplarla a la API de `plano.ts` (pensada para `Sala`/
+ * `DisposicionSala`) sería una dependencia falsa — el motivo visual es el
+ * mismo, no los datos. */
+const AMBIENTE_COS30 = Math.sqrt(3) / 2;
+const AMBIENTE_SIN30 = 0.5;
+
+function cuboAmbienteSvg(scale: number, ox: number, oy: number, w: number, d: number, h: number): string {
+  const p = (x: number, y: number, z: number): [number, number] => [
+    ox + (x - y) * AMBIENTE_COS30 * scale,
+    oy + (x + y) * AMBIENTE_SIN30 * scale - z * scale,
+  ];
+  const v = {
+    a: p(0, 0, 0),
+    b: p(w, 0, 0),
+    c: p(w, d, 0),
+    e: p(0, d, 0),
+    f: p(0, 0, h),
+    g: p(w, 0, h),
+    h2: p(w, d, h),
+    i: p(0, d, h),
+  };
+  const aristas: [keyof typeof v, keyof typeof v][] = [
+    ['a', 'b'], ['b', 'c'], ['c', 'e'], ['e', 'a'],
+    ['f', 'g'], ['g', 'h2'], ['h2', 'i'], ['i', 'f'],
+    ['a', 'f'], ['b', 'g'], ['c', 'h2'], ['e', 'i'],
+  ];
+  return aristas
+    .map(([p1, p2]) => `<line x1="${v[p1][0].toFixed(1)}" y1="${v[p1][1].toFixed(1)}" x2="${v[p2][0].toFixed(1)}" y2="${v[p2][1].toFixed(1)}" />`)
+    .join('');
+}
+
+/** Dos cubos de alambre a distinta escala, posicionados a mano para no
+ * cruzar el bloque de texto central (verificado con Chrome headless) —
+ * uno grande arriba a la derecha, uno chico abajo a la izquierda. */
+function pintarFondoAmbiente(): void {
+  const svg = document.querySelector('[data-ambient]');
+  if (!svg) return;
+  const cubos = [
+    { scale: 540, ox: 1080, oy: -80, w: 1.6, d: 2.1, h: 1 },
+    { scale: 170, ox: 90, oy: 700, w: 1.3, d: 1, h: 0.7 },
+  ];
+  svg.innerHTML = cubos.map((c) => cuboAmbienteSvg(c.scale, c.ox, c.oy, c.w, c.d, c.h)).join('');
+}
+
 function inicializarSplash(): void {
   const ticks = document.getElementById('splash-ticks');
   if (ticks) {
@@ -886,6 +934,7 @@ function inicializarSplash(): void {
       ticks.appendChild(i);
     }
   }
+  pintarFondoAmbiente();
   iniciarContadorProof();
 }
 

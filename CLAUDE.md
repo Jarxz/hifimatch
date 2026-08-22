@@ -2490,6 +2490,37 @@ consola en ningún paso. 311 tests sin cambios (esta ronda no tocó el
 motor ni agregó lógica testeable nueva, sólo estructura/copy/CSS de
 `apps/web`).
 
+**Fondo ambiente de la portada: cubos de alambre isométricos — pieza de
+la maqueta que había quedado afuera del primer puerto.** El puerto
+anterior llevó el bloque de texto (eyebrow/logo/remate/cifras) pero se
+saltó el `.ambient` de fondo de la maqueta; esta ronda lo suma.
+`main.ts` gana `pintarFondoAmbiente()`: dibuja 2 cubos de alambre en un
+`<svg data-ambient>` (viewBox 1440×900, `preserveAspectRatio="xMidYMid
+slice"`) con la **misma fórmula** de proyección isométrica 30° que
+`vista/plano.ts` usa para el plano de reflexiones real
+(`sx=(x−y)·cos30, sy=(x+y)·sin30−z`) — reimplementada localmente, no
+importada: acá las proporciones son arbitrarias (decoración, no una
+sala real), así que acoplarla a la API de `plano.ts` (pensada para
+`Sala`/`DisposicionSala`) sería una dependencia falsa. Mismo motivo
+visual que la maqueta, no un adorno genérico — es el activo más
+distintivo del producto, llevado a la marca. Fade-in propio
+(`@keyframes ambient-in`, 2,8 s hasta opacidad ,24) y `.splash` gana
+`position:relative; z-index:1` para pintar encima del fondo
+`position:fixed`.
+
+Verificado con Chrome headless en varios anchos: a 1440×900/1920×1080
+(la mayoría de los desktops reales) los dos cubos caen donde la
+maqueta los diseñó, sin cruzar el bloque de texto. A una ventana
+angosta y alta (probado 1400×1700, y el mismo problema aparece en
+cualquier viewport de teléfono) el mismo viewBox con
+`preserveAspectRatio="slice"` amplifica el motivo mucho más — una
+línea terminaba cruzando justo detrás de "Analizar un sistema". En vez
+de recalcular coordenadas por proporción de pantalla, `.ambient` se
+oculta directo bajo 760px (`@media (max-width:760px)`): existe para
+llenar el espacio vacío alrededor del bloque central, algo que sólo
+sobra en pantallas anchas — en mobile el contenido ya ocupa todo el
+ancho. 311 tests sin cambios (decoración pura, sin lógica testeable).
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita

@@ -13,6 +13,22 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .screen{display:none}
 .screen.active{display:block}
 .mono{font-family:var(--mono)}
+/* Fondo ambiente de la portada: cubos de alambre isométricos muy tenues —
+   mismo motivo visual del plano de reflexiones (vista/plano.ts), llevado a
+   la marca en vez de vivir sólo dentro de una tarjeta de resultado. Dibujo
+   puramente decorativo (proporciones arbitrarias, no una sala real) — ver
+   pintarFondoAmbiente() en main.ts. position:fixed + z-index:0 detrás de
+   todo; .splash gana su propio z-index:1 para pintar encima. */
+.ambient{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden}
+.ambient svg{position:absolute; opacity:0; animation:ambient-in 2.8s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes ambient-in{ from{opacity:0} to{opacity:.24} }
+/* En viewports angostos y altos (teléfono, sobre todo) el mismo viewBox
+   1440×900 con preserveAspectRatio="slice" amplifica el motivo mucho más
+   que en desktop — una línea termina cruzando justo detrás del botón
+   "Analizar". Más simple que reajustar coordenadas para cada proporción:
+   la decoración existe para llenar el espacio vacío alrededor del bloque
+   central, algo que sólo sobra en pantallas anchas. */
+@media (max-width:760px){ .ambient{display:none} }
 /* Transición entre pantallas: startViewTransition() ya envolvía el cambio de
    clase .active (ver vista/pantallas.ts) pero sin keyframes propios caía al
    cross-fade por defecto del navegador. Un leve deslizamiento hacia arriba
@@ -26,7 +42,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 @keyframes pantalla-entra{ from{ transform:translateY(3.5%); opacity:0; } to{ transform:translateY(0); opacity:1; } }
 
 /* SPLASH */
-.splash{min-height:88vh; display:grid; place-items:center; text-align:center}
+.splash{min-height:88vh; display:grid; place-items:center; text-align:center; position:relative; z-index:1}
 .enter{background:transparent; border:0; cursor:pointer; color:inherit; font:inherit; display:inline-block; padding:8px}
 .enter:focus-visible{outline:2px solid var(--line2); outline-offset:8px}
 .mark{position:relative; display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:0 .16em; font-weight:300; font-size:34px; color:var(--text)}
@@ -45,6 +61,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .hm-base{animation:none; opacity:1; transform:none}
   .hm-fill{transition:none}
   .splash .proof{animation:none; opacity:1}
+  .ambient svg{animation:none; opacity:.24}
   ::view-transition-old(root), ::view-transition-new(root){animation:none !important}
   dialog.info-popup, dialog.info-popup::backdrop{transition:none}
   .detalle[open] > :not(summary), .info-item[open] p{animation:none}
