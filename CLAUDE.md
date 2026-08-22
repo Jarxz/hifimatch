@@ -2539,6 +2539,21 @@ vez de `max-width` fijo) para que los 3 números quepan en una sola
 fila incluso en teléfono — pedido explícito, verificado hasta 360px de
 ancho sin overflow. 311 tests sin cambios (puramente CSS).
 
+**Eyebrow/remate/cifras: mayúsculas y tracking ancho, como la maqueta —
+faltaba después de portar el bloque de texto.** Las dos rondas
+anteriores portaron tamaño/posición/animación pero no el tratamiento
+tipográfico fino de estas líneas de apoyo; comparando lado a lado con
+la maqueta, la diferencia real estaba ahí. `.subm`/`.remate` pasan a
+compartir una sola regla (`text-transform:uppercase`, tracking `.26em`,
+color `--faint`) en vez de reglas separadas con tracking angosto y
+`--dim` — mismo criterio que la maqueta, que usa un único selector
+para las dos líneas. `.proof-num` cambia de `--dorado` a `--text`
+(blanco, no dorado) y `.proof-label` suma mayúsculas + tracking. El
+tracking de `.26em` (no el `.32em` literal de la maqueta) es una
+concesión al ancho real del sitio: se probó hasta 360px de ancho antes
+de fijar el valor, para que el eyebrow siga envolviendo a 2 líneas
+limpias en vez de 3. 311 tests sin cambios (puramente CSS).
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita

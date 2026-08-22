@@ -78,8 +78,11 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 }
 .ticks{display:flex; justify-content:center; gap:6px; margin:20px 0 18px; height:22px; align-items:flex-end}
 .ticks i{display:block; width:1px; background:var(--line2)}
-.splash .subm{color:var(--dim); font-size:14px; letter-spacing:.06em; margin-bottom:14px}
-.splash .remate{color:var(--dim); font-size:13px; letter-spacing:.14em; text-transform:uppercase}
+/* Eyebrow + remate comparten tratamiento (mayúsculas, tracking ancho,
+   --faint) para leerse como un solo bloque con el logo en el medio —
+   mismo criterio que la maqueta, que usa un único selector para las dos. */
+.splash .subm, .splash .remate{color:var(--faint); font-size:12px; letter-spacing:.26em; text-transform:uppercase}
+.splash .subm{margin-bottom:14px}
 .enter .cta{margin-top:34px; display:inline-flex; align-items:center; gap:12px; font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--text); border:1px solid var(--line2); border-radius:2px; padding:14px 26px; transition:background .2s,color .2s}
 .enter:hover .cta{background:var(--text); color:var(--bg)}
 /* Prueba en cifras — reemplaza el viejo pie de una línea + cierre de dos
@@ -88,8 +91,8 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    en main.ts), sincronizados con el mismo delay que esta propia aparición. */
 .splash .proof{margin-top:48px; display:flex; justify-content:center; gap:40px; flex-wrap:nowrap; opacity:0; animation:proof-in .6s cubic-bezier(.22,.61,.36,1) 1.1s forwards}
 .proof-item{max-width:170px; min-width:0}
-.proof-num{font-family:var(--mono); font-size:26px; font-weight:600; color:var(--dorado); white-space:nowrap}
-.proof-label{color:var(--faint); font-size:11px; line-height:1.5; margin-top:6px}
+.proof-num{font-family:var(--mono); font-size:26px; font-weight:600; color:var(--text); white-space:nowrap}
+.proof-label{color:var(--faint); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; line-height:1.5; margin-top:6px}
 /* Los 3 números se quedan en una sola línea horizontal también en teléfono
    y tablet (pedido explícito) — nunca se apilan verticalmente. flex:1 en
    vez de max-width fijo: cada tercio se reparte el ancho real disponible;
