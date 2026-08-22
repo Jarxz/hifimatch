@@ -200,20 +200,22 @@
           </select></div>
         </div>
       </div>
-      <div class="rline">
-        <span class="rl" data-i18n="config.nivelEscucha">Nivel de escucha</span>
-        <div class="segs" role="group" data-i18n-aria="config.nivelEscucha">
-          <button data-lvl="mod" data-i18n="config.nivelModerado">Moderado</button>
-          <button data-lvl="alto" aria-pressed="true" data-i18n="config.nivelAlto">Alto</button>
-          <button data-lvl="ref" data-i18n="config.nivelReferencia">Referencia</button>
+      <div class="materiales-grid nivel-genero-grid">
+        <div class="rline">
+          <span class="rl" data-i18n="config.nivelEscucha">Nivel de escucha</span>
+          <div class="sel sel-compact"><select id="sel-nivel">
+            <option value="mod" data-i18n="config.nivelModerado">Moderado</option>
+            <option value="alto" selected data-i18n="config.nivelAlto">Alto</option>
+            <option value="ref" data-i18n="config.nivelReferencia">Referencia</option>
+          </select></div>
         </div>
-      </div>
-      <div class="rline">
-        <span class="rl" data-i18n="config.genero">Género musical</span>
-        <div class="segs" role="group" data-i18n-aria="config.genero">
-          <button data-genero="rockpop" aria-pressed="true" data-i18n="config.generoRockPop">Rock/Pop</button>
-          <button data-genero="jazzvocal" data-i18n="config.generoJazzVocal">Jazz/Vocal</button>
-          <button data-genero="clasica" data-i18n="config.generoClasica">Clásica</button>
+        <div class="rline">
+          <span class="rl" data-i18n="config.genero">Género musical</span>
+          <div class="sel sel-compact"><select id="sel-genero">
+            <option value="rockpop" selected data-i18n="config.generoRockPop">Rock/Pop</option>
+            <option value="jazzvocal" data-i18n="config.generoJazzVocal">Jazz/Vocal</option>
+            <option value="clasica" data-i18n="config.generoClasica">Clásica</option>
+          </select></div>
         </div>
       </div>
       <div class="rline">

@@ -239,6 +239,28 @@ function setMarca(kind: 'spk' | 'amp' | 'streamer' | 'dac', marca: string): void
   pick(kind, '');
 }
 
+/** Relleno dorado del slider hasta la posición del valor actual (--fill,
+ * leído por el degradé de input[type=range] en estilos.css) — nativamente
+ * un <input type=range> no expone su propio % recorrido a CSS, así que se
+ * calcula acá en cada 'input' y una vez al cargar, para que arranque en la
+ * posición correcta con el default (no en el 50% del fallback del degradé). */
+function actualizarFillSlider(input: HTMLInputElement): void {
+  const min = parseFloat(input.min);
+  const max = parseFloat(input.max);
+  const pct = ((parseFloat(input.value) - min) / (max - min)) * 100;
+  input.style.setProperty('--fill', `${pct}%`);
+}
+
+function wireSlider(id: string, dim: 'W' | 'L' | 'H'): void {
+  const input = document.getElementById(id) as HTMLInputElement | null;
+  if (!input) return;
+  actualizarFillSlider(input);
+  input.addEventListener('input', () => {
+    setDim(dim, parseFloat(input.value));
+    actualizarFillSlider(input);
+  });
+}
+
 function setDim(dim: 'W' | 'L' | 'H', valor: number): void {
   estado[dim] = valor;
   actualizarTextosDimension();
@@ -248,9 +270,6 @@ function setDim(dim: 'W' | 'L' | 'H', valor: number): void {
 
 function setNivel(lvl: NivelUI): void {
   estado.lvl = lvl;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-lvl]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.lvl === lvl));
-  });
 }
 
 // Los 6 selectores de material son <select> nativos (menú desplegable, ver
@@ -280,9 +299,6 @@ function setTecho(techo: MaterialTecho): void {
 
 function setGenero(genero: Genero): void {
   estado.genero = genero;
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-genero]').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.genero === genero));
-  });
 }
 
 /** A diferencia de los demás `set*`, esto vive en la pantalla de resultado
@@ -1043,13 +1059,11 @@ function wireEventos(): void {
   document.getElementById('sel-streamer')?.addEventListener('change', (e) => pick('streamer', (e.target as HTMLSelectElement).value));
   document.getElementById('sel-dac')?.addEventListener('change', (e) => pick('dac', (e.target as HTMLSelectElement).value));
 
-  document.getElementById('in-W')?.addEventListener('input', (e) => setDim('W', parseFloat((e.target as HTMLInputElement).value)));
-  document.getElementById('in-L')?.addEventListener('input', (e) => setDim('L', parseFloat((e.target as HTMLInputElement).value)));
-  document.getElementById('in-H')?.addEventListener('input', (e) => setDim('H', parseFloat((e.target as HTMLInputElement).value)));
+  wireSlider('in-W', 'W');
+  wireSlider('in-L', 'L');
+  wireSlider('in-H', 'H');
 
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-lvl]').forEach((b) => {
-    b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));
-  });
+  document.getElementById('sel-nivel')?.addEventListener('change', (e) => setNivel((e.target as HTMLSelectElement).value as NivelUI));
 
   document.getElementById('sel-murofrontal')?.addEventListener('change', (e) => setMuroFrontal((e.target as HTMLSelectElement).value as MaterialMuro));
   document.getElementById('sel-muroposterior')?.addEventListener('change', (e) => setMuroPosterior((e.target as HTMLSelectElement).value as MaterialMuro));
@@ -1058,9 +1072,7 @@ function wireEventos(): void {
   document.getElementById('sel-piso')?.addEventListener('change', (e) => setPiso((e.target as HTMLSelectElement).value as MaterialPiso));
   document.getElementById('sel-techo')?.addEventListener('change', (e) => setTecho((e.target as HTMLSelectElement).value as MaterialTecho));
 
-  document.querySelectorAll<HTMLButtonElement>('.segs button[data-genero]').forEach((b) => {
-    b.addEventListener('click', () => setGenero(b.dataset.genero as Genero));
-  });
+  document.getElementById('sel-genero')?.addEventListener('change', (e) => setGenero((e.target as HTMLSelectElement).value as Genero));
 
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-vista]').forEach((b) => {
     b.addEventListener('click', () => setVistaPlano(b.dataset.vista as Vista));

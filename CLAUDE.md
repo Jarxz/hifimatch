@@ -2554,6 +2554,35 @@ concesión al ancho real del sitio: se probó hasta 360px de ancho antes
 de fijar el valor, para que el eyebrow siga envolviendo a 2 líneas
 limpias en vez de 3. 311 tests sin cambios (puramente CSS).
 
+**"Personalizar sala" con el tratamiento de la maqueta: selects con
+label arriba, sliders dorados, Nivel/Género pasan de botones a
+selects.** Cuarto ajuste sobre el puerto del rediseño, esta vez sobre
+`configurar.html` de la maqueta (no la portada). Los 6 materiales
+mantienen sus mismos `<select>`/ids — sólo cambia `.materiales-grid
+.rline` de fila horizontal (label a la izquierda) a columna (label
+arriba, mayúsculas, `--faint`, tracking) — CSS puro, sin tocar
+`main.ts` ni HTML de esa parte. **Nivel de escucha y Género musical
+dejan de ser `.segs` (botones segmentados) y pasan a `<select>`**,
+mismo componente `.sel-compact` que ya usan los materiales, agrupados
+en `.materiales-grid.nivel-genero-grid` (2 columnas, mismo tratamiento
+de celda) — unifica el lenguaje de controles de toda la sección en vez
+de mezclar botones y selects. `setNivel`/`setGenero` se simplifican
+(ya no gestionan `aria-pressed`, el propio `<select>` lo resuelve);
+`wireEventos()` cambia de `click` sobre `.segs button[data-lvl/genero]`
+a `change` sobre los dos `<select>` nuevos.
+
+Los 3 sliders de dimensión ganan **relleno dorado hasta la posición
+actual** (`input[type=range]{background:linear-gradient(...var(--fill,
+50%)...)}`) en vez de una línea pareja — `--fill` no es nativo del
+input, lo calcula `actualizarFillSlider()`/`wireSlider()` en `main.ts`
+en cada `input` y una vez al cargar (para arrancar en la posición
+correcta del default, no en el 50% del fallback del degradé). Las
+etiquetas de dimensión (`.dl`) suman mayúsculas/tracking, mismo
+criterio que las de material. El botón "Analizar" (y "Enviar" del
+formulario de contacto, que reusa la misma clase `.analizar`) pasa de
+relleno blanco a dorado. 311 tests sin cambios (sin lógica nueva en el
+motor; `setNivel`/`setGenero` siguen siendo setters triviales).
+
 Falta:
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita
