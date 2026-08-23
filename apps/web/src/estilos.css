@@ -351,8 +351,16 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .regla-fila > summary::-webkit-details-marker{display:none}
 .regla-fila > summary:hover .fila-nombre{color:var(--text)}
 .regla-fila > summary:focus-visible{outline:2px solid var(--line2); outline-offset:-2px}
-.fila-nombre{color:var(--dim); font-size:14px; flex:1 1 auto; min-width:0}
-.fila-dato{font-family:var(--mono); font-size:12.5px; color:var(--dim)}
+/* overflow-wrap es el freno real contra el bug de mobile encontrado en
+   producción: con .layer+.verdict+.fila-dato+.infobtn de ancho fijo, la
+   columna de .fila-nombre puede quedar más angosta que una sola palabra
+   (ej. "Geometría", "graves)") — sin esto, esa palabra se sale de su
+   caja en vez de partirse, y queda dibujada encima de la insignia de
+   severidad de al lado (align-items:center las centra en la misma
+   franja vertical). Aplica siempre, no sólo en el breakpoint de abajo:
+   es una red de contención, no el layout ideal. */
+.fila-nombre{color:var(--dim); font-size:14px; flex:1 1 auto; min-width:0; overflow-wrap:break-word}
+.fila-dato{font-family:var(--mono); font-size:12.5px; color:var(--dim); white-space:nowrap}
 .regla-fila .fila-cuerpo{padding:0 2px 14px}
 /* "sin-datos" (reverberación, la única fila siempre-dim de este grupo)
    tiene que leerse como algo distinto de "warn", no una variante suave
@@ -360,6 +368,23 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
    nunca ámbar". */
 .regla-fila.regla-dim{border-bottom-style:dashed}
 .regla-fila.regla-dim .fila-nombre{font-style:italic}
+
+/* Layout real para el ancho de un teléfono: incluso conteniendo el
+   desborde de arriba, una columna de nombre de ~60px (lo que sobra
+   después de layer+verdict+dato+infobtn en ~360-414px) obliga a una
+   palabra por línea — legible pero muy angosto. Se apila: nombre en su
+   propia línea a ancho completo (fuerza el corte de fila porque ningún
+   otro elemento cabe al lado de un flex-basis:100%), badges+dato+info
+   en la línea siguiente. align-items pasa a flex-start porque ya no hay
+   una sola fila con alturas dispares que centrar. */
+@media (max-width:480px){
+  .regla-fila > summary{flex-wrap:wrap; align-items:flex-start; row-gap:6px}
+  .fila-nombre{flex:1 1 100%; order:1}
+  .layer{order:0}
+  .verdict{order:2; margin-left:0}
+  .fila-dato{order:3}
+  .infobtn{order:4; margin-left:auto}
+}
 
 /* 06 Ficha al pie — La cadena + datos de sala, contexto ya ingresado por
    el usuario, no resultado; vive después de la evidencia y la geometría. */
