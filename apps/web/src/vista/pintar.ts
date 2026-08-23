@@ -9,6 +9,8 @@ import type {
   ModeloTarjetaPuente,
   ModeloTarjetaRecorrido,
   ModeloTarjetaModos,
+  ModeloTarjetaFiltroPeine,
+  ModeloTarjetaTrianguloEscucha,
   ModeloTarjetaReverberacion,
   ModeloDocumento,
   ModeloVeredicto,
@@ -190,6 +192,28 @@ export function pintarModos(m: ModeloTarjetaModos): void {
   el('mo-text').innerHTML = m.textoHtml;
   pintarFlag('mo-flag', m.avisoHtml, false);
   el('mo-src').innerHTML = m.fuenteHtml;
+}
+
+/** Filtro peine por reflexión — igual patrón que pintarModos: siempre tiene
+ * dato (sólo depende de disposición + materiales, nunca del catálogo),
+ * nunca "sin-datos". */
+export function pintarFiltroPeine(m: ModeloTarjetaFiltroPeine): void {
+  pintarVerdict('fp-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('fp-simple').textContent = m.simpleHtml;
+  el('fp-text').innerHTML = m.textoHtml;
+  el('fp-calc').innerHTML = m.calcHtml;
+  pintarFlag('fp-flag', m.avisoHtml, false);
+  el('fp-src').innerHTML = m.fuenteHtml;
+}
+
+/** Triángulo de escucha (asimetría + ángulo) — mismo patrón, siempre tiene dato. */
+export function pintarTrianguloEscucha(m: ModeloTarjetaTrianguloEscucha): void {
+  pintarVerdict('te-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('te-simple').textContent = m.simpleHtml;
+  el('te-text').innerHTML = m.textoHtml;
+  el('te-calc').innerHTML = m.calcHtml;
+  pintarFlag('te-flag', m.avisoHtml, false);
+  el('te-src').innerHTML = m.fuenteHtml;
 }
 
 /** La tarjeta siempre se muestra (nunca se oculta, a diferencia de

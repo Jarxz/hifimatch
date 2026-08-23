@@ -404,6 +404,14 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 #btn-recalcular:hover, #btn-recalcular:focus-visible{text-decoration-color:var(--warn)}
 .parlante-arrastrable{cursor:grab; touch-action:none}
 
+/* Candado del punto de escucha: mismo marco que #btn-recalcular ganó
+   (borde de línea gris) — abierto se tiñe de dorado, mismo criterio que
+   cualquier control "activado" del sitio (.segs button[aria-pressed=true]). */
+.candado-btn{border:1px solid var(--line2); border-radius:6px; padding:6px 12px; margin-left:auto; transition:border-color .2s cubic-bezier(.22,.61,.36,1), color .2s cubic-bezier(.22,.61,.36,1)}
+.candado-btn[aria-pressed="true"]{border-color:var(--warn); color:var(--warn)}
+#plan-hint-asiento{color:var(--warn)}
+.candado-comparador-aviso{border-left:2px solid var(--warn); background:rgba(199,173,124,.06); padding:8px 12px; color:var(--dim)}
+
 /* En teléfono/tablet, #tabs-analisis + el grupo de 4 botones de vista no
    entraban en una sola línea y el navegador partía la fila de forma
    impredecible — a veces mezclando pestañas y botones de vista en la

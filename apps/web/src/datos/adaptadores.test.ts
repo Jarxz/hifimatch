@@ -42,7 +42,7 @@ function fuente(id: string) {
 // sumada), una baja neta de 6 dB — misma cifra que potencia.test.ts.
 
 test('§2 Vector A — Klipsch + Cambridge CXA81, 2,5 m, alto: margen +0,07 → Justo (antes +6,07 → Con margen)', () => {
-  const r = evaluarPotencia(parlante('klipsch-rp600m-ii'), amplificador('cambridge-cxa81'), 2.5, 'alto', 5.0);
+  const r = evaluarPotencia(parlante('klipsch-rp600m-ii'), amplificador('cambridge-cxa81'), 2.5, 2.5, 'alto', 5.0);
   assert.ok(Math.abs(r.splDisponibleDb - 100.07) < EPS);
   assert.ok(Math.abs(r.margenDb - 0.07) < EPS);
   assert.equal(r.severidad, 'warn');
@@ -50,14 +50,14 @@ test('§2 Vector A — Klipsch + Cambridge CXA81, 2,5 m, alto: margen +0,07 → 
 });
 
 test('§2 Vector B — KEF + Rega Brio, 3,0 m, alto: margen −4,55 → Insuficiente (antes +1,45 → Justo)', () => {
-  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'alto', 5.0);
+  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 3.0, 'alto', 5.0);
   assert.ok(Math.abs(r.margenDb - -4.55) < EPS);
   assert.equal(r.severidad, 'alert');
   assert.equal(r.codigo, 'insuficiente');
 });
 
 test('§2 Vector C — KEF + Rega Brio, 3,0 m, referencia: margen −9,55 → Insuficiente (antes −3,55, ya era Insuficiente)', () => {
-  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'referencia', 5.0);
+  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 3.0, 'referencia', 5.0);
   assert.ok(Math.abs(r.margenDb - -9.55) < EPS);
   assert.equal(r.severidad, 'alert');
   assert.equal(r.codigo, 'insuficiente');
@@ -206,7 +206,7 @@ test('Genérico: Potencia (Hopkins-Stryker) corre de punta a punta para los 6 pe
   // (baja 6 dB, el mismo neto del cambio 3 — filtro-docil es 8 Ω nominal,
   // los cambios 1/2 no le aplican). Sigue "Con margen": el margen previo
   // tenía sobra de sobra.
-  const s1 = evaluarPotencia(parlante('generico-parlante-filtro-docil'), amplificador('generico-ampli-ss-alta-corriente'), 3.0, 'alto', 5.0);
+  const s1 = evaluarPotencia(parlante('generico-parlante-filtro-docil'), amplificador('generico-ampli-ss-alta-corriente'), 3.0, 3.0, 'alto', 5.0);
   assert.ok(Math.abs(s1.margenDb - 6.2185) < EPS);
   assert.equal(s1.severidad, 'ok');
   assert.equal(s1.codigo, 'con-margen');
@@ -219,7 +219,7 @@ test('Genérico: Potencia (Hopkins-Stryker) corre de punta a punta para los 6 pe
   // extremo PESIMISTA (−8,12, no el −5,10 de una ronda anterior de este
   // mismo cambio, que todavía no distinguía por impedancia) — sigue
   // "Insuficiente" de cualquier forma, el rango completo lo confirma.
-  const s2 = evaluarPotencia(parlante('generico-parlante-monitor-reactivo'), amplificador('generico-ampli-valvular-alta-zout'), 3.0, 'alto', 5.0);
+  const s2 = evaluarPotencia(parlante('generico-parlante-monitor-reactivo'), amplificador('generico-ampli-valvular-alta-zout'), 3.0, 3.0, 'alto', 5.0);
   assert.ok(Math.abs(s2.margenDb - -8.1169) < EPS);
   assert.equal(s2.severidad, 'alert');
   assert.equal(s2.codigo, 'insuficiente');

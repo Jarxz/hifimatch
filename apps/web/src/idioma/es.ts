@@ -16,6 +16,7 @@ import type { CodigoAmortiguamiento } from '../../../../packages/engine/src/amor
 import type { CodigoPuenteImpedancias, CodigoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import type { CodigoModos, EjeSala } from '../../../../packages/engine/src/modos.ts';
 import type { CodigoReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
+import type { NombreReflexion, CodigoAnguloEscucha } from '../../../../packages/engine/src/colocacion.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 import type { CodigoContacto } from '../../../../packages/contact/src/contacto.ts';
 
@@ -40,6 +41,8 @@ type NombreComponenteEvaluacion =
   | 'potencia'
   | 'carga'
   | 'modos'
+  | 'filtroPeine'
+  | 'trianguloEscucha'
   | 'puenteStreamer'
   | 'recorridoStreamer'
   | 'puenteDac'
@@ -142,6 +145,16 @@ export const es = {
       titulo: 'Modos de sala (resonancias de graves)',
       cuerpoHtml:
         'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. La tarjeta marca "agrupados" cuando al menos un par de modos de ejes distintos cae a menos de 1% de diferencia entre sí (un solapamiento casi exacto, el peor caso, alcanza solo), o cuando hay dos o más pares a menos de 2% — ambos umbrales, por debajo de 150 Hz, declarados por este sitio, no una convención publicada. Un barrido de miles de salas mostró que un umbral único de 5% marcaba el 86% de ellas, un semáforo que casi nunca cambia; esta regla de dos condiciones marca un 37% mucho más informativo. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real.',
+    },
+    filtroPeine: {
+      titulo: 'Filtro peine por reflexión',
+      cuerpoHtml:
+        'Cada reflexión temprana (frontal —detrás del parlante—, lateral, trasera, techo y piso) llega al oído un poco después que el sonido directo, y esa diferencia de camino (Δ) hace que directo y reflejado se cancelen y refuercen en un patrón de "peine" en frecuencia: el primer nulo cae en c/(2Δ), el primer refuerzo en c/Δ. Esta tarjeta calcula las 10 combinaciones posibles (5 reflexiones × 2 canales) y avisa sólo cuando el primer nulo cae en la zona más audible para el timbre (200-2000 Hz, presencia/definición de voces e instrumentos) <b>y</b> la superficie que produce esa reflexión refleja más de lo que absorbe ahí — sin esa ponderación por absorción, la regla marcaría aviso en casi cualquier sala, porque siempre hay reflexiones. Igual que el resto del bloque de sala: geometría rígida, primer orden, se verifica escuchando y, si hace falta, tratando esa superficie.',
+    },
+    triangulo: {
+      titulo: 'Triángulo de escucha',
+      cuerpoHtml:
+        'Dos preguntas sobre la FORMA del triángulo que forman los parlantes y el punto de escucha, más allá de la distancia. <b>Asimetría:</b> compara el camino de cada reflexión —y el directo— entre ambos canales; con los parlantes en posiciones distintas (o el asiento desbloqueado con el candado, ver la tarjeta del plano) puede que un lado quede más cerca que el otro, y esa diferencia de tiempo corre la imagen estéreo hacia el parlante más próximo. <b>Ángulo:</b> el que subtienden los dos parlantes visto desde la escucha, comparado contra la convención de triángulo equilátero estéreo (60°) — un ángulo distinto no es un error (hay quien prefiere un escenario más angosto o más amplio a propósito), pero esta tarjeta lo declara cuando cae fuera de un rango razonable, para que sea una decisión consciente. Misma salvedad de siempre: geometría de sala rígida, se verifica escuchando.',
     },
     reverberacion: {
       titulo: 'Tiempo de reverberación estimado (RT60)',
@@ -281,6 +294,13 @@ export const es = {
       pestanaOriginal: 'Análisis original',
       pestanaModificado: 'Modificado',
       hintArrastreHtml: 'En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.',
+      candadoAria: 'Candado del punto de escucha',
+      candadoCerrado: '🔒 Candado cerrado',
+      candadoAbierto: '🔓 Candado abierto',
+      hintAsiento: 'Candado abierto: el punto de escucha también se puede arrastrar, de forma independiente de los parlantes.',
+      candadoComparadorAviso:
+        'Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.',
+      referenciaSimetrica: 'posición simétrica de referencia',
       ubicacionTitulo: 'Ubicación de referencia de los parlantes',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Parlante izquierdo: <b>${p.frontalIzq} m</b> de la pared frontal, <b>${p.lateralIzq} m</b> de su pared lateral. Parlante derecho: <b>${p.frontalDer} m</b> de la pared frontal, <b>${p.lateralDer} m</b> de su pared lateral. Separación entre ambos: <b>${p.separacion} m</b>. Es la disposición de referencia que usa el resto del análisis (potencia, modos, reflexiones) — se afina moviendo los parlantes y escuchando en el espacio real.`,
@@ -586,12 +606,16 @@ export const es = {
       } satisfies Record<CodigoModos, string>,
       verdictoNulo: 'Nulo en el punto de escucha',
       verdictoAmbos: 'Modos agrupados y nulo en la escucha',
+      verdictoAcoplamiento: 'Parlante en un nodo de presión',
+      verdictoVarios: (p: { n: string }): string => `${p.n} problemas de modos a la vez`,
       simple: {
         'modos-distribuidos': 'Los graves de la sala están razonablemente parejos.',
         'modos-agrupados': 'Hay frecuencias graves que probablemente sonarán reforzadas.',
       } satisfies Record<CodigoModos, string>,
       simpleNulo: 'Tu posición de escucha cae en el hueco de graves de un modo en particular.',
       simpleAmbos: 'Hay graves reforzados en una frecuencia y, además, un hueco en otra — conviene revisar la posición de escucha.',
+      simpleAcoplamiento: 'El parlante está ubicado donde apenas excita uno de los modos de graves de la sala.',
+      simpleVarios: 'Hay más de un problema de graves a la vez en esta disposición — revisa el detalle técnico.',
       eje: { ancho: 'ancho', largo: 'largo', alto: 'alto' } satisfies Record<EjeSala, string>,
       textoOk: (p: { techo: string }): string =>
         `Las resonancias de graves de la sala están razonablemente distribuidas por debajo de ${p.techo} Hz — no se detectan coincidencias que refuercen una frecuencia en particular.`,
@@ -609,9 +633,86 @@ export const es = {
         'Conviene mover el punto de escucha (o los parlantes) unos centímetros hacia adelante o atrás para salir del nulo — se verifica escuchando, el hueco de graves de ese modo debería notarse mucho menos apenas unos centímetros afuera del centro exacto.',
       sugerencia:
         'Conviene reposicionar los parlantes o el punto de escucha, o tratar acústicamente esas frecuencias — se verifica escuchando y midiendo en el espacio real. Un filtro paramétrico (EQ activo) centrado cerca de esas frecuencias también puede atenuar el refuerzo, pero ajustarlo bien exige medir la sala real: este modelo no tiene la amplitud ni la fase medidas como para proponer un Q o una atenuación en dB.',
+      acoplamientoAlto: (p: { orden: string; frecuencia: string; productoPct: string }): string =>
+        `<b>Parlante en un nodo de presión:</b> en la posición actual, el parlante excita sólo un ${p.productoPct}% del modo axial de largo orden ${p.orden} (${p.frecuencia} Hz) — la fuente está cerca de un punto donde ese modo casi no se genera, así que esa resonancia en particular puede sonar mucho más débil de lo esperado.`,
+      sugerenciaAcoplamiento:
+        'Conviene mover el parlante (adelante/atrás en la sala) unos centímetros para salir del nodo de presión de ese modo — se verifica escuchando: el refuerzo de esa frecuencia debería notarse más apenas se despega del punto exacto.',
+      fuenteAcoplamiento: (p: { umbral: string }): string =>
+        `<b>Acoplamiento modal:</b> misma forma cos(nπy/L) que el nulo de escucha, aplicada a la posición del parlante en vez de a la del oyente — un parlante en un nodo de presión de un modo casi no lo excita, sea cual sea la amplitud real de ese modo (que este modelo no mide). "Alto" cuando el producto parlante×escucha de algún orden (1-3) supera ${p.umbral}% — criterio del sitio.`,
       curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Presión relativa a lo largo de cada eje afectado — sólo los agrupamientos de menor frecuencia (los más audibles y difíciles de tratar). Curvas 1D independientes por eje, no un mapa combinado de la sala.',
+    },
+
+    filtroPeine: {
+      titulo: 'Filtro peine por reflexión',
+      verdictoOk: 'Sin nulos en zona audible',
+      verdictoWarn: 'Nulo de peine en zona audible',
+      simpleOk: 'Ninguna reflexión temprana cae en un nulo de peine dentro de la zona más audible, contra una superficie reflectante.',
+      simpleWarn: 'Al menos una reflexión temprana produce un nulo de peine en una zona audible, contra una superficie que refleja más de lo que absorbe.',
+      textoOk:
+        'Cada reflexión temprana (frontal, lateral, trasera, techo, piso) interfiere con el sonido directo y cancela/refuerza frecuencias en peine, empezando en el primer nulo (c/2Δ, con Δ = diferencia de camino). Ninguno de los primeros nulos calculados cae, a la vez, dentro de la zona más audible (200-2000 Hz) y contra una superficie que refleje más de lo que absorbe ahí.',
+      textoWarn: (p: { n: string }): string =>
+        `Cada reflexión temprana interfiere con el sonido directo y cancela/refuerza frecuencias en peine, empezando en el primer nulo (c/2Δ). ${p.n} de las 10 combinaciones (5 reflexiones × 2 canales) tiene su primer nulo dentro de la zona más audible (200-2000 Hz) Y contra una superficie que refleje más de lo que absorbe ahí — ver el detalle técnico para saber cuáles.`,
+      nombreReflexion: {
+        frontal: 'Frontal (detrás del parlante)',
+        lateral: 'Lateral',
+        trasera: 'Trasera (detrás de la escucha)',
+        piso: 'Piso',
+        techo: 'Techo',
+      } satisfies Record<NombreReflexion, string>,
+      canalIzq: 'izquierdo',
+      canalDer: 'derecho',
+      severidadOk: 'fuera de zona / absorbida',
+      severidadWarn: 'en zona audible, reflectante',
+      fila: (p: { nombre: string; deltaM: string; nuloHz: string; refuerzoHz: string; alpha: string; severidad: string }): string =>
+        `${p.nombre}: Δ=${p.deltaM} m → 1ᵉʳ nulo ${p.nuloHz} Hz, 1ᵉʳ refuerzo ${p.refuerzoHz} Hz (α≈${p.alpha}) — ${p.severidad}`,
+      filaDegenerada: (p: { nombre: string }): string => `${p.nombre}: geometría degenerada (parlante ~sobre la superficie) — sin nulo finito que reportar`,
+      avisoFila: (p: { nombre: string; nuloHz: string }): string => `<b>${p.nombre}:</b> primer nulo en ≈${p.nuloHz} Hz.`,
+      sugerencia:
+        'Conviene tratar acústicamente esa superficie (panel absorbente en el primer punto de reflexión) o reposicionar parlantes/escucha para cambiar la diferencia de camino — se verifica escuchando y, si es posible, midiendo.',
+      fuente: (p: { rangoMin: string; rangoMax: string; alphaMax: string }): string =>
+        `<b>Criterio:</b> geometría de sala rígida, fuente puntual, primer orden — mismo modelo que el resto del bloque de sala. "Zona audible" = ${p.rangoMin}-${p.rangoMax} Hz (presencia/definición de voces e instrumentos), y "reflectante" = coeficiente de absorción menor a ${p.alphaMax} en la banda del nulo — ambos criterio del sitio. Sin ponderar por absorción, esta regla marcaría aviso en casi cualquier sala; con ella, sólo superficies que realmente devuelven la reflexión. No se suma con las demás reflexiones para armar una curva combinada: cada una es una pregunta acotada.`,
+    },
+
+    triangulo: {
+      titulo: 'Triángulo de escucha',
+      categoriaDirecto: 'Camino directo',
+      nombreReflexion: {
+        frontal: 'Reflexión frontal',
+        lateral: 'Reflexión lateral',
+        trasera: 'Reflexión trasera',
+        piso: 'Reflexión de piso',
+        techo: 'Reflexión de techo',
+      } satisfies Record<NombreReflexion, string>,
+      verdictoOk: 'Triángulo simétrico',
+      verdictoAsimetria: 'Triángulo asimétrico',
+      verdictoAngulo: {
+        'angulo-estrecho': 'Ángulo angosto',
+        'angulo-ok': 'Ángulo dentro de rango',
+        'angulo-amplio': 'Ángulo amplio',
+      } satisfies Record<CodigoAnguloEscucha, string>,
+      verdictoAmbos: 'Triángulo asimétrico y ángulo fuera de rango',
+      simpleOk: 'Los dos parlantes están a la misma distancia de la escucha, con un ángulo dentro del rango declarado.',
+      simpleAsimetria: 'Un parlante queda notablemente más cerca de la escucha que el otro — la imagen estéreo puede correrse hacia ese lado.',
+      simpleAngulo: {
+        'angulo-estrecho': 'El ángulo entre los parlantes visto desde la escucha es más angosto que el rango declarado — escenario estrecho.',
+        'angulo-ok': 'El ángulo entre los parlantes visto desde la escucha está dentro del rango declarado.',
+        'angulo-amplio': 'El ángulo entre los parlantes visto desde la escucha es más amplio que el rango declarado — puede dejar un hueco central de fase.',
+      } satisfies Record<CodigoAnguloEscucha, string>,
+      simpleAmbos: 'El triángulo es asimétrico y, además, el ángulo cae fuera del rango declarado.',
+      texto: (p: { angulo: string; convencion: string }): string =>
+        `El ángulo que subtienden los dos parlantes visto desde el punto de escucha es de <b>${p.angulo}°</b>. La convención de triángulo equilátero estéreo es <b>${p.convencion}°</b> — no es la única disposición válida (un escenario más angosto o más amplio es una preferencia legítima), pero un ángulo fuera del rango declarado se avisa igual, para que sea una decisión consciente y no un efecto no declarado de la disposición automática.`,
+      calcAngulo: (p: { angulo: string; min: string; max: string }): string => `ángulo = ${p.angulo}° (rango declarado: ${p.min}°-${p.max}°)`,
+      filaAsimetria: (p: { nombre: string; deltaM: string; deltaUs: string }): string => `${p.nombre}: Δ = ${p.deltaM} m (${p.deltaUs} µs) entre canales`,
+      diferenciaNivel: (p: { db: string }): string =>
+        `Diferencia de nivel entre canales (camino directo, dos fuentes descorrelacionadas): ${p.db} dB — la misma asimetría de distancia de arriba, expresada como nivel en vez de tiempo.`,
+      avisoAsimetria: (p: { items: string }): string =>
+        `<b>Asimetría por encima del umbral en:</b> ${p.items}. Con cables/canales bien calibrados, esto viene de la posición, no de la electrónica — conviene revisar que ambos parlantes y la escucha estén donde el plano los muestra.`,
+      avisoAnguloEstrecho: 'Un ángulo más amplio (parlantes más separados, o escucha más cerca) agranda la imagen estéreo — a costa de un centro más definido si se exagera.',
+      avisoAnguloAmplio: 'Un ángulo más angosto (parlantes más juntos, o escucha más lejos) cierra el hueco central de fase entre los parlantes.',
+      fuente: (p: { umbralM: string; convencion: string; min: string; max: string }): string =>
+        `<b>Criterio:</b> asimetría — diferencia de camino homólogo entre canales mayor a ${p.umbralM} m (≈145 µs a 343 m/s), criterio del sitio. Ángulo — convención de triángulo equilátero estéreo (${p.convencion}°, no inventada por el sitio); rango declarado ${p.min}°-${p.max}° antes de avisar, sí criterio del sitio. Geometría de sala rígida, primer orden, sin directividad — se verifica escuchando.`,
     },
 
     reverberacion: {
@@ -677,6 +778,8 @@ export const es = {
         potencia: 'Potencia',
         carga: 'Carga',
         modos: 'Modos de sala',
+        filtroPeine: 'Filtro peine',
+        trianguloEscucha: 'Triángulo de escucha',
         puenteStreamer: 'Puente de impedancias (Streamer)',
         recorridoStreamer: 'Recorrido de volumen (Streamer)',
         puenteDac: 'Puente de impedancias (DAC)',

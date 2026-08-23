@@ -19,14 +19,14 @@ test('vector de motor-mvp.md sección 4 (W=3,6, L=5,0): el SVG isométrico gener
     assert.match(svg, /^<svg viewBox="0 0 \d+ \d+"/, idioma);
     assert.match(svg, /<\/svg>$/, idioma);
     assert.equal((svg.match(/<rect/g) ?? []).length, 0, idioma); // sin <rect>: sala y parlantes son wireframe
-    // sin muros "vacío": 8 reflexiones (lateral×2, trasera×2, techo×2, piso×2) + anillo del punto dulce + punto dulce
-    assert.equal((svg.match(/<circle/g) ?? []).length, 10, idioma);
+    // sin muros "vacío": 10 reflexiones (frontal×2, lateral×2, trasera×2, techo×2, piso×2) + anillo del punto dulce + punto dulce
+    assert.equal((svg.match(/<circle/g) ?? []).length, 12, idioma);
     // cubo de alambre (12 aristas) + triángulo de escucha (2) + distancia a
     // pared frontal/lateral × 2 parlantes (4) + 4 verticales por caja de
     // parlante × 2 parlantes (8)
     assert.equal((svg.match(/<line/g) ?? []).length, 26, idioma);
-    // piso (relleno) + 8 caminos de reflexión + 2 caras (arriba/abajo) por caja de parlante × 2 parlantes (4)
-    assert.equal((svg.match(/<polyline/g) ?? []).length, 13, idioma);
+    // piso (relleno) + 10 caminos de reflexión + 2 caras (arriba/abajo) por caja de parlante × 2 parlantes (4)
+    assert.equal((svg.match(/<polyline/g) ?? []).length, 15, idioma);
   }
 });
 
@@ -36,9 +36,9 @@ test('las 4 vistas (isométrica/frontal/lateral/superior) producen un SVG válid
     const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, vista, 'es');
     assert.match(svg, /^<svg viewBox="0 0 \d+ \d+"/, vista);
     assert.match(svg, /<\/svg>$/, vista);
-    assert.equal((svg.match(/<circle/g) ?? []).length, 10, vista);
+    assert.equal((svg.match(/<circle/g) ?? []).length, 12, vista);
     assert.equal((svg.match(/<line/g) ?? []).length, 26, vista);
-    assert.equal((svg.match(/<polyline/g) ?? []).length, 13, vista);
+    assert.equal((svg.match(/<polyline/g) ?? []).length, 15, vista);
   }
 });
 
@@ -257,4 +257,60 @@ test('etiquetas de distancia de reflexión: dos del mismo lado nunca comparten l
     assert.equal(new Set(izq).size, izq.length, `${vista}: dos etiquetas del lado izquierdo se superponen`);
     assert.equal(new Set(der).size, der.length, `${vista}: dos etiquetas del lado derecho se superponen`);
   }
+});
+
+// ---- reflexión frontal (Cambio 1, SBIR) ----
+
+test('muro frontal "vacío" quita las DOS reflexiones frontales (izq y der comparten el mismo muro)', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const conAbertura: MurosVista = { ...MUROS_TIPICOS, frontal: 'vacio' };
+  const svgTipico = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'isometrica', 'es');
+  const svgAbertura = construirPlanoSvg(SALA_VECTOR, disp, conAbertura, 'isometrica', 'es');
+  assert.equal((svgTipico.match(/<circle/g) ?? []).length, (svgAbertura.match(/<circle/g) ?? []).length + 2);
+  assert.equal((svgTipico.match(/<polyline/g) ?? []).length, (svgAbertura.match(/<polyline/g) ?? []).length + 2);
+});
+
+test('la distancia de la reflexión frontal (vector ya verificado: 4,000 m con disposición automática) aparece en el SVG', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'isometrica', 'es');
+  assert.match(svg, new RegExp(`>${num(disp.distanciaFrontalIzqM, 2, 'es')} m<`));
+  assert.match(svg, new RegExp(`>${num(disp.distanciaFrontalDerM, 2, 'es')} m<`));
+});
+
+// ---- asiento libre (candado abierto): grupo arrastrable + referencia punteada ----
+
+test('referenciaSimetricaM=null (candado cerrado, default) no dibuja ninguna referencia punteada ni hace arrastrable el punto dulce, aunque editable=true', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', true);
+  assert.doesNotMatch(svg, /data-parlante="asiento"/);
+  assert.doesNotMatch(svg, /data-agarre="asiento"/);
+  assert.doesNotMatch(svg, /posición simétrica de referencia/);
+});
+
+test('referenciaSimetricaM no-null + editable=true en vista Superior: el punto dulce se vuelve arrastrable y se dibuja la referencia punteada', () => {
+  const disp = calcularDisposicionManual(SALA_VECTOR, { x: 1.2, y: 0.9 }, { x: 2.4, y: 0.9 });
+  const referencia = calcularDisposicion(SALA_VECTOR).puntoDulce;
+  const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', true, referencia);
+  assert.match(svg, /<g data-parlante="asiento" class="parlante-arrastrable" style="touch-action:none">/);
+  assert.equal((svg.match(/data-agarre="asiento"/g) ?? []).length, 1);
+  assert.match(svg, /posición simétrica de referencia/);
+});
+
+test('referenciaSimetricaM no-null pero editable=false (u otra vista): la referencia se dibuja igual, pero el punto dulce NO se vuelve arrastrable', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const referencia = { x: disp.puntoDulce.x + 0.3, y: disp.puntoDulce.y };
+  const svgVistaFija = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'es', false, referencia);
+  assert.doesNotMatch(svgVistaFija, /data-parlante="asiento"/);
+  assert.match(svgVistaFija, /posición simétrica de referencia/);
+
+  const svgOtraVista = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'isometrica', 'es', true, referencia);
+  assert.doesNotMatch(svgOtraVista, /data-parlante="asiento"/);
+  assert.match(svgOtraVista, /posición simétrica de referencia/);
+});
+
+test('referenciaSimetricaM en inglés: etiqueta "symmetric reference position", sin mezclar idiomas', () => {
+  const disp = calcularDisposicion(SALA_VECTOR);
+  const svg = construirPlanoSvg(SALA_VECTOR, disp, MUROS_TIPICOS, 'superior', 'en', true, disp.puntoDulce);
+  assert.match(svg, /symmetric reference position/);
+  assert.doesNotMatch(svg, /posición simétrica/);
 });

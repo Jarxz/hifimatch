@@ -99,6 +99,16 @@ export const en: Textos = {
       cuerpoHtml:
         'Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room\'s width, length, and height "fit" certain wavelengths. The card marks it "clustered" when at least one pair of modes on different axes lands within 1% of each other (a near-exact overlap, the worst case, counts on its own), or when there are two or more pairs within 2% — both thresholds, below 150 Hz, declared by this site, not a published convention. A sweep of thousands of rooms showed a single 5% threshold flagged 86% of them — a traffic light that almost never changes; this two-condition rule flags a much more informative 37%. This rule never returns "error" severity — it\'s a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space.',
     },
+    filtroPeine: {
+      titulo: 'Comb filtering from reflections',
+      cuerpoHtml:
+        'Every early reflection (frontal —behind the speaker—, side, rear, ceiling, and floor) reaches the ear a little after the direct sound, and that path difference (Δ) makes the direct and reflected sound cancel and reinforce frequencies in a "comb" pattern: the first null falls at c/(2Δ), the first reinforcement at c/Δ. This card calculates all 10 combinations (5 reflections × 2 channels) and only flags one when its first null lands in the most audible zone for timbre (200-2000 Hz, presence/definition of voices and instruments) <b>and</b> the surface producing that reflection reflects more than it absorbs there — without that absorption weighting, this rule would flag almost any room, because there are always reflections. Same as the rest of the room block: rigid geometry, first order, verified by listening and, if needed, treating that surface.',
+    },
+    triangulo: {
+      titulo: 'Listening triangle',
+      cuerpoHtml:
+        'Two questions about the SHAPE of the triangle the speakers and the listening spot form, beyond distance alone. <b>Asymmetry:</b> compares the path of each reflection —and the direct path— between the two channels; with the speakers in different positions (or the seat unlocked with the padlock, see the layout card) one side can end up closer than the other, and that time difference pulls the stereo image toward the nearer speaker. <b>Angle:</b> the one the two speakers subtend as seen from the listening spot, compared against the stereo equilateral-triangle convention (60°) — a different angle isn\'t an error (some people prefer a narrower or wider soundstage on purpose), but this card flags it when it falls outside a reasonable range, so it\'s a conscious choice rather than an undeclared side effect. Same caveat as always: rigid room geometry, verified by listening.',
+    },
     reverberacion: {
       titulo: 'Estimated reverberation time (RT60)',
       cuerpoHtml:
@@ -235,6 +245,13 @@ export const en: Textos = {
       pestanaOriginal: 'Original analysis',
       pestanaModificado: 'Modified',
       hintArrastreHtml: 'In this view you can move the speakers to try a different layout, <button type="button" id="btn-recalcular">RECALCULATE</button> and compare with Original analysis.',
+      candadoAria: 'Listening-spot padlock',
+      candadoCerrado: '🔒 Padlock locked',
+      candadoAbierto: '🔓 Padlock open',
+      hintAsiento: 'Padlock open: the listening spot can also be dragged, independently of the speakers.',
+      candadoComparadorAviso:
+        'Original analysis and Modified use a different method for the listening spot (padlock locked/open) — a difference between the two may come from that, not only from position.',
+      referenciaSimetrica: 'symmetric reference position',
       ubicacionTitulo: 'Reference speaker placement',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Left speaker: <b>${p.frontalIzq} m</b> from the front wall, <b>${p.lateralIzq} m</b> from its side wall. Right speaker: <b>${p.frontalDer} m</b> from the front wall, <b>${p.lateralDer} m</b> from its side wall. Distance between them: <b>${p.separacion} m</b>. This is the reference layout the rest of the analysis uses (power, modes, reflections) — it gets refined by moving the speakers and listening in the real space.`,
@@ -497,12 +514,16 @@ export const en: Textos = {
       },
       verdictoNulo: 'Null at the listening spot',
       verdictoAmbos: 'Clustered modes and a null at the listening spot',
+      verdictoAcoplamiento: 'Speaker sitting in a pressure node',
+      verdictoVarios: (p) => `${p.n} mode problems at once`,
       simple: {
         'modos-distribuidos': 'The room’s bass is reasonably even.',
         'modos-agrupados': 'Some bass frequencies will likely sound reinforced.',
       },
       simpleNulo: 'Your listening position sits in the bass null of one particular mode.',
       simpleAmbos: 'Bass is reinforced at one frequency and, on top of that, there’s a null at another — worth checking the listening position.',
+      simpleAcoplamiento: 'The speaker sits where it barely excites one of the room’s bass modes.',
+      simpleVarios: 'More than one bass problem is happening at once in this layout — check the technical detail.',
       eje: { ancho: 'width', largo: 'length', alto: 'height' },
       textoOk: (p) =>
         `The room's bass resonances are reasonably distributed below ${p.techo} Hz — no coincidences reinforcing a particular frequency were found.`,
@@ -519,9 +540,85 @@ export const en: Textos = {
         'Try moving the listening spot (or the speakers) a few centimeters forward or back to get out of the null — verified by listening; that mode\'s bass dip should be much less noticeable just a few centimeters off the exact center.',
       sugerencia:
         'Try repositioning the speakers or the listening spot, or treat those frequencies acoustically — verified by listening and measuring in the real space. A parametric filter (active EQ) centered near those frequencies can also attenuate the buildup, but tuning it well requires measuring the real room: this model doesn’t have measured amplitude or phase to propose a specific Q or dB cut.',
+      acoplamientoAlto: (p) =>
+        `<b>Speaker sitting in a pressure node:</b> at the current position, the speaker excites only ${p.productoPct}% of the axial length mode order ${p.orden} (${p.frecuencia} Hz) — the source sits near a spot where that mode barely gets generated, so that particular resonance can sound much weaker than expected.`,
+      sugerenciaAcoplamiento:
+        'Try moving the speaker (forward/back in the room) a few centimeters to get out of that mode\'s pressure node — verified by listening: the reinforcement at that frequency should become more noticeable just a bit off the exact spot.',
+      fuenteAcoplamiento: (p) =>
+        `<b>Modal coupling:</b> same cos(nπy/L) shape as the listening null, applied to the speaker position instead of the listener's — a speaker sitting in a mode's pressure node barely excites it, whatever that mode's real amplitude (which this model doesn't measure). "High" when the speaker×listener product of any order (1-3) exceeds ${p.umbral}% — a site criterion.`,
       curvaOrden: (p) => `order ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Relative pressure along each affected axis — only the lowest-frequency clusters (the most audible and hardest to treat). Independent 1D curves per axis, not a combined room map.',
+    },
+
+    filtroPeine: {
+      titulo: 'Comb filtering from reflections',
+      verdictoOk: 'No nulls in audible zone',
+      verdictoWarn: 'Comb null in audible zone',
+      simpleOk: 'No early reflection lands a comb null inside the most audible zone, against a reflective surface.',
+      simpleWarn: 'At least one early reflection produces a comb null in an audible zone, against a surface that reflects more than it absorbs.',
+      textoOk:
+        'Each early reflection (front, side, rear, ceiling, floor) interferes with the direct sound and cancels/reinforces frequencies in a comb pattern, starting at the first null (c/2Δ, with Δ = path difference). None of the calculated first nulls falls, at the same time, inside the most audible zone (200-2000 Hz) and against a surface that reflects more than it absorbs there.',
+      textoWarn: (p) =>
+        `Each early reflection interferes with the direct sound and cancels/reinforces frequencies in a comb pattern, starting at the first null (c/2Δ). ${p.n} of the 10 combinations (5 reflections × 2 channels) has its first null inside the most audible zone (200-2000 Hz) AND against a surface that reflects more than it absorbs there — see the technical detail for which ones.`,
+      nombreReflexion: {
+        frontal: 'Front (behind the speaker)',
+        lateral: 'Side',
+        trasera: 'Rear (behind the listener)',
+        piso: 'Floor',
+        techo: 'Ceiling',
+      },
+      canalIzq: 'left',
+      canalDer: 'right',
+      severidadOk: 'out of zone / absorbed',
+      severidadWarn: 'in audible zone, reflective',
+      fila: (p) => `${p.nombre}: Δ=${p.deltaM} m → 1st null ${p.nuloHz} Hz, 1st reinforcement ${p.refuerzoHz} Hz (α≈${p.alpha}) — ${p.severidad}`,
+      filaDegenerada: (p) => `${p.nombre}: degenerate geometry (speaker ~on the surface) — no finite null to report`,
+      avisoFila: (p) => `<b>${p.nombre}:</b> first null at ≈${p.nuloHz} Hz.`,
+      sugerencia:
+        'Treating that surface acoustically (an absorbent panel at the first reflection point) helps, or repositioning speakers/listening spot to change the path difference — verified by listening and, if possible, measuring.',
+      fuente: (p) =>
+        `<b>Criterion:</b> rigid room geometry, point source, first order — same model as the rest of the room block. "Audible zone" = ${p.rangoMin}-${p.rangoMax} Hz (presence/definition of voices and instruments), and "reflective" = an absorption coefficient below ${p.alphaMax} in the null's band — both a site criterion. Without weighting by absorption, this rule would flag almost any room; with it, only surfaces that genuinely return the reflection. It's not summed with the other reflections into a combined curve: each one answers a narrow question.`,
+    },
+
+    triangulo: {
+      titulo: 'Listening triangle',
+      categoriaDirecto: 'Direct path',
+      nombreReflexion: {
+        frontal: 'Front reflection',
+        lateral: 'Side reflection',
+        trasera: 'Rear reflection',
+        piso: 'Floor reflection',
+        techo: 'Ceiling reflection',
+      },
+      verdictoOk: 'Symmetric triangle',
+      verdictoAsimetria: 'Asymmetric triangle',
+      verdictoAngulo: {
+        'angulo-estrecho': 'Narrow angle',
+        'angulo-ok': 'Angle within range',
+        'angulo-amplio': 'Wide angle',
+      },
+      verdictoAmbos: 'Asymmetric triangle and angle out of range',
+      simpleOk: 'Both speakers sit at the same distance from the listening spot, with an angle inside the declared range.',
+      simpleAsimetria: 'One speaker ends up noticeably closer to the listening spot than the other — the stereo image can pull toward that side.',
+      simpleAngulo: {
+        'angulo-estrecho': 'The angle the speakers subtend as seen from the listening spot is narrower than the declared range — a narrow soundstage.',
+        'angulo-ok': 'The angle the speakers subtend as seen from the listening spot is within the declared range.',
+        'angulo-amplio': 'The angle the speakers subtend as seen from the listening spot is wider than the declared range — it can leave a central phase gap.',
+      },
+      simpleAmbos: 'The triangle is asymmetric and, on top of that, the angle falls outside the declared range.',
+      texto: (p) =>
+        `The angle the two speakers subtend as seen from the listening spot is <b>${p.angulo}°</b>. The stereo equilateral-triangle convention is <b>${p.convencion}°</b> — it's not the only valid layout (a narrower or wider soundstage is a legitimate preference), but an angle outside the declared range gets flagged anyway, so it's a conscious choice rather than an undeclared side effect of the automatic layout.`,
+      calcAngulo: (p) => `angle = ${p.angulo}° (declared range: ${p.min}°-${p.max}°)`,
+      filaAsimetria: (p) => `${p.nombre}: Δ = ${p.deltaM} m (${p.deltaUs} µs) between channels`,
+      diferenciaNivel: (p) =>
+        `Level difference between channels (direct path, two decorrelated sources): ${p.db} dB — the same distance asymmetry above, expressed as level instead of time.`,
+      avisoAsimetria: (p) =>
+        `<b>Asymmetry above the threshold in:</b> ${p.items}. With well-calibrated cables/channels, this comes from positioning, not the electronics — worth checking that both speakers and the listening spot are where the layout shows them.`,
+      avisoAnguloEstrecho: 'A wider angle (speakers further apart, or the listening spot closer) opens up the stereo image — at the cost of a less defined center if overdone.',
+      avisoAnguloAmplio: 'A narrower angle (speakers closer together, or the listening spot further back) closes the central phase gap between the speakers.',
+      fuente: (p) =>
+        `<b>Criterion:</b> asymmetry — homologous-path difference between channels greater than ${p.umbralM} m (≈145 µs at 343 m/s), a site criterion. Angle — stereo equilateral-triangle convention (${p.convencion}°, not invented by the site); the declared range ${p.min}°-${p.max}° before flagging it is a site criterion. Rigid room geometry, first order, no directivity — verified by listening.`,
     },
 
     reverberacion: {
@@ -577,6 +674,8 @@ export const en: Textos = {
         potencia: 'Power',
         carga: 'Load',
         modos: 'Room modes',
+        filtroPeine: 'Comb filtering',
+        trianguloEscucha: 'Listening triangle',
         puenteStreamer: 'Impedance bridge (Streamer)',
         recorridoStreamer: 'Volume headroom (Streamer)',
         puenteDac: 'Impedance bridge (DAC)',

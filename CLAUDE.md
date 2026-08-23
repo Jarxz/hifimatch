@@ -2977,9 +2977,84 @@ headless sobre el build real: KEF LS50 Meta + Rega Brio (sin streamer ni
 dac) muestra "Datos que el fabricante no publica: Amortiguamiento." al
 pie de la página, sin tocar el resto del layout ni la tarjeta de
 Reverberación (que sigue con su propio "Estimado, no medido" o "No se
-puede estimar", intactos). **334 tests totales** entre los 4 workspaces
+puede estimar", intactos). 334 tests totales entre los 4 workspaces
 (antes 325): 147 en `packages/engine` (antes 145), 156 en `apps/web`
 (antes 149).
+
+**"Que mover los parlantes cambie la física, no sólo el dibujo" — cinco
+cambios sobre colocación de parlantes y punto de escucha, con una
+excepción aprobada a "no tocar potencia.ts".** El editor del plano ya
+calculaba 8 caminos reflejados (lateral/trasera/piso/techo × 2 canales)
+pero sólo los dibujaba; mover un parlante sólo tocaba
+`distanciaEscuchaM` y el cruce geometría↔modo del oyente. El detalle
+completo de fórmulas y vectores está en `docs/motor-mvp.md` sección
+4quater; acá el resumen de qué cambió y por qué.
+
+**Cambio 1 (`sala.ts`):** la reflexión del muro FRONTAL (detrás de cada
+parlante, el SBIR clásico) nunca se calculaba — sólo la trasera (detrás
+del oyente). Mismo método de imagen especular que las demás, reflejando
+por `y=0`. **Cambio 2 (`modos.ts`, `evaluarAcoplamientoModal`):** la
+misma forma cos(nπy/L) que ya usaba el nulo de escucha, aplicada a la
+posición del PARLANTE — una fuente en un nodo de presión de un modo
+casi no lo excita. Se pliega en la tarjeta "Modos de sala" existente
+(3 señales: agrupamiento, nulo, acoplamiento — peor-de-las-3 para la
+severidad; agrupamiento+nulo conserva su texto dedicado, cualquier
+combinación con acoplamiento usa un titular genérico "N problemas" en
+vez de una matriz de 8 combinaciones, el aviso sigue concatenando el
+detalle completo). **Cambio 3 (`colocacion.ts`, módulo nuevo,
+`evaluarFiltroPeine`):** cada una de las 5 reflexiones × 2 canales
+interfiere con el directo — nulo en `c/(2Δ)` — ponderado por la
+absorción real de esa superficie (sin eso, la regla marcaría aviso en
+cualquier sala). Con los materiales por defecto del sitio, sólo el piso
+da `warn` — hallazgo real: ningún material de piso del catálogo absorbe
+lo suficiente a 125 Hz. **Cambio 4 (`colocacion.ts`,
+`evaluarAsimetria`/`evaluarAnguloEscucha`):** asimetría entre canales
+(directo + 5 reflexiones) y ángulo del triángulo de escucha contra la
+convención de 60°, con un hallazgo documentado y no corregido: la
+disposición automática de este sitio da **siempre** ≈45,24° en
+cualquier sala (consecuencia del factor 1,2 de `filaEscuchaM`, nunca
+declarado en función del ángulo) — no es un error, se declara en vez de
+corregirse en silencio. Las dos señales se pliegan en una tarjeta nueva,
+"Triángulo de escucha". **Cambio 5 (`sala.ts`,
+`calcularDisposicionAsientoManual`):** el "candado" del punto de
+escucha — cerrado (default) deriva el asiento de los parlantes como
+siempre; abierto, el asiento se arrastra de forma independiente. Con el
+asiento libre, los parlantes dejan de ser necesariamente equidistantes
+del oyente, así que `potencia.ts` cambió: `evaluarPotencia` recibe dos
+distancias (izq/der) y suma los canales como fuentes descorrelacionadas
+(`10·log₁₀(10^(L1/10)+10^(L2/10))`) en vez del `SUMA_PAR_DB=3` fijo —
+en el caso simétrico da 3,0103 dB, 0,0103 dB sobre el valor redondeado
+anterior, sin regresión en ningún vector (tolerancia del proyecto:
+0,05 dB). Esta fue la única excepción a "no tocar potencia.ts" de la
+instrucción original — confirmada explícitamente antes de tocar código
+vía pregunta directa al usuario.
+
+**Candado en la UI:** un botón en la fila de controles del plano: abierto
+vuelve arrastrable el punto dulce en vista Superior (mismo patrón que
+los parlantes) y dibuja la posición simétrica de referencia como
+marcador punteado. Abrir nunca mueve el asiento; cerrar no borra la
+posición arrastrada (`asientoManualGuardado` en `main.ts` sobrevive al
+ciclo cerrado→abierto). El estado de candado viaja en cada
+`SnapshotAnalisis`; si "Análisis original" (siempre cerrado) y
+"Modificado" difieren, un aviso declara que la diferencia entre pestañas
+puede deberse al método, no sólo a la posición. **Bug real encontrado
+recién en la verificación end-to-end:** "Recalcular" exigía un parlante
+arrastrado (`disposicionManual`) para no ser un no-op — mover sólo el
+asiento dejaba esa variable en `null`, así que Recalcular no hacía nada
+pese al arrastre visible en la vista previa; corregido para que también
+proceda con el candado abierto solo. Verificado con Chrome headless real
+(CDP crudo, sin Puppeteer): selects marca→modelo, Analizar, vista
+Superior, apertura de candado (asiento arrastrable + referencia
+punteada dibujadas), arrastre sintético del asiento, Recalcular
+(pestaña "Modificado" con "Triángulo asimétrico"), aviso de candado en
+ambas pestañas, y el ciclo cerrar→reabrir restituyendo el grupo
+arrastrable — sin errores de consola en ningún paso.
+
+**395 tests totales** entre los 4 workspaces (antes 334): 187 en
+`packages/engine` (antes 147 — suben `sala.test.ts`/`modos.test.ts`/
+`colocacion.test.ts` nuevo/`potencia.test.ts`/`veredicto.test.ts`), 16
+en `packages/data`, 15 en `packages/contact`, 177 en `apps/web` (antes
+156 — suben `resultado.test.ts`/`plano.test.ts`).
 
 Falta:
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
@@ -3069,7 +3144,15 @@ Falta:
 - **Ubicación de parlantes: regla de Cardas vs. tercios**, como alternativa
   a la disposición de referencia única que calcula hoy `sala.ts`: sin
   diseñar, sesión aparte.
-- **Alternativa de teclado para arrastrar parlantes** (accesibilidad): el
-  arrastre del plano (vista Superior) queda como mejora progresiva
-  puramente mouse/touch por ahora — se puede sumar después sin rediseñar
-  la geometría ni el sistema de snapshots/pestañas.
+- **Alternativa de teclado para arrastrar parlantes o el asiento**
+  (accesibilidad): el arrastre del plano (vista Superior) — parlantes y,
+  con el candado abierto, el punto de escucha — queda como mejora
+  progresiva puramente mouse/touch por ahora — se puede sumar después
+  sin rediseñar la geometría ni el sistema de snapshots/pestañas.
+- **`modeloUbicacionParlantes` no reporta la posición del asiento
+  cuando el candado está abierto**: el párrafo "Ubicación de referencia
+  de los parlantes" sigue describiendo sólo la posición de cada
+  parlante (sin cambios de esta ronda) — con el asiento arrastrado de
+  forma independiente, ese texto ya no cuenta toda la historia de la
+  disposición. El plano sí lo muestra (marcador + referencia punteada);
+  falta la frase equivalente en prosa.

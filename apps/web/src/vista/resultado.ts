@@ -18,11 +18,13 @@ import type { ResultadoAmortiguamiento } from '../../../../packages/engine/src/a
 import { DELTA_DB_OPTIMO_MAX, TEXTO_TIER_MODERADO_MAX_DB, TEXTO_TIER_SEVERO_MAX_DB } from '../../../../packages/engine/src/amortiguamiento.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
-import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha } from '../../../../packages/engine/src/modos.ts';
-import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, UMBRAL_AGRUPAMIENTO_EXACTO, MIN_PARES_AGRUPADOS, VENTANA_NULO_MODAL } from '../../../../packages/engine/src/modos.ts';
+import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha, ResultadoAcoplamientoModal } from '../../../../packages/engine/src/modos.ts';
+import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, UMBRAL_AGRUPAMIENTO_EXACTO, MIN_PARES_AGRUPADOS, VENTANA_NULO_MODAL, UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO } from '../../../../packages/engine/src/modos.ts';
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
 import { ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ResultadoVeredicto } from '../../../../packages/engine/src/veredicto.ts';
+import type { ResultadoFiltroPeine, ResultadoAsimetria, ResultadoAnguloEscucha, NombreReflexion } from '../../../../packages/engine/src/colocacion.ts';
+import { FILTRO_PEINE_RANGO_MIN_HZ, FILTRO_PEINE_RANGO_MAX_HZ, FILTRO_PEINE_ALPHA_REFLECTANTE_MAX, ASIMETRIA_UMBRAL_M, ANGULO_ESCUCHA_MIN_GRADOS, ANGULO_ESCUCHA_MAX_GRADOS } from '../../../../packages/engine/src/colocacion.ts';
 import type { DisposicionSala, Sala } from '../../../../packages/engine/src/sala.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
@@ -492,33 +494,68 @@ export interface ModeloTarjetaModos {
 
 /**
  * `resNulo` es el cruce geometría↔modo (¿el punto de escucha calculado cae
- * en el nulo del primer modo axial de largo?) — a diferencia del resto de
- * `r` (que sólo depende de las dimensiones), `resNulo` depende de la
- * disposición de parlantes, así que quien llama tiene que recalcularlo en
- * cada "Analizar"/arrastre+Recalcular (ver `evaluarNuloEscucha` en
- * modos.ts). La severidad final es el peor de los dos — ni el agrupamiento
- * ni el nulo se pisan entre sí, cualquiera de los dos alcanza para "warn".
+ * en el nulo del primer modo axial de largo?) y `resAcoplamiento` es el
+ * acoplamiento modal del PARLANTE (¿la fuente misma cae en un nodo de
+ * presión de alguno de los 3 primeros modos axiales de largo? — misma
+ * cos(nπy/L), aplicada a la fuente en vez de al oyente, ver
+ * `evaluarAcoplamientoModal` en modos.ts) — a diferencia del resto de `r`
+ * (que sólo depende de las dimensiones), los dos dependen de la
+ * disposición de parlantes, así que quien llama tiene que recalcularlos en
+ * cada "Analizar"/arrastre+Recalcular. La severidad final es el peor de
+ * los tres — ninguno de los tres se pisa entre sí, cualquiera alcanza para
+ * "warn". Con 2+ problemas activos a la vez, el texto no enumera las 8
+ * combinaciones posibles: nombra el que corresponde cuando hay uno solo, y
+ * generaliza a "varios problemas" cuando hay más — evita una matriz de
+ * texto combinatoria sin perder precisión (`avisoHtml` sigue concatenando
+ * el detalle de cada uno, como ya hacía con agrupamiento+nulo).
  */
-export function modeloModos(r: ResultadoModos, resNulo: ResultadoNuloEscucha, idioma: Idioma): ModeloTarjetaModos {
+export function modeloModos(r: ResultadoModos, resNulo: ResultadoNuloEscucha, resAcoplamiento: ResultadoAcoplamientoModal, idioma: Idioma): ModeloTarjetaModos {
   const t = textosDe(idioma);
   const eje = t.motor.modos.eje;
 
   const techoFmt = String(TECHO_AGRUPAMIENTO_HZ);
   const hayAgrupados = r.agrupados.length > 0;
   const hayNulo = resNulo.codigo === 'nulo-cerca';
+  const hayAcoplamiento = resAcoplamiento.severidad === 'warn';
+  const nProblemas = [hayAgrupados, hayNulo, hayAcoplamiento].filter(Boolean).length;
 
   const textoHtml =
     r.severidad === 'ok'
       ? t.motor.modos.textoOk({ techo: techoFmt })
       : t.motor.modos.textoWarn({ n: String(r.agrupados.length), techo: techoFmt });
 
-  const verdictoClase: ClaseVerdicto = hayNulo || r.severidad === 'warn' ? 'warn' : 'ok';
-  const verdictoTexto = hayNulo
-    ? hayAgrupados
-      ? t.motor.modos.verdictoAmbos
-      : t.motor.modos.verdictoNulo
-    : t.motor.modos.verdicto[r.codigo];
-  const simpleHtml = hayNulo ? (hayAgrupados ? t.motor.modos.simpleAmbos : t.motor.modos.simpleNulo) : t.motor.modos.simple[r.codigo];
+  const verdictoClase: ClaseVerdicto = nProblemas > 0 ? 'warn' : 'ok';
+  // agrupamiento+nulo ya tenía texto dedicado ("verdictoAmbos"/"simpleAmbos")
+  // desde antes de que existiera acoplamiento — se preserva tal cual para
+  // ese combo específico. La generalización a "varios problemas" sólo entra
+  // cuando acoplamiento se suma a cualquiera de los otros dos (3ª señal,
+  // sin texto de a pares propio) — evita una matriz de 8 combinaciones sin
+  // perder precisión en el caso de 2 que ya existía.
+  const soloAgrupamientoYNulo = hayAgrupados && hayNulo && !hayAcoplamiento;
+  const verdictoTexto =
+    nProblemas === 0
+      ? t.motor.modos.verdicto[r.codigo]
+      : soloAgrupamientoYNulo
+        ? t.motor.modos.verdictoAmbos
+        : nProblemas > 1
+          ? t.motor.modos.verdictoVarios({ n: String(nProblemas) })
+          : hayAgrupados
+            ? t.motor.modos.verdicto[r.codigo]
+            : hayNulo
+              ? t.motor.modos.verdictoNulo
+              : t.motor.modos.verdictoAcoplamiento;
+  const simpleHtml =
+    nProblemas === 0
+      ? t.motor.modos.simple[r.codigo]
+      : soloAgrupamientoYNulo
+        ? t.motor.modos.simpleAmbos
+        : nProblemas > 1
+          ? t.motor.modos.simpleVarios
+          : hayAgrupados
+            ? t.motor.modos.simple[r.codigo]
+            : hayNulo
+              ? t.motor.modos.simpleNulo
+              : t.motor.modos.simpleAcoplamiento;
 
   const partesAviso: string[] = [];
   if (hayAgrupados) {
@@ -538,11 +575,22 @@ export function modeloModos(r: ResultadoModos, resNulo: ResultadoNuloEscucha, id
   if (hayNulo) {
     partesAviso.push(t.motor.modos.nuloEscucha({ frecuencia: num(resNulo.frecuenciaHz, 1, idioma) }));
   }
+  if (hayAcoplamiento) {
+    const peorModo = resAcoplamiento.modos.reduce((peor, actual) => (actual.producto > peor.producto ? actual : peor));
+    partesAviso.push(
+      t.motor.modos.acoplamientoAlto({
+        orden: String(peorModo.orden),
+        frecuencia: num(peorModo.frecuenciaHz, 1, idioma),
+        productoPct: num(peorModo.producto * 100, 0, idioma),
+      })
+    );
+  }
   const avisoHtml = partesAviso.length > 0 ? partesAviso.join('<br><br>') : null;
 
   const partesSugerencia: string[] = [];
   if (hayAgrupados) partesSugerencia.push(t.motor.modos.sugerencia);
   if (hayNulo) partesSugerencia.push(t.motor.modos.sugerenciaNulo);
+  if (hayAcoplamiento) partesSugerencia.push(t.motor.modos.sugerenciaAcoplamiento);
   const sugerenciaHtml = partesSugerencia.length > 0 ? partesSugerencia.join(' ') : null;
 
   return {
@@ -560,7 +608,160 @@ export function modeloModos(r: ResultadoModos, resNulo: ResultadoNuloEscucha, id
         minPares: String(MIN_PARES_AGRUPADOS),
       }) +
       ' ' +
-      t.motor.modos.fuenteNulo({ ventana: String(Math.round(VENTANA_NULO_MODAL * 100)) }),
+      t.motor.modos.fuenteNulo({ ventana: String(Math.round(VENTANA_NULO_MODAL * 100)) }) +
+      ' ' +
+      t.motor.modos.fuenteAcoplamiento({ umbral: String(Math.round(UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO * 100)) }),
+  };
+}
+
+/** Filtro peine por reflexión — capa Geometría, techo `warn` (nunca
+ * `alert`/`dim`, siempre tiene dato: sólo depende de la disposición y los
+ * materiales ya elegidos, nunca del catálogo). `resultados` son las 10
+ * combinaciones (5 reflexiones × 2 canales) que ya calculó
+ * `evaluarFiltroPeine()`, siempre en el mismo orden — se reagrupan acá por
+ * nombre de reflexión para el desglose de `calcHtml` (mostrando el peor de
+ * los 2 canales por fila, ya que casi siempre coinciden salvo con
+ * disposición asimétrica). */
+export interface ModeloTarjetaFiltroPeine {
+  verdictoClase: ClaseVerdicto; // 'ok' | 'warn'
+  verdictoTexto: string;
+  simpleHtml: string;
+  textoHtml: string;
+  calcHtml: string;
+  avisoHtml: string | null;
+  fuenteHtml: string;
+}
+
+const ORDEN_REFLEXIONES: NombreReflexion[] = ['frontal', 'lateral', 'trasera', 'piso', 'techo'];
+
+export function modeloFiltroPeine(resultados: ResultadoFiltroPeine[], idioma: Idioma): ModeloTarjetaFiltroPeine {
+  const t = textosDe(idioma).motor.filtroPeine;
+  const nombreReflexion = t.nombreReflexion;
+
+  const conAviso = resultados.filter((r) => r.severidad === 'warn');
+  const verdictoClase: ClaseVerdicto = conAviso.length > 0 ? 'warn' : 'ok';
+  const verdictoTexto = verdictoClase === 'warn' ? t.verdictoWarn : t.verdictoOk;
+  const simpleHtml = verdictoClase === 'warn' ? t.simpleWarn : t.simpleOk;
+  const textoHtml = verdictoClase === 'warn' ? t.textoWarn({ n: String(conAviso.length) }) : t.textoOk;
+
+  const filaHtml = (r: ResultadoFiltroPeine): string =>
+    Number.isFinite(r.primerNuloHz)
+      ? t.fila({
+          nombre: `${nombreReflexion[r.reflexion]} (${r.canal === 'izq' ? t.canalIzq : t.canalDer})`,
+          deltaM: num(r.deltaM, 2, idioma),
+          nuloHz: num(r.primerNuloHz, 0, idioma),
+          refuerzoHz: num(r.primerRefuerzoHz, 0, idioma),
+          alpha: num(r.coeficienteAbsorcion, 2, idioma),
+          severidad: r.severidad === 'warn' ? t.severidadWarn : t.severidadOk,
+        })
+      : t.filaDegenerada({ nombre: `${nombreReflexion[r.reflexion]} (${r.canal === 'izq' ? t.canalIzq : t.canalDer})` });
+  const calcHtml = ORDEN_REFLEXIONES.flatMap((nombre) => resultados.filter((r) => r.reflexion === nombre).map(filaHtml)).join('<br>');
+
+  const avisoHtml =
+    conAviso.length > 0
+      ? conAviso
+          .map((r) => t.avisoFila({ nombre: `${nombreReflexion[r.reflexion]} (${r.canal === 'izq' ? t.canalIzq : t.canalDer})`, nuloHz: num(r.primerNuloHz, 0, idioma) }))
+          .join('<br>') +
+        '<br><br>' +
+        t.sugerencia
+      : null;
+
+  return {
+    verdictoClase,
+    verdictoTexto,
+    simpleHtml,
+    textoHtml,
+    calcHtml,
+    avisoHtml,
+    fuenteHtml: t.fuente({
+      rangoMin: String(FILTRO_PEINE_RANGO_MIN_HZ),
+      rangoMax: String(FILTRO_PEINE_RANGO_MAX_HZ),
+      alphaMax: num(FILTRO_PEINE_ALPHA_REFLECTANTE_MAX, 2, idioma),
+    }),
+  };
+}
+
+/** Triángulo de escucha — asimetría izquierda/derecha (Cambio 4) + ángulo
+ * contra la convención de 60° (`colocacion.ts`), combinadas en una sola
+ * tarjeta porque las dos describen la forma del mismo triángulo. Capa
+ * Geometría, techo `warn`. `diferenciaCanalesDb` (opcional: null cuando la
+ * potencia no llegó a calcularse) es el mismo `ResultadoPotencia.
+ * diferenciaCanalesDb` ya calculado por potencia.ts — se muestra junto a la
+ * diferencia de TIEMPO del camino directo, no como una fila nueva de
+ * cálculo: es la traducción a nivel (dB) de la misma asimetría de
+ * distancia que ya reporta `resAsimetria` en microsegundos. */
+export interface ModeloTarjetaTrianguloEscucha {
+  verdictoClase: ClaseVerdicto; // 'ok' | 'warn'
+  verdictoTexto: string;
+  simpleHtml: string;
+  textoHtml: string;
+  calcHtml: string;
+  avisoHtml: string | null;
+  fuenteHtml: string;
+}
+
+export function modeloTrianguloEscucha(
+  resAsimetria: ResultadoAsimetria[],
+  resAngulo: ResultadoAnguloEscucha,
+  diferenciaCanalesDb: number | null,
+  idioma: Idioma
+): ModeloTarjetaTrianguloEscucha {
+  const t = textosDe(idioma).motor.triangulo;
+  const nombreCategoria: Record<ResultadoAsimetria['categoria'], string> = {
+    directo: t.categoriaDirecto,
+    frontal: t.nombreReflexion.frontal,
+    lateral: t.nombreReflexion.lateral,
+    trasera: t.nombreReflexion.trasera,
+    piso: t.nombreReflexion.piso,
+    techo: t.nombreReflexion.techo,
+  };
+
+  const asimetriasConAviso = resAsimetria.filter((r) => r.severidad === 'warn');
+  const hayAsimetria = asimetriasConAviso.length > 0;
+  const hayAngulo = resAngulo.severidad === 'warn';
+
+  const verdictoClase: ClaseVerdicto = hayAsimetria || hayAngulo ? 'warn' : 'ok';
+  const verdictoTexto =
+    hayAsimetria && hayAngulo ? t.verdictoAmbos : hayAsimetria ? t.verdictoAsimetria : hayAngulo ? t.verdictoAngulo[resAngulo.codigo] : t.verdictoOk;
+  const simpleHtml =
+    hayAsimetria && hayAngulo ? t.simpleAmbos : hayAsimetria ? t.simpleAsimetria : hayAngulo ? t.simpleAngulo[resAngulo.codigo] : t.simpleOk;
+
+  const anguloFmt = num(resAngulo.anguloGrados, 0, idioma);
+  const textoHtml = t.texto({ angulo: anguloFmt, convencion: String(resAngulo.anguloConvencionGrados) });
+
+  const directo = resAsimetria.find((r) => r.categoria === 'directo')!;
+  const calcHtml =
+    t.calcAngulo({ angulo: anguloFmt, min: String(ANGULO_ESCUCHA_MIN_GRADOS), max: String(ANGULO_ESCUCHA_MAX_GRADOS) }) +
+    '<br>' +
+    resAsimetria
+      .map((r) => t.filaAsimetria({ nombre: nombreCategoria[r.categoria], deltaM: num(r.deltaM, 3, idioma), deltaUs: num(r.deltaUs, 0, idioma) }))
+      .join('<br>') +
+    (directo.severidad === 'warn' && diferenciaCanalesDb !== null
+      ? '<br>' + t.diferenciaNivel({ db: num(diferenciaCanalesDb, 2, idioma) })
+      : '');
+
+  const partesAviso: string[] = [];
+  if (hayAsimetria) {
+    partesAviso.push(t.avisoAsimetria({ items: asimetriasConAviso.map((r) => nombreCategoria[r.categoria]).join(', ') }));
+  }
+  if (hayAngulo) {
+    partesAviso.push(resAngulo.codigo === 'angulo-estrecho' ? t.avisoAnguloEstrecho : t.avisoAnguloAmplio);
+  }
+  const avisoHtml = partesAviso.length > 0 ? partesAviso.join('<br><br>') : null;
+
+  return {
+    verdictoClase,
+    verdictoTexto,
+    simpleHtml,
+    textoHtml,
+    calcHtml,
+    avisoHtml,
+    fuenteHtml: t.fuente({
+      umbralM: num(ASIMETRIA_UMBRAL_M, 2, idioma),
+      convencion: String(resAngulo.anguloConvencionGrados),
+      min: String(ANGULO_ESCUCHA_MIN_GRADOS),
+      max: String(ANGULO_ESCUCHA_MAX_GRADOS),
+    }),
   };
 }
 
@@ -846,6 +1047,8 @@ interface EntradasEstadoGrupo {
   mRecorridoDac: ModeloTarjetaRecorrido | null;
   mModos: ModeloTarjetaModos;
   mReverb: ModeloTarjetaReverberacion;
+  mFiltroPeine: ModeloTarjetaFiltroPeine;
+  mTriangulo: ModeloTarjetaTrianguloEscucha;
 }
 
 /** El peor de los items dados, por clase de veredicto (dim < ok < warn <
@@ -890,7 +1093,7 @@ export function modeloVeredicto(v: ResultadoVeredicto, e: EntradasEstadoGrupo, i
 
   const peorPotencia = e.mPot; // potencia siempre tiene un único componente, es directo
   const peorAcople = peorEntre([e.mCarga, e.mAmortiguamiento, e.mPuenteStreamer, e.mRecorridoStreamer, e.mPuenteDac, e.mRecorridoDac]);
-  const peorSala = peorEntre([e.mModos, e.mReverb]);
+  const peorSala = peorEntre([e.mModos, e.mReverb, e.mFiltroPeine, e.mTriangulo]);
 
   const estadoAcopleTexto = v.acopleElectrico === 'sin-datos' ? t.estadoAcopleSinDatos : t.estadoAcople[v.acopleElectrico];
 
@@ -950,6 +1153,8 @@ export interface DatosSeccionesDocumento {
   mRecorridoDac: ModeloTarjetaRecorrido | null;
   mModos: ModeloTarjetaModos;
   agrupadosModos: ModoAgrupado[];
+  mFiltroPeine: ModeloTarjetaFiltroPeine;
+  mTriangulo: ModeloTarjetaTrianguloEscucha;
   mReverb: ModeloTarjetaReverberacion;
   disposicion: DisposicionSala;
   murosVista: MurosVista;
@@ -1143,6 +1348,34 @@ export function modeloDocumento(
       extraHtml: datos.mModos.sugerenciaHtml ? `<div class="doc-flag">${datos.mModos.sugerenciaHtml}</div>` : '',
       fuenteHtml: datos.mModos.fuenteHtml,
       graficoHtml: svgModos ? panelOscuro(svgModos + `<div class="src">${tm.modos.curvasCaption}</div>`) : '',
+    })
+  );
+
+  secciones.push(
+    seccionDocumento({
+      capa: t.geometria,
+      verdictoClase: datos.mFiltroPeine.verdictoClase,
+      verdictoTexto: datos.mFiltroPeine.verdictoTexto,
+      titulo: tm.filtroPeine.titulo,
+      simpleHtml: datos.mFiltroPeine.simpleHtml,
+      textoHtml: datos.mFiltroPeine.textoHtml,
+      calcHtml: datos.mFiltroPeine.calcHtml,
+      avisoHtml: datos.mFiltroPeine.avisoHtml,
+      fuenteHtml: datos.mFiltroPeine.fuenteHtml,
+    })
+  );
+
+  secciones.push(
+    seccionDocumento({
+      capa: t.geometria,
+      verdictoClase: datos.mTriangulo.verdictoClase,
+      verdictoTexto: datos.mTriangulo.verdictoTexto,
+      titulo: tm.triangulo.titulo,
+      simpleHtml: datos.mTriangulo.simpleHtml,
+      textoHtml: datos.mTriangulo.textoHtml,
+      calcHtml: datos.mTriangulo.calcHtml,
+      avisoHtml: datos.mTriangulo.avisoHtml,
+      fuenteHtml: datos.mTriangulo.fuenteHtml,
     })
   );
 

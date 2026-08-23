@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   calcularDisposicion,
   calcularDisposicionManual,
+  calcularDisposicionAsientoManual,
   puntoDulceDesdeParlantes,
   clampPosicionParlante,
   MARGEN_MURO_MIN_M,
@@ -214,4 +215,101 @@ test('el punto dulce derivado también respeta el margen de muro cuando la sala 
   const pd = puntoDulceDesdeParlantes(izq, der, sala);
   assert.ok(pd.y <= sala.largoM - MARGEN_MURO_MIN_M + EPS);
   assert.ok(pd.y >= MARGEN_MURO_MIN_M - EPS);
+});
+
+// ---- reflexión frontal (detrás del parlante, SBIR) — vectores del usuario ----
+
+test('reflexión frontal: mismo método de imagen especular que la trasera, reflejando a través de y=0 — vector del usuario (sala 3,6×5,0×2,4, disposición automática)', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const d = calcularDisposicion(sala);
+  assert.ok(Math.abs(d.distanciaFrontalIzqM - 4.0) < 0.001, `distanciaFrontalIzqM=${d.distanciaFrontalIzqM}`);
+  assert.ok(Math.abs(d.distanciaFrontalIzqM - d.distanciaEscuchaM - 1.426) < 0.001, `delta=${d.distanciaFrontalIzqM - d.distanciaEscuchaM}`);
+  // simetría: mismo valor para el canal derecho en la disposición automática
+  assert.ok(Math.abs(d.distanciaFrontalDerM - d.distanciaFrontalIzqM) < EPS);
+});
+
+test('reflexión frontal: con los parlantes movidos a y=1,35 (más atrás), el punto dulce se recalcula solo y el delta frontal crece — vector del usuario', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const base = calcularDisposicion(sala);
+  const izq = { x: base.parlanteIzq.x, y: 1.35 };
+  const der = { x: base.parlanteDer.x, y: 1.35 };
+  const d = calcularDisposicionManual(sala, izq, der);
+  assert.ok(Math.abs(d.puntoDulce.y - 3.726) < 0.001, `puntoDulce.y=${d.puntoDulce.y}`);
+  assert.ok(Math.abs(d.distanciaEscuchaM - 2.574) < 0.001);
+  assert.ok(Math.abs(d.distanciaFrontalIzqM - 5.172) < 0.001, `distanciaFrontalIzqM=${d.distanciaFrontalIzqM}`);
+  assert.ok(Math.abs(d.distanciaFrontalIzqM - d.distanciaEscuchaM - 2.598) < 0.001, `delta=${d.distanciaFrontalIzqM - d.distanciaEscuchaM}`);
+});
+
+test('identidad de camino reflejado: la reflexión frontal también cumple parlante→reflexión + reflexión→escucha = distancia total (caso asimétrico)', () => {
+  const sala = { anchoM: 4.5, largoM: 6.0, altoM: 2.6 };
+  const izq = { x: 0.8, y: 0.6 };
+  const der = { x: 3.5, y: 1.4 };
+  const d = calcularDisposicionManual(sala, izq, der);
+  const aReflexion = Math.hypot(d.parlanteIzq.x - d.reflexionFrontalIzq.x, d.parlanteIzq.y - d.reflexionFrontalIzq.y, 0);
+  const aEscucha = Math.hypot(d.reflexionFrontalIzq.x - d.puntoDulce.x, d.reflexionFrontalIzq.y - d.puntoDulce.y, 0);
+  assert.ok(Math.abs(aReflexion + aEscucha - d.distanciaFrontalIzqM) < EPS);
+  assert.ok(Math.abs(d.reflexionFrontalIzq.y - 0) < EPS, 'el punto de reflexión frontal cae sobre y=0');
+});
+
+// ---- ángulo de escucha (triángulo estéreo) ----
+
+test('ánguloEscuchaGrados: sala por defecto da ≈45,2° con la disposición automática — consecuencia declarada del factor 1,2 de filaEscuchaM, no un error', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const d = calcularDisposicion(sala);
+  assert.ok(Math.abs(d.anguloEscuchaGrados - 45.24) < 0.01, `angulo=${d.anguloEscuchaGrados}`);
+});
+
+test('ánguloEscuchaGrados: el mismo factor da ~45° en otros tamaños de sala — es geometría del factor, no de la sala particular', () => {
+  for (const sala of [
+    { anchoM: 2.5, largoM: 3.0, altoM: 2.2 },
+    { anchoM: 4.2, largoM: 6.0, altoM: 2.6 },
+    { anchoM: 7, largoM: 9, altoM: 3.5 },
+  ]) {
+    const d = calcularDisposicion(sala);
+    assert.ok(Math.abs(d.anguloEscuchaGrados - 45.24) < 0.5, `sala=${JSON.stringify(sala)} angulo=${d.anguloEscuchaGrados}`);
+  }
+});
+
+test('ánguloEscuchaGrados: acercar la fila de escucha a y≈2,46 (asiento libre) sube el ángulo a la convención de 60°', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const base = calcularDisposicion(sala);
+  const centroX = (base.parlanteIzq.x + base.parlanteDer.x) / 2;
+  const d = calcularDisposicionAsientoManual(sala, base.parlanteIzq, base.parlanteDer, { x: centroX, y: 2.46 });
+  assert.ok(Math.abs(d.anguloEscuchaGrados - 60) < 0.2, `angulo=${d.anguloEscuchaGrados}`);
+});
+
+test('ánguloEscuchaGrados: 180° cuando parlantes y escucha quedan alineados en una recta (caso degenerado, sin NaN)', () => {
+  const sala = { anchoM: 4, largoM: 5, altoM: 2.4 };
+  const d = calcularDisposicionAsientoManual(sala, { x: 1, y: 1 }, { x: 3, y: 1 }, { x: 2, y: 5 });
+  assert.ok(Number.isFinite(d.anguloEscuchaGrados));
+  assert.ok(d.anguloEscuchaGrados > 0 && d.anguloEscuchaGrados <= 180);
+});
+
+// ---- calcularDisposicionAsientoManual (candado abierto — asiento independiente de los parlantes) ----
+
+test('calcularDisposicionAsientoManual: con el asiento sobre la mediatriz, reproduce exactamente calcularDisposicionManual (mismo caso, dos caminos)', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const base = calcularDisposicion(sala);
+  const viaManual = calcularDisposicionManual(sala, base.parlanteIzq, base.parlanteDer);
+  const viaAsientoLibre = calcularDisposicionAsientoManual(sala, base.parlanteIzq, base.parlanteDer, viaManual.puntoDulce);
+  assert.ok(Math.abs(viaAsientoLibre.distanciaEscuchaIzqM - viaManual.distanciaEscuchaIzqM) < EPS);
+  assert.ok(Math.abs(viaAsientoLibre.distanciaEscuchaDerM - viaManual.distanciaEscuchaDerM) < EPS);
+  assert.ok(Math.abs(viaAsientoLibre.distanciaEscuchaIzqM - viaAsientoLibre.distanciaEscuchaDerM) < EPS, 'sigue equidistante: el asiento coincide con la mediatriz');
+});
+
+test('calcularDisposicionAsientoManual: asiento fuera de la mediatriz — las dos distancias directas dejan de ser iguales (estructuralmente imposible con el asiento derivado)', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const base = calcularDisposicion(sala);
+  const d = calcularDisposicionAsientoManual(sala, base.parlanteIzq, base.parlanteDer, { x: 2.5, y: 3.0 });
+  assert.notEqual(d.distanciaEscuchaIzqM, d.distanciaEscuchaDerM);
+  assert.ok(Math.abs(d.distanciaEscuchaIzqM - 2.8146) < 0.001, `izq=${d.distanciaEscuchaIzqM}`);
+  assert.ok(Math.abs(d.distanciaEscuchaDerM - 2.2686) < 0.001, `der=${d.distanciaEscuchaDerM}`);
+});
+
+test('calcularDisposicionAsientoManual: el asiento respeta el mismo margen de muro que un parlante (clampPosicionParlante)', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const base = calcularDisposicion(sala);
+  const d = calcularDisposicionAsientoManual(sala, base.parlanteIzq, base.parlanteDer, { x: -5, y: 100 });
+  assert.ok(Math.abs(d.puntoDulce.x - MARGEN_MURO_MIN_M) < EPS);
+  assert.ok(Math.abs(d.puntoDulce.y - (sala.largoM - MARGEN_MURO_MIN_M)) < EPS);
 });

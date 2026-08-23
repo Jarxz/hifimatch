@@ -26,11 +26,23 @@ export const PICO_OBJETIVO_DB: Record<NivelEscucha, number> = {
  * 4 Ω, y estas dos constantes.
  */
 
-/** +6 dB sólo vale para contenido correlacionado (graves prácticamente
- * mono, donde dos fuentes coherentes suman en presión); el contenido
- * estéreo descorrelacionado — casi toda la música en medios y agudos —
- * suma +3 dB (dominio de potencia, fuentes incoherentes). Antes: 6. */
-export const SUMA_PAR_DB = 3;
+/**
+ * Historia de este bonus de pareja: primero era +6 dB (asumiendo contenido
+ * correlacionado, graves prácticamente mono); se corrigió a un
+ * `SUMA_PAR_DB = 3` fijo (dominio de potencia, fuentes incoherentes:
+ * 10·log₁₀(2) ≈ 3,01 dB, redondeado a una constante declarada). Esta
+ * ronda retira esa constante — ya no hace falta: con el asiento de escucha
+ * arrastrable de forma independiente de los parlantes
+ * (`calcularDisposicionAsientoManual`, `sala.ts`), la distancia de cada
+ * parlante al oyente puede diferir, así que el bonus de pareja deja de ser
+ * un número fijo y pasa a ser la suma real de dos fuentes descorrelacionadas
+ * (`10·log₁₀(10^(SPL_izq/10) + 10^(SPL_der/10))`, ver `evaluarPotencia`).
+ * Cuando ambas distancias coinciden (el caso de siempre, asiento
+ * bloqueado) esto da 10·log₁₀(2) ≈ **3,0103 dB** — 0,0103 dB por encima
+ * del viejo `SUMA_PAR_DB=3` redondeado, dentro de la tolerancia de todos
+ * los tests existentes (0,05 dB): no es una regresión, es la misma
+ * constante sin redondear.
+ */
 
 /** Refuerzo típico de sala pequeña por acumulación de presión — YA NO se
  * suma al SPL de banda ancha (antes sí, sin condición de frecuencia): ese
@@ -120,12 +132,38 @@ export interface ResultadoPotencia {
   /** Frecuencia del modo axial de la dimensión mayor de la sala — techo por
    * debajo del cual `gananciaSalaDb` aplica. f = 343 / (2·dimensionMayorSalaM). */
   frecuenciaGananciaSalaHz: number;
+  /** SPL que entrega CADA canal por separado a su propia distancia, antes
+   * de combinarlos — `splDisponibleDb` es la suma de estos dos como
+   * fuentes descorrelacionadas, no un número aparte. Iguales entre sí
+   * cuando `distanciaIzqM === distanciaDerM` (el caso de siempre, asiento
+   * derivado/bloqueado); expuestos por separado para que la tarjeta pueda
+   * mostrar la cuenta completa, no sólo el resultado combinado. */
+  splCanalIzqDb: number;
+  splCanalDerDb: number;
+  /** |splCanalIzqDb − splCanalDerDb| — cuánto más fuerte llega el canal más
+   * cercano que el más lejano. Es la cifra que explica hacia qué lado se
+   * corre la imagen estéreo con un asiento asimétrico. El nivel TOTAL
+   * (`splDisponibleDb`) en cambio no empeora con la asimetría — el canal
+   * cercano gana más de lo que pierde el lejano (ver comentario histórico
+   * sobre `SUMA_PAR_DB` más arriba) — así que esta diferencia entre
+   * canales es la métrica que importa para la imagen estéreo, no el
+   * total. Siempre 0 cuando `distanciaIzqM === distanciaDerM`. */
+  diferenciaCanalesDb: number;
+}
+
+/** `10·log₁₀(10^(a/10) + 10^(b/10))` — combina dos niveles en dB como
+ * fuentes descorrelacionadas (potencias, no presiones, se suman). Cuando
+ * `a === b` da exactamente `a + 10·log₁₀(2) ≈ a + 3,0103` — ver el
+ * comentario histórico sobre `SUMA_PAR_DB` más arriba. */
+function sumaDbDescorrelacionada(splCanalIzqDb: number, splCanalDerDb: number): number {
+  return 10 * Math.log10(10 ** (splCanalIzqDb / 10) + 10 ** (splCanalDerDb / 10));
 }
 
 export function evaluarPotencia(
   parlante: Parlante,
   amplificador: Amplificador,
-  distanciaM: number,
+  distanciaIzqM: number,
+  distanciaDerM: number,
   nivel: NivelEscucha,
   dimensionMayorSalaM: number
 ): ResultadoPotencia {
@@ -172,21 +210,37 @@ export function evaluarPotencia(
     potenciaUsadaConfianza = amplificador.potencia8OhmW.confianza;
   }
 
-  // Cambio 3: SUMA_PAR_DB corregido arriba; GANANCIA_SALA_DB ya no entra
-  // en el cómputo general, sólo se expone como información con su techo
-  // de frecuencia (modo axial de la dimensión mayor de la sala).
+  // Cambio 3 (ronda anterior): GANANCIA_SALA_DB ya no entra en el cómputo
+  // general, sólo se expone como información con su techo de frecuencia
+  // (modo axial de la dimensión mayor de la sala). Cambio 5 (esta ronda):
+  // el bonus de pareja deja de ser una constante (SUMA_PAR_DB) y pasa a
+  // ser la suma real de dos canales a SU PROPIA distancia — ver el
+  // comentario histórico más arriba y `sumaDbDescorrelacionada`.
   const gananciaSalaDb = GANANCIA_SALA_DB;
   const frecuenciaGananciaSalaHz = VELOCIDAD_SONIDO_MS / (2 * dimensionMayorSalaM);
 
-  const terminoComun = -atenuacionPorDistanciaDb(distanciaM) + gananciaPorPotenciaDb(potenciaUsadaW) + SUMA_PAR_DB;
-  const splDisponibleDb = sensibilidadEfectivaDb + terminoComun;
+  const gananciaPotenciaDb = gananciaPorPotenciaDb(potenciaUsadaW);
+  // Cada canal, a su propia distancia — con distanciaIzqM===distanciaDerM
+  // (el caso de siempre) los dos coinciden y splTotalDb() se reduce a
+  // splCanal + 10·log₁₀(2), la misma constante que antes daba SUMA_PAR_DB.
+  const splTotalDb = (sensibilidadDb: number): { total: number; canalIzq: number; canalDer: number } => {
+    const canalIzq = sensibilidadDb - atenuacionPorDistanciaDb(distanciaIzqM) + gananciaPotenciaDb;
+    const canalDer = sensibilidadDb - atenuacionPorDistanciaDb(distanciaDerM) + gananciaPotenciaDb;
+    return { total: sumaDbDescorrelacionada(canalIzq, canalDer), canalIzq, canalDer };
+  };
+
+  const { total: splDisponibleDb, canalIzq: splCanalIzqDb, canalDer: splCanalDerDb } = splTotalDb(sensibilidadEfectivaDb);
   const margenDb = splDisponibleDb - PICO_OBJETIVO_DB[nivel];
 
-  // Mismo desplazamiento (distancia/potencia/SUMA_PAR_DB/pico) aplicado a
-  // los dos extremos de sensibilidadEfectivaRangoDb — splDisponibleDb/
-  // margenDb de arriba ya son el extremo pesimista de este mismo rango.
+  // Mismo cálculo (dos canales, cada uno a su distancia) aplicado a los dos
+  // extremos de sensibilidadEfectivaRangoDb — splDisponibleDb/margenDb de
+  // arriba ya son el extremo pesimista de este mismo rango. splTotalDb()
+  // es monótona creciente en sensibilidadDb (log-sum-exp de dos términos
+  // que suben junto con ella), así que el extremo pesimista de la
+  // sensibilidad sigue dando el extremo pesimista del total — no hay
+  // reordenamiento que manejar.
   const splDisponibleRangoDb: [number, number] | null = sensibilidadEfectivaRangoDb
-    ? [sensibilidadEfectivaRangoDb[0] + terminoComun, sensibilidadEfectivaRangoDb[1] + terminoComun]
+    ? [splTotalDb(sensibilidadEfectivaRangoDb[0]).total, splTotalDb(sensibilidadEfectivaRangoDb[1]).total]
     : null;
   const margenRangoDb: [number, number] | null = splDisponibleRangoDb
     ? [splDisponibleRangoDb[0] - PICO_OBJETIVO_DB[nivel], splDisponibleRangoDb[1] - PICO_OBJETIVO_DB[nivel]]
@@ -242,5 +296,8 @@ export function evaluarPotencia(
     potenciaDeCargaEstimada,
     gananciaSalaDb,
     frecuenciaGananciaSalaHz,
+    splCanalIzqDb,
+    splCanalDerDb,
+    diferenciaCanalesDb: Math.abs(splCanalIzqDb - splCanalDerDb),
   };
 }

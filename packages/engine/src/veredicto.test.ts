@@ -13,6 +13,10 @@ const BASE: EntradaVeredicto = {
   recorridoDac: null,
   modos: 'ok',
   reverberacion: 'sin-datos', // el RT60 estimado ya no emite veredicto — mismo estado real de hoy, ver reverberacion.ts
+  acoplamientoModal: 'ok',
+  filtroPeine: 'ok',
+  asimetria: 'ok',
+  anguloEscucha: 'ok',
 };
 
 test('todo "ok"/"sin-datos" (estado real de hoy) → los 3 grupos "ok", general "ok"', () => {
@@ -76,6 +80,23 @@ test('sala: reverberacion "sin-datos" (estado real de hoy — el RT60 estimado y
 test('sala: nunca es "sin-datos" — modos siempre tiene valor, aunque reverberacion sea "sin-datos" (su estado real de hoy)', () => {
   const v = calcularVeredicto(BASE);
   assert.notEqual(v.sala as string, 'sin-datos');
+});
+
+test('sala: cada una de las 4 reglas nuevas (acoplamientoModal, filtroPeine, asimetria, anguloEscucha) alcanza sola para "warn" — mismo peor-eslabón que modos/reverberacion', () => {
+  assert.equal(calcularVeredicto({ ...BASE, acoplamientoModal: 'warn' }).sala, 'warn');
+  assert.equal(calcularVeredicto({ ...BASE, filtroPeine: 'warn' }).sala, 'warn');
+  assert.equal(calcularVeredicto({ ...BASE, asimetria: 'warn' }).sala, 'warn');
+  assert.equal(calcularVeredicto({ ...BASE, anguloEscucha: 'warn' }).sala, 'warn');
+});
+
+test('sala: las 6 entradas en "ok" (todas las reglas de sala, incluida reverberacion en su "sin-datos" real) dan "sala" = "ok"', () => {
+  const v = calcularVeredicto(BASE);
+  assert.equal(v.sala, 'ok');
+});
+
+test('general: una regla nueva de sala en "warn" alcanza para que el general sea "warn"', () => {
+  const v = calcularVeredicto({ ...BASE, filtroPeine: 'warn' });
+  assert.equal(v.general, 'warn');
 });
 
 test('general: sala en "warn" alcanza para que el general sea "warn" aunque potencia/acople estén "ok"', () => {

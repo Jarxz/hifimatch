@@ -927,6 +927,164 @@ tarjeta de potencia, no ésta.
 
 ---
 
+## 4quater. Colocación: candado del asiento, reflexión frontal, acoplamiento modal, filtro peine, asimetría y ángulo de escucha
+
+**Estado: implementada.** "Que mover los parlantes cambie la física, no
+sólo el dibujo" — el editor del plano ya calculaba 8 caminos reflejados
+(lateral/trasera/piso/techo × 2 canales) pero sólo los dibujaba; mover un
+parlante sólo tocaba `distanciaEscuchaM` (alimenta `potencia.ts`) y el
+cruce geometría↔modo del oyente. Cinco cambios, todos primer orden, sala
+rígida, fuente puntual, sin directividad — misma salvedad que el resto
+del bloque de sala (techo `warn`, nunca `alert`).
+
+### Cambio 1 — Reflexión del muro frontal (`sala.ts`)
+
+El muro que tiene detrás cada parlante (no el que tiene detrás el
+oyente) nunca se calculaba — es el SBIR ("speaker boundary interference
+response") clásico, la superficie más audible al mover un parlante.
+Mismo método de imagen especular que ya usaban lateral/trasera/techo/piso
+(`reflexionEnPlano`), reflejando a través de `y=0` en vez de `y=largoM`.
+`DisposicionSala` suma `reflexionFrontalIzq/Der`,
+`distanciaFrontalIzqM/DerM`. Vector (sala por defecto 3,6×5,0×2,4,
+disposición automática): `distanciaFrontalIzqM=4,000 m`, Δ=1,426 m sobre
+el directo; con los parlantes movidos a y=1,35: `distanciaFrontalIzqM=
+5,172 m`, Δ=2,598 m. `plano.ts` dibuja esta 5ª reflexión igual que las
+otras 4, oculta cuando `muros.frontal==='vacio'`.
+
+### Cambio 2 — Acoplamiento modal del parlante (`modos.ts`)
+
+`evaluarAcoplamientoModal(sala, parlanteYM, escuchaYM)` aplica la misma
+forma cos(nπy/L) que ya usaba `evaluarNuloEscucha` para el oyente, esta
+vez a la posición del PARLANTE: una fuente en un nodo de presión de un
+modo casi no lo excita, sea cual sea la amplitud real de ese modo (dato
+que este modelo no mide). Devuelve el producto
+acoplamientoParlante×acoplamientoEscucha para los 3 primeros órdenes;
+`warn` (`UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO=0,7`, criterio del sitio) si
+el peor supera el umbral. Vector (disposición automática de la sala por
+defecto vs. parlantes en y=1,35): modo1 34%→46%, modo2 42%→0%, modo3
+14%→61%. Caso límite verificado: parlante y oyente en el mismo antinodo
+(`evaluarAcoplamientoModal(sala, sala.largoM, sala.largoM)`) da 100% de
+acoplamiento en los 3 órdenes — el "sofá contra la pared trasera".
+
+Se pliega en la tarjeta "Modos de sala" ya existente (`apps/web`,
+`modeloModos`), junto a agrupamiento y nulo — 3 señales, peor-de-las-3
+para la severidad. Para el texto: agrupamiento+nulo conserva el texto
+dedicado que ya existía (`verdictoAmbos`/`simpleAmbos`); cualquier
+combinación que sume acoplamiento a otra de las dos usa un texto
+genérico ("N problemas de modos a la vez") en vez de una matriz de 8
+combinaciones — el `avisoHtml` sigue concatenando el detalle completo de
+cada señal activa, sólo el titular se generaliza. En `veredicto.ts`,
+`acoplamientoModal` es un campo SEPARADO de `modos` en `EntradaVeredicto`
+(agrupamiento+nulo) — ambos entran al grupo "Sala" vía `peorSeveridad()`,
+sin doble conteo porque esa función toma el máximo, no suma.
+
+### Cambio 3 — Filtro peine por reflexión (`colocacion.ts`, nuevo módulo)
+
+Cada una de las 5 reflexiones × 2 canales interfiere con el sonido
+directo: primer nulo en `c/(2Δ)`, primer refuerzo en `c/Δ`
+(`evaluarFiltroPeine`, 10 resultados siempre en el mismo orden). `warn`
+sólo cuando el nulo cae en la zona más audible declarada
+(`FILTRO_PEINE_RANGO_MIN_HZ=200`–`MAX_HZ=2000`) **y** la superficie
+reflectante tiene un coeficiente de absorción bajo
+(`FILTRO_PEINE_ALPHA_REFLECTANTE_MAX=0,15`, banda más cercana al nulo,
+reusando `ABSORCION_*_BANDAS` de `reverberacion.ts`) — sin la
+ponderación por absorción, la regla marcaría aviso en cualquier sala.
+Vectores (sala por defecto, canal izquierdo): frontal Δ=1,426 m/120 Hz/
+240 Hz; lateral Δ=0,956 m/179 Hz/359 Hz; trasera Δ=3,630 m/47 Hz/95 Hz;
+piso Δ=0,686 m/250 Hz/500 Hz; techo Δ=1,229 m/140 Hz/279 Hz. Con los
+materiales por defecto del sitio (yeso cartón×4+techo, madera laminado
+piso) sólo el piso da `warn` — ningún material de piso del catálogo
+(hormigón/madera laminado/porcelanato/alfombra) absorbe lo suficiente a
+125 Hz como para bajar de ese umbral: ninguna cobertura de piso
+amortigua realmente el grave, hallazgo real sobre la propia tabla de
+materiales del sitio, no un error de la regla.
+
+### Cambio 4 — Asimetría izquierda/derecha y ángulo de escucha (`colocacion.ts`)
+
+`evaluarAsimetria(disposicion)` compara el camino homólogo entre canales
+—directo + las 5 reflexiones—, `warn` sobre `ASIMETRIA_UMBRAL_M=0,05`
+(≈145 µs a 343 m/s, criterio del sitio). Con el candado del asiento
+CERRADO (ver Cambio 5), el punto dulce siempre se deriva sobre la
+mediatriz de los parlantes, así que la categoría `'directo'` da
+`deltaM≈0` por construcción — la asimetría sólo puede aparecer en las
+reflexiones. Con el candado ABIERTO eso deja de ser cierto: la misma
+función lo detecta sin rama de código aparte.
+
+`evaluarAnguloEscucha(disposicion)` compara `disposicion.
+anguloEscuchaGrados` (nuevo en `sala.ts`, ángulo que subtienden los
+parlantes visto desde el punto dulce) contra la convención de triángulo
+equilátero estéreo (`ANGULO_ESCUCHA_CONVENCION_GRADOS=60`, no inventada
+por el sitio) con un rango declarado `ANGULO_ESCUCHA_MIN_GRADOS=40`–
+`MAX_GRADOS=65` (criterio del sitio) antes de avisar. **Hallazgo
+documentado, no corregido:** la disposición automática de este sitio
+(factor 1,2 en `filaEscuchaM`/`puntoDulceDesdeParlantes`) da **siempre**
+≈45,24° en cualquier sala — no 60° — porque ese factor nunca se declaró
+en función del ángulo; el factor 1,2 se deja igual a propósito (hay
+quien prefiere un escenario más angosto, no es un error) y el ángulo
+pasa a mostrarse y avisarse en vez de quedar como una consecuencia no
+declarada. Las dos señales se pliegan en una sola tarjeta nueva
+("Triángulo de escucha", `apps/web`, `modeloTrianguloEscucha`) porque
+describen la forma del mismo triángulo.
+
+### Cambio 5 — Candado del punto de escucha (`sala.ts`, `apps/web`)
+
+`calcularDisposicionAsientoManual(sala, parlanteIzq, parlanteDer,
+asiento)` — nueva junto a `calcularDisposicionManual` — recibe el
+asiento como parámetro en vez de derivarlo de `puntoDulceDesdeParlantes`.
+Consecuencia real, no de implementación: con el asiento libre, los dos
+parlantes dejan de ser necesariamente equidistantes del oyente —
+`distanciaEscuchaIzqM`/`DerM` (siempre calculadas en `DisposicionSala`,
+aditivas a `distanciaEscuchaM` que se queda igual = canal izquierdo, por
+compatibilidad) pueden diferir.
+
+`potencia.ts` cambia para reflejar esto: `evaluarPotencia` recibe
+`distanciaIzqM, distanciaDerM` en vez de una sola distancia, y suma los
+dos canales como fuentes descorrelacionadas —
+`10·log₁₀(10^(L1/10)+10^(L2/10))` — en vez del `SUMA_PAR_DB=3` fijo (la
+constante se retira; el comentario de cabecera documenta la progresión
+6→3→removida). Cuando ambas distancias son iguales da exactamente
+3,0103 dB — 0,0103 dB por encima del viejo valor redondeado, dentro de
+la tolerancia de 0,05 dB de todo el proyecto, sin regresión en ningún
+vector existente. Tabla (bonus total vs. diferencia de NIVEL entre
+canales, en dB): 2,50/2,50 m→3,010/0,00; 2,40/2,60→3,031/0,70;
+2,30/2,70→3,094/1,39; 2,00/3,00→3,535/3,52 — contraintuitivo a
+propósito: el nivel TOTAL sube levemente con la asimetría (el canal
+cercano gana más de lo que pierde el lejano); la métrica que importa es
+la diferencia de nivel entre canales (`ResultadoPotencia.
+diferenciaCanalesDb`, nuevo), mostrada junto a la asimetría de tiempo en
+la tarjeta "Triángulo de escucha", no el total.
+
+**UI (`apps/web`):** un botón candado (`#btn-candado`,
+`resultado.plano.candado{Abierto,Cerrado}`) en la fila de controles del
+plano — cerrado por defecto, mismo comportamiento que siempre. Abierto,
+el punto dulce se vuelve arrastrable en la vista Superior (mismo patrón
+`data-parlante`/agarre que los parlantes, lado `'asiento'`) y el plano
+dibuja además la posición simétrica de referencia como marcador
+punteado (`referenciaSimetricaM` en `construirPlanoSvg`, calculado por
+quien llama vía `calcularDisposicionManual(...).puntoDulce` — `plano.ts`
+sigue sin importar más que los tipos de `sala.ts`). Abrir el candado
+NUNCA mueve el asiento (arranca en la posición derivada actual);
+cerrarlo tampoco borra la posición arrastrada (`asientoManualGuardado`
+en `main.ts` sobrevive al ciclo cerrado→abierto — reabrir la restituye).
+El estado de candado viaja en cada `SnapshotAnalisis` (`candadoAbierto`)
+— "Análisis original" siempre `false`; si "Modificado" difiere, un aviso
+(`#candado-comparador-aviso`) declara que la diferencia entre pestañas
+puede deberse al método (candado), no sólo a la posición.
+
+**Bug real encontrado y corregido durante la verificación end-to-end:**
+"Recalcular" exigía `disposicionManual` (posición de parlante en curso)
+para no ser un no-op — arrastrar SÓLO el asiento (nunca un parlante)
+dejaba esa variable en `null`, así que Recalcular no hacía nada pese al
+arrastre visible en la vista previa. `recalcular()` ahora también
+procede cuando `estado.candadoAbierto` es `true`, sin exigir además un
+arrastre de parlante — verificado con Chrome headless real (CDP crudo):
+arrastre sintético del asiento + Recalcular crea la pestaña "Modificado"
+con el triángulo de escucha en "Triángulo asimétrico", el aviso de
+candado aparece en ambas pestañas, y cerrar/reabrir el candado restituye
+el grupo arrastrable sin perder la posición.
+
+---
+
 ## 5. Lo que el motor todavía NO hace
 
 - Subwoofer, cables.
@@ -1129,7 +1287,7 @@ estados:
 |---|---|---|
 | Potencia | potencia (siempre tiene valor) | directo, sin agrupar |
 | Acople eléctrico | carga, amortiguamiento, puente y recorrido de streamer y/o DAC | peor de los aplicables (`sin-datos` si ninguno aplica) |
-| Sala | modos, reverberación | peor de los dos que sí tienen dato (nunca `alert` — mismo techo de severidad de sala que ya declaraban las secciones 4bis/4ter). Reverberación es siempre `'sin-datos'` desde que el RT60 estimado dejó de emitir veredicto (sección 4ter) — se excluye igual que cualquier otro componente sin dato, así que en la práctica "Sala" refleja sólo `modos`. Modos siempre tiene valor, así que el grupo nunca es `sin-datos` |
+| Sala | modos, reverberación, acoplamientoModal, filtroPeine, asimetria, anguloEscucha | peor de los que sí tienen dato (nunca `alert` — mismo techo de severidad de sala). Reverberación es siempre `'sin-datos'` desde que el RT60 estimado dejó de emitir veredicto (sección 4ter) — se excluye igual que cualquier otro componente sin dato. Las 4 señales de colocación (sección 4quater) siempre tienen valor, igual que modos — el grupo nunca es `sin-datos` |
 
 ### Peor-eslabón, no promedio
 

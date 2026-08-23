@@ -58,6 +58,25 @@ function distancia3(a: Punto3, b: Punto3): number {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2);
 }
 
+/** Ángulo (grados) que subtienden dos puntos vistos desde un vértice — acá,
+ * el ángulo del triángulo de escucha visto desde el punto dulce. Geometría
+ * 2D (x,y): parlante y oído comparten altura por supuesto del sitio
+ * (ALTURA_ESCUCHA_M), así que el ángulo vertical es siempre 0 y no hace
+ * falta la tercera dimensión. `Math.min(1, Math.max(-1, ...))` cubre el
+ * caso borde de error de punto flotante empujando el coseno levísimamente
+ * fuera de [-1,1] cuando el ángulo real es 0° o 180° exactos. */
+function anguloEntreGrados(vertice: Punto, a: Punto, b: Punto): number {
+  const v1x = a.x - vertice.x;
+  const v1y = a.y - vertice.y;
+  const v2x = b.x - vertice.x;
+  const v2y = b.y - vertice.y;
+  const mag1 = Math.hypot(v1x, v1y);
+  const mag2 = Math.hypot(v2x, v2y);
+  if (mag1 < 1e-9 || mag2 < 1e-9) return 0; // parlante ~coincidente con la escucha: sin ángulo definido
+  const cosTheta = Math.min(1, Math.max(-1, (v1x * v2x + v1y * v2y) / (mag1 * mag2)));
+  return (Math.acos(cosTheta) * 180) / Math.PI;
+}
+
 /**
  * Punto de reflexión e imagen especular en un plano perpendicular a un eje
  * (x=cte para muros laterales, y=cte para el muro trasero, z=cte para techo
@@ -86,7 +105,22 @@ export interface DisposicionSala {
   parlanteIzq: Punto;
   parlanteDer: Punto;
   puntoDulce: Punto;
+  /** Distancia directa parlante izquierdo→escucha — histórico, es la que
+   * alimenta a `evaluarPotencia()`. Con el punto dulce derivado (candado
+   * cerrado, ver `calcularDisposicionManual`) coincide con
+   * `distanciaEscuchaDerM`; con el asiento libre (`calcularDisposicion
+   * AsientoManual`) puede diferir — ver esos dos campos nuevos. */
   distanciaEscuchaM: number; // ← alimenta directamente a evaluarPotencia()
+  /** Distancia directa de CADA parlante a la escucha — siempre calculadas
+   * las dos (aditivo, no reemplaza a `distanciaEscuchaM`). Iguales entre sí
+   * cuando el punto dulce está sobre la mediatriz de los parlantes (el
+   * caso derivado, siempre); pueden diferir sólo cuando el asiento se
+   * arrastra de forma independiente (`calcularDisposicionAsientoManual`).
+   * `evaluarPotencia()` las usa para sumar los dos canales como fuentes
+   * descorrelacionadas en vez de asumir una distancia única — ver
+   * `potencia.ts`. */
+  distanciaEscuchaIzqM: number;
+  distanciaEscuchaDerM: number;
   reflexionIzq: Punto;
   reflexionDer: Punto;
   volumenM3: number;
@@ -103,6 +137,26 @@ export interface DisposicionSala {
   reflexionTraseraDer: Punto;
   distanciaTraseraIzqM: number;
   distanciaTraseraDerM: number;
+  /** Reflexión en el muro FRONTAL (detrás de cada parlante, no del
+   * oyente) — mismo método de imagen especular que la trasera, reflejando
+   * el punto de escucha a través de y=0 en vez de y=largoM. Es el SBIR
+   * ("speaker boundary interference response") clásico: la superficie más
+   * audible al mover un parlante es la que tiene detrás, no la que tiene
+   * detrás el oyente. */
+  reflexionFrontalIzq: Punto;
+  reflexionFrontalDer: Punto;
+  distanciaFrontalIzqM: number;
+  distanciaFrontalDerM: number;
+  /** Ángulo (grados) que subtienden los dos parlantes vistos desde el
+   * punto dulce — el "ángulo del triángulo de escucha". Geometría pura, sin
+   * severidad acá (ver `colocacion.ts`, `evaluarAnguloEscucha`, que sí
+   * juzga este número contra un rango declarado). Con la disposición
+   * automática de este sitio (factor 1,2 en `filaEscuchaM`) da ~45° en
+   * cualquier sala — no 60° (la convención de triángulo equilátero
+   * estéreo) — porque ese factor nunca se declaró en función del ángulo;
+   * se deja así a propósito (no es un error, hay quien prefiere un
+   * escenario más angosto) y se declara en vez de corregirse en silencio. */
+  anguloEscuchaGrados: number;
   /** Reflexión en el piso (z=0) y el techo (z=altoM). Como parlante y oído
    * se asumen a la misma altura, el punto de reflexión cae siempre en el
    * punto medio horizontal entre el parlante y el punto dulce — no es un
@@ -184,6 +238,8 @@ function ensamblarDisposicion(
   const lateralDer = reflexionEnPlano(spkDer3, escucha3, 'x', W);
   const traseraIzq = reflexionEnPlano(spkIzq3, escucha3, 'y', L);
   const traseraDer = reflexionEnPlano(spkDer3, escucha3, 'y', L);
+  const frontalIzq = reflexionEnPlano(spkIzq3, escucha3, 'y', 0);
+  const frontalDer = reflexionEnPlano(spkDer3, escucha3, 'y', 0);
   const pisoIzq = reflexionEnPlano(spkIzq3, escucha3, 'z', 0);
   const pisoDer = reflexionEnPlano(spkDer3, escucha3, 'z', 0);
   const techoIzq = reflexionEnPlano(spkIzq3, escucha3, 'z', H);
@@ -198,6 +254,8 @@ function ensamblarDisposicion(
     parlanteDer,
     puntoDulce,
     distanciaEscuchaM: distancia3(spkIzq3, escucha3),
+    distanciaEscuchaIzqM: distancia3(spkIzq3, escucha3),
+    distanciaEscuchaDerM: distancia3(spkDer3, escucha3),
     reflexionIzq: { x: lateralIzq.punto.x, y: lateralIzq.punto.y },
     reflexionDer: { x: lateralDer.punto.x, y: lateralDer.punto.y },
     volumenM3: W * L * H,
@@ -209,6 +267,11 @@ function ensamblarDisposicion(
     reflexionTraseraDer: { x: traseraDer.punto.x, y: traseraDer.punto.y },
     distanciaTraseraIzqM: traseraIzq.distanciaM,
     distanciaTraseraDerM: traseraDer.distanciaM,
+    reflexionFrontalIzq: { x: frontalIzq.punto.x, y: frontalIzq.punto.y },
+    reflexionFrontalDer: { x: frontalDer.punto.x, y: frontalDer.punto.y },
+    distanciaFrontalIzqM: frontalIzq.distanciaM,
+    distanciaFrontalDerM: frontalDer.distanciaM,
+    anguloEscuchaGrados: anguloEntreGrados(puntoDulce, parlanteIzq, parlanteDer),
     reflexionTechoIzq: { x: techoIzq.punto.x, y: techoIzq.punto.y },
     reflexionTechoDer: { x: techoDer.punto.x, y: techoDer.punto.y },
     distanciaTechoIzqM: techoIzq.distanciaM,
@@ -255,6 +318,37 @@ export function calcularDisposicionManual(sala: Sala, parlanteIzqEntrada: Punto,
   const parlanteIzq = clampPosicionParlante(parlanteIzqEntrada, sala);
   const parlanteDer = clampPosicionParlante(parlanteDerEntrada, sala);
   const puntoDulce = puntoDulceDesdeParlantes(parlanteIzq, parlanteDer, sala);
+  const centroXM = (parlanteIzq.x + parlanteDer.x) / 2;
+  const offsetFrenteM = (parlanteIzq.y + parlanteDer.y) / 2;
+  const separacionM = Math.hypot(parlanteDer.x - parlanteIzq.x, parlanteDer.y - parlanteIzq.y);
+  return ensamblarDisposicion(sala, parlanteIzq, parlanteDer, puntoDulce, centroXM, separacionM, offsetFrenteM);
+}
+
+/**
+ * Disposición con el asiento (punto de escucha) desbloqueado y arrastrado
+ * de forma independiente de los parlantes — "candado" abierto, ver
+ * `apps/web`. A diferencia de `calcularDisposicionManual()` (que siempre
+ * DERIVA el punto dulce de los parlantes vía `puntoDulceDesdeParlantes`,
+ * sobre la mediatriz), acá el asiento se recibe como tercer parámetro y se
+ * usa tal cual — recortado al mismo margen de muro que un parlante
+ * (`clampPosicionParlante`, mismo criterio: no tiene sentido un asiento
+ * pegado a una pared, y el método de imagen especular degenera si
+ * coincide con el plano de un muro).
+ *
+ * Consecuencia física, no un detalle de implementación: con el asiento
+ * libre, ya no es cierto que ambos parlantes queden equidistantes del
+ * oyente — `distanciaEscuchaIzqM`/`distanciaEscuchaDerM` (siempre
+ * calculadas, ver `ensamblarDisposicion`) pueden diferir, y
+ * `evaluarPotencia()` las combina como dos fuentes descorrelacionadas en
+ * vez de asumir una distancia única. La asimetría también aparece en el
+ * camino DIRECTO de cada parlante (antes, con el punto dulce siempre
+ * derivado sobre la mediatriz, esto era estructuralmente imposible) — ver
+ * `colocacion.ts`, `evaluarAsimetria()`.
+ */
+export function calcularDisposicionAsientoManual(sala: Sala, parlanteIzqEntrada: Punto, parlanteDerEntrada: Punto, asientoEntrada: Punto): DisposicionSala {
+  const parlanteIzq = clampPosicionParlante(parlanteIzqEntrada, sala);
+  const parlanteDer = clampPosicionParlante(parlanteDerEntrada, sala);
+  const puntoDulce = clampPosicionParlante(asientoEntrada, sala);
   const centroXM = (parlanteIzq.x + parlanteDer.x) / 2;
   const offsetFrenteM = (parlanteIzq.y + parlanteDer.y) / 2;
   const separacionM = Math.hypot(parlanteDer.x - parlanteIzq.x, parlanteDer.y - parlanteIzq.y);

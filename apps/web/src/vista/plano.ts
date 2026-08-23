@@ -30,7 +30,7 @@
  * (punto ASCII, nunca localizado); sólo los `<text>` de metros/distancia
  * usan `num()`.
  */
-import type { Sala, DisposicionSala } from '../../../../packages/engine/src/sala.ts';
+import type { Sala, DisposicionSala, Punto } from '../../../../packages/engine/src/sala.ts';
 import type { MaterialMuro } from '../../../../packages/engine/src/reverberacion.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { coord, num } from '../formato/numeros.ts';
@@ -106,11 +106,33 @@ function proyectar(p: Pt3, vista: Vista): { sx: number; sy: number } {
   }
 }
 
-export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: MurosVista, vista: Vista, idioma: Idioma, editable = false): string {
+/**
+ * `referenciaSimetricaM`: no-null significa "el asiento está desbloqueado"
+ * (candado abierto, ver estado.ts/main.ts) — el punto que el asiento
+ * TENDRÍA si el candado estuviera cerrado (`calcularDisposicionManual(...)
+ * .puntoDulce`, calculado por quien llama, no acá: este módulo sigue puro,
+ * sin importar sala.ts más que por sus tipos). Con el candado abierto, dos
+ * cosas cambian: el punto dulce (`disp.puntoDulce`) se vuelve arrastrable
+ * en la vista Superior (mismo patrón `data-parlante`/agarre que los
+ * parlantes, lado `'asiento'`) y se dibuja además esa posición simétrica de
+ * referencia, punteada — para que mover el asiento nunca borre de la vista
+ * cuál sería la posición "por defecto". `null` (candado cerrado, el caso de
+ * siempre) no cambia nada de lo que ya dibujaba esta función.
+ */
+export function construirPlanoSvg(
+  sala: Sala,
+  disp: DisposicionSala,
+  muros: MurosVista,
+  vista: Vista,
+  idioma: Idioma,
+  editable = false,
+  referenciaSimetricaM: Punto | null = null
+): string {
   const t = textosDe(idioma).resultado.plano;
   const { anchoM: W, largoM: L, altoM: H } = sala;
   const h = disp.alturaM;
   const editableEfectivo = editable && vista === 'superior';
+  const asientoLibre = referenciaSimetricaM !== null;
 
   const corners: Pt3[] = [
     { x: 0, y: 0, z: 0 },
@@ -293,6 +315,10 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
     lado: 'izq' | 'der';
   }
   const reflexiones: Reflexion[] = [];
+  if (muros.frontal !== 'vacio') {
+    reflexiones.push({ desde: spkIzq3, punto: { x: disp.reflexionFrontalIzq.x, y: disp.reflexionFrontalIzq.y, z: h }, distanciaM: disp.distanciaFrontalIzqM, lado: 'izq' });
+    reflexiones.push({ desde: spkDer3, punto: { x: disp.reflexionFrontalDer.x, y: disp.reflexionFrontalDer.y, z: h }, distanciaM: disp.distanciaFrontalDerM, lado: 'der' });
+  }
   if (muros.izquierdo !== 'vacio') {
     reflexiones.push({ desde: spkIzq3, punto: { x: disp.reflexionIzq.x, y: disp.reflexionIzq.y, z: h }, distanciaM: disp.distanciaLateralIzqM, lado: 'izq' });
   }
@@ -360,7 +386,7 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   // al nivel del compositor, antes de que corra el JS del sitio — declarar
   // touch-action directo sobre las formas realmente tocadas (el agarre
   // invisible y la caja) es lo único que ese compositor ve con certeza.
-  const agarre = (p: Pt3, lado: 'izq' | 'der'): string =>
+  const agarre = (p: Pt3, lado: 'izq' | 'der' | 'asiento'): string =>
     circulo(p, RADIO_AGARRE, `fill="transparent" data-agarre="${lado}" style="touch-action:none"`);
   const parlante = (p: Pt3, lado: 'izq' | 'der'): string => {
     const dibujo = cajaParlante(p);
@@ -372,10 +398,29 @@ export function construirPlanoSvg(sala: Sala, disp: DisposicionSala, muros: Muro
   s += texto(spkIzq3, 'L', 'fill="#ECECEE" font-size="9.5" text-anchor="middle"', 0, -22);
   s += texto(spkDer3, 'R', 'fill="#ECECEE" font-size="9.5" text-anchor="middle"', 0, -22);
 
-  // punto dulce
-  s += circulo(dulce3, 4, 'fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1" stroke-dasharray="3 3"');
-  s += circulo(dulce3, 3.5, 'fill="#ECECEE"');
-  s += texto(dulce3, t.puntoDulce, 'fill="#ECECEE" font-size="10" text-anchor="middle"', 0, 18);
+  // referencia punteada: posición simétrica que tendría el asiento si el
+  // candado estuviera cerrado — sólo con el asiento libre (ver comentario
+  // de cabecera de referenciaSimetricaM). Se dibuja ANTES del punto dulce
+  // real para que éste quede encima si ambos coinciden (asiento recién
+  // desbloqueado, todavía no arrastrado).
+  if (referenciaSimetricaM) {
+    const ref3: Pt3 = { x: referenciaSimetricaM.x, y: referenciaSimetricaM.y, z: h };
+    s += circulo(ref3, 3.5, 'fill="none" stroke="rgba(255,255,255,.32)" stroke-width="1" stroke-dasharray="2 2"');
+    s += texto(ref3, t.referenciaSimetrica, 'fill="#6E6E75" font-size="9" text-anchor="middle" font-style="italic"', 0, -10);
+  }
+
+  // punto dulce — arrastrable (data-parlante="asiento", mismo patrón que
+  // los parlantes) sólo cuando el candado está abierto (asientoLibre) Y la
+  // vista es Superior (editableEfectivo); si no, es el mismo círculo fijo
+  // de siempre.
+  const dulceDibujo =
+    circulo(dulce3, 4, 'fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1" stroke-dasharray="3 3"') +
+    circulo(dulce3, 3.5, 'fill="#ECECEE"') +
+    texto(dulce3, t.puntoDulce, 'fill="#ECECEE" font-size="10" text-anchor="middle"', 0, 18);
+  s +=
+    editableEfectivo && asientoLibre
+      ? `<g data-parlante="asiento" class="parlante-arrastrable" style="touch-action:none">${dulceDibujo}${agarre(dulce3, 'asiento')}</g>`
+      : dulceDibujo;
 
   // dimensiones (ancho, largo, alto) a lo largo de las aristas del piso/
   // vertical. "largo" comparte arista con la etiqueta "izquierdo" de

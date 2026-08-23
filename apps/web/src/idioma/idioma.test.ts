@@ -55,6 +55,8 @@ test('data-i18n-html sólo se usa donde el texto realmente lleva HTML (footer + 
     'info.amortiguamiento.cuerpoHtml',
     'info.ganancia.cuerpoHtml',
     'info.modos.cuerpoHtml',
+    'info.filtroPeine.cuerpoHtml',
+    'info.triangulo.cuerpoHtml',
     'info.reverberacion.cuerpoHtml',
     'info.plano.cuerpoHtml',
     'info.veredicto.cuerpoHtml',

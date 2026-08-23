@@ -87,7 +87,7 @@ const rega: Amplificador = {
  */
 
 test('Vector A — Klipsch + Cambridge CXA81, 2.5m, alto: margen +0,07 → Justo (antes +6,07 → Con margen; baja 6 dB exactos por el cambio 3)', () => {
-  const r = evaluarPotencia(klipsch, cambridge, 2.5, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(klipsch, cambridge, 2.5, 2.5, 'alto', DIM_MAYOR_M);
   assert.ok(Math.abs(r.splDisponibleDb - 100.07) < EPS);
   assert.ok(Math.abs(r.margenDb - 0.07) < EPS);
   assert.equal(r.severidad, 'warn');
@@ -102,7 +102,7 @@ test('Vector A — Klipsch + Cambridge CXA81, 2.5m, alto: margen +0,07 → Justo
 });
 
 test('Vector B — KEF + Rega Brio, 3.0m, alto: margen −4,55 → Insuficiente (antes +1,45 → Justo; baja 6 dB exactos por el cambio 3)', () => {
-  const r = evaluarPotencia(kef, rega, 3.0, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(kef, rega, 3.0, 3.0, 'alto', DIM_MAYOR_M);
   assert.ok(Math.abs(r.splDisponibleDb - 95.45) < EPS);
   assert.ok(Math.abs(r.margenDb - -4.55) < EPS);
   assert.equal(r.severidad, 'alert');
@@ -113,7 +113,7 @@ test('Vector B — KEF + Rega Brio, 3.0m, alto: margen −4,55 → Insuficiente 
 });
 
 test('Vector C — KEF + Rega Brio, 3.0m, referencia: margen −9,55 → Insuficiente (antes −3,55, ya era Insuficiente; sigue siéndolo con más margen negativo)', () => {
-  const r = evaluarPotencia(kef, rega, 3.0, 'referencia', DIM_MAYOR_M);
+  const r = evaluarPotencia(kef, rega, 3.0, 3.0, 'referencia', DIM_MAYOR_M);
   assert.ok(Math.abs(r.margenDb - -9.55) < EPS);
   assert.equal(r.severidad, 'alert');
   assert.equal(r.codigo, 'insuficiente');
@@ -144,7 +144,7 @@ test('Vector D (nuevo) — sintético 88 dB@2,83V/4Ω + ampli 80W/120W, 3.0m, al
     impedanciaEntradaOhm: null,
     factorAmortiguamiento: null,
   };
-  const r = evaluarPotencia(parlanteSintetico, ampSintetico, 3.0, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(parlanteSintetico, ampSintetico, 3.0, 3.0, 'alto', DIM_MAYOR_M);
   // Sin corregir (fórmula vieja, p8 siempre, sensibilidad sin normalizar):
   // SPL = 88 − 9,542 + 19,031 + 6 + 3 = 106,49 → margen +6,49 → "Con margen".
   // Corregido: sensibilidad normalizada a 1W (88 − 3,02 ≈ 84,98), potencia a
@@ -186,7 +186,7 @@ test('sensibilidadRangoAplica — mismo parlante que el vector D pero SIN conven
     impedanciaEntradaOhm: null,
     factorAmortiguamiento: null,
   };
-  const r = evaluarPotencia(parlanteSinConvencion, ampSintetico, 3.0, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(parlanteSinConvencion, ampSintetico, 3.0, 3.0, 'alto', DIM_MAYOR_M);
   assert.equal(r.sensibilidadSinConvencion, true);
   assert.equal(r.sensibilidadRangoAplica, true); // 4Ω<8: la ambigüedad sí mueve el número
   assert.equal(r.confianza, 'baja'); // acá sí degrada — es el caso donde la ambigüedad importa
@@ -239,7 +239,7 @@ test('margenCruzaUmbral — caso extremo insuficiente→con-margen: el veredicto
     impedanciaEntradaOhm: null,
     factorAmortiguamiento: null,
   };
-  const r = evaluarPotencia(parlanteExtremo, ampSintetico2, 2.0, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(parlanteExtremo, ampSintetico2, 2.0, 2.0, 'alto', DIM_MAYOR_M);
   assert.equal(r.sensibilidadRangoAplica, true);
   assert.equal(r.codigo, 'insuficiente'); // headline: extremo pesimista
   assert.equal(r.codigoRangoOptimista, 'con-margen'); // extremo optimista: otro código totalmente distinto
@@ -251,7 +251,7 @@ test('margenCruzaUmbral — caso extremo insuficiente→con-margen: el veredicto
 
 test('sensibilidadRangoAplica — a 8Ω, aunque falte la convención, no hay rango ni degradación (2,83V≈1W a esa impedancia)', () => {
   const parlante8OhmSinConvencion: Parlante = { ...kef, sensibilidadConvencion: null };
-  const r = evaluarPotencia(parlante8OhmSinConvencion, cambridge, 2.5, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(parlante8OhmSinConvencion, cambridge, 2.5, 2.5, 'alto', DIM_MAYOR_M);
   assert.equal(r.sensibilidadSinConvencion, true);
   assert.equal(r.sensibilidadRangoAplica, false);
   assert.equal(r.sensibilidadEfectivaRangoDb, null);
@@ -262,13 +262,13 @@ test('sensibilidadRangoAplica — a 8Ω, aunque falte la convención, no hay ran
 test('Cambio 2 — parlante ≤4Ω sin dato de potencia4OhmW: usa potencia8OhmW y lo marca como estimado', () => {
   const parlante4Ohm: Parlante = { ...kef, impedanciaNominalOhm: 4 };
   const ampSinP4: Amplificador = { ...rega, potencia4OhmW: null };
-  const r = evaluarPotencia(parlante4Ohm, ampSinP4, 3.0, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(parlante4Ohm, ampSinP4, 3.0, 3.0, 'alto', DIM_MAYOR_M);
   assert.equal(r.potenciaUsadaW, rega.potencia8OhmW.valor);
   assert.equal(r.potenciaDeCargaEstimada, true);
 });
 
 test('Rega Brio (50W) no dispara aviso de potenciaRecMinW de KEF (40W): 50 ≥ 40', () => {
-  const r = evaluarPotencia(kef, rega, 3.0, 'alto', DIM_MAYOR_M);
+  const r = evaluarPotencia(kef, rega, 3.0, 3.0, 'alto', DIM_MAYOR_M);
   assert.deepEqual(r.avisos, []);
 });
 
@@ -285,7 +285,7 @@ test('aviso extra: amplificador por debajo de potenciaRecMinW del parlante', () 
     factorAmortiguamiento: null,
   };
   // KEF pide desde 40W (potenciaRecMinW); este ampli da 30W < 40W.
-  const r = evaluarPotencia(kef, ampSubpotente, 2.5, 'moderado', DIM_MAYOR_M);
+  const r = evaluarPotencia(kef, ampSubpotente, 2.5, 2.5, 'moderado', DIM_MAYOR_M);
   assert.equal(r.avisos.length, 1);
   assert.deepEqual(r.avisos[0], { codigo: 'bajo-potencia-recomendada', recomendadaW: 40, entregadaW: 30 });
 });
@@ -298,7 +298,7 @@ test('límite exacto margen=3 cae en "ok", no en "warn" (frontera cerrada por ar
   // para tocar el mismo margen.)
   const parlanteLimite: Parlante = { ...kef, sensibilidadDb: { valor: 90, fuente: 'test', confianza: 'alta' } };
   const ampUnitario: Amplificador = { ...cambridge, potencia8OhmW: { valor: 1, fuente: 'test', confianza: 'alta' } };
-  const r = evaluarPotencia(parlanteLimite, ampUnitario, 1, 'moderado', DIM_MAYOR_M);
+  const r = evaluarPotencia(parlanteLimite, ampUnitario, 1, 1, 'moderado', DIM_MAYOR_M);
   assert.ok(Math.abs(r.margenDb - 3) < EPS);
   assert.equal(r.severidad, 'ok');
 });
@@ -307,14 +307,14 @@ test('límite exacto margen=0 cae en "warn", no en "alert" (frontera cerrada por
   // Para margen=0 con pico=90: sens = 90 − 3 = 87 (antes: 81).
   const parlanteLimite: Parlante = { ...kef, sensibilidadDb: { valor: 87, fuente: 'test', confianza: 'alta' } };
   const ampUnitario: Amplificador = { ...cambridge, potencia8OhmW: { valor: 1, fuente: 'test', confianza: 'alta' } };
-  const r = evaluarPotencia(parlanteLimite, ampUnitario, 1, 'moderado', DIM_MAYOR_M);
+  const r = evaluarPotencia(parlanteLimite, ampUnitario, 1, 1, 'moderado', DIM_MAYOR_M);
   assert.ok(Math.abs(r.margenDb - 0) < EPS);
   assert.equal(r.severidad, 'warn');
 });
 
 test('gananciaSalaDb/frecuenciaGananciaSalaHz son informativos: no cambian con distinta dimensionMayorSalaM, splDisponibleDb tampoco', () => {
-  const rChico = evaluarPotencia(kef, rega, 3.0, 'alto', 3.6);
-  const rGrande = evaluarPotencia(kef, rega, 3.0, 'alto', 8.0);
+  const rChico = evaluarPotencia(kef, rega, 3.0, 3.0, 'alto', 3.6);
+  const rGrande = evaluarPotencia(kef, rega, 3.0, 3.0, 'alto', 8.0);
   assert.equal(rChico.splDisponibleDb, rGrande.splDisponibleDb);
   assert.equal(rChico.margenDb, rGrande.margenDb);
   assert.equal(rChico.gananciaSalaDb, 3);
@@ -322,4 +322,52 @@ test('gananciaSalaDb/frecuenciaGananciaSalaHz son informativos: no cambian con d
   assert.ok(Math.abs(rChico.frecuenciaGananciaSalaHz - 343 / (2 * 3.6)) < EPS);
   assert.ok(Math.abs(rGrande.frecuenciaGananciaSalaHz - 343 / (2 * 8.0)) < EPS);
   assert.ok(rGrande.frecuenciaGananciaSalaHz < rChico.frecuenciaGananciaSalaHz);
+});
+
+// ---- Cambio 5 (asiento libre): suma real de dos canales, cada uno a su propia distancia ----
+
+test('distancias iguales (asiento derivado, el caso de siempre): el bonus de pareja da 3,0103 dB, no el 3 redondeado de antes — sigue dentro de la tolerancia de todos los vectores existentes', () => {
+  const r = evaluarPotencia(kef, rega, 3.0, 3.0, 'alto', DIM_MAYOR_M);
+  assert.ok(Math.abs(r.splCanalIzqDb - r.splCanalDerDb) < 1e-9);
+  assert.ok(Math.abs(r.splDisponibleDb - (r.splCanalIzqDb + 10 * Math.log10(2))) < 1e-9);
+  assert.equal(r.diferenciaCanalesDb, 0);
+});
+
+test('vectores del usuario — tabla de distancias asimétricas: el bonus SUBE con la asimetría (contraintuitivo: el canal cercano gana más de lo que pierde el lejano)', () => {
+  // Bonus = splDisponibleDb − SPL que un único canal daría a la distancia
+  // MEDIA — no depende de la sensibilidad/potencia usadas (se cancelan en
+  // la resta), así que cualquier parlante/ampli sirve para este vector.
+  const casos: Array<[number, number, number, number]> = [
+    // [distIzq, distDer, bonusEsperadoDb, diferenciaCanalesEsperadaDb]
+    [2.5, 2.5, 3.01, 0.0],
+    [2.4, 2.6, 3.031, 0.7],
+    [2.3, 2.7, 3.094, 1.39],
+    [2.0, 3.0, 3.535, 3.52],
+  ];
+  for (const [distIzq, distDer, bonusEsperado, diferenciaEsperada] of casos) {
+    const r = evaluarPotencia(kef, rega, distIzq, distDer, 'alto', DIM_MAYOR_M);
+    const distMediaM = (distIzq + distDer) / 2;
+    const rMedia = evaluarPotencia(kef, rega, distMediaM, distMediaM, 'alto', DIM_MAYOR_M);
+    const splCanalMedia = rMedia.splCanalIzqDb; // un solo canal virtual a la distancia media
+    const bonus = r.splDisponibleDb - splCanalMedia;
+    assert.ok(Math.abs(bonus - bonusEsperado) < 0.005, `[${distIzq},${distDer}] bonus=${bonus}, esperado=${bonusEsperado}`);
+    assert.ok(Math.abs(r.diferenciaCanalesDb - diferenciaEsperada) < 0.01, `[${distIzq},${distDer}] diferencia=${r.diferenciaCanalesDb}, esperado=${diferenciaEsperada}`);
+  }
+  // El bonus del caso más asimétrico (2,0/3,0) es mayor que el del caso
+  // simétrico (2,5/2,5) — sube, no baja, con la asimetría. Misma distancia
+  // media (2,5 m) en los dos casos, así que splCanalMedia (la referencia)
+  // es la misma para ambos y se puede reusar.
+  const referenciaMedia = evaluarPotencia(kef, rega, 2.5, 2.5, 'alto', DIM_MAYOR_M).splCanalIzqDb;
+  const bonusSimetrico = evaluarPotencia(kef, rega, 2.5, 2.5, 'alto', DIM_MAYOR_M).splDisponibleDb - referenciaMedia;
+  const bonusAsimetrico = evaluarPotencia(kef, rega, 2.0, 3.0, 'alto', DIM_MAYOR_M).splDisponibleDb - referenciaMedia;
+  assert.ok(bonusAsimetrico > bonusSimetrico, `bonusAsimetrico=${bonusAsimetrico} debería ser mayor que bonusSimetrico=${bonusSimetrico}`);
+});
+
+test('diferenciaCanalesDb es 0 cuando las distancias coinciden, y positiva cuando difieren — es la cifra que explica hacia qué lado se corre la imagen, no el nivel total', () => {
+  const rSimetrico = evaluarPotencia(kef, rega, 3.0, 3.0, 'alto', DIM_MAYOR_M);
+  assert.equal(rSimetrico.diferenciaCanalesDb, 0);
+
+  const rAsimetrico = evaluarPotencia(kef, rega, 2.5, 3.5, 'alto', DIM_MAYOR_M);
+  assert.ok(rAsimetrico.diferenciaCanalesDb > 0);
+  assert.ok(Math.abs(rAsimetrico.diferenciaCanalesDb - (rAsimetrico.splCanalIzqDb - rAsimetrico.splCanalDerDb)) < 1e-9);
 });

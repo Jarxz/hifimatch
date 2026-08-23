@@ -407,8 +407,11 @@
           <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
           <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
         </div>
+        <button type="button" id="btn-candado" class="back candado-btn" aria-pressed="false" data-i18n-aria="resultado.plano.candadoAria" aria-label="Candado del punto de escucha">🔒 Candado cerrado</button>
       </div>
       <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.</p>
+      <p id="plan-hint-asiento" class="plan-hint hidden" data-i18n="resultado.plano.hintAsiento">Candado abierto: el punto de escucha también se puede arrastrar, de forma independiente de los parlantes.</p>
+      <p id="candado-comparador-aviso" class="src candado-comparador-aviso hidden" data-i18n="resultado.plano.candadoComparadorAviso">Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.</p>
       <div class="plan-wrap" id="plan"></div>
       <div class="legend">
         <span><i style="border-top:1px dashed var(--dim)"></i> <span data-i18n="resultado.plano.leyendaTriangulo">triángulo de escucha</span></span>
@@ -428,6 +431,28 @@
         <div class="flag hidden" id="mo-flag"></div>
         <div class="curvas hidden" id="mo-curvas"></div>
         <div class="src" id="mo-src"></div>
+      </details>
+
+      <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="fp-verdict">—</span><button type="button" class="infobtn" data-info="filtroPeine" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
+      <h3 data-i18n="motor.filtroPeine.titulo">Filtro peine por reflexión</h3>
+      <p class="simple" id="fp-simple">—</p>
+      <p id="fp-text">—</p>
+      <details class="detalle">
+        <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+        <div class="calc" id="fp-calc"></div>
+        <div class="flag hidden" id="fp-flag"></div>
+        <div class="src" id="fp-src"></div>
+      </details>
+
+      <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="te-verdict">—</span><button type="button" class="infobtn" data-info="triangulo" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
+      <h3 data-i18n="motor.triangulo.titulo">Triángulo de escucha</h3>
+      <p class="simple" id="te-simple">—</p>
+      <p id="te-text">—</p>
+      <details class="detalle">
+        <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
+        <div class="calc" id="te-calc"></div>
+        <div class="flag hidden" id="te-flag"></div>
+        <div class="src" id="te-src"></div>
       </details>
 
       <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="rt-verdict">—</span><button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
@@ -495,6 +520,8 @@
     <details class="card info-item"><summary><h3 data-i18n="info.amortiguamiento.titulo">—</h3></summary><p data-i18n-html="info.amortiguamiento.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.ganancia.titulo">—</h3></summary><p data-i18n-html="info.ganancia.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.modos.titulo">—</h3></summary><p data-i18n-html="info.modos.cuerpoHtml">—</p></details>
+    <details class="card info-item"><summary><h3 data-i18n="info.filtroPeine.titulo">—</h3></summary><p data-i18n-html="info.filtroPeine.cuerpoHtml">—</p></details>
+    <details class="card info-item"><summary><h3 data-i18n="info.triangulo.titulo">—</h3></summary><p data-i18n-html="info.triangulo.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.reverberacion.titulo">—</h3></summary><p data-i18n-html="info.reverberacion.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.plano.titulo">—</h3></summary><p data-i18n-html="info.plano.cuerpoHtml">—</p></details>
     <details class="card info-item"><summary><h3 data-i18n="info.veredicto.titulo">—</h3></summary><p data-i18n-html="info.veredicto.cuerpoHtml">—</p></details>

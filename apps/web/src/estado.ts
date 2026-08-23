@@ -22,6 +22,13 @@ export interface Estado {
   techo: MaterialTecho; // material del cielo, para reverberacion.ts
   genero: Genero; // género musical, para el crest factor informativo de genero.ts
   vistaPlano: Vista; // ángulo de cámara del plano isométrico — sólo re-dibuja, no recalcula nada
+  /** Candado del punto de escucha (plano, vista Superior): cerrado (default)
+   * = el asiento se deriva de la posición de los parlantes, como siempre;
+   * abierto = el asiento se arrastra de forma independiente
+   * (calcularDisposicionAsientoManual, ver sala.ts). Parte de la
+   * configuración del análisis — viaja en cada SnapshotAnalisis (main.ts)
+   * para que el comparador pueda avisar si original/modificado difieren. */
+  candadoAbierto: boolean;
 }
 
 export const estado: Estado = {
@@ -41,4 +48,5 @@ export const estado: Estado = {
   techo: 'yesoCarton',
   genero: 'rockpop',
   vistaPlano: 'isometrica',
+  candadoAbierto: false,
 };

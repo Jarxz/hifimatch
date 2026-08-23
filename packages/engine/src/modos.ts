@@ -231,3 +231,65 @@ export function evaluarNuloEscucha(sala: Sala, escuchaYM: number): ResultadoNulo
     codigo: dentro ? 'nulo-cerca' : 'nulo-lejos',
   };
 }
+
+/**
+ * Acoplamiento modal del parlante — mismo mecanismo que `evaluarNuloEscucha`
+ * (el modo axial de largo de orden n tiene forma de onda estacionaria
+ * cos(n·π·y/L)) pero aplicado a la fuente, no sólo al oyente: una fuente
+ * parada en un nodo de presión de un modo no lo excita, por fuerte que sea
+ * — la posición del parlante decide tanto como la del oyente.
+ *
+ * `acoplamientoParlante`/`acoplamientoEscucha` van de 0 (nodo exacto, el
+ * modo no se excita/no se escucha ahí) a 1 (antinodo exacto, presión
+ * máxima); `producto` es cuánto de ese modo efectivamente llega al asiento
+ * — 0 si CUALQUIERA de los dos extremos está en un nodo, sin importar el
+ * otro. Órdenes 1 a 3 únicamente, mismo alcance que el resto del modelo de
+ * modos axiales.
+ *
+ * Describe **acoplamiento geométrico, no amplitud absoluta**: el modelo no
+ * sabe cuánta energía tiene ese modo en la sala real (eso depende de la
+ * fuente, la sala, el material) — sólo si la posición lo favorece o lo
+ * cancela. Un producto alto no dice "este modo va a sonar fuerte", dice
+ * "si ese modo tiene energía, esta posición no la está cancelando".
+ */
+export const UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO = 0.7;
+
+export interface AcoplamientoModoAxial {
+  orden: number; // 1..3
+  frecuenciaHz: number;
+  acoplamientoParlante: number; // 0..1 — |cos(n·π·parlanteY/L)|
+  acoplamientoEscucha: number; // 0..1 — |cos(n·π·escuchaY/L)|
+  producto: number; // 0..1 — cuánto del modo llega efectivamente al asiento
+}
+
+export type CodigoAcoplamientoModal = 'acoplamiento-alto' | 'acoplamiento-bajo';
+
+export interface ResultadoAcoplamientoModal {
+  modos: AcoplamientoModoAxial[]; // orden 1, 2, 3 — en ese orden
+  /** Techo `warn`, nunca `alert`/`error` — misma salvedad que el resto de
+   * las reglas de sala. */
+  severidad: 'ok' | 'warn';
+  codigo: CodigoAcoplamientoModal;
+}
+
+/** `parlanteYM`/`escuchaYM` son las coordenadas de profundidad (eje
+ * "largo") del parlante y del punto de escucha — igual que
+ * `evaluarNuloEscucha`, hay que recalcularlo en cada disposición (arrastre
+ * + Recalcular), nunca una sola vez por "Analizar". */
+export function evaluarAcoplamientoModal(sala: Sala, parlanteYM: number, escuchaYM: number): ResultadoAcoplamientoModal {
+  const L = sala.largoM;
+  const modos: AcoplamientoModoAxial[] = [1, 2, 3].map((orden) => {
+    const acoplamientoParlante = Math.abs(Math.cos((orden * Math.PI * parlanteYM) / L));
+    const acoplamientoEscucha = Math.abs(Math.cos((orden * Math.PI * escuchaYM) / L));
+    return {
+      orden,
+      frecuenciaHz: frecuenciaModoAxialHz(L, orden),
+      acoplamientoParlante,
+      acoplamientoEscucha,
+      producto: acoplamientoParlante * acoplamientoEscucha,
+    };
+  });
+  const peorProducto = Math.max(...modos.map((m) => m.producto));
+  const severidad: 'ok' | 'warn' = peorProducto > UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO ? 'warn' : 'ok';
+  return { modos, severidad, codigo: severidad === 'warn' ? 'acoplamiento-alto' : 'acoplamiento-bajo' };
+}

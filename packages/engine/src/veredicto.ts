@@ -45,6 +45,19 @@ export interface EntradaVeredicto {
   modos: 'ok' | 'warn'; // techo de severidad de sala — nunca 'alert' (ver CLAUDE.md)
   /** Casi siempre 'sin-datos' en la práctica — ver `SeveridadSala`. */
   reverberacion: SeveridadSala;
+  /** Acoplamiento modal del parlante (`modos.ts`, `evaluarAcoplamientoModal`)
+   * — misma cos(nπy/L) que `modos`, aplicada a la fuente en vez de sólo al
+   * oyente. Siempre tiene valor, nunca `alert` (techo de sala). */
+  acoplamientoModal: 'ok' | 'warn';
+  /** Filtro peine por reflexión (`colocacion.ts`, `evaluarFiltroPeine`) —
+   * peor de las 10 combinaciones (5 reflexiones × 2 canales). */
+  filtroPeine: 'ok' | 'warn';
+  /** Asimetría izquierda/derecha (`colocacion.ts`, `evaluarAsimetria`) —
+   * peor de las 6 categorías (directo + 5 reflexiones). */
+  asimetria: 'ok' | 'warn';
+  /** Ángulo del triángulo de escucha contra la convención de 60°
+   * (`colocacion.ts`, `evaluarAnguloEscucha`). */
+  anguloEscucha: 'ok' | 'warn';
 }
 
 export interface ResultadoVeredicto {
@@ -68,9 +81,10 @@ export function calcularVeredicto(e: EntradaVeredicto): ResultadoVeredicto {
 
   // reverberacion casi siempre 'sin-datos' (ver SeveridadSala) — se excluye
   // igual que cualquier otro componente sin dato, nunca arrastra el grupo.
-  // modos siempre tiene valor ('ok'|'warn'), así que valoresSala nunca
-  // queda vacío: "Sala" nunca es 'sin-datos'.
-  const valoresSala = sinFaltantes(e.modos, e.reverberacion) as Array<'ok' | 'warn'>;
+  // Los otros cinco (modos, acoplamientoModal, filtroPeine, asimetria,
+  // anguloEscucha) siempre tienen valor ('ok'|'warn'), así que valoresSala
+  // nunca queda vacío: "Sala" nunca es 'sin-datos'.
+  const valoresSala = sinFaltantes(e.modos, e.reverberacion, e.acoplamientoModal, e.filtroPeine, e.asimetria, e.anguloEscucha) as Array<'ok' | 'warn'>;
   const sala: 'ok' | 'warn' = valoresSala.length > 0 ? (peorSeveridad(...valoresSala) as 'ok' | 'warn') : 'ok';
 
   const grupos = acopleElectrico === 'sin-datos' ? [e.potencia, sala] : [e.potencia, acopleElectrico, sala];

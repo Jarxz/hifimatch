@@ -4,8 +4,9 @@ import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarAmortiguamiento } from '../../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
-import { evaluarModos, evaluarNuloEscucha } from '../../../../packages/engine/src/modos.ts';
-import { calcularDisposicion, calcularDisposicionManual } from '../../../../packages/engine/src/sala.ts';
+import { evaluarModos, evaluarNuloEscucha, evaluarAcoplamientoModal } from '../../../../packages/engine/src/modos.ts';
+import { evaluarFiltroPeine, evaluarAsimetria, evaluarAnguloEscucha } from '../../../../packages/engine/src/colocacion.ts';
+import { calcularDisposicion, calcularDisposicionManual, calcularDisposicionAsientoManual } from '../../../../packages/engine/src/sala.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import { evaluarReverberacion } from '../../../../packages/engine/src/reverberacion.ts';
 import type { Materiales } from '../../../../packages/engine/src/reverberacion.ts';
@@ -24,6 +25,8 @@ import {
   modeloPuente,
   modeloRecorrido,
   modeloModos,
+  modeloFiltroPeine,
+  modeloTrianguloEscucha,
   modeloReverberacion,
   modeloUbicacionParlantes,
   modeloResumenFinal,
@@ -73,7 +76,7 @@ test('modeloPotencia: severidad "ok" → verdictoClase "ok", nunca "alert"/"dim"
   // 6→3, sin GANANCIA_SALA_DB sumada — ver potencia.ts) a 2,5 m este par da
   // "justo", no "con-margen" — se acorta la distancia para seguir
   // ejercitando el caso "con-margen" que este test nombra.
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.0, 1.0, 'alto', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'es');
   assert.equal(m.verdictoClase, 'ok');
   assert.equal(r.codigo, 'con-margen');
@@ -87,7 +90,7 @@ test('modeloPotencia: severidad "ok" → verdictoClase "ok", nunca "alert"/"dim"
 test('modeloPotencia: severidad "alert" → texto de insuficiencia, no de sobra', () => {
   const spk = parlanteCat('kef-ls50-meta');
   const amp = ampCat('rega-brio');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 3.0, 'referencia', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 3.0, 'Referencia', 105, 'rockpop', 'es');
   assert.equal(m.verdictoClase, 'alert');
   assert.match(m.textoHtml, /Faltan/);
@@ -108,13 +111,13 @@ test('modeloPotencia: el aviso de potenciaRecMinW aparece sólo cuando el ampli 
   };
   const parlanteM: Parlante = parlanteDelCatalogo(spkConMinimo, 'es');
   const ampM: Amplificador = amplificadorDelCatalogo(ampDebil, 'es');
-  const r = evaluarPotencia(parlanteM, ampM, 2.5, 'moderado', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteM, ampM, 2.5, 2.5, 'moderado', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spkConMinimo, ampDebil, r, 2.5, 'Moderado', 90, 'rockpop', 'es');
   assert.ok(m.avisoHtml, 'debería haber aviso: 30 W < 40 W recomendados');
   assert.match(m.avisoHtml!, /40/);
 
   const ampSuficiente = ampCat('rega-brio'); // 50 W ≥ 40 W recomendados
-  const rSinAviso = evaluarPotencia(parlanteM, amplificadorDelCatalogo(ampSuficiente, 'es'), 2.5, 'moderado', DIM_MAYOR_TEST_M);
+  const rSinAviso = evaluarPotencia(parlanteM, amplificadorDelCatalogo(ampSuficiente, 'es'), 2.5, 2.5, 'moderado', DIM_MAYOR_TEST_M);
   const mSinAviso = modeloPotencia(spkConMinimo, ampSuficiente, rSinAviso, 2.5, 'Moderado', 90, 'rockpop', 'es');
   assert.equal(mSinAviso.avisoHtml, null);
 });
@@ -122,7 +125,7 @@ test('modeloPotencia: el aviso de potenciaRecMinW aparece sólo cuando el ampli 
 test('modeloPotencia: crestFactorHtml refleja el crest factor del género y el nivel promedio implicado (pico − crest factor)', () => {
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 2.5, 'alto', DIM_MAYOR_TEST_M);
 
   const mRock = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
   assert.match(mRock.crestFactorHtml, /10/); // crest factor rockpop = 10 dB
@@ -146,7 +149,7 @@ test('modeloPotencia: simpleHtml de "con-margen" declara el % de capacidad usada
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
   // 1,0 m — mismo motivo que el test de "severidad ok" de arriba.
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.0, 1.0, 'alto', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'es');
   assert.equal(r.codigo, 'con-margen');
   assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
@@ -159,7 +162,7 @@ test('modeloPotencia: simpleHtml de "justo" declara un % de capacidad cercano al
   // 1,5 m (no 3,0 m): a 3,0 m este par da "insuficiente" tras la corrección
   // del módulo de potencia — se acorta la distancia para seguir
   // ejercitando el caso "justo" que este test nombra.
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.5, 'alto', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.5, 1.5, 'alto', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 1.5, 'Alto', 100, 'rockpop', 'es');
   assert.equal(r.codigo, 'justo');
   assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
@@ -169,7 +172,7 @@ test('modeloPotencia: simpleHtml de "justo" declara un % de capacidad cercano al
 test('modeloPotencia: simpleHtml de "insuficiente" declara un % de capacidad por encima de 100 — más de lo que el ampli tiene', () => {
   const spk = parlanteCat('kef-ls50-meta');
   const amp = ampCat('rega-brio');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 3.0, 'referencia', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 3.0, 'Referencia', 105, 'rockpop', 'es');
   assert.equal(r.codigo, 'insuficiente');
   const pct = Number(porcentajeEsperado(r.margenDb));
@@ -182,7 +185,7 @@ test('modeloPotencia en inglés: simpleHtml con el mismo % de capacidad, texto e
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
   // 1,0 m — mismo motivo que los tests de "con-margen"/"severidad ok" de arriba.
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 1.0, 1.0, 'alto', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 1.0, 'Loud', 100, 'rockpop', 'en');
   assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
   assert.match(m.simpleHtml, /More power than needed/);
@@ -226,7 +229,7 @@ test('modeloPotencia: margenCruzaUmbral (insuficiente→con-margen) reemplaza el
     chipsExtra: [],
     fuentes: [],
   };
-  const r = evaluarPotencia(parlanteDelCatalogo(spkExtremo, 'es'), amplificadorDelCatalogo(ampExtremo, 'es'), 2.0, 'alto', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spkExtremo, 'es'), amplificadorDelCatalogo(ampExtremo, 'es'), 2.0, 2.0, 'alto', DIM_MAYOR_TEST_M);
   assert.equal(r.margenCruzaUmbral, true); // confirma que este fixture sigue ejercitando el caso
   const m = modeloPotencia(spkExtremo, ampExtremo, r, 2.0, 'Alto', 100, 'rockpop', 'es');
   // simpleHtml YA NO es el % de capacidad normal — declara los dos códigos.
@@ -454,10 +457,15 @@ test('modeloRecorrido: "sin-datos" es clase "dim"; "warn" cuando el margen super
 const SALA_MODOS = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
 const NULO_LEJOS = evaluarNuloEscucha(SALA_MODOS, 0.1); // y muy cerca del muro frontal, lejos del centro (2,5 m)
 const NULO_CERCA = evaluarNuloEscucha(SALA_MODOS, 2.5); // exactamente en el centro → nulo
+// Acoplamiento "ok" neutro — estos tests ejercitan sólo agrupamiento/nulo,
+// no la 3ª señal (acoplamiento modal del parlante, ver más abajo su propia
+// sección de tests). `modos: []` alcanza porque modeloModos sólo lee ese
+// array cuando severidad==='warn'.
+const ACOP_OK: ReturnType<typeof evaluarAcoplamientoModal> = { modos: [], severidad: 'ok', codigo: 'acoplamiento-bajo' };
 
 test('modeloModos: sala 3,6×5,0×2,4 (razón 3:2 ancho/alto) → "warn", con el par de agrupamiento en el aviso', () => {
   const r = evaluarModos(SALA_MODOS);
-  const m = modeloModos(r, NULO_LEJOS, 'es');
+  const m = modeloModos(r, NULO_LEJOS, ACOP_OK, 'es');
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Modos agrupados');
   assert.ok(m.avisoHtml !== null);
@@ -472,7 +480,7 @@ test('modeloModos: sala 3,6×5,0×2,4 (razón 3:2 ancho/alto) → "warn", con el
 test('modeloModos: sala 2,5×3,0×2,2 sin agrupamiento y escucha lejos del centro → "ok", sin aviso ni sugerencia', () => {
   const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
   const r = evaluarModos(sala);
-  const m = modeloModos(r, evaluarNuloEscucha(sala, 0.1), 'es');
+  const m = modeloModos(r, evaluarNuloEscucha(sala, 0.1), ACOP_OK, 'es');
   assert.equal(m.verdictoClase, 'ok');
   assert.equal(m.verdictoTexto, 'Bien distribuidos');
   assert.equal(m.avisoHtml, null);
@@ -482,7 +490,7 @@ test('modeloModos: sala 2,5×3,0×2,2 sin agrupamiento y escucha lejos del centr
 test('modeloModos: escucha en el nulo (sin agrupamiento) → "warn", verdicto y textos propios del nulo, no los de agrupamiento', () => {
   const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 }; // sin agrupamiento (ver test de arriba)
   const r = evaluarModos(sala);
-  const m = modeloModos(r, evaluarNuloEscucha(sala, sala.largoM / 2), 'es');
+  const m = modeloModos(r, evaluarNuloEscucha(sala, sala.largoM / 2), ACOP_OK, 'es');
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Nulo en el punto de escucha');
   assert.match(m.simpleHtml, /hueco de graves/);
@@ -494,7 +502,7 @@ test('modeloModos: escucha en el nulo (sin agrupamiento) → "warn", verdicto y 
 
 test('modeloModos: agrupamiento Y nulo a la vez → "warn", verdicto combinado, aviso con las dos partes', () => {
   const r = evaluarModos(SALA_MODOS);
-  const m = modeloModos(r, NULO_CERCA, 'es');
+  const m = modeloModos(r, NULO_CERCA, ACOP_OK, 'es');
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Modos agrupados y nulo en la escucha');
   assert.match(m.avisoHtml!, /ancho/); // sigue trayendo los pares agrupados
@@ -511,7 +519,7 @@ test('modeloModos nunca es "alert" ni "dim" — el techo de severidad de sala es
   ];
   for (const sala of salas) {
     for (const y of [0.1, sala.largoM / 2]) {
-      const clase = modeloModos(evaluarModos(sala), evaluarNuloEscucha(sala, y), 'es').verdictoClase;
+      const clase = modeloModos(evaluarModos(sala), evaluarNuloEscucha(sala, y), ACOP_OK, 'es').verdictoClase;
       assert.ok(clase === 'ok' || clase === 'warn', `clase inesperada: ${clase}`);
     }
   }
@@ -519,7 +527,7 @@ test('modeloModos nunca es "alert" ni "dim" — el techo de severidad de sala es
 
 test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas', () => {
   const r = evaluarModos(SALA_MODOS);
-  const m = modeloModos(r, NULO_LEJOS, 'en');
+  const m = modeloModos(r, NULO_LEJOS, ACOP_OK, 'en');
   assert.equal(m.verdictoTexto, 'Clustered modes');
   assert.match(m.textoHtml, /mode pair/);
   assert.doesNotMatch(m.textoHtml, /par\(es\)/);
@@ -528,10 +536,174 @@ test('modeloModos en inglés: veredicto y texto en inglés, sin mezclar idiomas'
 test('modeloModos en inglés: nulo de escucha usa los textos propios, sin mezclar idiomas', () => {
   const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
   const r = evaluarModos(sala);
-  const m = modeloModos(r, evaluarNuloEscucha(sala, sala.largoM / 2), 'en');
+  const m = modeloModos(r, evaluarNuloEscucha(sala, sala.largoM / 2), ACOP_OK, 'en');
   assert.equal(m.verdictoTexto, 'Null at the listening spot');
   assert.match(m.avisoHtml!, /modal null/);
   assert.doesNotMatch(m.avisoHtml!, /nulo modal/);
+});
+
+// ---- acoplamiento modal del parlante (Cambio 2, plegado en la tarjeta "Modos de sala") ----
+
+test('modeloModos: acoplamiento alto en el parlante (sin agrupamiento ni nulo) → verdicto/simple propios, aviso nombra el orden y la frecuencia', () => {
+  const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 }; // sin agrupamiento (ver tests de arriba)
+  const r = evaluarModos(sala);
+  // parlante y escucha en el mismo antinodo (y=L) → 100% de acoplamiento en
+  // los 3 órdenes, el caso "sofá contra la pared trasera" ya verificado en
+  // modos.test.ts — separa la señal de acoplamiento del resto a propósito.
+  const resAcop = evaluarAcoplamientoModal(sala, sala.largoM, sala.largoM);
+  const resNulo = evaluarNuloEscucha(sala, 0.1); // lejos del centro, sin nulo
+  const m = modeloModos(r, resNulo, resAcop, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Parlante en un nodo de presión');
+  assert.match(m.simpleHtml, /apenas excita/);
+  assert.ok(m.avisoHtml !== null);
+  assert.match(m.avisoHtml!, /nodo de presión/);
+  assert.ok(m.sugerenciaHtml !== null);
+  assert.match(m.sugerenciaHtml!, /mover el parlante/);
+});
+
+test('modeloModos: agrupamiento + acoplamiento (sin nulo) → texto genérico "2 problemas", no hay texto de a pares para esta combinación', () => {
+  const r = evaluarModos(SALA_MODOS);
+  const resAcop = evaluarAcoplamientoModal(SALA_MODOS, SALA_MODOS.largoM, SALA_MODOS.largoM);
+  const m = modeloModos(r, NULO_LEJOS, resAcop, 'es');
+  assert.equal(m.verdictoTexto, '2 problemas de modos a la vez');
+});
+
+test('modeloModos: agrupamiento + nulo + acoplamiento a la vez → "3 problemas", el aviso sigue concatenando las 3 explicaciones', () => {
+  const r = evaluarModos(SALA_MODOS);
+  const resAcop = evaluarAcoplamientoModal(SALA_MODOS, SALA_MODOS.largoM, SALA_MODOS.largoM);
+  const m = modeloModos(r, NULO_CERCA, resAcop, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, '3 problemas de modos a la vez');
+  assert.match(m.avisoHtml!, /ancho/); // agrupamiento
+  assert.match(m.avisoHtml!, /nulo modal/); // nulo
+  assert.match(m.avisoHtml!, /nodo de presión/); // acoplamiento
+});
+
+test('modeloModos: agrupamiento + nulo (sin acoplamiento) sigue usando el texto dedicado "Modos agrupados y nulo en la escucha", no el genérico', () => {
+  const m = modeloModos(evaluarModos(SALA_MODOS), NULO_CERCA, ACOP_OK, 'es');
+  assert.equal(m.verdictoTexto, 'Modos agrupados y nulo en la escucha');
+});
+
+test('modeloModos: fuenteHtml declara el umbral de acoplamiento junto a los de agrupamiento/nulo', () => {
+  const m = modeloModos(evaluarModos(SALA_MODOS), NULO_LEJOS, ACOP_OK, 'es');
+  assert.match(m.fuenteHtml, /Acoplamiento modal/);
+  assert.match(m.fuenteHtml, /70/); // UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO=0,7 → 70%
+});
+
+test('modeloModos en inglés: acoplamiento alto usa los textos propios, sin mezclar idiomas', () => {
+  const sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
+  const resAcop = evaluarAcoplamientoModal(sala, sala.largoM, sala.largoM);
+  const m = modeloModos(evaluarModos(sala), evaluarNuloEscucha(sala, 0.1), resAcop, 'en');
+  assert.equal(m.verdictoTexto, 'Speaker sitting in a pressure node');
+  assert.match(m.avisoHtml!, /pressure node/);
+  assert.doesNotMatch(m.avisoHtml!, /nodo de presión/);
+});
+
+// ---- filtro peine por reflexión (Cambio 3) ----
+
+const MATERIALES_DEFECTO_SITIO: Materiales = {
+  muroFrontal: 'yesoCarton',
+  muroPosterior: 'yesoCarton',
+  muroIzquierdo: 'yesoCarton',
+  muroDerecho: 'yesoCarton',
+  piso: 'maderaLaminado',
+  techo: 'yesoCarton',
+};
+
+test('modeloFiltroPeine: sala por defecto con materiales típicos del sitio → "warn" sólo por el piso (madera laminado, α bajo a 125 Hz)', () => {
+  const disp = calcularDisposicion(SALA_MODOS);
+  const r = evaluarFiltroPeine(disp, MATERIALES_DEFECTO_SITIO);
+  const m = modeloFiltroPeine(r, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Nulo de peine en zona audible');
+  assert.match(m.calcHtml, /Piso \(izquierdo\)/);
+  assert.match(m.calcHtml, /250/); // primer nulo del piso ≈250 Hz (vector ya verificado: Δ=0,686 m)
+  assert.ok(m.avisoHtml !== null);
+  assert.match(m.avisoHtml!, /Piso/);
+});
+
+test('modeloFiltroPeine: los 10 resultados en "ok" → "Sin nulos en zona audible", sin aviso', () => {
+  const nombres = ['frontal', 'frontal', 'lateral', 'lateral', 'trasera', 'trasera', 'piso', 'piso', 'techo', 'techo'] as const;
+  const okTodos = nombres.map((reflexion, i) => ({
+    reflexion,
+    canal: (i % 2 === 0 ? 'izq' : 'der') as 'izq' | 'der',
+    deltaM: 2,
+    primerNuloHz: 50,
+    primerRefuerzoHz: 100,
+    coeficienteAbsorcion: 0.5,
+    severidad: 'ok' as const,
+  }));
+  const m = modeloFiltroPeine(okTodos, 'es');
+  assert.equal(m.verdictoClase, 'ok');
+  assert.equal(m.verdictoTexto, 'Sin nulos en zona audible');
+  assert.equal(m.avisoHtml, null);
+});
+
+test('modeloFiltroPeine: geometría degenerada (deltaM no finito) usa su propia fila, sin Hz inventados', () => {
+  const degenerado = [
+    { reflexion: 'frontal' as const, canal: 'izq' as const, deltaM: 0, primerNuloHz: Infinity, primerRefuerzoHz: Infinity, coeficienteAbsorcion: 0, severidad: 'ok' as const },
+  ];
+  const m = modeloFiltroPeine(degenerado, 'es');
+  assert.match(m.calcHtml, /geometría degenerada/);
+});
+
+test('modeloFiltroPeine en inglés: textos en inglés, sin mezclar idiomas', () => {
+  const disp = calcularDisposicion(SALA_MODOS);
+  const m = modeloFiltroPeine(evaluarFiltroPeine(disp, MATERIALES_DEFECTO_SITIO), 'en');
+  assert.equal(m.verdictoTexto, 'Comb null in audible zone');
+  assert.doesNotMatch(m.calcHtml, /Piso/);
+  assert.match(m.calcHtml, /Floor/);
+});
+
+// ---- triángulo de escucha: asimetría + ángulo (Cambio 4 + convención de 60°) ----
+
+test('modeloTrianguloEscucha: disposición automática → "ok", ángulo ≈45° declarado contra la convención de 60° (vector ya verificado: 45,24°)', () => {
+  const disp = calcularDisposicion(SALA_MODOS);
+  const m = modeloTrianguloEscucha(evaluarAsimetria(disp), evaluarAnguloEscucha(disp), null, 'es');
+  assert.equal(m.verdictoClase, 'ok');
+  assert.equal(m.verdictoTexto, 'Triángulo simétrico');
+  assert.match(m.textoHtml, /45/);
+  assert.match(m.textoHtml, /60/);
+  assert.equal(m.avisoHtml, null);
+});
+
+test('modeloTrianguloEscucha: parlantes a distinta profundidad (candado cerrado) → asimetría "warn" en las reflexiones; el directo se mantiene simétrico por construcción (mediatriz)', () => {
+  const disp = calcularDisposicionManual(SALA_MODOS, { x: 1.2, y: 0.75 }, { x: 2.4, y: 0.95 });
+  const m = modeloTrianguloEscucha(evaluarAsimetria(disp), evaluarAnguloEscucha(disp), null, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Triángulo asimétrico');
+  assert.match(m.calcHtml, /Camino directo/);
+  assert.match(m.calcHtml, /µs/);
+  assert.ok(m.avisoHtml !== null);
+  assert.match(m.avisoHtml!, /Reflexión frontal/);
+  assert.doesNotMatch(m.avisoHtml!, /Camino directo/); // el directo no entra al aviso: sigue "ok"
+});
+
+test('modeloTrianguloEscucha: asiento libre (candado abierto) muy cerca de los parlantes → ángulo amplio, "warn"', () => {
+  const disp = calcularDisposicionAsientoManual(SALA_MODOS, { x: 1.2, y: 0.75 }, { x: 2.4, y: 0.75 }, { x: 1.8, y: 1.1 });
+  const resAng = evaluarAnguloEscucha(disp);
+  assert.equal(resAng.codigo, 'angulo-amplio');
+  const m = modeloTrianguloEscucha(evaluarAsimetria(disp), resAng, null, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.match(m.avisoHtml!, /más angosto/); // avisoAnguloAmplio sugiere achicar el ángulo
+});
+
+test('modeloTrianguloEscucha: asiento libre muy lejos de los parlantes → ángulo angosto, "warn"', () => {
+  const disp = calcularDisposicionAsientoManual(SALA_MODOS, { x: 1.2, y: 0.75 }, { x: 2.4, y: 0.75 }, { x: 1.8, y: 4.5 });
+  const resAng = evaluarAnguloEscucha(disp);
+  assert.equal(resAng.codigo, 'angulo-estrecho');
+  const m = modeloTrianguloEscucha(evaluarAsimetria(disp), resAng, null, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal(m.verdictoTexto, 'Ángulo angosto');
+  assert.match(m.avisoHtml!, /más amplio/); // avisoAnguloEstrecho sugiere agrandar el ángulo
+});
+
+test('modeloTrianguloEscucha en inglés: textos en inglés, sin mezclar idiomas', () => {
+  const disp = calcularDisposicion(SALA_MODOS);
+  const m = modeloTrianguloEscucha(evaluarAsimetria(disp), evaluarAnguloEscucha(disp), null, 'en');
+  assert.equal(m.verdictoTexto, 'Symmetric triangle');
+  assert.doesNotMatch(m.textoHtml, /convención/);
 });
 
 // ---- reverberación (RT60, materiales por superficie) ----
@@ -873,7 +1045,7 @@ test('modeloPotencia en inglés: mismo margenDb numérico, texto y veredicto en 
   const amp = ampCat('cambridge-cxa81');
   // 1,0 m — mismo motivo que los tests de "con-margen"/"severidad ok" de arriba
   // ("With margin"/"Plenty of headroom" abajo exigen codigo 'con-margen').
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 1.0, 1.0, 'alto', DIM_MAYOR_TEST_M);
   const mEs = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'es');
   const mEn = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'en');
   assert.equal(mEn.margenDb, mEs.margenDb); // el número que calculó el motor no cambia con el idioma
@@ -921,7 +1093,7 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
   const spkM = parlanteDelCatalogo(DOC_SPK, idioma);
   const ampM = amplificadorDelCatalogo(DOC_AMP, idioma);
 
-  const resPot = evaluarPotencia(spkM, ampM, disposicion.distanciaEscuchaM, 'alto', DIM_MAYOR_TEST_M);
+  const resPot = evaluarPotencia(spkM, ampM, disposicion.distanciaEscuchaIzqM, disposicion.distanciaEscuchaDerM, 'alto', DIM_MAYOR_TEST_M);
   const mPot = modeloPotencia(DOC_SPK, DOC_AMP, resPot, disposicion.distanciaEscuchaM, idioma === 'es' ? 'Alto' : 'High', 100, 'rockpop', idioma);
   const mCarga = modeloCarga(DOC_SPK, DOC_AMP, evaluarCarga(spkM, ampM), idioma);
   const mAmortiguamiento = modeloAmortiguamiento(evaluarAmortiguamiento(spkM, ampM), idioma);
@@ -939,7 +1111,12 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
 
   const resModos = evaluarModos(sala);
   const resNuloEscucha = evaluarNuloEscucha(sala, disposicion.puntoDulce.y);
-  const mModos = modeloModos(resModos, resNuloEscucha, idioma);
+  const resAcoplamiento = evaluarAcoplamientoModal(sala, disposicion.parlanteIzq.y, disposicion.puntoDulce.y);
+  const mModos = modeloModos(resModos, resNuloEscucha, resAcoplamiento, idioma);
+  const mFiltroPeine = modeloFiltroPeine(evaluarFiltroPeine(disposicion, MATERIALES_TIPICOS), idioma);
+  const resAsimetria = evaluarAsimetria(disposicion);
+  const resAngulo = evaluarAnguloEscucha(disposicion);
+  const mTriangulo = modeloTrianguloEscucha(resAsimetria, resAngulo, resPot.diferenciaCanalesDb, idioma);
   const mReverb = modeloReverberacion(evaluarReverberacion(sala, MATERIALES_TIPICOS), MATERIALES_TIPICOS, idioma);
 
   const veredicto = { tituloHtml: idioma === 'es' ? 'Configuración totalmente compatible' : 'Fully compatible match', clase: 'ok' as const };
@@ -960,6 +1137,8 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
       mRecorridoDac: dc.recorrido,
       mModos,
       agrupadosModos: resModos.agrupados,
+      mFiltroPeine,
+      mTriangulo,
       mReverb,
       disposicion,
       murosVista: DOC_MUROS,
@@ -1082,6 +1261,14 @@ function veredictoDe(datos: ReturnType<typeof datosDocumentoFixture>['datos']) {
     recorridoDac: datos.mRecorridoDac ? claseASeveridad(datos.mRecorridoDac.verdictoClase) : null,
     modos: datos.mModos.verdictoClase as 'ok' | 'warn',
     reverberacion: datos.mReverb.verdictoClase as 'ok' | 'warn',
+    // Neutros "ok" en este helper: estos tests manipulan potencia/carga/
+    // amortiguamiento/puente/modos/reverberación a mano para aislar
+    // escenarios de "Acople eléctrico" — las 4 señales nuevas del triángulo
+    // de escucha tienen su propia sección de tests más abajo.
+    acoplamientoModal: 'ok',
+    filtroPeine: 'ok',
+    asimetria: 'ok',
+    anguloEscucha: 'ok',
   };
   return calcularVeredicto(entrada);
 }

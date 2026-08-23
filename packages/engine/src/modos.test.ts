@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   evaluarModos,
   evaluarNuloEscucha,
+  evaluarAcoplamientoModal,
   paresMasImportantes,
   techoModosDesdeSchroeder,
   TECHO_MODOS_HZ,
@@ -14,6 +15,7 @@ import {
   CLAMP_TECHO_MODOS_MAX_HZ,
   TOP_N_AGRUPADOS,
   VENTANA_NULO_MODAL,
+  UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO,
 } from './modos.ts';
 import { calcularDisposicion } from './sala.ts';
 
@@ -226,6 +228,82 @@ test('severidad nunca es "alert"/"error" — mismo techo de severidad de sala qu
   ];
   for (const [sala, y] of casos) {
     const r = evaluarNuloEscucha(sala, y);
+    assert.notEqual(r.severidad as string, 'alert');
+    assert.notEqual(r.severidad as string, 'error');
+  }
+});
+
+// ---- evaluarAcoplamientoModal: la misma cos(nπy/L) aplicada a la fuente, no sólo al oyente ----
+
+test('vector del usuario — disposición automática (parlante y=0,75, escucha y=3,126): productos 34%/42%/14% en los órdenes 1-3', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarAcoplamientoModal(sala, 0.75, 3.126);
+  assert.equal(r.modos.length, 3);
+  assert.deepEqual(r.modos.map((m) => m.orden), [1, 2, 3]);
+  assert.ok(Math.abs(r.modos[0]!.frecuenciaHz - 34.3) < 0.01);
+  assert.ok(Math.abs(r.modos[1]!.frecuenciaHz - 68.6) < 0.01);
+  assert.ok(Math.abs(r.modos[2]!.frecuenciaHz - 102.9) < 0.01);
+  assert.ok(Math.abs(r.modos[0]!.producto - 0.341) < 0.001, `n1=${r.modos[0]!.producto}`);
+  assert.ok(Math.abs(r.modos[1]!.producto - 0.415) < 0.001, `n2=${r.modos[1]!.producto}`);
+  assert.ok(Math.abs(r.modos[2]!.producto - 0.145) < 0.001, `n3=${r.modos[2]!.producto}`);
+  // Ninguno de los 3 supera 0,7 → "ok", ningún modo fuertemente acoplado en ambos extremos
+  assert.equal(r.severidad, 'ok');
+  assert.equal(r.codigo, 'acoplamiento-bajo');
+});
+
+test('vector del usuario — parlantes movidos a y=1,35 (escucha se recalcula a y=3,726): el modo 2 cae de 42% a 0% ("cancelaste un modo"), el modo 3 sube a 61%', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarAcoplamientoModal(sala, 1.35, 3.726);
+  assert.ok(Math.abs(r.modos[0]!.producto - 0.461) < 0.001, `n1=${r.modos[0]!.producto}`);
+  assert.ok(Math.abs(r.modos[1]!.producto - 0.004) < 0.002, `n2=${r.modos[1]!.producto}`);
+  assert.ok(Math.abs(r.modos[2]!.producto - 0.611) < 0.001, `n3=${r.modos[2]!.producto}`);
+  // Todavía ninguno supera 0,7 en este vector puntual — sigue "ok".
+  assert.equal(r.severidad, 'ok');
+});
+
+test('UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO es 0,7 (criterio del sitio, "empezar en 0,7" — declarado, no una convención publicada)', () => {
+  assert.equal(UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO, 0.7);
+});
+
+test('severidad "warn" cuando algún producto supera 0,7 — parlante y escucha ambos cerca de un antinodo del mismo modo', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  // Orden 1: antinodos en y=0 e y=L. Parlante y escucha cerca de los dos
+  // extremos opuestos maximizan |cos| en ambos simultáneamente.
+  const r = evaluarAcoplamientoModal(sala, 0.05, 4.95);
+  assert.ok(r.modos[0]!.producto > UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO, `producto=${r.modos[0]!.producto}`);
+  assert.equal(r.severidad, 'warn');
+  assert.equal(r.codigo, 'acoplamiento-alto');
+});
+
+test('el peor caso posible: parlante y escucha contra el muro del fondo (el sofá contra la pared, la sentada más común en un living real) — 100% en los 3 órdenes a la vez', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarAcoplamientoModal(sala, sala.largoM, sala.largoM);
+  for (const m of r.modos) {
+    assert.ok(Math.abs(m.acoplamientoParlante - 1) < 1e-9, `orden ${m.orden} acoplamientoParlante=${m.acoplamientoParlante}`);
+    assert.ok(Math.abs(m.acoplamientoEscucha - 1) < 1e-9, `orden ${m.orden} acoplamientoEscucha=${m.acoplamientoEscucha}`);
+    assert.ok(Math.abs(m.producto - 1) < 1e-9, `orden ${m.orden} producto=${m.producto}`);
+  }
+  assert.equal(r.severidad, 'warn');
+});
+
+test('acoplamiento bajo: parlante y escucha en nodos de modos distintos — ningún producto supera el umbral', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // L=5.0
+  // Nodo del modo 1 está en y=L/2=2.5; parlante ahí anula el modo 1 sin
+  // importar dónde esté la escucha.
+  const r = evaluarAcoplamientoModal(sala, 2.5, 1.0);
+  assert.ok(r.modos[0]!.acoplamientoParlante < 1e-9, `n1 parlante=${r.modos[0]!.acoplamientoParlante}`);
+  assert.ok(r.modos[0]!.producto < 1e-9, `n1 producto=${r.modos[0]!.producto}`);
+});
+
+test('severidad nunca es "alert"/"error" — mismo techo de severidad de sala que el resto del motor', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  for (const [py, ey] of [
+    [0, 0],
+    [sala.largoM, sala.largoM],
+    [2.5, 2.5],
+    [1.234, 3.987],
+  ] as const) {
+    const r = evaluarAcoplamientoModal(sala, py, ey);
     assert.notEqual(r.severidad as string, 'alert');
     assert.notEqual(r.severidad as string, 'error');
   }

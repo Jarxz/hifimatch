@@ -18,13 +18,21 @@ import type { Sala, Punto } from '../../../../packages/engine/src/sala.ts';
 import { clampPosicionParlante } from '../../../../packages/engine/src/sala.ts';
 import { proyeccionSuperior } from './plano.ts';
 
+/** 'asiento' es el punto de escucha, arrastrable sólo con el candado
+ * abierto (ver estado.ts/main.ts) — `plano.ts` sólo dibuja su `<g
+ * data-parlante="asiento">` cuando corresponde, así que este módulo no
+ * necesita conocer el estado del candado: si el grupo no está en el DOM,
+ * `closest('[data-parlante]')` simplemente no lo encuentra y el gesto no
+ * inicia arrastre. El mismo `clampPosicionParlante` (margen de muro) que ya
+ * se aplica a los parlantes se reusa acá vía `puntoMetrosDesdeEvento` — el
+ * asiento no necesita un clamp propio. */
 export interface CallbacksArrastre {
-  onMover(lado: 'izq' | 'der', puntoM: Punto): void;
+  onMover(lado: 'izq' | 'der' | 'asiento', puntoM: Punto): void;
   onSoltar(): void;
 }
 
 export function activarArrastre(contenedor: HTMLElement, salaDe: () => Sala, editableAhora: () => boolean, cb: CallbacksArrastre): void {
-  let ladoActivo: 'izq' | 'der' | null = null;
+  let ladoActivo: 'izq' | 'der' | 'asiento' | null = null;
   let ultimoPunto: Punto | null = null;
   let framePendiente = false;
   let touchActionPrevio: string | null = null;
@@ -101,7 +109,7 @@ export function activarArrastre(contenedor: HTMLElement, salaDe: () => Sala, edi
       if (!editableAhora()) return;
       const grupo = (ev.target as Element | null)?.closest('[data-parlante]');
       const lado = grupo?.getAttribute('data-parlante');
-      if (lado !== 'izq' && lado !== 'der') return;
+      if (lado !== 'izq' && lado !== 'der' && lado !== 'asiento') return;
 
       const punto = puntoMetrosDesdeEvento(ev);
       if (!punto) return;

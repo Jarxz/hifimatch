@@ -1,15 +1,16 @@
 import './estilos.css';
 import { CATALOGO } from '../../../packages/data/src/catalogo.ts';
-import { calcularDisposicion, calcularDisposicionManual } from '../../../packages/engine/src/sala.ts';
+import { calcularDisposicion, calcularDisposicionManual, calcularDisposicionAsientoManual } from '../../../packages/engine/src/sala.ts';
 import type { Sala, DisposicionSala, Punto } from '../../../packages/engine/src/sala.ts';
 import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarAmortiguamiento } from '../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
-import { evaluarModos, evaluarNuloEscucha, techoModosDesdeSchroeder } from '../../../packages/engine/src/modos.ts';
+import { evaluarModos, evaluarNuloEscucha, evaluarAcoplamientoModal, techoModosDesdeSchroeder } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
-import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
+import type { MaterialMuro, MaterialPiso, MaterialTecho, Materiales } from '../../../packages/engine/src/reverberacion.ts';
+import { evaluarFiltroPeine, evaluarAsimetria, evaluarAnguloEscucha } from '../../../packages/engine/src/colocacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
 import { calcularVeredicto } from '../../../packages/engine/src/veredicto.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
@@ -33,6 +34,8 @@ import {
   modeloPuente,
   modeloRecorrido,
   modeloModos,
+  modeloFiltroPeine,
+  modeloTrianguloEscucha,
   modeloReverberacion,
   modeloUbicacionParlantes,
   modeloResumenFinal,
@@ -51,6 +54,8 @@ import {
   pintarGanancia,
   pintarPlano,
   pintarModos,
+  pintarFiltroPeine,
+  pintarTrianguloEscucha,
   pintarCurvasModales,
   pintarReverberacion,
   pintarVeredicto,
@@ -98,6 +103,7 @@ interface UltimoAnalisis {
   resModos: ReturnType<typeof evaluarModos>;
   resReverb: ReturnType<typeof evaluarReverberacion>;
   mReverb: ReturnType<typeof modeloReverberacion>;
+  materiales: Materiales;
   murosVista: MurosVista;
   nivelTexto: string;
   picoObjetivo: number;
@@ -112,10 +118,20 @@ interface SnapshotAnalisis {
   /** Depende de `disposicion.puntoDulce.y` (cruce geometría↔modo, ver
    * modos.ts) — a diferencia de `resModos`, que sólo mira dimensiones. */
   resNuloEscucha: ReturnType<typeof evaluarNuloEscucha>;
+  /** Acoplamiento modal del PARLANTE (peor de los dos canales, ver
+   * `construirSnapshot`) — misma dependencia de disposición que resNuloEscucha. */
+  resAcoplamiento: ReturnType<typeof evaluarAcoplamientoModal>;
   mModos: ReturnType<typeof modeloModos>;
+  mFiltroPeine: ReturnType<typeof modeloFiltroPeine>;
+  mTriangulo: ReturnType<typeof modeloTrianguloEscucha>;
   veredicto: ReturnType<typeof calcularVeredicto>;
   mVeredicto: ReturnType<typeof modeloVeredicto>;
   componentesResumen: ComponenteResumen[];
+  /** Candado del punto de escucha con el que se calculó ESTE snapshot — ver
+   * estado.ts. "Análisis original" siempre es `false` (nunca pasa por el
+   * candado); "Modificado" refleja el estado real al momento de
+   * "Recalcular". El comparador avisa cuando difieren entre pestañas. */
+  candadoAbierto: boolean;
 }
 
 let ultimoAnalisis: UltimoAnalisis | null = null;
@@ -126,16 +142,38 @@ let pestanaActiva: 'original' | 'modificado' = 'original';
  * activa; "Recalcular" congela esto en un snapshot nuevo. */
 let disposicionManual: { parlanteIzq: Punto; parlanteDer: Punto } | null = null;
 
+/** Posición manual del asiento (punto de escucha) — sobrevive a que el
+ * candado se cierre y se vuelva a abrir ("Volver a cerrar el candado no
+ * debe destruir el trabajo de arrastre"): cerrar el candado NO borra esto,
+ * sólo deja de usarse para el cálculo hasta que se vuelve a abrir. `null`
+ * hasta el primer arrastre del asiento (o hasta la primera vez que se abre
+ * el candado, momento en el que se fija a la posición actual para que
+ * destrabar nunca mueva el asiento). Se resetea en cada "Analizar" nuevo. */
+let asientoManualGuardado: Punto | null = null;
+
 /** Geometría del último análisis pintado — sólo para poder re-dibujar el
  * plano isométrico cuando el usuario cambia de vista (isométrica/frontal/
  * lateral/superior) o arrastra un parlante, sin recalcular potencia ni
- * veredicto. `null` antes del primer "Analizar". */
-let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista } | null = null;
+ * veredicto. `null` antes del primer "Analizar". `referenciaSimetricaM`
+ * viaja junto a la disposición: no-null cuando el candado está abierto (ver
+ * plano.ts, construirPlanoSvg) — la posición que tendría el asiento si
+ * estuviera cerrado, dibujada como referencia punteada. */
+let ultimoPlano: { sala: Sala; disposicion: DisposicionSala; murosVista: MurosVista; referenciaSimetricaM: Punto | null } | null = null;
 
 function repintarPlano(): void {
   if (!ultimoPlano) return;
   const editable = estado.vistaPlano === 'superior';
-  pintarPlano(construirPlanoSvg(ultimoPlano.sala, ultimoPlano.disposicion, ultimoPlano.murosVista, estado.vistaPlano, idiomaActual, editable));
+  pintarPlano(
+    construirPlanoSvg(
+      ultimoPlano.sala,
+      ultimoPlano.disposicion,
+      ultimoPlano.murosVista,
+      estado.vistaPlano,
+      idiomaActual,
+      editable,
+      ultimoPlano.referenciaSimetricaM
+    )
+  );
 }
 
 function nivelTextoDe(lvl: NivelUI, idioma: Idioma): string {
@@ -314,24 +352,57 @@ function setVistaPlano(vista: Vista): void {
   });
   const hint = document.getElementById('plan-hint');
   if (hint) hint.classList.toggle('hidden', vista !== 'superior');
+  const hintAsiento = document.getElementById('plan-hint-asiento');
+  if (hintAsiento) hintAsiento.classList.toggle('hidden', !(estado.candadoAbierto && vista === 'superior'));
   repintarPlano();
 }
 
 /** Arma el snapshot completo (potencia + veredicto + resumen) de UNA
  * disposición de parlantes, reusando la parte compartida ya calculada en
  * `ultimoAnalisis` — no recalcula carga/puente/recorrido/modos/
- * reverberación, sólo lo que sí depende de dónde están los parlantes. */
-function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): SnapshotAnalisis {
+ * reverberación, sólo lo que sí depende de dónde están los parlantes.
+ * `candadoAbierto` es el estado del candado CON el que se generó esta
+ * `disposicion` (no se lee de `estado` acá para que un snapshot ya
+ * congelado — "Análisis original" — nunca cambie de opinión si el usuario
+ * sigue tocando el candado después). */
+function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala, candadoAbierto: boolean): SnapshotAnalisis {
   const dimensionMayorSalaM = Math.max(a.sala.anchoM, a.sala.largoM, a.sala.altoM);
-  const resPot = evaluarPotencia(a.parlanteM, a.ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl], dimensionMayorSalaM);
+  const resPot = evaluarPotencia(a.parlanteM, a.ampM, disposicion.distanciaEscuchaIzqM, disposicion.distanciaEscuchaDerM, NIVEL_MOTOR[estado.lvl], dimensionMayorSalaM);
   const mPot = modeloPotencia(a.spk, a.amp, resPot, disposicion.distanciaEscuchaM, a.nivelTexto, a.picoObjetivo, estado.genero, idiomaActual);
 
   // Cruce geometría↔modo: depende de dónde cae el punto dulce en ESTA
   // disposición, así que se recalcula por snapshot (como potencia), no una
   // sola vez por "Analizar" como resModos (que sólo mira dimensiones).
   const resNuloEscucha = evaluarNuloEscucha(a.sala, disposicion.puntoDulce.y);
-  const mModos = modeloModos(a.resModos, resNuloEscucha, idiomaActual);
+
+  // Acoplamiento modal del PARLANTE (Cambio 2): se evalúa por canal (izq/
+  // der pueden estar a distinta profundidad con arrastre independiente) y
+  // se muestra/propaga el peor de los dos — comparar por el producto máximo
+  // de cada canal alcanza para elegir el correcto: la severidad es
+  // monótona en ese máximo (un único umbral global), así que el canal con
+  // mayor producto siempre determina la severidad combinada correcta sin
+  // necesidad de combinarlas aparte.
+  const resAcopIzq = evaluarAcoplamientoModal(a.sala, disposicion.parlanteIzq.y, disposicion.puntoDulce.y);
+  const resAcopDer = evaluarAcoplamientoModal(a.sala, disposicion.parlanteDer.y, disposicion.puntoDulce.y);
+  const maxProdIzq = Math.max(...resAcopIzq.modos.map((m) => m.producto));
+  const maxProdDer = Math.max(...resAcopDer.modos.map((m) => m.producto));
+  const resAcoplamiento = maxProdIzq >= maxProdDer ? resAcopIzq : resAcopDer;
+
+  const mModos = modeloModos(a.resModos, resNuloEscucha, resAcoplamiento, idiomaActual);
   const severidadModosCombinada: 'ok' | 'warn' = a.resModos.severidad === 'warn' || resNuloEscucha.severidad === 'warn' ? 'warn' : 'ok';
+
+  // Filtro peine por reflexión (Cambio 3) y triángulo de escucha —
+  // asimetría + ángulo (Cambio 4): las dos dependen de la disposición
+  // completa (parlantes Y punto dulce), así que se recalculan por
+  // snapshot, igual que potencia/modos.
+  const resFiltroPeine = evaluarFiltroPeine(disposicion, a.materiales);
+  const mFiltroPeine = modeloFiltroPeine(resFiltroPeine, idiomaActual);
+  const filtroPeineSeveridad: 'ok' | 'warn' = resFiltroPeine.some((r) => r.severidad === 'warn') ? 'warn' : 'ok';
+
+  const resAsimetria = evaluarAsimetria(disposicion);
+  const resAngulo = evaluarAnguloEscucha(disposicion);
+  const asimetriaSeveridad: 'ok' | 'warn' = resAsimetria.some((r) => r.severidad === 'warn') ? 'warn' : 'ok';
+  const mTriangulo = modeloTrianguloEscucha(resAsimetria, resAngulo, resPot.diferenciaCanalesDb, idiomaActual);
 
   // "Veredicto" + tres estados — la única evaluación de conjunto del sitio
   // (ver CLAUDE.md). Depende de resPot/mModos (calculados arriba, propios
@@ -347,6 +418,10 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
     recorridoDac: a.resRecorridoDac ? a.resRecorridoDac.severidad : null,
     modos: severidadModosCombinada,
     reverberacion: a.resReverb.severidad,
+    acoplamientoModal: resAcoplamiento.severidad,
+    filtroPeine: filtroPeineSeveridad,
+    asimetria: asimetriaSeveridad,
+    anguloEscucha: resAngulo.severidad,
   });
   const mVeredicto = modeloVeredicto(
     veredicto,
@@ -360,6 +435,8 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
       mRecorridoDac: a.mRecorridoDac,
       mModos,
       mReverb: a.mReverb,
+      mFiltroPeine,
+      mTriangulo,
     },
     idiomaActual
   );
@@ -382,6 +459,8 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
       avisoHtml: a.mAmortiguamiento.avisoHtml,
     },
     { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
+    { nombre: nombreComponente.filtroPeine, verdictoClase: mFiltroPeine.verdictoClase, verdictoTexto: mFiltroPeine.verdictoTexto, avisoHtml: mFiltroPeine.avisoHtml },
+    { nombre: nombreComponente.trianguloEscucha, verdictoClase: mTriangulo.verdictoClase, verdictoTexto: mTriangulo.verdictoTexto, avisoHtml: mTriangulo.avisoHtml },
   ];
   if (a.mPuenteStreamer && a.resPuenteStreamer) {
     componentesResumen.push({
@@ -420,7 +499,7 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
     });
   }
 
-  return { disposicion, resPot, mPot, resNuloEscucha, mModos, veredicto, mVeredicto, componentesResumen };
+  return { disposicion, resPot, mPot, resNuloEscucha, resAcoplamiento, mModos, mFiltroPeine, mTriangulo, veredicto, mVeredicto, componentesResumen, candadoAbierto };
 }
 
 /** Pinta un snapshot completo — potencia, "La cadena", "Sala", veredicto,
@@ -472,14 +551,19 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   const resumenFinal = modeloResumenFinal(snap.componentesResumen, snap.mVeredicto, idiomaActual);
 
   pintarModos(snap.mModos);
+  pintarFiltroPeine(snap.mFiltroPeine);
+  pintarTrianguloEscucha(snap.mTriangulo);
   pintarVeredicto(snap.mVeredicto);
   pintarRecomendacionesTop(modeloRecomendacionesTop(snap.componentesResumen, idiomaActual));
   pintarNotaSinDatos(modeloNotaSinDatos(snap.componentesResumen, idiomaActual));
 
-  ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
+  const referenciaSimetricaM = snap.candadoAbierto ? calcularDisposicionManual(a.sala, snap.disposicion.parlanteIzq, snap.disposicion.parlanteDer).puntoDulce : null;
+  ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista, referenciaSimetricaM };
   repintarPlano();
   const ubicacionEl = document.getElementById('plan-ubicacion');
   if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(a.sala, snap.disposicion, idiomaActual);
+  actualizarUiCandado(snap.candadoAbierto);
+  actualizarAvisoCandadoComparador();
 
   // Vista previa interna "Documento" (#s-documento, sin botón visible — ver
   // CLAUDE.md): se repinta junto con el resto del resultado para que
@@ -512,6 +596,8 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
         mRecorridoDac: a.mRecorridoDac,
         mModos: snap.mModos,
         agrupadosModos: a.resModos.agrupados,
+        mFiltroPeine: snap.mFiltroPeine,
+        mTriangulo: snap.mTriangulo,
         mReverb: a.mReverb,
         disposicion: snap.disposicion,
         murosVista: a.murosVista,
@@ -527,10 +613,16 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
 
 /** Vista previa liviana durante el arrastre: sólo redibuja el plano y el
  * párrafo de ubicación con la disposición nueva — no toca potencia,
- * veredicto ni "En resumen" (eso sólo pasa al confirmar con "Recalcular"). */
+ * veredicto ni "En resumen" (eso sólo pasa al confirmar con "Recalcular").
+ * `referenciaSimetricaM` se deriva en vivo de `estado.candadoAbierto`, no
+ * del snapshot congelado — así el marcador punteado aparece/desaparece de
+ * inmediato al tocar el candado, incluso a mitad de un arrastre. */
 function previsualizarDisposicion(disposicion: DisposicionSala): void {
   if (!ultimoAnalisis || !ultimoPlano) return;
-  ultimoPlano = { ...ultimoPlano, disposicion };
+  const referenciaSimetricaM = estado.candadoAbierto
+    ? calcularDisposicionManual(ultimoAnalisis.sala, disposicion.parlanteIzq, disposicion.parlanteDer).puntoDulce
+    : null;
+  ultimoPlano = { ...ultimoPlano, disposicion, referenciaSimetricaM };
   repintarPlano();
   const ubicacionEl = document.getElementById('plan-ubicacion');
   if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(ultimoAnalisis.sala, disposicion, idiomaActual);
@@ -545,12 +637,80 @@ function posicionBaseParaArrastre(): { parlanteIzq: Punto; parlanteDer: Punto } 
   return snap ? { parlanteIzq: snap.disposicion.parlanteIzq, parlanteDer: snap.disposicion.parlanteDer } : null;
 }
 
-function onMoverParlante(lado: 'izq' | 'der', puntoM: Punto): void {
+/** Posición de partida para un arrastre del ASIENTO — la última posición
+ * manual guardada (sobrevive a que el candado se haya cerrado y reabierto,
+ * ver `asientoManualGuardado`), o si nunca se movió, la posición derivada
+ * actual de los parlantes dados (mediatriz) — nunca la del análisis viejo. */
+function posicionBaseAsiento(parlantes: { parlanteIzq: Punto; parlanteDer: Punto }): Punto {
+  if (asientoManualGuardado) return asientoManualGuardado;
+  return calcularDisposicionManual(ultimoAnalisis!.sala, parlantes.parlanteIzq, parlantes.parlanteDer).puntoDulce;
+}
+
+function onMoverParlante(lado: 'izq' | 'der' | 'asiento', puntoM: Punto): void {
   if (!ultimoAnalisis) return;
   const base = posicionBaseParaArrastre();
   if (!base) return;
+
+  if (lado === 'asiento') {
+    if (!estado.candadoAbierto) return; // el agarre del asiento sólo existe en el DOM con el candado abierto — por las dudas
+    asientoManualGuardado = puntoM;
+    previsualizarDisposicion(calcularDisposicionAsientoManual(ultimoAnalisis.sala, base.parlanteIzq, base.parlanteDer, puntoM));
+    return;
+  }
+
   disposicionManual = lado === 'izq' ? { parlanteIzq: puntoM, parlanteDer: base.parlanteDer } : { parlanteIzq: base.parlanteIzq, parlanteDer: puntoM };
-  previsualizarDisposicion(calcularDisposicionManual(ultimoAnalisis.sala, disposicionManual.parlanteIzq, disposicionManual.parlanteDer));
+  const disposicion = estado.candadoAbierto
+    ? calcularDisposicionAsientoManual(ultimoAnalisis.sala, disposicionManual.parlanteIzq, disposicionManual.parlanteDer, posicionBaseAsiento(disposicionManual))
+    : calcularDisposicionManual(ultimoAnalisis.sala, disposicionManual.parlanteIzq, disposicionManual.parlanteDer);
+  previsualizarDisposicion(disposicion);
+}
+
+/** Abre/cierra el candado del punto de escucha — no mueve el asiento al
+ * abrir ("arranca exactamente donde estaba"): la primera vez que se abre
+ * en esta sesión de arrastre, `asientoManualGuardado` se fija a la
+ * posición derivada ACTUAL (mediatriz de los parlantes tal como están
+ * ahora, no la del análisis original) antes de recalcular con ella. Cerrar
+ * NO borra `asientoManualGuardado` — reabrir lo restituye tal cual. */
+function setCandado(abierto: boolean): void {
+  if (!ultimoAnalisis) return;
+  const base = posicionBaseParaArrastre();
+  if (!base) return;
+  estado.candadoAbierto = abierto;
+  if (abierto && asientoManualGuardado === null) {
+    asientoManualGuardado = calcularDisposicionManual(ultimoAnalisis.sala, base.parlanteIzq, base.parlanteDer).puntoDulce;
+  }
+  const disposicion = abierto
+    ? calcularDisposicionAsientoManual(ultimoAnalisis.sala, base.parlanteIzq, base.parlanteDer, asientoManualGuardado!)
+    : calcularDisposicionManual(ultimoAnalisis.sala, base.parlanteIzq, base.parlanteDer);
+  previsualizarDisposicion(disposicion);
+  actualizarUiCandado(abierto);
+}
+
+/** Refleja el estado del candado en el botón (texto + aria-pressed) y en
+ * la visibilidad del hint de arrastre del asiento — separado de
+ * `#plan-hint` (arrastre de parlantes), que ya se muestra/oculta según la
+ * vista activa; éste depende ADEMÁS de que el candado esté abierto. */
+function actualizarUiCandado(abierto: boolean): void {
+  const t = textosDe(idiomaActual).resultado.plano;
+  const btn = document.getElementById('btn-candado');
+  if (btn) {
+    btn.textContent = abierto ? t.candadoAbierto : t.candadoCerrado;
+    btn.setAttribute('aria-pressed', String(abierto));
+  }
+  const hintAsiento = document.getElementById('plan-hint-asiento');
+  if (hintAsiento) hintAsiento.classList.toggle('hidden', !(abierto && estado.vistaPlano === 'superior'));
+}
+
+/** Si "Análisis original" (candado siempre cerrado) y "Modificado" difieren
+ * en estado de candado, una diferencia de MÉTODO (asiento derivado vs.
+ * arrastrado a mano) podría leerse como si fuera un efecto de mover los
+ * parlantes — se declara explícitamente para que no se confunda una cosa
+ * con la otra. */
+function actualizarAvisoCandadoComparador(): void {
+  const el = document.getElementById('candado-comparador-aviso');
+  if (!el) return;
+  const difiere = analisisOriginal !== null && analisisModificado !== null && analisisOriginal.candadoAbierto !== analisisModificado.candadoAbierto;
+  el.classList.toggle('hidden', !difiere);
 }
 
 function mostrarPestanaModificado(): void {
@@ -558,14 +718,16 @@ function mostrarPestanaModificado(): void {
 }
 
 /** Cambia de pestaña repintando el snapshot ya calculado — nunca recalcula
- * el motor. También retoma el arrastre desde donde quedó esa pestaña, no
- * desde una posición vieja de otra pestaña. */
+ * el motor. También retoma el arrastre desde donde quedó esa pestaña
+ * (parlantes Y candado/asiento), no desde el estado de otra pestaña. */
 function activarPestana(pestana: 'original' | 'modificado'): void {
   const snap = pestana === 'original' ? analisisOriginal : analisisModificado;
   if (!snap || !ultimoAnalisis) return;
   pestanaActiva = pestana;
-  pintarSnapshot(ultimoAnalisis, snap);
   disposicionManual = { parlanteIzq: snap.disposicion.parlanteIzq, parlanteDer: snap.disposicion.parlanteDer };
+  estado.candadoAbierto = snap.candadoAbierto;
+  asientoManualGuardado = snap.candadoAbierto ? snap.disposicion.puntoDulce : null;
+  pintarSnapshot(ultimoAnalisis, snap);
   document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.pestana === pestana));
   });
@@ -574,14 +736,24 @@ function activarPestana(pestana: 'original' | 'modificado'): void {
   document.getElementById('pt-nota-recalculo')?.classList.toggle('hidden', pestana !== 'modificado');
 }
 
-/** "Recalcular": congela la posición actual del arrastre en un snapshot
- * completo y lo publica como la pestaña "Modificado" — la crea la primera
- * vez, reemplaza su contenido las veces siguientes (nunca hay una tercera
- * pestaña). La pestaña "Análisis original" nunca se toca. */
+/** "Recalcular": congela la posición actual del arrastre (parlantes y,
+ * si el candado está abierto, el asiento) en un snapshot completo y lo
+ * publica como la pestaña "Modificado" — la crea la primera vez, reemplaza
+ * su contenido las veces siguientes (nunca hay una tercera pestaña). La
+ * pestaña "Análisis original" nunca se toca. */
 function recalcular(): void {
-  if (!disposicionManual || !ultimoAnalisis) return;
-  const disposicion = calcularDisposicionManual(ultimoAnalisis.sala, disposicionManual.parlanteIzq, disposicionManual.parlanteDer);
-  analisisModificado = construirSnapshot(ultimoAnalisis, disposicion);
+  if (!ultimoAnalisis) return;
+  // Antes exigía disposicionManual (parlante movido) — con el candado
+  // abierto puede haber trabajo que recalcular aunque nunca se haya
+  // arrastrado un PARLANTE (sólo el asiento, o el candado recién abierto):
+  // cualquiera de los dos cuenta como "hay algo que congelar".
+  if (!disposicionManual && !estado.candadoAbierto) return;
+  const base = posicionBaseParaArrastre();
+  if (!base) return;
+  const disposicion = estado.candadoAbierto
+    ? calcularDisposicionAsientoManual(ultimoAnalisis.sala, base.parlanteIzq, base.parlanteDer, posicionBaseAsiento(base))
+    : calcularDisposicionManual(ultimoAnalisis.sala, base.parlanteIzq, base.parlanteDer);
+  analisisModificado = construirSnapshot(ultimoAnalisis, disposicion, estado.candadoAbierto);
   mostrarPestanaModificado();
   activarPestana('modificado');
 }
@@ -702,12 +874,20 @@ function renderizarResultado(): void {
     resModos,
     resReverb,
     mReverb,
+    materiales,
     murosVista,
     nivelTexto,
     picoObjetivo,
   };
 
-  analisisOriginal = construirSnapshot(ultimoAnalisis, calcularDisposicion(sala));
+  // "Analizar" nuevo siempre vuelve a partir de cero: candado cerrado y sin
+  // posición manual de asiento guardada, igual que un sistema recién
+  // elegido — nada de un arrastre de un análisis anterior sobrevive acá
+  // (sí sobrevive un cierre/apertura del candado DENTRO del mismo análisis,
+  // ver setCandado).
+  estado.candadoAbierto = false;
+  asientoManualGuardado = null;
+  analisisOriginal = construirSnapshot(ultimoAnalisis, calcularDisposicion(sala), false);
   analisisModificado = null;
   disposicionManual = null;
   pestanaActiva = 'original';
@@ -758,6 +938,8 @@ type InfoClave =
   | 'amortiguamiento'
   | 'ganancia'
   | 'modos'
+  | 'filtroPeine'
+  | 'triangulo'
   | 'reverberacion'
   | 'plano'
   | 'veredicto';
@@ -1077,6 +1259,7 @@ function wireEventos(): void {
   document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
     b.addEventListener('click', () => activarPestana(b.dataset.pestana as 'original' | 'modificado'));
   });
+  document.getElementById('btn-candado')?.addEventListener('click', () => setCandado(!estado.candadoAbierto));
   // Delegado sobre #plan-hint, no directo sobre #btn-recalcular: ese botón
   // vive dentro de resultado.plano.hintArrastreHtml, que aplicarCromoEstatico()
   // reescribe entero (innerHTML) en cada cambio de idioma — un listener
