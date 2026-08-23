@@ -12,10 +12,10 @@ const BASE: EntradaVeredicto = {
   puenteDac: null,
   recorridoDac: null,
   modos: 'ok',
-  reverberacion: 'ok',
+  reverberacion: 'sin-datos', // el RT60 estimado ya no emite veredicto — mismo estado real de hoy, ver reverberacion.ts
 };
 
-test('todo "ok" (sin fuentes elegidas) → los 3 grupos "ok", general "ok"', () => {
+test('todo "ok"/"sin-datos" (estado real de hoy) → los 3 grupos "ok", general "ok"', () => {
   const v = calcularVeredicto(BASE);
   assert.deepEqual(v, { potencia: 'ok', acopleElectrico: 'ok', sala: 'ok', general: 'ok' });
 });
@@ -64,6 +64,18 @@ test('general: "sin-datos" en acopleElectrico se excluye del cálculo general �
 test('sala: peor de modos/reverberación — nunca "alert" (techo de severidad de sala, ver CLAUDE.md)', () => {
   const v = calcularVeredicto({ ...BASE, modos: 'warn', reverberacion: 'ok' });
   assert.equal(v.sala, 'warn');
+});
+
+test('sala: reverberacion "sin-datos" (estado real de hoy — el RT60 estimado ya no emite veredicto) no arrastra el grupo, "sala" refleja sólo modos', () => {
+  const v1 = calcularVeredicto({ ...BASE, modos: 'ok', reverberacion: 'sin-datos' });
+  assert.equal(v1.sala, 'ok');
+  const v2 = calcularVeredicto({ ...BASE, modos: 'warn', reverberacion: 'sin-datos' });
+  assert.equal(v2.sala, 'warn');
+});
+
+test('sala: nunca es "sin-datos" — modos siempre tiene valor, aunque reverberacion sea "sin-datos" (su estado real de hoy)', () => {
+  const v = calcularVeredicto(BASE);
+  assert.notEqual(v.sala as string, 'sin-datos');
 });
 
 test('general: sala en "warn" alcanza para que el general sea "warn" aunque potencia/acople estén "ok"', () => {

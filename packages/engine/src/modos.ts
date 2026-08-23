@@ -14,22 +14,56 @@ import type { Sala } from './sala.ts';
 /** Techo de la región de modos de sala — convención estándar de acústica de
  * salas domésticas (ej. Everest & Pohlmann, "Master Handbook of Acoustics"):
  * por encima de esto la densidad modal es alta y el comportamiento deja de
- * ser de resonancias individuales. Sólo se listan modos hasta acá. */
+ * ser de resonancias individuales. Sólo se listan modos hasta acá por
+ * defecto — ver el parámetro `techoModosHz` de `evaluarModos()` para cuando
+ * se reemplaza por un valor derivado de la sala real. */
 export const TECHO_MODOS_HZ = 300;
+
+/**
+ * Clamp para el techo de modos cuando se deriva de la frecuencia de
+ * Schroeder de la sala real (`techoModosDesdeSchroeder()`) — evita que una
+ * sala muy chica/absorbente (fs muy baja) o muy grande/reflectante (fs muy
+ * alta) produzca un techo de modos absurdo. Criterio del sitio, no una
+ * convención publicada.
+ */
+export const CLAMP_TECHO_MODOS_MIN_HZ = 150;
+export const CLAMP_TECHO_MODOS_MAX_HZ = 400;
 
 /**
  * Techo más estricto para la detección de agrupamiento — criterio del sitio,
  * no una convención publicada. Por encima de ~150 Hz la densidad modal sube
  * y que dos modos caigan cerca por pura densidad deja de ser un indicio de
  * mala proporción de sala; restringir el chequeo a la región grave evita
- * falsos positivos.
+ * falsos positivos. Fijo — a diferencia del techo de LISTADO de modos
+ * (`techoModosHz`), no se deriva de la sala real.
  */
 export const TECHO_AGRUPAMIENTO_HZ = 150;
 
-/** Diferencia relativa bajo la cual dos modos de ejes distintos se consideran
- * "agrupados" (refuerzo audible de graves) — criterio del sitio, se verifica
- * midiendo/escuchando, igual salvedad que el resto de las reglas de sala. */
-export const UMBRAL_AGRUPAMIENTO = 0.05;
+/**
+ * Diferencia relativa bajo la cual dos modos de ejes distintos entran en el
+ * conjunto de "candidatos a agrupados" (refuerzo audible de graves) —
+ * criterio del sitio, se verifica midiendo/escuchando. Un barrido externo
+ * de 17.784 salas plausibles mostró que el umbral anterior (5%) marcaba el
+ * 86% de las salas — un semáforo que casi siempre dice lo mismo no
+ * discrimina nada. 2% + la regla de dos condiciones de abajo cubre el 37%
+ * del mismo barrido.
+ */
+export const UMBRAL_AGRUPAMIENTO = 0.02;
+
+/**
+ * Umbral, más estricto que `UMBRAL_AGRUPAMIENTO`, bajo el cual UN SOLO par
+ * ya alcanza para "warn" — un solapamiento casi exacto (ej. 0,00% de
+ * diferencia, dos modos en la misma frecuencia) es el peor caso posible,
+ * y exigir un segundo par para marcarlo (ver `MIN_PARES_AGRUPADOS`) lo
+ * dejaría pasar como una sala "buena". Criterio del sitio.
+ */
+export const UMBRAL_AGRUPAMIENTO_EXACTO = 0.01;
+
+/** Con un solo par por debajo de `UMBRAL_AGRUPAMIENTO` (pero no tan cerca
+ * como para cruzar `UMBRAL_AGRUPAMIENTO_EXACTO`), no alcanza para "warn" —
+ * recién dos o más pares en esa banda son indicio de una sala mal
+ * proporcionada en varios órdenes a la vez. Criterio del sitio. */
+export const MIN_PARES_AGRUPADOS = 2;
 
 /** Cuántos agrupamientos curar (curvas 1D, mapa de zonas) — los de menor
  * frecuencia, que son los más audibles y los más difíciles de tratar
@@ -65,21 +99,34 @@ export interface ResultadoModos {
   codigo: CodigoModos;
 }
 
-function modosDeEje(eje: EjeSala, longitudM: number): ModoAxial[] {
+function modosDeEje(eje: EjeSala, longitudM: number, techoHz: number): ModoAxial[] {
   const modos: ModoAxial[] = [];
   for (let orden = 1; ; orden++) {
     const frecuenciaHz = frecuenciaModoAxialHz(longitudM, orden);
-    if (frecuenciaHz > TECHO_MODOS_HZ) break;
+    if (frecuenciaHz > techoHz) break;
     modos.push({ eje, orden, frecuenciaHz });
   }
   return modos;
 }
 
-export function evaluarModos(sala: Sala): ResultadoModos {
+/**
+ * `techoModosHz` (por defecto `TECHO_MODOS_HZ`) fija hasta dónde se LISTAN
+ * modos — no afecta la detección de agrupamiento, que siempre usa el techo
+ * fijo `TECHO_AGRUPAMIENTO_HZ` (150 Hz). Quien llama puede pasar en cambio
+ * la frecuencia de Schroeder de la sala real (ver
+ * `techoModosDesdeSchroeder()`, reverberacion.ts la calcula): con el techo
+ * fijo de 300 Hz, la región donde "Modos de sala" afirma cubrir todo el
+ * comportamiento resonante podía terminar por debajo de donde
+ * "Reverberación" empezaba a ser válida (fs de la sala por defecto: 371,6
+ * Hz bajo el modelo viejo) — un hueco que ninguna de las dos reglas
+ * gobernaba. Pasando la fs real como techo, las dos regiones quedan
+ * contiguas por construcción.
+ */
+export function evaluarModos(sala: Sala, techoModosHz: number = TECHO_MODOS_HZ): ResultadoModos {
   const modos = [
-    ...modosDeEje('ancho', sala.anchoM),
-    ...modosDeEje('largo', sala.largoM),
-    ...modosDeEje('alto', sala.altoM),
+    ...modosDeEje('ancho', sala.anchoM, techoModosHz),
+    ...modosDeEje('largo', sala.largoM, techoModosHz),
+    ...modosDeEje('alto', sala.altoM, techoModosHz),
   ].sort((a, b) => a.frecuenciaHz - b.frecuenciaHz);
 
   const candidatos = modos.filter((m) => m.frecuenciaHz <= TECHO_AGRUPAMIENTO_HZ);
@@ -98,8 +145,26 @@ export function evaluarModos(sala: Sala): ResultadoModos {
     }
   }
 
-  const codigo: CodigoModos = agrupados.length > 0 ? 'modos-agrupados' : 'modos-distribuidos';
-  return { modos, agrupados, severidad: agrupados.length > 0 ? 'warn' : 'ok', codigo };
+  // "warn" si hay al menos un par casi exacto (< UMBRAL_AGRUPAMIENTO_EXACTO)
+  // O si hay dos o más pares por debajo de UMBRAL_AGRUPAMIENTO — un único
+  // par "flojo" (cerca de 2% pero lejos de 1%) no alcanza solo. Ver
+  // comentario de las constantes.
+  const hayParExacto = agrupados.some((a) => a.diferenciaHz / promedioHz(a) < UMBRAL_AGRUPAMIENTO_EXACTO);
+  const hayVariosCercanos = agrupados.length >= MIN_PARES_AGRUPADOS;
+  const severidad: 'ok' | 'warn' = hayParExacto || hayVariosCercanos ? 'warn' : 'ok';
+  const codigo: CodigoModos = severidad === 'warn' ? 'modos-agrupados' : 'modos-distribuidos';
+  return { modos, agrupados, severidad, codigo };
+}
+
+/** Clamp declarado (`CLAMP_TECHO_MODOS_MIN_HZ`/`MAX_HZ`) sobre la
+ * frecuencia de Schroeder de la sala, para usarla como techo dinámico de
+ * `evaluarModos()` — ver el comentario de esa función. `null` cuando
+ * `reverberacion.ts` no pudo calcular una fs (sala fuera del dominio de
+ * Sabine/Eyring, ver `ALPHA_CAMPO_DIFUSO_MAX`) — cae al techo por defecto
+ * declarado (`TECHO_MODOS_HZ`) en vez de inventar un número. */
+export function techoModosDesdeSchroeder(frecuenciaSchroederHz: number | null): number {
+  if (frecuenciaSchroederHz === null) return TECHO_MODOS_HZ;
+  return Math.min(CLAMP_TECHO_MODOS_MAX_HZ, Math.max(CLAMP_TECHO_MODOS_MIN_HZ, frecuenciaSchroederHz));
 }
 
 /** Ordena por frecuencia promedio del par (ascendente) y corta a los

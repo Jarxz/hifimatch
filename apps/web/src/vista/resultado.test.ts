@@ -27,6 +27,7 @@ import {
   modeloReverberacion,
   modeloUbicacionParlantes,
   modeloResumenFinal,
+  modeloNotaSinDatos,
   modeloDocumento,
   modeloVeredicto,
   modeloRecomendacionesTop,
@@ -561,47 +562,85 @@ const MATERIALES_INTERMEDIOS: Materiales = {
   techo: 'yesoCarton',
 };
 
-test('modeloReverberacion: muros/techo yeso cartón + piso madera laminado → "warn" ("Muy viva"), calc muestra el desglose por superficie', () => {
+test('modeloReverberacion: rango estimado (amoblado/vacío) en el texto, calc con el desglose por superficie', () => {
   const r = evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS);
   const m = modeloReverberacion(r, MATERIALES_TIPICOS, 'es');
-  assert.equal(r.codigo, 'rt60-largo');
-  assert.equal(m.verdictoClase, 'warn');
-  assert.equal(m.verdictoTexto, 'Muy viva');
-  assert.match(m.simpleHtml, /refleja mucho/);
-  assert.match(m.textoHtml, new RegExp('≈' + num(r.rt60S, 1, 'es')));
+  assert.equal(r.codigo, 'rt60-estimado');
+  assert.equal(r.severidad, 'sin-datos');
+  assert.equal(m.verdictoClase, 'dim');
+  assert.equal(m.verdictoTexto, 'Estimado, no medido');
+  assert.match(m.simpleHtml, /rango estimado/);
+  assert.match(m.textoHtml, new RegExp('≈' + num(r.rt60RangoS[0]!, 1, 'es')));
+  assert.match(m.textoHtml, new RegExp('≈' + num(r.rt60RangoS[1]!, 1, 'es')));
   assert.match(m.calcHtml, /Placa yeso cartón/);
   assert.match(m.calcHtml, /Madera laminado/);
   assert.match(m.calcHtml, new RegExp(num(r.absorcionTotalSabines, 2, 'es')));
 });
 
-test('modeloReverberacion: muro frontal "vacío" (abertura) aparece en el calc con su propia fila y baja la absorción total', () => {
+test('modeloReverberacion: muro frontal "vacío" (abertura) aparece en el calc con su propia fila, baja la absorción ESTRUCTURAL, y el texto declara el aviso', () => {
   const conAbertura: Materiales = { ...MATERIALES_TIPICOS, muroFrontal: 'vacio' };
   const r = evaluarReverberacion(SALA_REVERB, conAbertura);
   const m = modeloReverberacion(r, conAbertura, 'es');
   assert.match(m.calcHtml, /Vacío \(abertura\)/);
   assert.ok(r.absorcionTotalSabines > evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS).absorcionTotalSabines);
+  assert.match(m.textoHtml, /Muro\(s\) declarado\(s\) abertura/);
+  assert.match(m.textoHtml, /no se ajustan/);
 });
 
-test('modeloReverberacion: paneles acústicos en muro/techo + alfombra en piso → "warn" ("Muy seca", demasiado absorbente)', () => {
+test('modeloReverberacion: sin ningún muro "vacío", el texto no menciona aberturas', () => {
+  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS);
+  const m = modeloReverberacion(r, MATERIALES_TIPICOS, 'es');
+  assert.doesNotMatch(m.textoHtml, /abertura/);
+});
+
+test('modeloReverberacion: paneles acústicos en muro/techo + alfombra en piso — calc lista esos materiales, pero 2000 Hz ya cruzó el límite de dominio', () => {
   const r = evaluarReverberacion(SALA_REVERB, MATERIALES_MUY_TRATADOS);
   const m = modeloReverberacion(r, MATERIALES_MUY_TRATADOS, 'es');
-  assert.equal(r.codigo, 'rt60-corto');
-  assert.equal(m.verdictoClase, 'warn');
-  assert.equal(m.verdictoTexto, 'Muy seca');
-  assert.match(m.simpleHtml, /absorbe mucho/);
+  // Este combo (4×panelAcustico + alfombra + panelAcustico) es justo el
+  // vector real que dispara 'rt60-fuera-de-dominio': a 2000 Hz ᾱ≈0,97,
+  // por encima de ALPHA_CAMPO_DIFUSO_MAX (0,80) — ni Sabine ni Eyring
+  // describen ya esta sala.
+  assert.equal(r.codigo, 'rt60-fuera-de-dominio');
+  assert.equal(r.rt60S, null);
   assert.match(m.calcHtml, /Panel acústico/);
   assert.match(m.calcHtml, /Alfombra/);
 });
 
-test('modeloReverberacion: combinación intermedia (madera + alfombra + panel acústico) → "ok"', () => {
-  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_INTERMEDIOS);
-  const m = modeloReverberacion(r, MATERIALES_INTERMEDIOS, 'es');
-  assert.equal(r.codigo, 'rt60-ok');
-  assert.equal(m.verdictoClase, 'ok');
-  assert.equal(m.verdictoTexto, 'En rango');
+test('modeloReverberacion: "fuera de dominio" — verdicto, simple y texto propios, distintos del rango normal', () => {
+  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_MUY_TRATADOS);
+  const m = modeloReverberacion(r, MATERIALES_MUY_TRATADOS, 'es');
+  assert.equal(m.verdictoClase, 'dim'); // sigue siendo 'dim' — mismo tratamiento visual que el rango normal
+  assert.equal(m.verdictoTexto, 'No se puede estimar');
+  assert.notEqual(m.verdictoTexto, 'Estimado, no medido');
+  assert.match(m.simpleHtml, /fuera de lo que este modelo puede calcular/);
+  assert.match(m.textoHtml, /campo sonoro difuso/);
+  assert.match(m.textoHtml, /medir vos mismo/);
+  assert.doesNotMatch(m.textoHtml, /RT60 estimado entre/); // no el texto de rango normal
+  assert.match(m.calcHtml, /fuera del dominio de Sabine\/Eyring/);
+  assert.match(m.calcHtml, /no se promedia/);
 });
 
-test('modeloReverberacion nunca es "alert" ni "dim" — el techo de severidad de sala es "warn" (CLAUDE.md)', () => {
+test('modeloReverberacion en inglés: "fuera de dominio" con textos propios, sin mezclar idiomas', () => {
+  const r = evaluarReverberacion(SALA_REVERB, MATERIALES_MUY_TRATADOS);
+  const m = modeloReverberacion(r, MATERIALES_MUY_TRATADOS, 'en');
+  assert.equal(m.verdictoTexto, 'Cannot be estimated');
+  assert.match(m.simpleHtml, /outside what this model can calculate/);
+  assert.match(m.textoHtml, /diffuse sound field/);
+  assert.doesNotMatch(m.textoHtml, /campo sonoro difuso/);
+  assert.match(m.calcHtml, /outside the Sabine\/Eyring domain/);
+});
+
+test('modeloReverberacion: distintas combinaciones de materiales dan rangos (o estados) distintos — no es un único número fijo', () => {
+  const rTipicos = evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS);
+  const rTratados = evaluarReverberacion(SALA_REVERB, MATERIALES_MUY_TRATADOS);
+  const rIntermedios = evaluarReverberacion(SALA_REVERB, MATERIALES_INTERMEDIOS);
+  assert.notEqual(rTipicos.rt60S, null);
+  assert.equal(rTratados.rt60S, null); // MATERIALES_MUY_TRATADOS cruza el límite de dominio (ver arriba)
+  assert.notEqual(rIntermedios.rt60S, null);
+  assert.notEqual(rTipicos.rt60S, rIntermedios.rt60S);
+});
+
+test('modeloReverberacion: verdictoClase es siempre "dim" — el RT60 estimado ya no emite ok/warn (CLAUDE.md)', () => {
   const salas = [
     { anchoM: 2.5, largoM: 3.0, altoM: 2.2 },
     { anchoM: 3.6, largoM: 5.0, altoM: 2.4 },
@@ -611,7 +650,7 @@ test('modeloReverberacion nunca es "alert" ni "dim" — el techo de severidad de
   for (const sala of salas) {
     for (const materiales of combos) {
       const clase = modeloReverberacion(evaluarReverberacion(sala, materiales), materiales, 'es').verdictoClase;
-      assert.ok(clase === 'ok' || clase === 'warn', `clase inesperada: ${clase}`);
+      assert.equal(clase, 'dim', `clase inesperada: ${clase}`);
     }
   }
 });
@@ -619,8 +658,8 @@ test('modeloReverberacion nunca es "alert" ni "dim" — el techo de severidad de
 test('modeloReverberacion en inglés: veredicto, texto y calc en inglés, sin mezclar idiomas', () => {
   const r = evaluarReverberacion(SALA_REVERB, MATERIALES_TIPICOS);
   const m = modeloReverberacion(r, MATERIALES_TIPICOS, 'en');
-  assert.notEqual(m.verdictoTexto, 'Muy viva');
-  assert.equal(m.verdictoTexto, 'Too live');
+  assert.notEqual(m.verdictoTexto, 'Estimado, no medido');
+  assert.equal(m.verdictoTexto, 'Estimated, not measured');
   assert.match(m.fuenteHtml, /Sabine/);
   assert.match(m.calcHtml, /Drywall/);
   assert.match(m.calcHtml, /Laminate wood/);
@@ -707,6 +746,53 @@ test('modeloResumenFinal: sin ningún componente "dim", sinDatosHtml queda vací
   const componentes: ComponenteResumen[] = [{ nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null }];
   const m = modeloResumenFinal(componentes, VEREDICTO_OK, 'es');
   assert.equal(m.sinDatosHtml, '');
+});
+
+// ---- modeloNotaSinDatos: nota al pie de #s-results, distinta de "todavía no medido" ----
+
+test('modeloNotaSinDatos: vacía cuando ningún componente es "dim" — no se menciona cuando no aplica', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
+    { nombre: 'Carga', verdictoClase: 'warn', verdictoTexto: 'Exige corriente', avisoHtml: null },
+  ];
+  assert.equal(modeloNotaSinDatos(componentes, 'es'), '');
+});
+
+test('modeloNotaSinDatos: junta los nombres de los componentes "dim" en una sola frase, con "y" (listaY)', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Potencia', verdictoClase: 'ok', verdictoTexto: 'Con margen', avisoHtml: null },
+    { nombre: 'Carga', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
+    { nombre: 'Amortiguamiento', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null },
+  ];
+  const html = modeloNotaSinDatos(componentes, 'es');
+  assert.match(html, /Datos que el fabricante no publica/);
+  assert.match(html, /Carga y Amortiguamiento/);
+  assert.doesNotMatch(html, /Potencia/); // "ok" no es un hueco de catálogo, no entra acá
+});
+
+test('modeloNotaSinDatos: un solo componente "dim" — sin conjunción de más de un elemento', () => {
+  const componentes: ComponenteResumen[] = [{ nombre: 'Amortiguamiento', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null }];
+  const html = modeloNotaSinDatos(componentes, 'es');
+  assert.match(html, /Amortiguamiento/);
+  assert.doesNotMatch(html, / y /);
+});
+
+test('modeloNotaSinDatos: el texto declara que no es un problema del sistema — distinto del "todavía no medido" de Reverberación', () => {
+  const componentes: ComponenteResumen[] = [{ nombre: 'Carga', verdictoClase: 'dim', verdictoTexto: 'Sin dato', avisoHtml: null }];
+  const html = modeloNotaSinDatos(componentes, 'es');
+  assert.match(html, /No es un problema de tu sistema/);
+  assert.doesNotMatch(html, /medir|app de teléfono/); // eso es lenguaje de RT60, no de huecos de catálogo
+});
+
+test('modeloNotaSinDatos en inglés: mismo mecanismo, textos en inglés, sin mezclar idiomas', () => {
+  const componentes: ComponenteResumen[] = [
+    { nombre: 'Load', verdictoClase: 'dim', verdictoTexto: 'No data', avisoHtml: null },
+    { nombre: 'Damping', verdictoClase: 'dim', verdictoTexto: 'No data', avisoHtml: null },
+  ];
+  const html = modeloNotaSinDatos(componentes, 'en');
+  assert.match(html, /Data the manufacturer doesn't publish/);
+  assert.match(html, /Load and Damping/);
+  assert.doesNotMatch(html, /fabricante/);
 });
 
 test('modeloResumenFinal: con "detalle" numérico, se agrega entre paréntesis junto al veredicto', () => {

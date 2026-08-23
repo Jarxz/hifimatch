@@ -16,12 +16,23 @@
  * se excluye del cálculo del grupo, nunca cuenta como reparo. Si un grupo
  * entero queda sin ningún componente con dato, el grupo mismo es
  * "sin-datos" (no se inventa un color), y no participa del veredicto
- * general.
+ * general. El grupo "Sala" usa exactamente el mismo mecanismo desde que
+ * `reverberacion.ts` dejó de emitir veredicto sobre el RT60 estimado
+ * (siempre `'sin-datos'` ahora, ver su comentario de cabecera): modos
+ * siempre tiene valor, así que "Sala" nunca queda vacío, pero
+ * reverberacion ya no puede arrastrarlo a "warn" por sí sola.
  */
 import { peorSeveridad } from './tipos.ts';
 import type { Severidad } from './tipos.ts';
 
 export type EstadoGrupo = Exclude<Severidad, 'sin-datos'> | 'sin-datos';
+
+/** Severidad que puede tener un componente del grupo "Sala" — nunca
+ * 'alert' (techo declarado por CLAUDE.md, "Severidad y bloque de sala").
+ * 'sin-datos' es un valor real acá, no una posibilidad teórica: es lo que
+ * `reverberacion.ts` devuelve siempre desde que el RT60 estimado dejó de
+ * emitir veredicto. */
+export type SeveridadSala = 'ok' | 'warn' | 'sin-datos';
 
 export interface EntradaVeredicto {
   potencia: Exclude<Severidad, 'sin-datos'>; // potencia siempre tiene valor (nunca sin-datos)
@@ -32,7 +43,8 @@ export interface EntradaVeredicto {
   puenteDac: Severidad | null; // null = dac no elegido
   recorridoDac: Severidad | null;
   modos: 'ok' | 'warn'; // techo de severidad de sala — nunca 'alert' (ver CLAUDE.md)
-  reverberacion: 'ok' | 'warn'; // ídem
+  /** Casi siempre 'sin-datos' en la práctica — ver `SeveridadSala`. */
+  reverberacion: SeveridadSala;
 }
 
 export interface ResultadoVeredicto {
@@ -53,7 +65,14 @@ function sinFaltantes(...valores: Array<Severidad | null>): Array<Exclude<Severi
 export function calcularVeredicto(e: EntradaVeredicto): ResultadoVeredicto {
   const valoresAcople = sinFaltantes(e.carga, e.amortiguamiento, e.puenteStreamer, e.recorridoStreamer, e.puenteDac, e.recorridoDac);
   const acopleElectrico: EstadoGrupo = valoresAcople.length > 0 ? peorSeveridad(...valoresAcople) : 'sin-datos';
-  const sala = peorSeveridad(e.modos, e.reverberacion) as 'ok' | 'warn';
+
+  // reverberacion casi siempre 'sin-datos' (ver SeveridadSala) — se excluye
+  // igual que cualquier otro componente sin dato, nunca arrastra el grupo.
+  // modos siempre tiene valor ('ok'|'warn'), así que valoresSala nunca
+  // queda vacío: "Sala" nunca es 'sin-datos'.
+  const valoresSala = sinFaltantes(e.modos, e.reverberacion) as Array<'ok' | 'warn'>;
+  const sala: 'ok' | 'warn' = valoresSala.length > 0 ? (peorSeveridad(...valoresSala) as 'ok' | 'warn') : 'ok';
+
   const grupos = acopleElectrico === 'sin-datos' ? [e.potencia, sala] : [e.potencia, acopleElectrico, sala];
   const general = peorSeveridad(...grupos);
   return { potencia: e.potencia, acopleElectrico, sala, general };

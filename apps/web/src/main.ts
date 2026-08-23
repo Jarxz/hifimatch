@@ -7,7 +7,7 @@ import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarAmortiguamiento } from '../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
-import { evaluarModos, evaluarNuloEscucha } from '../../../packages/engine/src/modos.ts';
+import { evaluarModos, evaluarNuloEscucha, techoModosDesdeSchroeder } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho } from '../../../packages/engine/src/reverberacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
@@ -36,6 +36,7 @@ import {
   modeloReverberacion,
   modeloUbicacionParlantes,
   modeloResumenFinal,
+  modeloNotaSinDatos,
   modeloVeredicto,
   modeloRecomendacionesTop,
   modeloDocumento,
@@ -54,6 +55,7 @@ import {
   pintarReverberacion,
   pintarVeredicto,
   pintarRecomendacionesTop,
+  pintarNotaSinDatos,
   pintarDocumento,
 } from './vista/pintar.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
@@ -96,7 +98,6 @@ interface UltimoAnalisis {
   resModos: ReturnType<typeof evaluarModos>;
   resReverb: ReturnType<typeof evaluarReverberacion>;
   mReverb: ReturnType<typeof modeloReverberacion>;
-  avisoReverb: string | null;
   murosVista: MurosVista;
   nivelTexto: string;
   picoObjetivo: number;
@@ -381,12 +382,6 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): Sna
       avisoHtml: a.mAmortiguamiento.avisoHtml,
     },
     { nombre: nombreComponente.modos, verdictoClase: mModos.verdictoClase, verdictoTexto: mModos.verdictoTexto, avisoHtml: mModos.sugerenciaHtml },
-    {
-      nombre: t.motor.reverberacion.nombreCorto,
-      verdictoClase: a.mReverb.verdictoClase,
-      verdictoTexto: a.mReverb.verdictoTexto,
-      avisoHtml: a.avisoReverb,
-    },
   ];
   if (a.mPuenteStreamer && a.resPuenteStreamer) {
     componentesResumen.push({
@@ -479,6 +474,7 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   pintarModos(snap.mModos);
   pintarVeredicto(snap.mVeredicto);
   pintarRecomendacionesTop(modeloRecomendacionesTop(snap.componentesResumen, idiomaActual));
+  pintarNotaSinDatos(modeloNotaSinDatos(snap.componentesResumen, idiomaActual));
 
   ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista };
   repintarPlano();
@@ -666,22 +662,22 @@ function renderizarResultado(): void {
     derecho: materiales.muroDerecho,
   };
 
+  // resReverb primero: evaluarModos necesita su frecuencia de Schroeder
+  // como techo dinámico de listado (ver modos.ts, techoModosDesdeSchroeder)
+  // para que la región que "Modos de sala" cubre y la región donde
+  // "Reverberación" empieza a ser válida queden contiguas, sin hueco.
+  const resReverb = evaluarReverberacion(sala, materiales);
+  const mReverb = modeloReverberacion(resReverb, materiales, idiomaActual);
+  pintarReverberacion(mReverb);
+
   // resModos sólo depende de las dimensiones — se calcula una vez acá,
   // como el resto de ultimoAnalisis. El veredicto/pintado de la tarjeta
   // "Modos de sala" se recalcula por snapshot (construirSnapshot/
   // pintarSnapshot) porque ahora también depende de dónde cae el punto
   // dulce (evaluarNuloEscucha) — ver SnapshotAnalisis.mModos.
-  const resModos = evaluarModos(sala);
+  const techoModosHz = techoModosDesdeSchroeder(resReverb.frecuenciaSchroederHz);
+  const resModos = evaluarModos(sala, techoModosHz);
   pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
-
-  const resReverb = evaluarReverberacion(sala, materiales);
-  const mReverb = modeloReverberacion(resReverb, materiales, idiomaActual);
-  pintarReverberacion(mReverb);
-
-  const murosVacios = (['muroFrontal', 'muroPosterior', 'muroIzquierdo', 'muroDerecho'] as const)
-    .filter((k) => materiales[k] === 'vacio')
-    .map((k) => t.config[k]);
-  const avisoReverb = murosVacios.length > 0 ? t.motor.reverberacion.avisoVacio({ muros: murosVacios.join(', ') }) : null;
 
   ultimoAnalisis = {
     sala,
@@ -706,7 +702,6 @@ function renderizarResultado(): void {
     resModos,
     resReverb,
     mReverb,
-    avisoReverb,
     murosVista,
     nivelTexto,
     picoObjetivo,

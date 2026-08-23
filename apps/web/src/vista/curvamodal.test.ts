@@ -5,7 +5,16 @@ import type { Sala } from '../../../../packages/engine/src/sala.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { construirCurvasModalesSvg } from './curvamodal.ts';
 
-const SALA_CON_AGRUPAMIENTO: Sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 }; // motor-mvp.md sección 4bis
+// Tras la recalibración del umbral de agrupamiento (5%→2%+2 condiciones,
+// motor-mvp.md sección 4bis), la sala por defecto (3,6×5,0×2,4) da un único
+// par agrupado (el solapamiento casi exacto ancho³/alto²) — ya no sirve para
+// probar el recorte de paresMasImportantes, que necesita más de
+// TOP_N_AGRUPADOS pares. 2,5×3,8×2,5 da 4 pares (vector recalculado): dos
+// exactos (ancho¹/alto¹ y ancho²/alto²) y dos casi exactos (largo³ con cada
+// uno de ancho²/alto², Δ≈1,32%) — y sus 2 pares más graves (el top-2 curado)
+// tocan los 3 ejes a la vez (ancho, largo, alto), a diferencia de otros
+// vectores con más pares pero concentrados en sólo 2 ejes.
+const SALA_CON_AGRUPAMIENTO: Sala = { anchoM: 2.5, largoM: 3.8, altoM: 2.5 };
 const SALA_SIN_AGRUPAMIENTO: Sala = { anchoM: 2.5, largoM: 3.0, altoM: 2.2 };
 const IDIOMAS: readonly Idioma[] = ['es', 'en'];
 
@@ -52,12 +61,12 @@ test('coordenadas geométricas (points de la curva SVG) siempre "N.D" — un sol
 test('leyenda: frecuencias formateadas por locale — coma en español, punto en inglés', () => {
   const r = evaluarModos(SALA_CON_AGRUPAMIENTO);
   const svgEs = construirCurvasModalesSvg(SALA_CON_AGRUPAMIENTO, r.agrupados, 'es');
-  assert.match(svgEs, /orden 3 \(142,9 Hz\)/); // ancho, orden 3
-  assert.doesNotMatch(svgEs, /142\.9 Hz/);
+  assert.match(svgEs, /orden 3 \(135,4 Hz\)/); // largo, orden 3
+  assert.doesNotMatch(svgEs, /135\.4 Hz/);
 
   const svgEn = construirCurvasModalesSvg(SALA_CON_AGRUPAMIENTO, r.agrupados, 'en');
-  assert.match(svgEn, /order 3 \(142\.9 Hz\)/);
-  assert.doesNotMatch(svgEn, /142,9 Hz/);
+  assert.match(svgEn, /order 3 \(135\.4 Hz\)/);
+  assert.doesNotMatch(svgEn, /135,4 Hz/);
 });
 
 test('las etiquetas de eje están traducidas: "ancho/largo/alto" en español, "width/length/height" en inglés', () => {

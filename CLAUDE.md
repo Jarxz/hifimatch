@@ -2757,6 +2757,230 @@ correctos. 318 tests totales (antes 316): +2 en `potencia.test.ts`
 que ya cruzaba un umbral sin que el test lo dijera), +1 en
 `resultado.test.ts`.
 
+**Corrección del bloque de sala: reverberación deja de emitir veredicto, y
+se recalibra el umbral de agrupamiento de modos — pedido con una auditoría
+externa que corrió el motor sobre 17.784 salas plausibles y encontró que
+las dos reglas de sala casi no discriminaban nada.** Con materiales
+típicos, RT60 daba `rt60-largo` en el **100%** de esas salas; modos daba
+`modos-agrupados` en el **86%**. Dos semáforos que casi siempre dicen lo
+mismo no informan.
+
+**RT60: agregar mueble no arregla la regla, le da vuelta el signo.** El
+modelo sólo tenía las seis superficies desnudas — sin sofá, cortinas ni
+biblioteca, la mayor parte de la absorción real en medios/agudos de una
+sala doméstica. Calibrando un término de contenido en sabines por m² de
+piso (`CONTENIDO_SABINES_M2_PISO`, criterio del sitio, no una tabla
+publicada), el veredicto pasaba a `rt60-ok` en el 100% de las salas — y
+peor: como volumen y absorción del contenido crecen los dos con la
+superficie de piso, se cancelaban, y el RT60 terminaba dependiendo casi
+sólo de la altura del techo (una sala de 8 m² y una de 63 m² con la misma
+altura daban 0,43 s y 0,46 s). El resultado lo decidía un control que el
+usuario tiene que adivinar, no la sala. **Conclusión: el RT60 estimado no
+da para veredicto, sí da para estimación declarada.**
+`evaluarReverberacion()` ahora calcula **dos escenarios** — `vacio`
+(sólo estructura) y `amoblado` (estructura + contenido) — y expone
+`rt60RangoS: [amoblado, vacio]` en vez de un solo número con semáforo.
+`severidad` es siempre `'sin-datos'`, con un código nuevo
+`rt60-estimado`: se reutiliza a propósito la semántica de `'sin-datos'`
+que `veredicto.ts` ya tenía probada ("esto no cuenta como reparo, falta
+medir") — acá lo que falta es justamente eso, una medición real, así que
+la semántica es correcta, no un truco. `RT60_MIN_OK_S`/`RT60_MAX_OK_S` y
+los códigos `rt60-corto`/`rt60-ok`/`rt60-largo` se eliminan enteros, con
+sus tests. La tarjeta (siempre visible, nunca oculta como "sin-datos" por
+falta de dato de catálogo) presenta el rango, declara que ninguno de los
+dos extremos es una medición, y cierra invitando a medir — **el RT60 es
+lo único de todo el análisis que el usuario puede verificar él mismo en
+cinco minutos con una app de teléfono**, el remate es el punto, no un
+adorno.
+
+**Bug numérico real encontrado al implementar el término de contenido:
+ᾱ puede superar 1, y Eyring no lo tolera.** Los coeficientes de Sabine
+son empíricos, no acotados a 1 por construcción — sumar contenido sobre
+una combinación ya muy absorbente (los 4 muros declarados "vacío" a la
+vez, un caso ya existente en los tests de sala) empuja ᾱ por encima de 1,
+y `Eyring` exige ᾱ<1 estricto (`ln(1−ᾱ)` indefinido en ᾱ≥1) — sin guardia,
+esto daba `NaN` en producción para esa combinación extrema. Fix:
+`ALPHA_EYRING_MAX=0,9999` clampea sólo el argumento del logaritmo — el
+resultado converge a un RT60 casi nulo de todas formas cuando ᾱ→1, así
+que el clamp no cambia el sentido físico del resultado, sólo evita el
+indeterminado. Test de regresión nuevo con el vector exacto que lo
+dispara.
+
+**La frontera de Schroeder deja de contradecir el techo de modos.** `fs`
+se calculaba desde el RT60 final ya promediado (500+2000 Hz, dominado por
+agudos) — para la sala por defecto eso daba 371,6 Hz, por encima del
+techo fijo de modos (300 Hz): quedaba una banda de 300 a 372 Hz que
+ninguna de las dos reglas gobernaba, pese a que los textos de ambas
+tarjetas afirmaban cubrir el rango completo entre las dos. Ahora `fs` sale
+de la banda de 500 Hz sola, del escenario amoblado (205,2 Hz para la sala
+por defecto) — y `evaluarModos(sala, techoModosHz?)` gana un parámetro
+opcional (por defecto sigue siendo `TECHO_MODOS_HZ=300`) para que
+`apps/web/src/main.ts` le pase esa `fs`, clampeada a `[150,400]` Hz
+(`techoModosDesdeSchroeder`, criterio del sitio) para que un RT60 extremo
+no produzca un techo absurdo. Con esto, la región que "Modos de sala"
+lista y la región donde "Reverberación" declara que un tiempo único tiene
+sentido quedan contiguas por construcción. El techo dinámico sólo afecta
+el LISTADO de modos, nunca la detección de agrupamiento (siempre bajo el
+`TECHO_AGRUPAMIENTO_HZ=150` fijo) — el clamp mínimo (150) garantiza que
+nunca recorte por debajo de eso.
+
+**Modos: el umbral de agrupamiento baja de 5% a una regla de dos
+condiciones.** Un umbral único más bajo no alcanzaba: la sala por defecto
+del sitio (3,6×5,0×2,4) tiene una única coincidencia, pero es **exacta**
+(0,00% de diferencia, ancho orden 3 = alto orden 2) — el peor caso
+posible, y una regla de "2 o más pares" la habría dejado pasar como sala
+"buena". Regla nueva, `warn` si se cumple cualquiera de las dos: existe
+al menos un par con Δ<`UMBRAL_AGRUPAMIENTO_EXACTO` (1%), o existen
+`MIN_PARES_AGRUPADOS` (2) o más pares con Δ<`UMBRAL_AGRUPAMIENTO` (bajado
+de 5% a 2%) — los tres declarados como criterio del sitio.
+`TECHO_AGRUPAMIENTO_HZ` (150 Hz) no cambió, y `paresMasImportantes` (la
+curación para las curvas 1D) tampoco. Con esta regla, un barrido propio
+(25.254 salas, paso de 0,1 m en los mismos rangos que la auditoría
+externa) marca 35,3% de las salas — en la misma banda que el 37%
+reportado externamente, sin haber movido ningún umbral para forzar ese
+número (guardarraíl explícito del pedido, respetado). La sala por defecto
+del sitio, que antes tenía 4 agrupamientos bajo el umbral de 5%, ahora
+tiene 1 — y sigue en `warn`, exclusivamente por la condición del par
+exacto. `apps/web/src/vista/curvamodal.test.ts` necesitó una sala de
+vector distinta (2,5×3,8×2,5, 4 pares) para seguir probando el recorte de
+`paresMasImportantes` a `TOP_N_AGRUPADOS`, ya que la sala por defecto ya
+no alcanza para eso.
+
+**`veredicto.ts`: el grupo "Sala" ya sabe excluir reverberación sin
+tratarla distinto del resto del motor.** `EntradaVeredicto.reverberacion`
+cambia de `'ok'|'warn'` a un tipo nuevo `SeveridadSala = 'ok'|'warn'|
+'sin-datos'` (declarado explícitamente: "casi siempre sin-datos en la
+práctica"), y `calcularVeredicto()` filtra reverberación con el mismo
+`sinFaltantes()` que ya usaba para "Acople eléctrico" — como `modos`
+siempre tiene valor, "Sala" nunca queda vacío, pero reverberación ya no
+puede arrastrarlo a `warn` por sí sola. `peorEntre()` (`resultado.ts`,
+`modeloVeredicto`) ya filtraba `'dim'` de sus entradas desde que existe
+— no necesitó ningún cambio: automáticamente pasó a mostrar siempre el
+texto de `modos` como el detalle de "Sala" en el veredicto en vivo.
+
+**El aviso de "muro vacío no ajusta los modos" se muda de "En resumen" a
+la propia tarjeta de Reverberación.** Antes vivía sólo como
+`avisoHtml` de un componente `componentesResumen` que dependía de que la
+severidad fuera `warn` — con reverberación siempre `sin-datos`/dim ahora,
+ese aviso jamás habría vuelto a mostrarse en ningún lado si se dejaba el
+mecanismo tal cual (los componentes `dim` no pasan el filtro de avisos de
+"Qué conviene hacer" ni de "Lo que conviene revisar"). Se corrigió
+moviendo el cálculo de `murosVacios`/el aviso **adentro** de
+`modeloReverberacion()` (que ya recibía `materiales`), concatenado al
+final de `textoHtml` — la tarjeta de Reverberación es la única superficie
+del sitio que siempre se muestra, así que es el lugar correcto. De paso,
+`reverberacion` se saca por completo de `componentesResumen`
+(`main.ts`) y de `NombreComponenteEvaluacion`/`motor.componentes.nombre`
+(`idioma/es.ts`+`en.ts`): mostrarla ahí con el texto genérico de "sin
+datos suficientes... falta el dato del fabricante" habría sido falso —
+nada falta, es una estimación declarada, no un hueco de catálogo. El
+informe (`#s-documento`) sigue mostrando la tarjeta completa de
+Reverberación igual que antes, directo desde `DatosSeccionesDocumento`,
+sin pasar por `componentesResumen`.
+
+Verificado extremo a extremo con Chrome headless sobre el build real: la
+sala por defecto (KEF LS50 Meta + Rega Brio) muestra "Modos agrupados"
+(1 par, por debajo de 150 Hz) y la tarjeta de Reverberación con badge gris
+"Estimado, no medido", el rango "≈0,5 s a ≈1,5 s" y el desglose
+estructura+contenido en el detalle técnico — sin errores de consola; el
+informe (Sonus Faber Lumina II + Rega Brio) muestra la sección de
+Reverberación completa y un resumen que ya no la cuenta ("De 2
+componentes evaluados", no 5 como antes). **325 tests totales** entre los
+4 workspaces (antes 318): 145 en `packages/engine` (antes 139 — suben
+`reverberacion.test.ts`/`modos.test.ts`/`veredicto.test.ts`), 149 en
+`apps/web` (antes 148, más el vector de sala reescrito en
+`curvamodal.test.ts`).
+
+**Límite de dominio de Sabine/Eyring, y una nota al pie que separa "todavía
+no medido" de "el fabricante no publica este dato" — feedback directo tras
+revisar la ronda del bloque de sala, con el argumento correcto: un clamp
+numérico no es lo mismo que un límite físico.** El commit anterior había
+agregado `ALPHA_EYRING_MAX=0,9999` para evitar `NaN` cuando ᾱ (con el
+término de contenido sumado) superaba 1 — matemáticamente necesario, pero
+insuficiente: Sabine y Eyring asumen los dos un campo sonoro difuso
+(energía rebotando muchas veces antes de absorberse), y esa condición deja
+de sostenerse mucho antes de ᾱ=1 — en el rango de 0,7-0,8, la energía se
+absorbe en uno o dos rebotes, no hay campo difuso que promediar. Un clamp
+cerca de 1 evitaba la excepción pero seguía devolviendo un RT60 de un
+modelo que, físicamente, ya no describía la sala — exactamente el mismo
+argumento que ya había justificado retirar el veredicto ok/con-reparos del
+RT60 unas rondas antes, esta vez aplicado al número en sí, no sólo a su
+semáforo.
+
+`ALPHA_CAMPO_DIFUSO_MAX=0,8` (`packages/engine/src/reverberacion.ts`,
+criterio del sitio en el rango que informa la literatura, no una cifra
+única publicada) reemplaza el clamp: por encima de ese ᾱ, la banda no
+reporta RT60 (`rt60S: null`, `metodo: 'fuera-de-dominio'`) — con el
+chequeo de dominio cortando *antes* de evaluar el logaritmo de Eyring, el
+`NaN` que motivó el clamp original ya ni siquiera es alcanzable, así que
+el fix reemplaza al anterior en vez de sumarse. `rt60Final()` no promedia
+a medias: si 500 Hz o 2000 Hz es `null`, el resultado completo es `null`
+— fabricar una cifra con la mitad de los datos sería peor que no dar
+ninguna. `codigo` gana `'rt60-fuera-de-dominio'` (junto al ya existente
+`'rt60-estimado'`), y `frecuenciaSchroederHz` también cae a `null` en ese
+caso — `techoModosDesdeSchroeder(null)` cae a su techo por defecto
+(`TECHO_MODOS_HZ`) en vez de inventar un número. La tarjeta, en ese
+estado, no muestra ningún rango: un párrafo propio (`textoFueraDeDominio`)
+explica que ni Sabine ni Eyring aplican ya, y refuerza más todavía la
+invitación a medir — acá el modelo genuinamente no tiene alternativa
+mejor. Vector real que dispara el caso: la sala por defecto con
+`panelAcustico` en los 4 muros + techo y `alfombra` en el piso da ᾱ≈0,97
+a 2000 Hz en el escenario amoblado. 13 tests en `reverberacion.test.ts`
+(reescritos, no sólo agregados — el vector que antes probaba el clamp
+ahora prueba el límite de dominio) más 4 nuevos en `resultado.test.ts`
+(es/en, verificando que `modeloReverberacion` arma el texto/calc propios
+del caso `null`, no una versión rota del texto normal).
+
+**La segunda mitad del feedback: la mitad de las tarjetas del análisis
+pueden terminar en gris, y "sin datos" no siempre significa lo mismo.**
+Con amortiguamiento siempre `sin-datos` (el catálogo no tiene el factor
+de amortiguamiento poblado en ningún amplificador — ver la sección de
+`amortiguamiento.ts` más arriba), más carga cuando el parlante no publica
+impedancia mínima, más puente/recorrido cuando la fuente no trae ficha, un
+análisis típico puede fácilmente tener 2-3 tarjetas ocultas sin ninguna
+explicación visible en `#s-results` — antes de esta ronda, esas tarjetas
+simplemente desaparecían (`pintarCarga`/`pintarGanancia`, `.hidden`) sin
+dejar rastro en la pantalla de resultado en vivo, y la sección "Sin datos
+suficientes" que sí las explica sólo vive en el informe (`#s-documento`,
+no conectado a ningún botón visible hoy). El diagnóstico correcto: eso no
+es lo mismo que el RT60 de la tarjeta de Reverberación. RT60 dice
+"todavía no medido" — el usuario puede resolverlo esta tarde con el
+teléfono, es una invitación. Un factor de amortiguamiento no publicado
+dice "el fabricante no publica este dato" — el usuario no puede hacer
+nada, es un límite del catálogo. Confundir las dos bajo el mismo gris
+genérico hace que la página se lea como rota, no como rigurosa.
+
+El arreglo no fue traer de vuelta la vieja tarjeta "Sin dato" (retirada a
+propósito hace varias rondas — CLAUDE.md ya documentaba por qué: "no
+puede seguir generando análisis con componentes sin su información") ni
+la sección completa "Sin datos suficientes" (demasiado peso visual para
+lo que es). `modeloNotaSinDatos()` (nuevo, `resultado.ts`) arma **una
+frase corta**, reusando exactamente los mismos componentes `'dim'` que ya
+filtraba `componentesResumen` — nombres unidos con `listaY()` (mismo
+`Intl.ListFormat` que ya usa `modeloVeredicto` para los grupos del
+veredicto), nunca una lista de tarjetas. Vive en un `<p class="src
+nota-sindatos">` nuevo al pie de `#s-results` (después de "La cadena y
+los datos de sala", antes del footer genérico del sitio) — reusa la
+tipografía chica y apagada de `.src` (la misma que ya usan las cajas
+"Fórmula:" de cada tarjeta), con un separador propio (`.nota-sindatos`,
+mismo patrón `border-top` que `.ficha-final`). Sólo aparece cuando hay al
+menos un componente sin dato — vacía, se oculta entera, mismo principio
+de "nunca una confirmación vacía" que ya regía `sinDatosHtml`.
+Deliberadamente **no** incluye reverberación (que nunca entra a
+`componentesResumen` desde la ronda anterior) — mostrarla ahí con el
+texto genérico "el fabricante no publica este dato" habría sido falso: a
+reverberación no le falta nada, es una estimación declarada. 6 tests
+nuevos en `resultado.test.ts` (vacía sin componentes `dim`, junta nombres
+con "y", singular sin conjunción, declara explícitamente que no es un
+problema del sistema, inglés sin mezclar idiomas). Verificado con Chrome
+headless sobre el build real: KEF LS50 Meta + Rega Brio (sin streamer ni
+dac) muestra "Datos que el fabricante no publica: Amortiguamiento." al
+pie de la página, sin tocar el resto del layout ni la tarjeta de
+Reverberación (que sigue con su propio "Estimado, no medido" o "No se
+puede estimar", intactos). **334 tests totales** entre los 4 workspaces
+(antes 325): 147 en `packages/engine` (antes 145), 156 en `apps/web`
+(antes 149).
+
 Falta:
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla

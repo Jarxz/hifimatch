@@ -328,6 +328,13 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 /* 06 Ficha al pie — La cadena + datos de sala, contexto ya ingresado por
    el usuario, no resultado; vive después de la evidencia y la geometría. */
 .ficha-final{margin-top:8px; padding-top:14px; border-top:1px solid var(--line2)}
+
+/* Nota al pie: datos que el fabricante no publica (carga/amortiguamiento/
+   puente/recorrido sin dato) — deliberadamente una línea de texto chica y
+   apagada, no una tarjeta más: es un límite del catálogo, no un resultado
+   del análisis. Reusa .src (misma tipografía que el resto de las fuentes
+   técnicas) con un separador propio, mismo patrón que .ficha-final. */
+.nota-sindatos{margin-top:14px; padding-top:14px; border-top:1px solid var(--line2)}
 .ficha-final h2{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--dorado); font-weight:400; margin:0 0 4px}
 .ficha-subtitulo{font-size:11.5px; color:var(--faint); margin:0 0 14px}
 .ficha-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}

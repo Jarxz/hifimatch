@@ -19,9 +19,9 @@ import { DELTA_DB_OPTIMO_MAX, TEXTO_TIER_MODERADO_MAX_DB, TEXTO_TIER_SEVERO_MAX_
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
 import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha } from '../../../../packages/engine/src/modos.ts';
-import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, VENTANA_NULO_MODAL } from '../../../../packages/engine/src/modos.ts';
+import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, UMBRAL_AGRUPAMIENTO_EXACTO, MIN_PARES_AGRUPADOS, VENTANA_NULO_MODAL } from '../../../../packages/engine/src/modos.ts';
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
-import { ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS, RT60_MIN_OK_S, RT60_MAX_OK_S } from '../../../../packages/engine/src/reverberacion.ts';
+import { ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS } from '../../../../packages/engine/src/reverberacion.ts';
 import type { ResultadoVeredicto } from '../../../../packages/engine/src/veredicto.ts';
 import type { DisposicionSala, Sala } from '../../../../packages/engine/src/sala.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
@@ -553,14 +553,19 @@ export function modeloModos(r: ResultadoModos, resNulo: ResultadoNuloEscucha, id
     avisoHtml,
     sugerenciaHtml,
     fuenteHtml:
-      t.motor.modos.fuente({ techo: techoFmt, umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)) }) +
+      t.motor.modos.fuente({
+        techo: techoFmt,
+        umbralExacto: String(Math.round(UMBRAL_AGRUPAMIENTO_EXACTO * 100)),
+        umbral: String(Math.round(UMBRAL_AGRUPAMIENTO * 100)),
+        minPares: String(MIN_PARES_AGRUPADOS),
+      }) +
       ' ' +
       t.motor.modos.fuenteNulo({ ventana: String(Math.round(VENTANA_NULO_MODAL * 100)) }),
   };
 }
 
 export interface ModeloTarjetaReverberacion {
-  verdictoClase: ClaseVerdicto; // 'ok' | 'warn' — nunca 'alert'/'dim': techo de severidad de sala, ver CLAUDE.md
+  verdictoClase: ClaseVerdicto; // siempre 'dim' — el RT60 estimado ya no emite veredicto, ver CLAUDE.md/reverberacion.ts
   verdictoTexto: string;
   simpleHtml: string;
   textoHtml: string;
@@ -577,16 +582,29 @@ function materialLabel(material: MaterialCualquiera, t: ReturnType<typeof textos
 export function modeloReverberacion(r: ResultadoReverberacion, materiales: Materiales, idioma: Idioma): ModeloTarjetaReverberacion {
   const t = textosDe(idioma);
 
-  // 1 decimal, no 2: la ecuación de Sabine/Eyring (sin ajuste) pierde
-  // precisión justo en salas domésticas chicas con mucha absorción —
-  // mostrar 2 decimales es más precisión de la que el modelo puede
-  // sostener. RT60 final = promedio de las bandas 500 Hz y 2000 Hz.
-  const textoHtml = t.motor.reverberacion.texto({
-    rt60: num(r.rt60S, 1, idioma),
-    min: num(RT60_MIN_OK_S, 1, idioma),
-    max: num(RT60_MAX_OK_S, 1, idioma),
-    fs: num(r.frecuenciaSchroederHz, 0, idioma),
-  });
+  const [rtAmobladoS, rtVacioS] = r.rt60RangoS;
+  // 'rt60-fuera-de-dominio': ni Sabine ni Eyring describen ya la sala (ver
+  // ALPHA_CAMPO_DIFUSO_MAX en reverberacion.ts) — no hay número que
+  // formatear, así que ni siquiera se llama a num() sobre el null.
+  let textoHtml =
+    r.codigo === 'rt60-fuera-de-dominio'
+      ? t.motor.reverberacion.textoFueraDeDominio
+      : t.motor.reverberacion.texto({
+          rtAmoblado: num(rtAmobladoS!, 1, idioma),
+          rtVacio: num(rtVacioS!, 1, idioma),
+          fs: num(r.frecuenciaSchroederHz!, 0, idioma),
+        });
+
+  // El aviso de muro(s) "vacío" (abertura) vive dentro de esta misma
+  // tarjeta — no hay una tarjeta "En resumen" en vivo que lo muestre
+  // aparte (esta sección de Geometría es siempre visible, a diferencia de
+  // esa otra pantalla, retirada de #s-results hace varias rondas).
+  const murosVacios = (['muroFrontal', 'muroPosterior', 'muroIzquierdo', 'muroDerecho'] as const)
+    .filter((k) => materiales[k] === 'vacio')
+    .map((k) => t.config[k]);
+  if (murosVacios.length > 0) {
+    textoHtml += '<br><br>' + t.motor.reverberacion.avisoVacio({ muros: murosVacios.join(', ') });
+  }
 
   const s = t.motor.reverberacion.superficies;
   const idx500Hz = 1;
@@ -599,8 +617,8 @@ export function modeloReverberacion(r: ResultadoReverberacion, materiales: Mater
   const bandaFila = (b: ResultadoReverberacion['bandas'][number]) => ({
     hz: String(b.hz),
     alphaBar: num(b.alphaBar, 2, idioma),
-    rt60: num(b.rt60S, 2, idioma),
-    metodo: b.metodo === 'sabine' ? 'Sabine' : 'Eyring',
+    rt60: b.rt60S === null ? null : num(b.rt60S, 2, idioma),
+    metodo: b.metodo === 'sabine' ? 'Sabine' : b.metodo === 'eyring' ? 'Eyring' : '',
   });
   const calcHtml = t.motor.reverberacion.calc({
     filas: [
@@ -636,15 +654,18 @@ export function modeloReverberacion(r: ResultadoReverberacion, materiales: Mater
         r.absorcionTechoSabines
       ),
     ],
-    absorcionTotal: num(r.absorcionTotalSabines, 2, idioma),
+    absorcionEstructura: num(r.absorcionTotalSabines, 2, idioma),
+    absorcionContenido: num(r.absorcionContenidoSabines, 2, idioma),
     volumen: num(r.volumenM3, 1, idioma),
-    rt60: num(r.rt60S, 2, idioma),
-    bandas: r.bandas.map(bandaFila),
-    schroeder: num(r.frecuenciaSchroederHz, 0, idioma),
+    rtAmoblado: rtAmobladoS === null ? null : num(rtAmobladoS, 2, idioma),
+    rtVacio: rtVacioS === null ? null : num(rtVacioS, 2, idioma),
+    bandasAmoblado: r.bandas.map(bandaFila),
+    bandasVacio: r.bandasVacio.map(bandaFila),
+    schroeder: r.frecuenciaSchroederHz === null ? null : num(r.frecuenciaSchroederHz, 0, idioma),
   });
 
   return {
-    verdictoClase: r.severidad,
+    verdictoClase: 'dim',
     verdictoTexto: t.motor.reverberacion.verdicto[r.codigo],
     simpleHtml: t.motor.reverberacion.simple[r.codigo],
     textoHtml,
@@ -759,6 +780,28 @@ export function modeloResumenFinal(
       : `<li>${t.recomendacionTodoOk}</li>`;
 
   return { comportamientoHtml, resumenHtml, fortalezasHtml, debilidadesHtml, sinDatosHtml, recomendacionesHtml };
+}
+
+/**
+ * Nota al pie del análisis en vivo — los componentes "sin-datos" (carga,
+ * amortiguamiento, puente/recorrido de streamer y/o dac) que hoy quedan
+ * ocultos del todo en #s-results (`pintarCarga`/`pintarGanancia`,
+ * `.hidden`) sin ninguna mención visible. Deliberadamente **distinta** de
+ * la tarjeta de Reverberación ("todavía no medido" — el usuario puede
+ * resolverlo él mismo con una app, ver `reverberacion.ts`): acá no hay
+ * nada que el usuario pueda hacer, es un límite del catálogo, no del
+ * sistema — por eso Reverberación nunca entra a `componentes` (ya se
+ * excluyó de `componentesResumen` en `main.ts`) y esta nota es sólo para
+ * huecos de dato de fabricante. Una frase corta, no una lista de tarjetas
+ * — "una nota al pie honesta", no un muro de grises. Vacía si no hay
+ * ningún componente "dim" — no se menciona cuando no aplica, mismo
+ * principio que `sinDatosHtml` de arriba.
+ */
+export function modeloNotaSinDatos(componentes: ComponenteResumen[], idioma: Idioma): string {
+  const sinDatos = componentes.filter((c) => c.verdictoClase === 'dim');
+  if (sinDatos.length === 0) return '';
+  const t = textosDe(idioma).resultado;
+  return t.notaSinDatos({ items: listaY(sinDatos.map((c) => c.nombre), idioma) });
 }
 
 /** Máximo 3, las de mayor severidad primero — "qué conviene hacer" antes

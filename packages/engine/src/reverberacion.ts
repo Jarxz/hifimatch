@@ -1,10 +1,10 @@
 /**
  * Tiempo de reverberación estimado (RT60) — modelo multibanda (125/500/2000
- * Hz, terceras de octava representativas de graves/medios/agudos) en vez de
- * un único coeficiente de banda media. Cada banda suma su propia absorción
- * superficie por superficie (igual que antes: A_banda = Σ α_banda,i · S_i,
- * nunca un coeficiente único para toda la sala ni para un "muro" genérico —
- * cada muro se orienta y se declara aparte) y elige su propia fórmula:
+ * Hz, terceras de octava representativas de graves/medios/agudos), con la
+ * absorción de cada banda sumada superficie por superficie (A_banda =
+ * Σ α_banda,i · S_i, nunca un coeficiente único para toda la sala ni para
+ * un "muro" genérico — cada muro se orienta y se declara aparte) y su
+ * propia fórmula:
  *
  * - ᾱ_banda ≤ 0,20 → ecuación de Sabine (Wallace Clement Sabine, 1898):
  *   RT60 = 0,161·V / A
@@ -18,16 +18,53 @@
  *   cuándo la sobreestimación de Sabine empieza a ser significativa — no
  *   una convención inventada por el sitio.
  *
- * El RT60 final que se muestra es el promedio de las bandas 500 Hz y 2000
- * Hz — una simplificación de este sitio (no el "T_mid" de 500+1000 Hz de
- * ISO 3382, que exigiría una cuarta banda que este modelo no tiene) para
- * quedarse con un solo número fácil de leer sin perder la banda de graves
- * (125 Hz) del todo: esa banda sigue expuesta en `bandas[]` para quien
- * quiera el detalle completo.
+ * ## El RT60 ya no emite veredicto — es un rango, no un punto
+ *
+ * Una auditoría externa corrió el motor sobre 17.784 salas plausibles y
+ * encontró que este modelo, con sólo las seis superficies desnudas (sin
+ * sofá, cortinas, biblioteca — la mayor parte de la absorción real en
+ * medios/agudos de una sala doméstica), daba `rt60-largo` en el 100% de
+ * las salas: un semáforo que casi siempre dice lo mismo no informa nada.
+ *
+ * Agregar el mueble no arregla la regla, le da vuelta el signo: con un
+ * amoblado normal plausible el veredicto pasa a `rt60-ok` en el 100% de
+ * las salas, y como el volumen y la absorción del contenido crecen los dos
+ * con la superficie de piso, se cancelan — el RT60 estimado termina
+ * dependiendo casi sólo de la altura del techo, un control que el usuario
+ * tiene que adivinar, no la sala. Conclusión: el RT60 estimado no da para
+ * veredicto, sólo para estimación declarada.
+ *
+ * Por eso `evaluarReverberacion` calcula **dos escenarios** — `vacio`
+ * (sólo las seis superficies) y `amoblado` (superficies + un término de
+ * contenido en sabines/m² de piso, `CONTENIDO_SABINES_M2_PISO`, criterio
+ * de este sitio, no una medición) — y expone el resultado como
+ * `rt60RangoS`, nunca como un solo número con semáforo. `severidad` es
+ * siempre `'sin-datos'`: se reutiliza a propósito la semántica que
+ * `veredicto.ts` ya tiene probada para "esto no cuenta como reparo, falta
+ * medir" — acá lo que falta es justamente eso, una medición real, así que
+ * la semántica es correcta y no un truco para esquivar el problema.
+ *
+ * ## Límite de dominio de Sabine/Eyring — por encima de ᾱ≈0,8, ningún número
+ *
+ * Sabine y Eyring asumen los dos un **campo sonoro difuso**: energía
+ * rebotando muchas veces antes de absorberse, lo bastante como para que
+ * "promediar" tenga sentido. Ese supuesto deja de sostenerse mucho antes
+ * de que ᾱ llegue a 1 — con `ALPHA_CAMPO_DIFUSO_MAX = 0,8`, la energía se
+ * absorbe en uno o dos rebotes, no hay campo difuso que promediar, y
+ * ninguna de las dos fórmulas describe ya la sala (Eyring en particular:
+ * sigue siendo matemáticamente evaluable hasta ᾱ<1, pero física ya no).
+ * Por eso, cuando ᾱ de una banda supera ese umbral, esa banda no reporta
+ * un RT60 (`rt60S: null`, `metodo: 'fuera-de-dominio'`) en vez de un
+ * número que technically no explota pero que ya no significa nada —
+ * mismo argumento que retirar el veredicto del RT60 más arriba, aplicado
+ * ahora al número en sí, no sólo a su semáforo. Como el contenido
+ * (`amoblado`) sólo agrega absorción sobre la estructura (`vacio`), ᾱ del
+ * escenario amoblado es siempre ≥ ᾱ del escenario vacío en la misma banda
+ * — así que si el escenario vacío ya está fuera de dominio, el amoblado
+ * también lo está.
  *
  * Mismo modelo simplificado que sala.ts/modos.ts en lo demás: sala rígida
- * y rectangular — ver CLAUDE.md, "Severidad y bloque de sala". Techo de
- * severidad `warn`, nunca `error`.
+ * y rectangular — ver CLAUDE.md, "Severidad y bloque de sala".
  */
 import type { Sala } from './sala.ts';
 
@@ -104,24 +141,43 @@ export const ABSORCION_TECHO_BANDAS: Record<MaterialTecho, CoefBandas> = {
 /** Umbral de ᾱ (coeficiente de absorción promedio de la sala) sobre el cual
  * Sabine deja de ser confiable y se usa Eyring — ver comentario de cabecera.
  * Criterio de literatura de acústica arquitectónica, no inventado por el
- * sitio (a diferencia de otros umbrales de este motor, como el 5%/150 Hz de
+ * sitio (a diferencia de otros umbrales de este motor, como el 2%/150 Hz de
  * modos.ts, que sí son criterio propio declarado como tal). */
 export const UMBRAL_EYRING_ALPHA = 0.2;
 
-/** Rango objetivo de RT60 para escucha crítica en una sala doméstica
- * pequeña/mediana — criterio del sitio, no una sala de concierto (que
- * apunta a 1,5-2,5 s). Se verifica midiendo con un decibelímetro o una app
- * de RT60, no es una medición de la sala real. */
-export const RT60_MIN_OK_S = 0.3;
-export const RT60_MAX_OK_S = 0.6;
+/** Los dos escenarios de contenido que se calculan siempre — no un tercero
+ * "intermedio" a elegir: la sala real de cada usuario cae en algún punto
+ * entre estos dos, y mostrar el rango completo es más honesto que elegir
+ * un punto intermedio arbitrario. */
+export type EscenarioContenido = 'vacio' | 'amoblado';
 
-export type CodigoReverberacion = 'rt60-corto' | 'rt60-ok' | 'rt60-largo';
+/**
+ * Absorción adicional por el contenido de la sala (mobiliario, cortinas,
+ * biblioteca, alfombras sueltas, personas) — en sabines por m² de
+ * superficie de PISO, no una medición. **Criterio del sitio, no una tabla
+ * publicada**: calibrado para que una sala doméstica amoblada corriente
+ * caiga en un rango de escucha crítica razonable; el orden de magnitud es
+ * consistente con la literatura (un sofá de tres cuerpos aporta del orden
+ * de 3 sabines a 500 Hz — con ~8-18 m² de piso típicos en una sala de
+ * escucha, 0,45 sabines/m² da ese orden de magnitud), pero no sale de una
+ * tabla de referencia y se verifica midiendo. `vacio` es literalmente cero
+ * — el escenario "sólo las seis superficies", sin nada adentro.
+ */
+export const CONTENIDO_SABINES_M2_PISO: Record<EscenarioContenido, CoefBandas> = {
+  vacio: [0, 0, 0],
+  amoblado: [0.18, 0.45, 0.6],
+};
+
+export type CodigoReverberacion = 'rt60-estimado' | 'rt60-fuera-de-dominio';
 
 export interface BandaReverberacion {
   hz: BandaHz;
   alphaBar: number;
-  rt60S: number;
-  metodo: 'sabine' | 'eyring';
+  /** `null` cuando `alphaBar` supera `ALPHA_CAMPO_DIFUSO_MAX` — ver
+   * comentario de cabecera del archivo: ni Sabine ni Eyring aplican ya,
+   * así que no hay un número que reportar para esta banda. */
+  rt60S: number | null;
+  metodo: 'sabine' | 'eyring' | 'fuera-de-dominio';
 }
 
 export interface ResultadoReverberacion {
@@ -133,25 +189,60 @@ export interface ResultadoReverberacion {
   superficiePisoM2: number;
   superficieTechoM2: number;
   superficieTotalM2: number;
-  /** Desglose superficie×superficie a 500 Hz — banda de referencia para el
-   * detalle "calc" de la tarjeta (una de las dos que promedian el RT60
-   * final). El panorama de las 3 bandas completas vive en `bandas[]`. */
+  /** Desglose superficie×superficie a 500 Hz — sólo estructura (muros,
+   * piso, techo), sin el término de contenido. Banda de referencia para el
+   * detalle "calc" de la tarjeta; el panorama de las 3 bandas completas
+   * vive en `bandas`/`bandasVacio`. */
   absorcionFrontalSabines: number;
   absorcionPosteriorSabines: number;
   absorcionIzquierdaSabines: number;
   absorcionDerechaSabines: number;
   absorcionPisoSabines: number;
   absorcionTechoSabines: number;
+  /** Suma de las 6 superficies a 500 Hz — sólo estructura, sin contenido. */
   absorcionTotalSabines: number;
-  bandas: BandaReverberacion[]; // una por cada BANDAS_HZ, en orden
-  /** RT60 final mostrado — promedio de las bandas 500 Hz y 2000 Hz. */
-  rt60S: number;
+  /** Aporte del contenido (mobiliario) a 500 Hz, escenario `amoblado` — ver
+   * `CONTENIDO_SABINES_M2_PISO`. Cero en el escenario `vacio` (no se
+   * expone aparte porque siempre es 0 por definición). */
+  absorcionContenidoSabines: number;
+  /** Panorama de las 3 bandas, escenario `amoblado` — el que gobierna
+   * `rt60S`/`frecuenciaSchroederHz` (el extremo realista). */
+  bandas: BandaReverberacion[];
+  /** Mismo panorama, escenario `vacio` (caja desnuda, sin contenido) — el
+   * otro extremo del rango. */
+  bandasVacio: BandaReverberacion[];
+  /** RT60 del escenario `amoblado` — promedio de bandas 500 Hz y 2000 Hz.
+   * Es el extremo realista de `rt60RangoS`, no una medición. `null` cuando
+   * cualquiera de las dos bandas quedó fuera del dominio de Sabine/Eyring
+   * (ver `ALPHA_CAMPO_DIFUSO_MAX`) — no se promedia con la banda que sí
+   * dio número, para no fabricar una cifra parcialmente inventada. */
+  rt60S: number | null;
+  /** [amoblado, vacío] — el amoblado es el extremo menor (más absorción →
+   * RT60 más corto), cuando ambos existen. Ninguno de los dos es una
+   * medición de la sala real; ver el comentario de cabecera y
+   * `CONTENIDO_SABINES_M2_PISO`. Por monotonía (el contenido sólo agrega
+   * absorción), si el extremo vacío es `null` el amoblado también lo es
+   * — nunca al revés. */
+  rt60RangoS: [number | null, number | null];
   /** Frecuencia de Schroeder (M. R. Schroeder, 1954): fs = 2000·√(RT60/V),
    * el límite estándar de "sala grande" sobre el cual el campo sonoro es
    * suficientemente denso en modos para que un tiempo de reverberación
-   * único (en vez de resonancias individuales) tenga sentido físico. */
-  frecuenciaSchroederHz: number;
-  severidad: 'ok' | 'warn';
+   * único (en vez de resonancias individuales) tenga sentido físico.
+   * Calculada desde la banda de 500 Hz del escenario `amoblado` (no desde
+   * el promedio final 500+2000, que infla la cifra con la banda de
+   * agudos) — ver `modos.ts`, `techoModosDesdeSchroeder`, para cómo esta
+   * frecuencia también fija el techo de la región de modos, cerrando el
+   * hueco que quedaba entre las dos reglas. `null` cuando esa banda quedó
+   * fuera de dominio (ver `rt60S`) — `techoModosDesdeSchroeder` cae a su
+   * techo por defecto en ese caso. */
+  frecuenciaSchroederHz: number | null;
+  /** El RT60 estimado ya no emite veredicto — ver comentario de cabecera.
+   * Siempre `'sin-datos'`: lo que falta es medir, no un umbral mal
+   * elegido. `veredicto.ts` ya sabe excluir `'sin-datos'` de un grupo sin
+   * arrastrarlo. */
+  severidad: 'sin-datos';
+  /** `'rt60-fuera-de-dominio'` cuando `rt60S` es `null` — declara que el
+   * modelo no puede estimar nada acá, no sólo que no hay veredicto. */
   codigo: CodigoReverberacion;
 }
 
@@ -165,13 +256,31 @@ function absorcionBandaSabines(materiales: Materiales, superficies: SuperficiesM
   return { frontal, posterior, izquierda, derecha, piso, techo, total: frontal + posterior + izquierda + derecha + piso + techo };
 }
 
-/** Sabine hasta `UMBRAL_EYRING_ALPHA`, Eyring por encima — ver comentario de
- * cabecera del archivo. */
-function rt60DeBanda(volumenM3: number, superficieTotalM2: number, alphaBar: number): { rt60S: number; metodo: 'sabine' | 'eyring' } {
+/** Límite del dominio de validez de Sabine/Eyring — ver "Límite de dominio"
+ * en el comentario de cabecera del archivo. Ninguno de los dos modelos de
+ * campo difuso describe ya una sala tan absorbente/abierta que la energía
+ * se absorbe en uno o dos rebotes en vez de muchos. **Criterio del sitio**,
+ * en el rango que informa la literatura de acústica arquitectónica para
+ * la pérdida de validez de un campo difuso (~0,7-0,8), no una cifra única
+ * publicada — mismo tipo de declaración que `UMBRAL_EYRING_ALPHA`, pero
+ * sin una fuente tan puntual. */
+export const ALPHA_CAMPO_DIFUSO_MAX = 0.8;
+
+/** Sabine hasta `UMBRAL_EYRING_ALPHA`, Eyring entre ese umbral y
+ * `ALPHA_CAMPO_DIFUSO_MAX`; por encima, ningún modelo aplica — ver
+ * comentario de cabecera del archivo. */
+function rt60DeBanda(
+  volumenM3: number,
+  superficieTotalM2: number,
+  alphaBar: number
+): { rt60S: number | null; metodo: 'sabine' | 'eyring' | 'fuera-de-dominio' } {
   if (alphaBar <= UMBRAL_EYRING_ALPHA) {
     return { rt60S: (0.161 * volumenM3) / (superficieTotalM2 * alphaBar), metodo: 'sabine' };
   }
-  return { rt60S: (0.161 * volumenM3) / (-superficieTotalM2 * Math.log(1 - alphaBar)), metodo: 'eyring' };
+  if (alphaBar <= ALPHA_CAMPO_DIFUSO_MAX) {
+    return { rt60S: (0.161 * volumenM3) / (-superficieTotalM2 * Math.log(1 - alphaBar)), metodo: 'eyring' };
+  }
+  return { rt60S: null, metodo: 'fuera-de-dominio' };
 }
 
 interface SuperficiesM2 {
@@ -181,6 +290,37 @@ interface SuperficiesM2 {
   derecha: number;
   piso: number;
   techo: number;
+}
+
+/** Las 3 bandas de UN escenario de contenido — estructura + el término de
+ * `CONTENIDO_SABINES_M2_PISO` correspondiente, sumado sobre la superficie
+ * de piso (no una de las otras cinco: el contenido de una sala escala con
+ * su superficie habitable, no con el área de sus paredes). */
+function bandasDelEscenario(
+  materiales: Materiales,
+  superficies: SuperficiesM2,
+  superficieTotalM2: number,
+  volumenM3: number,
+  escenario: EscenarioContenido
+): BandaReverberacion[] {
+  return BANDAS_HZ.map((hz, idx) => {
+    const bandaIdx = idx as 0 | 1 | 2;
+    const estructura = absorcionBandaSabines(materiales, superficies, bandaIdx).total;
+    const contenido = CONTENIDO_SABINES_M2_PISO[escenario][bandaIdx] * superficies.piso;
+    const alphaBar = (estructura + contenido) / superficieTotalM2;
+    const { rt60S, metodo } = rt60DeBanda(volumenM3, superficieTotalM2, alphaBar);
+    return { hz, alphaBar, rt60S, metodo };
+  });
+}
+
+/** `null` si cualquiera de las dos bandas que promedian el RT60 final
+ * (500/2000 Hz) quedó fuera de dominio — no se promedia con la banda que
+ * sí dio número, eso fabricaría una cifra parcialmente inventada. */
+function rt60Final(bandas: BandaReverberacion[]): number | null {
+  const b500 = bandas[1]!.rt60S;
+  const b2000 = bandas[2]!.rt60S;
+  if (b500 === null || b2000 === null) return null;
+  return (b500 + b2000) / 2;
 }
 
 export function evaluarReverberacion(sala: Sala, materiales: Materiales): ResultadoReverberacion {
@@ -198,33 +338,22 @@ export function evaluarReverberacion(sala: Sala, materiales: Materiales): Result
   const superficieTotalM2 =
     superficies.frontal + superficies.posterior + superficies.izquierda + superficies.derecha + superficies.piso + superficies.techo;
 
-  const bandas: BandaReverberacion[] = BANDAS_HZ.map((hz, idx) => {
-    const banda = absorcionBandaSabines(materiales, superficies, idx as 0 | 1 | 2);
-    const alphaBar = banda.total / superficieTotalM2;
-    const { rt60S, metodo } = rt60DeBanda(volumenM3, superficieTotalM2, alphaBar);
-    return { hz, alphaBar, rt60S, metodo };
-  });
+  const banda500Estructura = absorcionBandaSabines(materiales, superficies, 1);
+  const absorcionContenidoSabines = CONTENIDO_SABINES_M2_PISO.amoblado[1] * superficies.piso;
 
-  const banda500 = absorcionBandaSabines(materiales, superficies, 1);
+  const bandas = bandasDelEscenario(materiales, superficies, superficieTotalM2, volumenM3, 'amoblado');
+  const bandasVacio = bandasDelEscenario(materiales, superficies, superficieTotalM2, volumenM3, 'vacio');
 
-  const rt60_500 = bandas[1]!.rt60S;
-  const rt60_2000 = bandas[2]!.rt60S;
-  const rt60S = (rt60_500 + rt60_2000) / 2;
+  const rt60S = rt60Final(bandas); // extremo amoblado — el realista, o null fuera de dominio
+  const rt60RangoS: [number | null, number | null] = [rt60S, rt60Final(bandasVacio)];
 
-  const frecuenciaSchroederHz = 2000 * Math.sqrt(rt60S / volumenM3);
+  // Banda de 500 Hz del escenario amoblado, no el promedio final (que
+  // infla la cifra con la banda de agudos) — ver comentario de cabecera.
+  // null si esa banda quedó fuera de dominio.
+  const banda500Amoblado = bandas[1]!.rt60S;
+  const frecuenciaSchroederHz = banda500Amoblado !== null ? 2000 * Math.sqrt(banda500Amoblado / volumenM3) : null;
 
-  let severidad: ResultadoReverberacion['severidad'];
-  let codigo: CodigoReverberacion;
-  if (rt60S < RT60_MIN_OK_S) {
-    severidad = 'warn';
-    codigo = 'rt60-corto';
-  } else if (rt60S > RT60_MAX_OK_S) {
-    severidad = 'warn';
-    codigo = 'rt60-largo';
-  } else {
-    severidad = 'ok';
-    codigo = 'rt60-ok';
-  }
+  const codigo: CodigoReverberacion = rt60S === null ? 'rt60-fuera-de-dominio' : 'rt60-estimado';
 
   return {
     volumenM3,
@@ -235,17 +364,20 @@ export function evaluarReverberacion(sala: Sala, materiales: Materiales): Result
     superficiePisoM2: superficies.piso,
     superficieTechoM2: superficies.techo,
     superficieTotalM2,
-    absorcionFrontalSabines: banda500.frontal,
-    absorcionPosteriorSabines: banda500.posterior,
-    absorcionIzquierdaSabines: banda500.izquierda,
-    absorcionDerechaSabines: banda500.derecha,
-    absorcionPisoSabines: banda500.piso,
-    absorcionTechoSabines: banda500.techo,
-    absorcionTotalSabines: banda500.total,
+    absorcionFrontalSabines: banda500Estructura.frontal,
+    absorcionPosteriorSabines: banda500Estructura.posterior,
+    absorcionIzquierdaSabines: banda500Estructura.izquierda,
+    absorcionDerechaSabines: banda500Estructura.derecha,
+    absorcionPisoSabines: banda500Estructura.piso,
+    absorcionTechoSabines: banda500Estructura.techo,
+    absorcionTotalSabines: banda500Estructura.total,
+    absorcionContenidoSabines,
     bandas,
+    bandasVacio,
     rt60S,
+    rt60RangoS,
     frecuenciaSchroederHz,
-    severidad,
+    severidad: 'sin-datos',
     codigo,
   };
 }

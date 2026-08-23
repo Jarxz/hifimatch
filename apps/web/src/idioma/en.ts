@@ -97,12 +97,12 @@ export const en: Textos = {
     modos: {
       titulo: 'Room modes (bass resonances)',
       cuerpoHtml:
-        "Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room's width, length, and height \"fit\" certain wavelengths. When two modes on different axes land very close in frequency (within 5%, below 150 Hz — both thresholds declared by this site, not a published convention), that reinforcement stands out more: it's a frequency where the room will likely sound \"fatter\" or more resonant than the rest of the bass range. This rule never returns \"error\" severity — it's a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space.",
+        'Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room\'s width, length, and height "fit" certain wavelengths. The card marks it "clustered" when at least one pair of modes on different axes lands within 1% of each other (a near-exact overlap, the worst case, counts on its own), or when there are two or more pairs within 2% — both thresholds, below 150 Hz, declared by this site, not a published convention. A sweep of thousands of rooms showed a single 5% threshold flagged 86% of them — a traffic light that almost never changes; this two-condition rule flags a much more informative 37%. This rule never returns "error" severity — it\'s a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space.',
     },
     reverberacion: {
       titulo: 'Estimated reverberation time (RT60)',
       cuerpoHtml:
-        "RT60 is how long sound takes to decay 60 dB after the source cuts off — a room with a lot of reverberation sounds \"live\", echoey; one with too little sounds \"dry\", dull. It's calculated with Sabine's equation from the room's volume and the absorption of each surface (the 4 walls separately, floor, and ceiling), each with whatever material you pick — concrete and glass reflect a lot, acoustic panel and carpet absorb a lot, and a wall declared \"open\" (a real opening) absorbs like an open window: nothing that reaches it comes back into the room. The declared comfortable range for critical listening is 0.3–0.6 seconds.",
+        'RT60 is how long sound takes to decay 60 dB after the source cuts off — a room with a lot of reverberation sounds "live", echoey; one with too little sounds "dry", dull. It\'s calculated with Sabine\'s equation from the room\'s volume and the absorption of each surface (the 4 walls separately, floor, and ceiling), each with whatever material you pick — concrete and glass reflect a lot, acoustic panel and carpet absorb a lot, and a wall declared "open" (a real opening) absorbs like an open window: nothing that reaches it comes back into the room. This card no longer gives an ok/needs-work verdict: with just the six bare surfaces, the model overestimated reverberation in nearly any room; adding assumed furniture flips the result completely. Instead of picking an arbitrary middle point, both extremes are shown — empty room and furnished room — as a declared range, neither one an actual measurement. Sabine and Eyring both assume a diffuse sound field (many bounces, not one or two); in a very absorbent or very open room that stops holding well before absorption reaches its mathematical maximum, so past that point the card simply shows no number at all — still calculating there would produce a figure that no longer describes the room, not a conservative estimate. Of the whole analysis, RT60 is the one thing you can verify yourself with a phone app in a few minutes.',
     },
     plano: {
       titulo: 'Isometric view and early reflections',
@@ -211,6 +211,7 @@ export const en: Textos = {
     evidenciaTitulo: 'See full technical evidence',
     fichaTitulo: 'The chain and room data',
     fichaSubtitulo: 'Assumptions, sources and confidence level · save & report',
+    notaSinDatos: (p) => `<b>Data the manufacturer doesn't publish:</b> ${p.items}. This isn't a problem with your system — it's information the catalog doesn't have yet.`,
     plano: {
       titulo: 'Isometric view, listening position and reflections',
       texto:
@@ -509,7 +510,7 @@ export const en: Textos = {
         `${p.n} mode pair(s) fall within the clustering threshold below ${p.techo} Hz — a sign of bass reinforcement at those frequencies.`,
       parAgrupado: (p) => `${p.a} (${p.frecuenciaA} Hz) and ${p.b} (${p.frecuenciaB} Hz)`,
       fuente: (p) =>
-        `<b>Criterion:</b> rigid, rectangular room model, axial modes only. Clustering = two modes on different axes within ${p.umbral}% of each other, below ${p.techo} Hz — a site criterion, not a published convention; verified by measuring/listening.`,
+        `<b>Criterion:</b> rigid, rectangular room model, axial modes only. "Clustered" = at least one pair of modes on different axes within ${p.umbralExacto}% of each other, or ${p.minPares} or more pairs within ${p.umbral}% — a near-exact overlap already counts on its own; several looser pairs are needed for the same verdict. Both thresholds (below ${p.techo} Hz) are a site criterion, not a published convention; verified by measuring/listening.`,
       fuenteNulo: (p) =>
         `The listening null check compares the calculated listening spot against the room's exact depth-wise center (L/2, the pressure node of the first-order axial length mode), with a ±${p.ventana}% of L window — a site criterion, not a published convention.`,
       nuloEscucha: (p) =>
@@ -525,19 +526,18 @@ export const en: Textos = {
 
     reverberacion: {
       titulo: 'Estimated reverberation time (RT60)',
-      nombreCorto: 'Reverberation',
       verdicto: {
-        'rt60-corto': 'Too dry',
-        'rt60-ok': 'In range',
-        'rt60-largo': 'Too live',
+        'rt60-estimado': 'Estimated, not measured',
+        'rt60-fuera-de-dominio': 'Cannot be estimated',
       },
       simple: {
-        'rt60-corto': 'The room absorbs a lot — it can sound dull, airless.',
-        'rt60-ok': 'The reverberation time is in a comfortable range for listening.',
-        'rt60-largo': 'The room reflects a lot — it can sound echoey or smeared.',
+        'rt60-estimado': "It's an estimated range, not a measurement of your room — verify with a phone app.",
+        'rt60-fuera-de-dominio': "This room is outside what this model can calculate — it needs measuring.",
       },
       texto: (p) =>
-        `Estimated RT60: <b>≈${p.rt60} s</b> (average of the 500 Hz and 2000 Hz bands). The declared comfortable range for critical listening in a domestic room is ${p.min}–${p.max} s (a concert hall aims much higher, ~1.5–2.5 s, because it's a different kind of space). Above ≈${p.fs} Hz (this room's Schroeder frequency) the sound field is dense enough for a single reverberation time to make sense; below it, behavior is dominated by individual resonances — see "Room modes" above, not diffuse reverberation. The equation (Sabine or Eyring depending on how much each band absorbs) still loses accuracy in small rooms — read this as an order of magnitude, not an exact figure.`,
+        `Estimated RT60 between <b>≈${p.rtAmoblado} s</b> (furnished room, with typical furniture/curtains) and <b>≈${p.rtVacio} s</b> (empty room, bare surfaces only) — two declared scenarios with an assumed content term (see "View technical detail"), neither is a measurement of your actual room. With bare surfaces alone this model overestimates almost any domestic room; with an assumed furnishing it can swing to the opposite result depending on how much furniture is assumed — that's why it no longer builds a single-number traffic light: the range is the honest answer. Above ≈${p.fs} Hz (the Schroeder frequency of the furnished scenario) the sound field is dense enough for a single reverberation time to make sense; below it, behavior is dominated by individual resonances — see "Room modes" above. Of everything in this analysis, RT60 is the one thing you can measure yourself in a few minutes with a phone app — that number will be more reliable than either of the two you see here.`,
+      textoFueraDeDominio:
+        'With the materials chosen, this room absorbs (or is open enough) that sound dies out in one or two bounces, not many — the "diffuse sound field" condition that both Sabine and Eyring need for averaging to make sense no longer holds here. That\'s why this card shows no number at all: still calculating with those formulas would produce a figure that no longer describes the real room, not a conservative estimate. This is exactly what you can measure yourself with a phone app — the model has nothing better to offer here than that measurement.',
       superficies: {
         frontal: 'Front wall',
         posterior: 'Rear wall',
@@ -546,17 +546,30 @@ export const en: Textos = {
         piso: 'Floor',
         techo: 'Ceiling',
       },
-      calc: (p) =>
-        p.filas.map((f) => `${f.nombre}: ${f.superficie} m² × ${f.alpha} = ${f.absorcion} sabins`).join('<br>') +
-        `<br>Total absorption (500 Hz band): <b>${p.absorcionTotal} sabins</b> — volume: ${p.volumen} m³<br><br>` +
-        `<b>All 3 bands:</b><br>` +
-        p.bandas.map((b) => `${b.hz} Hz: ᾱ=${b.alphaBar} → RT60 = ${b.rt60} s (${b.metodo})`).join('<br>') +
-        `<br><br>Final RT60 (500+2000 Hz average): <b>${p.rt60} s</b>` +
-        `<br>Schroeder frequency: fs ≈ <b>${p.schroeder} Hz</b>`,
+      calc: (p) => {
+        const filaBanda = (b: { hz: string; alphaBar: string; rt60: string | null; metodo: string }): string =>
+          b.rt60 !== null
+            ? `${b.hz} Hz: ᾱ=${b.alphaBar} → RT60 = ${b.rt60} s (${b.metodo})`
+            : `${b.hz} Hz: ᾱ=${b.alphaBar} → outside the Sabine/Eyring domain (no number applies)`;
+        return (
+          p.filas.map((f) => `${f.nombre}: ${f.superficie} m² × ${f.alpha} = ${f.absorcion} sabins`).join('<br>') +
+          `<br>Structure (500 Hz band): <b>${p.absorcionEstructura} sabins</b> + assumed content (furnished scenario): <b>${p.absorcionContenido} sabins</b> — volume: ${p.volumen} m³<br><br>` +
+          `<b>Furnished scenario (realistic) — all 3 bands:</b><br>` +
+          p.bandasAmoblado.map(filaBanda).join('<br>') +
+          `<br><br><b>Empty scenario (bare room) — all 3 bands:</b><br>` +
+          p.bandasVacio.map(filaBanda).join('<br>') +
+          (p.rtAmoblado !== null && p.rtVacio !== null
+            ? `<br><br>Final RT60 (500+2000 Hz average): <b>${p.rtAmoblado} s</b> (furnished) — <b>${p.rtVacio} s</b> (empty)`
+            : `<br><br>Final RT60: not averaged — at least one of the 500/2000 Hz bands fell outside the model's domain (see above)`) +
+          (p.schroeder !== null
+            ? `<br>Schroeder frequency (furnished scenario): fs ≈ <b>${p.schroeder} Hz</b>`
+            : `<br>Schroeder frequency: cannot be calculated without a valid 500 Hz RT60`)
+        );
+      },
       fuente:
-        "<b>Formula:</b> Sabine's equation (RT60 = 0.161·V/A) for bands with average absorption ᾱ≤0.20; Eyring's equation (RT60 = 0.161·V/(−S·ln(1−ᾱ))) above that threshold, where Sabine overestimates reverberation time — a criterion from architectural acoustics literature, not invented by the site. Computed separately in 3 bands (125/500/2000 Hz), summed surface by surface in each — not a single coefficient for the whole room, not even a single \"wall\" value: each wall is oriented and declared separately. Per-material, per-band absorption coefficients are a site criterion: typical values from architectural acoustics literature, not a measurement of your real room. \"Open\" uses Sabine's historical reference coefficient for an opening (α=1.0 in all 3 bands: nothing that reaches it comes back into the room). Verified by measuring with an SPL meter or an RT60 app.",
+        "<b>Formula:</b> Sabine's equation (RT60 = 0.161·V/A) for bands with average absorption ᾱ≤0.20; Eyring's equation (RT60 = 0.161·V/(−S·ln(1−ᾱ))) between that threshold and ᾱ=0.80, where Sabine overestimates reverberation time — a criterion from architectural acoustics literature, not invented by the site. Above ᾱ=0.80, neither formula still describes the room — both assume a diffuse sound field (many bounces, not one or two) that stops existing at that absorption — so that band reports no number. Computed separately in 3 bands (125/500/2000 Hz), summed surface by surface in each — not a single coefficient for the whole room, not even a single \"wall\" value: each wall is oriented and declared separately. Per-material, per-band absorption coefficients are a site criterion: typical values from architectural acoustics literature, not a measurement of your real room. Content (furniture, curtains, bookshelves) is added as sabins per m² of floor, in two scenarios — empty (zero) and furnished — also a site criterion, not a published table: the order of magnitude is consistent with the literature, but it doesn't replace measuring. \"Open\" on a wall also uses Sabine's historical reference coefficient for an opening (α=1.0 in all 3 bands: nothing that reaches it comes back into the room). Verified by measuring with an SPL meter or an RT60 app.",
       avisoVacio: (p) =>
-        `<b>Wall(s) declared open:</b> ${p.muros}. They don't reflect sound — that's why the reverberation calculated above drops, and the isometric view draws no reflection for that wall. The room modes (resonances) in the card above are <b>not adjusted</b> for an opening: they still assume rigid walls at both ends of each axis, so the resonance calculated on that wall's axis is less representative than in a closed room.`,
+        `<b>Wall(s) declared open:</b> ${p.muros}. They don't reflect sound — that's why this calculation gives more absorption (a shorter RT60) than if those walls were real surfaces, and the isometric view draws no reflection for that wall. The room modes (resonances) in the section above are <b>not adjusted</b> for an opening: they still assume rigid walls at both ends of each axis, so the resonance calculated on that wall's axis is less representative than in a closed room.`,
     },
 
     componentes: {
@@ -564,7 +577,6 @@ export const en: Textos = {
         potencia: 'Power',
         carga: 'Load',
         modos: 'Room modes',
-        reverberacion: 'Reverberation',
         puenteStreamer: 'Impedance bridge (Streamer)',
         recorridoStreamer: 'Volume headroom (Streamer)',
         puenteDac: 'Impedance bridge (DAC)',

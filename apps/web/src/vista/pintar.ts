@@ -192,14 +192,34 @@ export function pintarModos(m: ModeloTarjetaModos): void {
   el('mo-src').innerHTML = m.fuenteHtml;
 }
 
-/** Igual que modos, siempre tiene dato (depende de dimensiones + tipo de
- * sala, nunca de equipos) — nunca "sin-datos". */
+/** La tarjeta siempre se muestra (nunca se oculta, a diferencia de
+ * carga/ganancia con datos realmente faltantes) — pero el RT60 estimado ya
+ * no emite veredicto ok/warn: `m.verdictoClase` es siempre 'dim', así que
+ * el badge se pinta en gris (mismo tratamiento que "sin-datos" en el resto
+ * del sitio), nunca con un color de severidad. */
 export function pintarReverberacion(m: ModeloTarjetaReverberacion): void {
-  pintarVerdict('rt-verdict', false, m.verdictoClase, m.verdictoTexto);
+  pintarVerdict('rt-verdict', m.verdictoClase === 'dim', m.verdictoClase, m.verdictoTexto);
   el('rt-simple').textContent = m.simpleHtml;
   el('rt-text').innerHTML = m.textoHtml;
   el('rt-calc').innerHTML = m.calcHtml;
   el('rt-src').innerHTML = m.fuenteHtml;
+}
+
+/** '' cuando ningún componente quedó "sin-datos" (catálogo sin el dato que
+ * la regla necesita) — oculta la nota entera en vez de una confirmación
+ * vacía de que "todo tenía dato". Deliberadamente distinta de la tarjeta
+ * de Reverberación (ver `pintarReverberacion`): esa siempre se muestra
+ * como "todavía no medido"; esto es sólo huecos de catálogo, y sólo
+ * aparece cuando hay al menos uno. */
+export function pintarNotaSinDatos(html: string): void {
+  const cont = el('nota-sindatos');
+  if (!html) {
+    cont.classList.add('hidden');
+    cont.innerHTML = '';
+    return;
+  }
+  cont.classList.remove('hidden');
+  cont.innerHTML = html;
 }
 
 /** '' cuando no hay modos agrupados (construirCurvasModalesSvg ya lo

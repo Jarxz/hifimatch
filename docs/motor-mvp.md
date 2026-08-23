@@ -591,39 +591,82 @@ salvedad que `sala.ts`: sala rígida y rectangular, se verifica midiendo.
 f(L, n) = n·c / (2·L)     c = 343 m/s (velocidad del sonido, ~20 °C)
 ```
 
-Se listan los modos de cada eje (ancho, largo, alto) hasta `TECHO_MODOS_HZ =
-300` — techo estándar de la región de modos de sala en acústica doméstica
-(por encima, la densidad modal es alta y deja de comportarse como
-resonancias individuales).
+Se listan los modos de cada eje (ancho, largo, alto) hasta un **techo de
+listado** — `TECHO_MODOS_HZ = 300` por defecto, techo estándar de la región
+de modos de sala en acústica doméstica (por encima, la densidad modal es
+alta y deja de comportarse como resonancias individuales), pero
+`evaluarModos(sala, techoModosHz?)` acepta reemplazarlo — ver "Techo de
+listado dinámico (`techoModosDesdeSchroeder`)" más abajo, agregado en la
+misma ronda que recalibró el umbral de agrupamiento.
 
-**Agrupamiento:** dos modos de **ejes distintos** (nunca del mismo eje —
-ahí son armónicos, no una coincidencia) se consideran agrupados si su
-diferencia relativa es menor a `UMBRAL_AGRUPAMIENTO = 0,05` (5 %), y ambos
-caen por debajo de `TECHO_AGRUPAMIENTO_HZ = 150` — un techo más estricto que
-el de listado, porque por encima de ~150 Hz la densidad modal sube y que dos
-modos caigan cerca deja de ser indicio de mala proporción de sala. **Ambos
-umbrales son criterio del sitio, no una convención publicada** — igual
-salvedad que el umbral de recorrido de volumen de la sección 6.
+**Agrupamiento — recalibrado.** Un barrido externo de 17.784 salas
+plausibles (2,5–7 m de ancho, 3–9 m de largo, 2,2–3,0 m de alto) mostró que
+el umbral original (`UMBRAL_AGRUPAMIENTO = 0,05`, 5 %) marcaba `warn` en el
+**86 %** de las salas del barrido — un semáforo que casi siempre dice lo
+mismo no discrimina nada. Regla nueva, con dos condiciones — `warn` si se
+cumple **cualquiera** de las dos:
+
+```
+existe al menos un par con Δ relativo < UMBRAL_AGRUPAMIENTO_EXACTO (0,01 → 1%)
+  o
+existen MIN_PARES_AGRUPADOS (2) o más pares con Δ relativo < UMBRAL_AGRUPAMIENTO (0,02 → 2%)
+```
+
+Un solo umbral más bajo no bastaba: la sala por defecto del sitio tiene
+**una única** coincidencia, pero es **exacta** (0,00 % de diferencia,
+ancho orden 3 = alto orden 2) — el peor caso posible, y una regla de "2 o
+más pares" la habría dejado pasar como sala "buena". Los tres umbrales
+(`UMBRAL_AGRUPAMIENTO=0,02`, `UMBRAL_AGRUPAMIENTO_EXACTO=0,01`,
+`MIN_PARES_AGRUPADOS=2`) son **criterio del sitio, no una convención
+publicada**. `TECHO_AGRUPAMIENTO_HZ = 150` (el techo bajo el cual se
+evalúa el agrupamiento, distinto del techo de LISTADO de arriba) no
+cambió. Sobre el mismo barrido, la regla recalibrada marca `warn` en el
+**≈35-37 %** de las salas — verificado con un barrido propio (ver
+`Correr barrido...` en el historial de esta ronda): 25.254 salas con paso
+de 0,1 m en los mismos tres rangos dieron 35,3 %, en la misma banda que el
+37 % reportado por la auditoría externa (la diferencia es de grilla de
+muestreo, no de umbral).
 
 **Severidad: techo `warn`, nunca `error`** (regla de sala, CLAUDE.md). `ok`
-si no hay agrupamiento, `warn` si hay al menos un par.
+si ninguna de las dos condiciones se cumple, `warn` si alguna sí.
+
+### Techo de listado dinámico (`techoModosDesdeSchroeder`)
+
+Con el techo fijo de 300 Hz, la región donde "Modos de sala" afirmaba
+cubrir todo el comportamiento resonante podía terminar por debajo de donde
+"Reverberación" empezaba a ser válida (frecuencia de Schroeder) — un hueco
+de frecuencias que ninguna de las dos reglas gobernaba. `modos.ts` expone
+`techoModosDesdeSchroeder(frecuenciaSchroederHz)`, que aplica un clamp
+declarado `[CLAMP_TECHO_MODOS_MIN_HZ=150, CLAMP_TECHO_MODOS_MAX_HZ=400]` a
+la fs real de la sala; `apps/web/src/main.ts` calcula `resReverb` primero
+y le pasa esa fs (ya clampeada) como segundo argumento de `evaluarModos()`.
+Con esto, la región de "Modos de sala" (0 a fs) y la región donde
+"Reverberación" declara que un tiempo de reverberación único tiene sentido
+(por encima de fs) quedan contiguas por construcción — sin solapamiento ni
+hueco, mientras la fs calculada caiga dentro del clamp (si no, el clamp
+prioriza no producir un techo absurdo por sobre la continuidad exacta,
+ver `docs/motor-mvp.md` sección 4ter). El techo de LISTADO no afecta la
+detección de agrupamiento (siempre bajo `TECHO_AGRUPAMIENTO_HZ=150`,
+fijo) — salvo que baje por debajo de esos 150 Hz, cosa que el clamp
+mínimo evita siempre en la práctica.
 
 ### Vector de prueba (W=3.6, L=5.0, H=2.4 — la sala por defecto del sitio)
 
 3,6 y 2,4 están en razón exacta 3:2 → el modo de orden 3 del ancho
 (142,9167 Hz) coincide exactamente (diferencia 0 Hz) con el de orden 2 del
-alto. Resultado: `warn`, con ese par entre los agrupados — la sala de
-demostración del sitio tiene, de hecho, un problema real de proporciones.
-**Esta sala tiene 4 agrupamientos en total**, no sólo ese: los otros tres
-son `{largo orden 2, alto orden 1}` (68,60/71,46 Hz), `{largo orden 4,
-ancho orden 3}` (137,20/142,92 Hz) y `{largo orden 4, alto orden 2}`
-(137,20/142,92 Hz). El par ancho3/alto2 (diferencia exacta 0 Hz) es el más
-"exacto" de los 4, pero **no** es uno de los que efectivamente se grafican
-más abajo — ordenados por frecuencia promedio, `TOP_N_AGRUPADOS=2` corta
-en `{largo2, alto1}` y `{largo4, ancho3}` (ver la sección siguiente).
+alto. Bajo el umbral recalibrado, esta sala da **un único** par por debajo
+de `UMBRAL_AGRUPAMIENTO` (2 %) — los otros tres pares que sí entraban bajo
+el umbral viejo de 5 % (`{largo orden 2, alto orden 1}` 68,60/71,46 Hz,
+`{largo orden 4, ancho orden 3}` y `{largo orden 4, alto orden 2}`
+137,20/142,92 Hz, todos ≈4,08 % de diferencia) quedan afuera. Resultado:
+`warn`, exclusivamente por la condición de "al menos un par exacto"
+(`UMBRAL_AGRUPAMIENTO_EXACTO`), no por cantidad de pares.
 
 Vector de control sin agrupamiento: W=2.5, L=3.0, H=2.2 (sin razones
-simples entre ejes) → `ok`.
+simples entre ejes) → `ok`. Vector con `MIN_PARES_AGRUPADOS`: W=4, L=4,
+H=2.5 (ancho=largo) → 3 pares exactos (Δ=0 % en los órdenes 1, 2 y 3) →
+`warn` por la condición de "2 o más pares", no por el par exacto (que acá
+también se cumple, pero la sala ya está marcada por la otra vía).
 
 ### Curvas de presión modal (`apps/web/src/vista/curvamodal.ts`)
 
@@ -640,9 +683,12 @@ Sólo se grafican los `TOP_N_AGRUPADOS` (= 2) pares de menor frecuencia
 promedio — los más audibles y más difíciles de tratar acústicamente. El
 resto de los agrupamientos sigue contando en el texto de la tarjeta ("N
 par(es)..."), sólo no se dibujan, para no saturar de curvas cuando hay
-varios pares (la sala por defecto tiene 4). La tarjeta ya no lista todos
-los modos individuales (hasta 300 Hz) — sólo el veredicto, la frase simple,
-el aviso de agrupamiento y estas curvas curadas.
+varios pares (con el umbral recalibrado, la sala por defecto del sitio ya
+sólo tiene 1 — el vector `W=4, L=4, H=2,5` de la sección anterior, con 3,
+es el que sigue sirviendo para probar el recorte en los tests de
+`curvamodal.test.ts`). La tarjeta ya no lista todos los modos individuales
+(hasta el techo de listado) — sólo el veredicto, la frase simple, el aviso
+de agrupamiento y estas curvas curadas.
 
 `TOP_N_AGRUPADOS` y la función que ordena+corta (`paresMasImportantes`)
 viven en `packages/engine/src/modos.ts`, exportadas — antes era lógica
@@ -684,110 +730,196 @@ esa lógica desde `curvamodal.ts` sigue siendo válida, las curvas 1D
 
 ## 4ter. Reverberación estimada — RT60 (`reverberacion.ts`)
 
-**Estado: implementada.** Igual que `modos.ts`, depende sólo de la
-geometría de la sala (más los materiales declarados por el usuario) —
-nunca de los equipos elegidos, y por eso nunca es `sin-datos`.
+**Estado: implementada — el RT60 ya no emite veredicto, es un rango.**
+Igual que `modos.ts`, depende sólo de la geometría de la sala (más los
+materiales declarados por el usuario) — nunca de los equipos elegidos.
+`severidad` es siempre `'sin-datos'`: no es que falte investigar algo del
+catálogo, es que este modelo genuinamente no puede sostener un
+ok/con-reparos con los datos que tiene — ver "Por qué se retiró el
+veredicto" más abajo. `veredicto.ts` ya sabe excluir `'sin-datos'` de un
+grupo sin arrastrarlo (mismo mecanismo que usa para el resto del motor),
+así que "Sala" queda gobernado sólo por `modos.ts`.
 
-**Fórmula — ecuación de Sabine, sumada superficie por superficie** (no un
-coeficiente único para toda la sala, ni siquiera un único valor de
-"muro": cada muro se orienta y se declara aparte — ver "Historia de la
-regla" más abajo):
+**Fórmula — Sabine/Eyring por tercio de octava, sumada superficie por
+superficie** (no un coeficiente único para toda la sala, ni siquiera un
+único valor de "muro": cada muro se orienta y se declara aparte — ver
+"Historia de la regla" más abajo). Tres bandas — 125/500/2000 Hz — cada
+una con su propia absorción total y su propia elección de fórmula:
+
 ```
-RT60 = 0,161 · V / A
+A_banda = Σ α_banda,i · S_i   (por las 6 superficies: 4 muros + piso + techo)
+ᾱ_banda = A_banda / S_total
 
-V = anchoM · largoM · altoM                       (volumen, m³)
-S_frontal = S_posterior = anchoM · altoM          (m²)
-S_izquierdo = S_derecho = largoM · altoM          (m²)
-S_piso = S_techo = anchoM · largoM                (m²)
-
-A = α_frontal·S_frontal + α_posterior·S_posterior + α_izquierdo·S_izquierdo
-  + α_derecho·S_derecho + α_piso·S_piso + α_techo·S_techo    (sabines)
+ᾱ_banda ≤ 0,20 → Sabine:  RT60 = 0,161 · V / A_banda
+ᾱ_banda > 0,20 → Eyring:  RT60 = 0,161 · V / (−S_total · ln(1 − ᾱ_banda))
 ```
 
-El usuario elige un **material por cada muro orientado** (frontal,
+0,20 es el umbral de literatura de acústica arquitectónica donde Sabine
+empieza a sobreestimar significativamente (no un criterio del sitio). El
+RT60 que se muestra es el promedio de las bandas 500 Hz y 2000 Hz. El
+usuario elige un **material por cada muro orientado** (frontal,
 posterior, izquierdo, derecho) más piso y techo — 6 selectores
-independientes en la pantalla de configuración. Cada material tiene un
-coeficiente de absorción de Sabine declarado — **criterio del sitio**,
-valores típicos de literatura de acústica arquitectónica (banda media,
-~500 Hz–1 kHz), no una medición real:
+independientes — cada uno con un triple de coeficientes `[125, 500, 2000]
+Hz` declarado como criterio del sitio (valores típicos de literatura, no
+una medición real; la tabla completa vive en
+`ABSORCION_MURO_BANDAS`/`ABSORCION_PISO_BANDAS`/`ABSORCION_TECHO_BANDAS`,
+`packages/engine/src/reverberacion.ts`). `vacio` (sólo muros) usa α=1,0
+en las 3 bandas — coeficiente de referencia histórico de Sabine para una
+abertura, no una estimación del sitio — y hace que el plano isométrico
+(sección 4) tampoco dibuje la reflexión de ese muro.
+
+### Por qué se retiró el veredicto — dos escenarios, no un punto
+
+Una auditoría externa corrió el motor sobre 17.784 salas plausibles con
+materiales típicos (yeso cartón + piso laminado) y encontró `rt60-largo`
+(el código de la primera versión de este modelo, ver "Historia de la
+regla") en el **100 %** de las salas — un semáforo que siempre dice lo
+mismo no informa nada. La causa: el modelo sólo tenía las seis superficies
+desnudas, y en una sala doméstica real el sofá, las cortinas y la
+biblioteca son la mayor parte de la absorción en medios/agudos.
+
+**Agregar mueble no arregla la regla, le da vuelta el signo.** Con un
+término de contenido calibrado, el veredicto pasa a `rt60-ok` en el
+**100 %** de las salas — y como el volumen y la absorción del contenido
+crecen los dos con la superficie de piso, se cancelan: el RT60 estimado
+termina dependiendo casi sólo de la altura del techo (una sala de 8 m² y
+una de 63 m² con la misma altura daban 0,43 s y 0,46 s). El resultado lo
+decidía un control que el usuario tiene que adivinar, no la sala.
+
+**Conclusión: el RT60 estimado no da para veredicto, sí da para
+estimación declarada.** `evaluarReverberacion()` calcula **dos
+escenarios** — `vacio` (sólo las seis superficies) y `amoblado`
+(superficies + `CONTENIDO_SABINES_M2_PISO`, un término de sabines por m²
+de PISO, criterio del sitio, no una tabla publicada):
 
 ```
-MaterialMuro    α       MaterialPiso        α       MaterialTecho   α
-hormigón        0,02    hormigón            0,02    hormigón        0,02
-vidrio/ventanal 0,03    madera laminado     0,05    madera          0,11
-madera          0,11    porcelanato         0,01    yeso cartón     0,06
-yeso cartón     0,08    alfombra            0,28    panel acústico  0,75
-panel acústico  0,75
-vacío           1,00
+CONTENIDO_SABINES_M2_PISO = {
+  vacio:    [0,    0,    0   ],   // [125, 500, 2000] Hz — literalmente sin contenido
+  amoblado: [0,18, 0,45, 0,60],
+}
 ```
 
-Hormigón/vidrio/porcelanato son muy reflectantes (superficies duras, no
-porosas); madera y placas sobre bastidor absorben algo más por resonancia
-de panel; panel acústico dedicado y alfombra son los únicos materiales
-"normales" de absorción alta. **`vacio`** (sólo disponible para muros, no
-para piso/techo) representa una abertura — vano, pasillo, ambiente
-integrado — y usa **α=1,0**, el coeficiente de referencia histórico de
-Sabine (1900): "ventana abierta", nada de lo que llega ahí vuelve a la
-sala. No es una estimación del sitio, es la convención estándar de toda
-tabla de coeficientes de absorción para una abertura. Cuando un muro es
-`vacio`, el plano isométrico (ver sección 4) tampoco dibuja su reflexión
-— el sonido se escapa, no rebota.
+`rt60RangoS: [amoblado, vacio]` — el amoblado es el extremo menor (más
+absorción → RT60 más corto); `rt60S` (el campo que consumía el resto del
+motor) sigue existiendo, apuntando al extremo amoblado, el realista. La
+tarjeta muestra el rango completo, con la nota explícita de que ninguno
+de los dos extremos es una medición de la sala real. **El RT60 es lo
+único de todo el análisis que el usuario puede medir él mismo, en cinco
+minutos con una app del teléfono** — la tarjeta cierra invitando a eso.
 
-El default del sitio es yeso cartón en los 4 muros + techo, madera
-laminado en el piso — terminaciones residenciales comunes, sin alfombra
-ni tratamiento — y da, a propósito, una sala bastante viva: no se fuerza
-un resultado "ok" de fábrica sólo para que la pantalla inicial se vea
-bien.
+### Límite de dominio — por encima de ᾱ≈0,8, ningún número (no un clamp)
 
-**Rango cómodo declarado** para escucha crítica en una sala doméstica:
-`RT60_MIN_OK_S = 0,3` a `RT60_MAX_OK_S = 0,6` segundos (una sala de
-concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de
-espacio — la tarjeta lo aclara para que el número no se lea fuera de
-contexto).
+La primera versión de este cambio clampeaba numéricamente el argumento
+del logaritmo de Eyring (`Math.min(alphaBar, 0,9999)`) para evitar `NaN`
+cuando ᾱ superaba 1 — matemáticamente correcto (Eyring exige ᾱ<1
+estricto), pero insuficiente: **Sabine y Eyring asumen los dos un campo
+sonoro difuso** (energía rebotando muchas veces antes de absorberse, lo
+bastante como para que "promediar" tenga sentido), y ese supuesto deja de
+sostenerse mucho antes de que ᾱ llegue a 1 — con una sala tan absorbente
+o tan abierta, la energía se absorbe en uno o dos rebotes, no en muchos.
+Un clamp cerca de 1 evitaba la excepción pero seguía devolviendo un
+número de un modelo que, físicamente, ya no regía — el mismo argumento
+que ya había justificado retirar el veredicto del RT60 (arriba),
+aplicado ahora al número en sí, no sólo a su semáforo.
 
-**Severidad: techo `warn`, nunca `error`** (regla de sala, CLAUDE.md):
+`ALPHA_CAMPO_DIFUSO_MAX = 0,8` (criterio del sitio, en el rango que
+informa la literatura de acústica arquitectónica para la pérdida de
+validez del campo difuso — no una cifra única publicada, mismo tipo de
+declaración que `UMBRAL_EYRING_ALPHA` pero sin una fuente tan puntual):
+por encima de ese ᾱ, la banda no reporta RT60 (`rt60S: null`, `metodo:
+'fuera-de-dominio'`) en vez de un número técnicamente finito pero ya sin
+significado físico. Como el contenido sólo agrega absorción sobre la
+estructura, ᾱ del escenario `amoblado` es siempre ≥ que el de `vacio` en
+la misma banda — si `vacio` ya está fuera de dominio, `amoblado` también
+lo está (nunca al revés). `rt60Final()` no promedia a medias: si
+cualquiera de las bandas 500/2000 Hz que arman el RT60 final es `null`,
+el resultado completo es `null` — fabricar una cifra con sólo la mitad
+de los datos sería peor que no dar ninguna. Cuando `rt60S` es `null`, el
+`codigo` pasa a `'rt60-fuera-de-dominio'` (en vez de `'rt60-estimado'`)
+y `frecuenciaSchroederHz` también es `null` (depende de la banda de 500
+Hz amoblada) — `techoModosDesdeSchroeder(null)` cae al techo por defecto
+(`TECHO_MODOS_HZ=300`) en vez de inventar un número.
+
+La tarjeta, en ese caso, no muestra ningún rango: un párrafo propio
+(`textoFueraDeDominio`) explica que el modelo no tiene nada que ofrecer
+ahí — ni siquiera una estimación conservadora — y refuerza más todavía
+la invitación a medir, porque acá el modelo genuinamente no tiene
+alternativa. Vector real que dispara el caso (SALA_VECTOR por defecto,
+materiales `panelAcustico` en los 4 muros + techo, `alfombra` en piso):
+2000 Hz da ᾱ≈0,97 en el escenario amoblado — muy por encima de 0,8.
+
+### Frecuencia de Schroeder — desde la banda de 500 Hz amoblada, no el promedio
+
 ```
-rt60 < RT60_MIN_OK_S                        warn   codigo: 'rt60-corto'  ("Muy seca")
-RT60_MIN_OK_S ≤ rt60 ≤ RT60_MAX_OK_S        ok     codigo: 'rt60-ok'     ("En rango")
-rt60 > RT60_MAX_OK_S                        warn   codigo: 'rt60-largo'  ("Muy viva")
+fs = 2000 · √(RT60_500Hz / V)
 ```
 
-Aparece en "En resumen" (fortaleza si `ok`, debilidad si `warn`) y
-participa del estado "Sala" del veredicto general (peor-de con modos,
-ver sección 7/`veredicto.ts`) — nunca sube por sí sola a `alert`, mismo
-techo de severidad de sala del resto del motor.
+Antes se calculaba desde el RT60 final ya promediado (500+2000 Hz), que
+la banda de agudos infla: para la sala por defecto, bajo el modelo
+`vacio` de una sola banda, eso daba 371,6 Hz — **por encima** del techo
+fijo de modos (`TECHO_MODOS_HZ=300`), dejando una banda de 300 a 372 Hz
+que ninguna de las dos reglas gobernaba. Ahora `fs` sale de la banda de
+500 Hz sola, del escenario `amoblado` — para la sala por defecto: 299,3
+Hz con sólo ese cambio (banda 500 Hz, todavía `vacio`), 205,2 Hz con el
+escenario amoblado también aplicado. Ver sección 4bis,
+`techoModosDesdeSchroeder`, para cómo esta frecuencia (clampeada a
+[150,400] Hz) pasa a ser el techo de listado de modos — cerrando el hueco
+sin inventar un tercer número.
 
-### Vectores de prueba (sala por defecto, 3,6×5,0×2,4 m)
+### Vectores de prueba (sala por defecto, 3,6×5,0×2,4 m, materiales típicos: yesoCarton×4 + techo, piso maderaLaminado)
 ```
-V = 43,2 m³; S_frontal=S_posterior=8,64 m²; S_izquierdo=S_derecho=12,00 m²; S_piso=S_techo=18,00 m²
+V = 43,2 m³; S_total = 77,28 m²
 
-los 4 muros=yesoCarton, piso=maderaLaminado, techo=yesoCarton (default del sitio)
-  A = 0,08·(8,64·2+12·2) + 0,05·18 + 0,06·18 = 5,2824   RT60 ≈ 1,317 s → "warn" ("Muy viva")
-  (mismo total que el modelo de un solo "muro": decomponer una superficie con el
-  mismo material en sub-superficies no cambia la absorción total)
+Escenario amoblado (el que gobierna rt60S/fs):
+  125 Hz: ᾱ=0,2737 (Eyring) → RT60=0,2814 s
+  500 Hz: ᾱ=0,1978 (Sabine) → RT60=0,4549 s   ← fs = 2000·√(0,4549/43,2) ≈ 205,2 Hz
+ 2000 Hz: ᾱ=0,1844 (Sabine) → RT60=0,4880 s
+  RT60 amoblado = (0,4549+0,4880)/2 ≈ 0,4715 s
 
-muroFrontal=vacío, resto = default (abertura al frente, ej. living integrado)
-  A = 1,0·8,64 + 0,08·8,64 + 0,08·24 + 0,05·18 + 0,06·18 = 13,2312
-  RT60 ≈ 0,526 s → "ok" ("En rango") — la abertura por sí sola resuelve una sala
-  que sin ella era demasiado viva
+Escenario vacío (sin contenido, sólo estructura):
+  125 Hz: ᾱ=0,2318 (Eyring) → RT60=0,3413 s
+  500 Hz: ᾱ=0,0930 (Sabine) → RT60=0,9676 s
+ 2000 Hz: ᾱ=0,0447 (Sabine) → RT60=2,0153 s
+  RT60 vacío = (0,9676+2,0153)/2 ≈ 1,4915 s
 
-frontal=posterior=panelAcustico, izquierdo=derecho=madera, piso=alfombra, techo=panelAcustico (muy tratada)
-  A = 0,75·17,28 + 0,11·24 + 0,28·18 + 0,75·18 = 34,14   RT60 ≈ 0,204 s → "warn" ("Muy seca")
+rt60RangoS = [0,4715, 1,4915] s → tarjeta muestra "≈0,5 s a ≈1,5 s"
+severidad = 'sin-datos' (siempre); codigo = 'rt60-estimado' salvo que
+alguna banda 500/2000 Hz cruce ALPHA_CAMPO_DIFUSO_MAX, caso en que pasa
+a 'rt60-fuera-de-dominio' (ver esa sección más arriba) y rt60S/
+rt60RangoS/frecuenciaSchroederHz son null
+
+Vector de fuera de dominio (mismos 3,6×5,0×2,4 m; panelAcustico en los
+4 muros + techo, alfombra en piso):
+ 2000 Hz: ᾱ≈0,9699 (amoblado) → fuera de dominio → codigo =
+  'rt60-fuera-de-dominio', rt60S = null
 ```
 
-**Historia de la regla.** Primera versión (Fase 6): un solo selector "tipo
-de sala" (moderna/balanceada/tratada) con un coeficiente promedio único
-para toda la sala. Segunda versión: un solo selector "muro" aplicado a
-toda la superficie de muros combinada, más piso/techo separados —
-reemplazó el "tipo de sala" por ser más granular y defendible (el número
-sale de un material que el usuario puede señalar en su sala real, no de
-una etiqueta abstracta como "balanceada"). Versión actual: cada muro se
-orienta y se declara aparte (frontal/posterior/izquierdo/derecho), con la
-opción `vacio` para aberturas — motivado por el mismo criterio de
-granularidad: una sala real casi nunca tiene los 4 muros iguales (un
-ventanal al frente, una pared compartida al costado, un pasillo abierto
-atrás), y el plano isométrico (sección 4) necesita saber qué muro es cuál
-para no dibujar una reflexión donde no hay pared.
+### Historia de la regla
+
+Primera versión (Fase 6): un solo selector "tipo de sala"
+(moderna/balanceada/tratada) con un coeficiente promedio único para toda
+la sala. Segunda versión: un solo selector "muro" para toda la superficie
+de muros, más piso/techo separados. Tercera versión: cada muro se orienta
+y se declara aparte (frontal/posterior/izquierdo/derecho), con `vacio`
+para aberturas — una sala real casi nunca tiene los 4 muros iguales, y el
+plano isométrico necesita saber qué muro es cuál. Cuarta versión: modelo
+multibanda (125/500/2000 Hz, Sabine/Eyring por banda) en vez de un único
+coeficiente de banda media — ver el comentario de cabecera de
+`reverberacion.ts` para el detalle completo de esa ronda. **Quinta
+versión, esta ronda:** el veredicto ok/con-reparos se retira por completo
+(auditoría externa, ver arriba) — `RT60_MIN_OK_S`/`RT60_MAX_OK_S` y los
+códigos `rt60-corto`/`rt60-ok`/`rt60-largo` se eliminan, junto con sus
+tests; `severidad` pasa a ser siempre `'sin-datos'`, `codigo` siempre
+`'rt60-estimado'`, y el número único se reemplaza por el rango
+`[amoblado, vacio]` de arriba. **Sexta versión, la ronda inmediata
+siguiente:** el clamp numérico (`ALPHA_EYRING_MAX=0,9999`) que evitaba
+`NaN` cuando ᾱ superaba 1 se reemplaza por un límite de dominio físico
+(`ALPHA_CAMPO_DIFUSO_MAX=0,8`) — no basta con no explotar, un número
+dentro de rango matemático pero fuera del régimen de campo difuso sigue
+siendo un número que no describe la sala (ver "Límite de dominio"
+arriba); `codigo` gana el valor `'rt60-fuera-de-dominio'` para esos
+casos, con `rt60S`/`rt60RangoS`/`frecuenciaSchroederHz` en `null` en vez
+de una cifra que ya no aplica.
 
 **Selector de tipo de música (género):** ver sección 2bis — comparte
 pantalla de configuración con los materiales de sala, pero informa la
@@ -997,7 +1129,7 @@ estados:
 |---|---|---|
 | Potencia | potencia (siempre tiene valor) | directo, sin agrupar |
 | Acople eléctrico | carga, amortiguamiento, puente y recorrido de streamer y/o DAC | peor de los aplicables (`sin-datos` si ninguno aplica) |
-| Sala | modos, reverberación | peor de los dos (nunca `alert` — mismo techo de severidad de sala que ya declaraban las secciones 4bis/4ter) |
+| Sala | modos, reverberación | peor de los dos que sí tienen dato (nunca `alert` — mismo techo de severidad de sala que ya declaraban las secciones 4bis/4ter). Reverberación es siempre `'sin-datos'` desde que el RT60 estimado dejó de emitir veredicto (sección 4ter) — se excluye igual que cualquier otro componente sin dato, así que en la práctica "Sala" refleja sólo `modos`. Modos siempre tiene valor, así que el grupo nunca es `sin-datos` |
 
 ### Peor-eslabón, no promedio
 

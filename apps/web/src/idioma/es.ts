@@ -28,15 +28,18 @@ type CodigoRespuestaContacto = CodigoContacto | 'metodo-invalido' | 'error-servi
 
 /** Componentes con nombre de pantalla propio en `motor.componentes.nombre`
  * (los que no tienen un `nombreCorto` directo en su propia tarjeta, ver
- * `motor.amortiguamiento.nombreCorto`/`motor.reverberacion.nombreCorto`) —
- * usados por "Qué conviene hacer" y el resumen del informe (main.ts,
- * `construirSnapshot`). No es un tipo del motor: es puramente de qué
- * componentes necesitan una etiqueta acá. */
+ * `motor.amortiguamiento.nombreCorto`) — usados por "Qué conviene hacer" y
+ * el resumen del informe (main.ts, `construirSnapshot`). No es un tipo del
+ * motor: es puramente de qué componentes necesitan una etiqueta acá.
+ * Reverberación no está: desde que el RT60 estimado dejó de emitir
+ * veredicto (siempre "sin-datos"/dim), ya no entra a `componentesResumen`
+ * — mostrarlo ahí con el texto genérico de "falta el dato del fabricante"
+ * sería falso (nada falta: es una estimación declarada, no un hueco de
+ * catálogo). Su propia tarjeta ya lo explica en su propio texto. */
 type NombreComponenteEvaluacion =
   | 'potencia'
   | 'carga'
   | 'modos'
-  | 'reverberacion'
   | 'puenteStreamer'
   | 'recorridoStreamer'
   | 'puenteDac'
@@ -138,12 +141,12 @@ export const es = {
     modos: {
       titulo: 'Modos de sala (resonancias de graves)',
       cuerpoHtml:
-        'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. Cuando dos modos de ejes distintos caen muy cerca en frecuencia (menos de 5%, por debajo de 150 Hz — ambos umbrales declarados por este sitio, no una convención publicada), ese refuerzo se nota más: es una frecuencia donde la sala probablemente sonará más "gorda" o resonante que el resto del rango grave. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real.',
+        'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. La tarjeta marca "agrupados" cuando al menos un par de modos de ejes distintos cae a menos de 1% de diferencia entre sí (un solapamiento casi exacto, el peor caso, alcanza solo), o cuando hay dos o más pares a menos de 2% — ambos umbrales, por debajo de 150 Hz, declarados por este sitio, no una convención publicada. Un barrido de miles de salas mostró que un umbral único de 5% marcaba el 86% de ellas, un semáforo que casi nunca cambia; esta regla de dos condiciones marca un 37% mucho más informativo. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real.',
     },
     reverberacion: {
       titulo: 'Tiempo de reverberación estimado (RT60)',
       cuerpoHtml:
-        'El RT60 es cuánto tarda el sonido en apagarse 60 dB después de que la fuente se corta — una sala con mucha reverberación suena "viva", con eco; una con muy poca suena "seca", apagada. Se calcula con la ecuación de Sabine a partir del volumen de la sala y la absorción de cada superficie (los 4 muros por separado, piso y techo), cada una con el material que elijas — hormigón y vidrio reflejan mucho, panel acústico y alfombra absorben mucho, y un muro declarado "vacío" (una abertura real) absorbe como una ventana abierta: nada de lo que llega ahí vuelve a la sala. El rango cómodo declarado para escucha crítica es 0,3–0,6 segundos.',
+        'El RT60 es cuánto tarda el sonido en apagarse 60 dB después de que la fuente se corta — una sala con mucha reverberación suena "viva", con eco; una con muy poca suena "seca", apagada. Se calcula con la ecuación de Sabine a partir del volumen de la sala y la absorción de cada superficie (los 4 muros por separado, piso y techo), cada una con el material que elijas — hormigón y vidrio reflejan mucho, panel acústico y alfombra absorben mucho, y un muro declarado "vacío" (una abertura real) absorbe como una ventana abierta: nada de lo que llega ahí vuelve a la sala. Esta tarjeta ya <b>no da un veredicto</b> ok/con-reparos: con sólo las seis superficies desnudas, el modelo sobreestimaba la reverberación en prácticamente cualquier sala; sumando un mobiliario supuesto, el resultado se da vuelta por completo. En vez de elegir un punto intermedio arbitrario, se muestran los dos extremos — sala vacía y sala amoblada — como un rango declarado, ninguno de los dos una medición real. Sabine y Eyring asumen los dos un campo sonoro difuso (muchos rebotes, no uno o dos); en una sala muy absorbente o muy abierta esa condición deja de cumplirse mucho antes de que la absorción llegue al máximo matemático, así que por encima de ese punto la tarjeta directamente no muestra ningún número — seguir calculando ahí produciría una cifra que ya no describe la sala, no una estimación conservadora. Del análisis completo, el RT60 es lo único que se puede verificar uno mismo con una app de teléfono en pocos minutos.',
     },
     plano: {
       titulo: 'Vista isométrica y reflexiones tempranas',
@@ -253,6 +256,8 @@ export const es = {
     evidenciaTitulo: 'Ver evidencia técnica completa',
     fichaTitulo: 'La cadena y los datos de sala',
     fichaSubtitulo: 'Supuestos, fuentes y nivel de confianza · guardar e informe',
+    notaSinDatos: (p: { items: string }): string =>
+      `<b>Datos que el fabricante no publica:</b> ${p.items}. No es un problema de tu sistema — es información que el catálogo todavía no tiene.`,
     plano: {
       titulo: 'Vista isométrica, escucha y reflexiones',
       texto:
@@ -594,8 +599,8 @@ export const es = {
         `${p.n} par(es) de modos caen dentro del umbral de agrupamiento por debajo de ${p.techo} Hz — señal de refuerzo de graves en esas frecuencias.`,
       parAgrupado: (p: { a: string; b: string; frecuenciaA: string; frecuenciaB: string }): string =>
         `${p.a} (${p.frecuenciaA} Hz) y ${p.b} (${p.frecuenciaB} Hz)`,
-      fuente: (p: { techo: string; umbral: string }): string =>
-        `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. Agrupamiento = dos modos de ejes distintos a menos de ${p.umbral}% de diferencia entre sí, por debajo de ${p.techo} Hz — criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
+      fuente: (p: { techo: string; umbralExacto: string; umbral: string; minPares: string }): string =>
+        `<b>Criterio:</b> modelo de sala rígida y rectangular, sólo modos axiales. "Agrupados" = al menos un par de modos de ejes distintos a menos de ${p.umbralExacto}% de diferencia entre sí, o ${p.minPares} o más pares a menos de ${p.umbral}% — un solapamiento casi exacto ya alcanza solo, hacen falta varios pares más flojos para lo mismo. Ambos umbrales (por debajo de ${p.techo} Hz) son criterio del sitio, no una convención publicada; se verifica midiendo/escuchando.`,
       fuenteNulo: (p: { ventana: string }): string =>
         `El nulo de escucha compara el punto de escucha calculado contra el centro exacto de la sala en profundidad (L/2, el nodo de presión del modo axial de largo de orden 1), con una ventana de ±${p.ventana}% de L — criterio del sitio, no una convención publicada.`,
       nuloEscucha: (p: { frecuencia: string }): string =>
@@ -611,19 +616,18 @@ export const es = {
 
     reverberacion: {
       titulo: 'Tiempo de reverberación estimado (RT60)',
-      nombreCorto: 'Reverberación',
       verdicto: {
-        'rt60-corto': 'Muy seca',
-        'rt60-ok': 'En rango',
-        'rt60-largo': 'Muy viva',
+        'rt60-estimado': 'Estimado, no medido',
+        'rt60-fuera-de-dominio': 'No se puede estimar',
       } satisfies Record<CodigoReverberacion, string>,
       simple: {
-        'rt60-corto': 'La sala absorbe mucho — puede sonar apagada, sin aire.',
-        'rt60-ok': 'El tiempo de reverberación está en un rango cómodo para escuchar.',
-        'rt60-largo': 'La sala refleja mucho — puede sonar con eco o poco definida.',
+        'rt60-estimado': 'Es un rango estimado, no una medición de tu sala — se verifica con una app de teléfono.',
+        'rt60-fuera-de-dominio': 'Esta sala está fuera de lo que este modelo puede calcular — hace falta medir.',
       } satisfies Record<CodigoReverberacion, string>,
-      texto: (p: { rt60: string; min: string; max: string; fs: string }): string =>
-        `RT60 estimado: <b>≈${p.rt60} s</b> (promedio de las bandas 500 Hz y 2000 Hz). El rango cómodo declarado para escucha crítica en una sala doméstica es ${p.min}–${p.max} s (una sala de concierto apunta mucho más alto, ~1,5–2,5 s, porque es otro tipo de espacio). Por encima de ≈${p.fs} Hz (la frecuencia de Schroeder de esta sala) el campo sonoro es lo bastante denso para que un tiempo de reverberación único tenga sentido; por debajo, el comportamiento está dominado por resonancias individuales — ver "Modos de sala" arriba, no por reverberación difusa. La ecuación (Sabine o Eyring según cuánto absorbe cada banda) pierde precisión igual en salas chicas — conviene leerlo como orden de magnitud, no como una cifra exacta.`,
+      texto: (p: { rtAmoblado: string; rtVacio: string; fs: string }): string =>
+        `RT60 estimado entre <b>≈${p.rtAmoblado} s</b> (sala amoblada, con muebles/cortinas típicos) y <b>≈${p.rtVacio} s</b> (sala vacía, sólo las seis superficies) — dos escenarios declarados con un contenido supuesto (ver "Ver detalle técnico"), ninguno es una medición de tu sala real. Con sólo las superficies desnudas este modelo sobreestima casi cualquier sala doméstica; con un amoblado supuesto puede dar el resultado contrario según cuánto mobiliario se asuma — por eso ya no arma un semáforo con un solo número: el rango es la respuesta honesta. Por encima de ≈${p.fs} Hz (la frecuencia de Schroeder del escenario amoblado) el campo sonoro es lo bastante denso para que un tiempo de reverberación único tenga sentido; por debajo, el comportamiento está dominado por resonancias individuales — ver "Modos de sala" arriba. De todo este análisis, el RT60 es lo único que puedes medir vos mismo en unos minutos con una app de teléfono — ese número va a ser más confiable que cualquiera de los dos que ves acá.`,
+      textoFueraDeDominio:
+        'Con los materiales elegidos, esta sala absorbe (o está tan abierta) que el sonido se apaga en uno o dos rebotes, no en muchos — la condición de "campo sonoro difuso" que tanto Sabine como Eyring necesitan para que promediar tenga sentido ya no se cumple acá. Por eso esta tarjeta no muestra ningún número: seguir calculando con esas fórmulas daría una cifra que ya no describe la sala real, no una estimación conservadora. Esto es justo lo que puedes medir vos mismo con una app de teléfono — acá el modelo no tiene nada mejor que ofrecer que esa medición.',
       superficies: {
         frontal: 'Muro frontal',
         posterior: 'Muro posterior',
@@ -634,22 +638,38 @@ export const es = {
       },
       calc: (p: {
         filas: Array<{ nombre: string; superficie: string; alpha: string; absorcion: string }>;
-        absorcionTotal: string;
+        absorcionEstructura: string;
+        absorcionContenido: string;
         volumen: string;
-        rt60: string;
-        bandas: Array<{ hz: string; alphaBar: string; rt60: string; metodo: string }>;
-        schroeder: string;
-      }): string =>
-        p.filas.map((f) => `${f.nombre}: ${f.superficie} m² × ${f.alpha} = ${f.absorcion} sabines`).join('<br>') +
-        `<br>Absorción total (banda 500 Hz): <b>${p.absorcionTotal} sabines</b> — volumen: ${p.volumen} m³<br><br>` +
-        `<b>Las 3 bandas:</b><br>` +
-        p.bandas.map((b) => `${b.hz} Hz: ᾱ=${b.alphaBar} → RT60 = ${b.rt60} s (${b.metodo})`).join('<br>') +
-        `<br><br>RT60 final (promedio 500+2000 Hz): <b>${p.rt60} s</b>` +
-        `<br>Frecuencia de Schroeder: fs ≈ <b>${p.schroeder} Hz</b>`,
+        rtAmoblado: string | null;
+        rtVacio: string | null;
+        bandasAmoblado: Array<{ hz: string; alphaBar: string; rt60: string | null; metodo: string }>;
+        bandasVacio: Array<{ hz: string; alphaBar: string; rt60: string | null; metodo: string }>;
+        schroeder: string | null;
+      }): string => {
+        const filaBanda = (b: { hz: string; alphaBar: string; rt60: string | null; metodo: string }): string =>
+          b.rt60 !== null
+            ? `${b.hz} Hz: ᾱ=${b.alphaBar} → RT60 = ${b.rt60} s (${b.metodo})`
+            : `${b.hz} Hz: ᾱ=${b.alphaBar} → fuera del dominio de Sabine/Eyring (ningún número aplica)`;
+        return (
+          p.filas.map((f) => `${f.nombre}: ${f.superficie} m² × ${f.alpha} = ${f.absorcion} sabines`).join('<br>') +
+          `<br>Estructura (banda 500 Hz): <b>${p.absorcionEstructura} sabines</b> + contenido supuesto (escenario amoblado): <b>${p.absorcionContenido} sabines</b> — volumen: ${p.volumen} m³<br><br>` +
+          `<b>Escenario amoblado (realista) — las 3 bandas:</b><br>` +
+          p.bandasAmoblado.map(filaBanda).join('<br>') +
+          `<br><br><b>Escenario vacío (caja desnuda) — las 3 bandas:</b><br>` +
+          p.bandasVacio.map(filaBanda).join('<br>') +
+          (p.rtAmoblado !== null && p.rtVacio !== null
+            ? `<br><br>RT60 final (promedio 500+2000 Hz): <b>${p.rtAmoblado} s</b> (amoblado) — <b>${p.rtVacio} s</b> (vacío)`
+            : `<br><br>RT60 final: no se promedia — al menos una de las bandas 500/2000 Hz quedó fuera del dominio del modelo (ver arriba)`) +
+          (p.schroeder !== null
+            ? `<br>Frecuencia de Schroeder (escenario amoblado): fs ≈ <b>${p.schroeder} Hz</b>`
+            : `<br>Frecuencia de Schroeder: no se puede calcular sin un RT60 de 500 Hz válido`)
+        );
+      },
       fuente:
-        '<b>Fórmula:</b> ecuación de Sabine (RT60 = 0,161·V/A) para bandas con absorción promedio ᾱ≤0,20; ecuación de Eyring (RT60 = 0,161·V/(−S·ln(1−ᾱ))) por encima de ese umbral, donde Sabine sobreestima el tiempo de reverberación — criterio de literatura de acústica arquitectónica, no inventado por el sitio. Se calcula por separado en 3 bandas (125/500/2000 Hz), sumando superficie por superficie en cada una — no un coeficiente único para toda la sala, ni siquiera un único valor de "muro": cada muro se orienta y se declara aparte. Los coeficientes de absorción por material y banda son criterio del sitio: valores típicos de literatura de acústica arquitectónica, no una medición de tu sala real. "Vacío" usa el coeficiente de referencia histórico de Sabine para una abertura (α=1,0 en las 3 bandas: nada de lo que llega ahí vuelve a la sala). Se verifica midiendo con un decibelímetro o una app de RT60.',
+        '<b>Fórmula:</b> ecuación de Sabine (RT60 = 0,161·V/A) para bandas con absorción promedio ᾱ≤0,20; ecuación de Eyring (RT60 = 0,161·V/(−S·ln(1−ᾱ))) entre ese umbral y ᾱ=0,80, donde Sabine sobreestima el tiempo de reverberación — criterio de literatura de acústica arquitectónica, no inventado por el sitio. Por encima de ᾱ=0,80, ninguna de las dos fórmulas describe ya la sala — ambas asumen un campo sonoro difuso (muchos rebotes, no uno o dos) que a esa absorción deja de existir — así que esa banda no reporta un número. Se calcula por separado en 3 bandas (125/500/2000 Hz), sumando superficie por superficie en cada una — no un coeficiente único para toda la sala, ni siquiera un único valor de "muro": cada muro se orienta y se declara aparte. Los coeficientes de absorción por material y banda son criterio del sitio: valores típicos de literatura de acústica arquitectónica, no una medición de tu sala real. El contenido (mobiliario, cortinas, biblioteca) se suma como sabines por m² de piso, en dos escenarios — vacío (cero) y amoblado — también criterio del sitio, no una tabla publicada: el orden de magnitud es consistente con la literatura, pero no reemplaza medir. "Vacío" en un muro usa además el coeficiente de referencia histórico de Sabine para una abertura (α=1,0 en las 3 bandas: nada de lo que llega ahí vuelve a la sala). Se verifica midiendo con un decibelímetro o una app de RT60.',
       avisoVacio: (p: { muros: string }): string =>
-        `<b>Muro(s) declarado(s) abertura:</b> ${p.muros}. No reflejan sonido — por eso baja la reverberación calculada arriba, y el plano isométrico no dibuja la reflexión de ese muro. Los modos de sala (resonancias) de la tarjeta de arriba <b>no se ajustan</b> para una abertura: siguen asumiendo paredes rígidas en los dos extremos de cada eje, así que la resonancia calculada en el eje de ese muro es menos representativa que en una sala cerrada.`,
+        `<b>Muro(s) declarado(s) abertura:</b> ${p.muros}. No reflejan sonido — por eso este cálculo da una absorción mayor (RT60 más corto) que si esos muros fueran superficies reales, y el plano isométrico no dibuja la reflexión de ese muro. Los modos de sala (resonancias) de la sección de arriba <b>no se ajustan</b> para una abertura: siguen asumiendo paredes rígidas en los dos extremos de cada eje, así que la resonancia calculada en el eje de ese muro es menos representativa que en una sala cerrada.`,
     },
 
     componentes: {
@@ -657,7 +677,6 @@ export const es = {
         potencia: 'Potencia',
         carga: 'Carga',
         modos: 'Modos de sala',
-        reverberacion: 'Reverberación',
         puenteStreamer: 'Puente de impedancias (Streamer)',
         recorridoStreamer: 'Recorrido de volumen (Streamer)',
         puenteDac: 'Puente de impedancias (DAC)',
