@@ -820,7 +820,7 @@ test('modeloReverberacion: "fuera de dominio" — verdicto, simple y texto propi
   assert.notEqual(m.verdictoTexto, 'Estimado, no medido');
   assert.match(m.simpleHtml, /fuera de lo que este modelo puede calcular/);
   assert.match(m.textoHtml, /campo sonoro difuso/);
-  assert.match(m.textoHtml, /medir vos mismo/);
+  assert.match(m.textoHtml, /medir uno mismo/);
   assert.doesNotMatch(m.textoHtml, /RT60 estimado entre/); // no el texto de rango normal
   assert.match(m.calcHtml, /fuera del dominio de Sabine\/Eyring/);
   assert.match(m.calcHtml, /no se promedia/);
