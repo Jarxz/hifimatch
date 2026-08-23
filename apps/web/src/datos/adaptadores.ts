@@ -23,6 +23,7 @@ export function parlanteDelCatalogo(p: ParlanteCat, idioma: Idioma): Parlante {
       fuente: p.sensibilidadDb.fuente[idioma],
       confianza: p.sensibilidadDb.confianza,
     },
+    sensibilidadConvencion: p.sensibilidadConvencion,
     impedanciaNominalOhm: p.impedanciaNominalOhm,
     impedanciaMinOhm: p.impedanciaMinOhm,
     impedanciaMaxOhm: p.impedanciaMaxOhm,

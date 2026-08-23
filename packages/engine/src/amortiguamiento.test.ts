@@ -10,6 +10,7 @@ const parlanteBase: Parlante = {
   nombre: 'Parlante de prueba',
   tipo: 'sintético para test',
   sensibilidadDb: { valor: 87, fuente: 'test', confianza: 'alta' },
+  sensibilidadConvencion: null,
   impedanciaNominalOhm: 8,
   impedanciaMinOhm: 4,
   potenciaRecMinW: null,

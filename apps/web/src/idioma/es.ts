@@ -328,21 +328,49 @@ export const es = {
         insuficiente: (p: { porcentaje: string }): string =>
           `Potencia insuficiente: alcanzar este pico exigiría el ${p.porcentaje}% de la capacidad del amplificador, más de lo que tiene disponible — riesgo de recorte (clipping) en los picos.`,
       } satisfies Record<CodigoPotencia, (p: { porcentaje: string }) => string>,
+      // Cuando el rango de sensibilidad (convención de medición desconocida,
+      // impedancia <8 Ω) cruza un umbral de severidad, el % de capacidad
+      // del pesimista solo no cuenta la historia completa — el veredicto
+      // mismo es incierto por un dato de catálogo faltante. Reemplaza a
+      // `simple` en ese caso puntual, no lo complementa.
+      simpleRangoCruzaUmbral: (p: { codigoPesimista: string; codigoOptimista: string }): string =>
+        `Según cómo esté medida la sensibilidad de este parlante, el resultado va de "${p.codigoPesimista}" a "${p.codigoOptimista}" — falta ese dato de catálogo para decidir cuál aplica.`,
       conMargen: (p: { amp: string; nivel: string; margenDb: string; distM: string }): string =>
         `El ${p.amp} entrega los picos a nivel <b>${p.nivel}</b> con <b>${p.margenDb} dB</b> de margen a ${p.distM} m. Alcanza con holgura.`,
       justoTexto: (p: { nivel: string; margenDb: string }): string =>
         `Llega a los picos a nivel <b>${p.nivel}</b>, pero con sólo <b>${p.margenDb} dB</b> de margen. En los transientes más fuertes queda al límite.`,
       insuficienteTexto: (p: { margenAbsDb: string; nivel: string; distM: string }): string =>
         `Faltan <b>${p.margenAbsDb} dB</b> para los picos a nivel <b>${p.nivel}</b> a ${p.distM} m. A ese volumen el amplificador recorta.`,
-      calc: (p: { sens: string; distM: string; p8: string; splDb: string; nivel: string; picoDb: string; margenSigno: string }): string =>
-        `SPL disponible = ${p.sens} − 20·log₁₀(${p.distM}) + 10·log₁₀(${p.p8}) + 6 <span style="color:var(--faint)">par</span> + 3 <span style="color:var(--faint)">sala</span> = <b>${p.splDb} dB</b><br>` +
+      calc: (p: { sens: string; distM: string; potenciaUsada: string; ohmUsados: string; splDb: string; nivel: string; picoDb: string; margenSigno: string }): string =>
+        `SPL disponible = ${p.sens} − 20·log₁₀(${p.distM}) + 10·log₁₀(${p.potenciaUsada}) <span style="color:var(--faint)">(${p.ohmUsados} Ω)</span> + 3 <span style="color:var(--faint)">par</span> = <b>${p.splDb} dB</b><br>` +
         `objetivo en pico (${p.nivel}) = <b>${p.picoDb} dB</b><br>` +
         `margen = ${p.splDb} − ${p.picoDb} = <b>${p.margenSigno} dB</b>`,
+      sensibilidadNormalizada: (p: { citada: string; efectiva: string }): string =>
+        `Sensibilidad citada a 2,83V/1m (${p.citada} dB) normalizada a 1W/1m → <b>${p.efectiva} dB</b> — a esta impedancia no son la misma cifra (ver "confianza y convención" en la guía).`,
+      // Sólo bajo 8 Ω la convención faltante mueve el número (2,83V y 1W
+      // casi coinciden a 8 Ω): abajo de esa impedancia se muestra el rango
+      // completo con magnitud y dirección; a 8 Ω o más, una nota liviana
+      // que no degrada confianza — declarar la ambigüedad sin castigar un
+      // dato que en la práctica no la tiene.
+      sensibilidadRangoHtml: (p: { pesimista: string; optimista: string; margenOptimista: string }): string =>
+        `La fuente citada no declara si la sensibilidad se midió a 2,83V o a 1W/1m — a esta impedancia sí cambia el resultado. Si es a 2,83V, la sensibilidad real es <b>${p.pesimista} dB</b> (el valor usado arriba, el caso conservador); si ya está a 1W/1m, es <b>${p.optimista} dB</b> y el margen sería <b>${p.margenOptimista} dB</b> en vez del de arriba.`,
+      // Caso puntual dentro del rango de arriba: cuando los dos extremos
+      // caen en códigos distintos, no es sólo "el margen cambia un poco" —
+      // el veredicto mismo depende del dato que falta. Reemplaza a
+      // sensibilidadRangoHtml en ese caso, no lo complementa.
+      sensibilidadRangoCruzaUmbralHtml: (p: { pesimista: string; optimista: string; codigoPesimista: string; codigoOptimista: string }): string =>
+        `La fuente citada no declara la convención de medición, y a esta impedancia eso cambia el veredicto, no sólo el margen: a 2,83V la sensibilidad real es <b>${p.pesimista} dB</b> ("${p.codigoPesimista}", el caso mostrado arriba); a 1W/1m ya sería <b>${p.optimista} dB</b> ("${p.codigoOptimista}"). Falta ese dato de catálogo para decidir cuál de los dos aplica.`,
+      sensibilidadSinConvencionIrrelevanteHtml:
+        'La fuente citada no declara si la sensibilidad se midió a 2,83V o a 1W/1m, pero a esta impedancia (8 Ω o más) las dos convenciones casi coinciden — no cambia el resultado.',
+      potenciaCargaEstimadaHtml:
+        'El amplificador no publica potencia a 4 Ω para este parlante — se usa la potencia a 8 Ω como aproximación de lo que realmente entrega a esta carga.',
+      gananciaSalaInfo: (p: { gananciaDb: string; frecuenciaHz: string }): string =>
+        `Bajo ≈${p.frecuenciaHz} Hz (el modo axial de la dimensión mayor de la sala) hay un refuerzo típico de sala pequeña de ~${p.gananciaDb} dB — no está incluido en el cálculo de arriba, que es de banda ancha.`,
       avisoRecMin: (p: { recomendadaW: string; entregadaW: string }): string =>
         `El fabricante recomienda desde ${p.recomendadaW} W para este parlante; el amplificador entrega ${p.entregadaW} W.`,
-      fuente: (p: { sensFuente: string; sensNota: string; sensConf: string; potFuente: string; potConf: string }): string =>
+      fuente: (p: { sensFuente: string; sensNota: string; sensConf: string; potFuente: string; potConf: string; ohmUsados: string }): string =>
         `<b>Fuente sensibilidad:</b> ${p.sensFuente}${p.sensNota} <span class="conf">confianza ${p.sensConf}</span><br>` +
-        `<b>Fuente potencia:</b> ${p.potFuente} (RMS, 8 Ω) <span class="conf">confianza ${p.potConf}</span>`,
+        `<b>Fuente potencia:</b> ${p.potFuente} (RMS, ${p.ohmUsados} Ω) <span class="conf">confianza ${p.potConf}</span>`,
       crestFactor: (p: { genero: string; crestFactorDb: string; nivelPromedio: string }): string =>
         `Con el crest factor típico de <b>${p.genero}</b> (~${p.crestFactorDb} dB pico-promedio), el pico de arriba implica escuchar en promedio alrededor de <b>${p.nivelPromedio} dB</b>. Es un valor típico del género, no de la grabación puntual que estés escuchando.`,
     },
@@ -697,6 +725,9 @@ export const es = {
     min: 'mín',
     max: 'máx',
     salida: 'salida',
+    // Calificador del chip de sensibilidad cuando sensibilidadConvencion es
+    // null — derivado de ese dato estructurado, no texto suelto por equipo.
+    sinConvencion: 'sin convención',
     // Confianza ('alta'|'media'|'baja') es un código interno del motor,
     // igual en los dos idiomas — sólo esta tabla lo convierte a palabra
     // visible. Usarla siempre que se muestre una Confianza real del

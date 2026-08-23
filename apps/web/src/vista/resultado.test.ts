@@ -56,26 +56,37 @@ function fuenteCat(id: string): FuenteCat {
   return f;
 }
 
+// Dimensión mayor de sala para evaluarPotencia() — sólo alimenta
+// gananciaSalaDb/frecuenciaGananciaSalaHz (informativos, no tocan
+// splDisponibleDb/margenDb), así que un valor fijo alcanza para los tests
+// que no ejercitan esos dos campos específicamente. Coincide con
+// SALA_MODOS/SALA_REVERB de más abajo (3,6×5,0×2,4 → mayor = 5,0).
+const DIM_MAYOR_TEST_M = 5.0;
+
 // ---- potencia ----
 
 test('modeloPotencia: severidad "ok" → verdictoClase "ok", nunca "alert"/"dim"', () => {
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto');
-  const m = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
+  // 1,0 m (no 2,5 m): tras la corrección del módulo de potencia (SUMA_PAR_DB
+  // 6→3, sin GANANCIA_SALA_DB sumada — ver potencia.ts) a 2,5 m este par da
+  // "justo", no "con-margen" — se acorta la distancia para seguir
+  // ejercitando el caso "con-margen" que este test nombra.
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const m = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'es');
   assert.equal(m.verdictoClase, 'ok');
   assert.equal(r.codigo, 'con-margen');
   assert.equal(m.verdictoTexto, 'Con margen');
   assert.match(m.textoHtml, /Alcanza con holgura/);
-  // margen +6,07 dB → ratio=10^0,607≈4,05× → % de capacidad usada = 100/4,05≈24,7 → 25
+  // margen +8,03 dB → ratio=10^0,803≈6,35× → % de capacidad usada = 100/6,35≈15,7 → 16
   assert.match(m.simpleHtml, /Potencia superior a la necesaria/);
-  assert.match(m.simpleHtml, /25%/);
+  assert.match(m.simpleHtml, /16%/);
 });
 
 test('modeloPotencia: severidad "alert" → texto de insuficiencia, no de sobra', () => {
   const spk = parlanteCat('kef-ls50-meta');
   const amp = ampCat('rega-brio');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 3.0, 'Referencia', 105, 'rockpop', 'es');
   assert.equal(m.verdictoClase, 'alert');
   assert.match(m.textoHtml, /Faltan/);
@@ -96,13 +107,13 @@ test('modeloPotencia: el aviso de potenciaRecMinW aparece sólo cuando el ampli 
   };
   const parlanteM: Parlante = parlanteDelCatalogo(spkConMinimo, 'es');
   const ampM: Amplificador = amplificadorDelCatalogo(ampDebil, 'es');
-  const r = evaluarPotencia(parlanteM, ampM, 2.5, 'moderado');
+  const r = evaluarPotencia(parlanteM, ampM, 2.5, 'moderado', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spkConMinimo, ampDebil, r, 2.5, 'Moderado', 90, 'rockpop', 'es');
   assert.ok(m.avisoHtml, 'debería haber aviso: 30 W < 40 W recomendados');
   assert.match(m.avisoHtml!, /40/);
 
   const ampSuficiente = ampCat('rega-brio'); // 50 W ≥ 40 W recomendados
-  const rSinAviso = evaluarPotencia(parlanteM, amplificadorDelCatalogo(ampSuficiente, 'es'), 2.5, 'moderado');
+  const rSinAviso = evaluarPotencia(parlanteM, amplificadorDelCatalogo(ampSuficiente, 'es'), 2.5, 'moderado', DIM_MAYOR_TEST_M);
   const mSinAviso = modeloPotencia(spkConMinimo, ampSuficiente, rSinAviso, 2.5, 'Moderado', 90, 'rockpop', 'es');
   assert.equal(mSinAviso.avisoHtml, null);
 });
@@ -110,7 +121,7 @@ test('modeloPotencia: el aviso de potenciaRecMinW aparece sólo cuando el ampli 
 test('modeloPotencia: crestFactorHtml refleja el crest factor del género y el nivel promedio implicado (pico − crest factor)', () => {
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto', DIM_MAYOR_TEST_M);
 
   const mRock = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
   assert.match(mRock.crestFactorHtml, /10/); // crest factor rockpop = 10 dB
@@ -133,8 +144,9 @@ function porcentajeEsperado(margenDb: number): string {
 test('modeloPotencia: simpleHtml de "con-margen" declara el % de capacidad usada, coherente con margenDb', () => {
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 2.5, 'alto');
-  const m = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
+  // 1,0 m — mismo motivo que el test de "severidad ok" de arriba.
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const m = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'es');
   assert.equal(r.codigo, 'con-margen');
   assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
   assert.match(m.simpleHtml, /margen de sobra/);
@@ -143,8 +155,11 @@ test('modeloPotencia: simpleHtml de "con-margen" declara el % de capacidad usada
 test('modeloPotencia: simpleHtml de "justo" declara un % de capacidad cercano al límite (70-99%)', () => {
   const spk = parlanteCat('kef-ls50-meta');
   const amp = ampCat('rega-brio');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'alto');
-  const m = modeloPotencia(spk, amp, r, 3.0, 'Alto', 100, 'rockpop', 'es');
+  // 1,5 m (no 3,0 m): a 3,0 m este par da "insuficiente" tras la corrección
+  // del módulo de potencia — se acorta la distancia para seguir
+  // ejercitando el caso "justo" que este test nombra.
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 1.5, 'alto', DIM_MAYOR_TEST_M);
+  const m = modeloPotencia(spk, amp, r, 1.5, 'Alto', 100, 'rockpop', 'es');
   assert.equal(r.codigo, 'justo');
   assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
   assert.match(m.simpleHtml, /al límite/);
@@ -153,7 +168,7 @@ test('modeloPotencia: simpleHtml de "justo" declara un % de capacidad cercano al
 test('modeloPotencia: simpleHtml de "insuficiente" declara un % de capacidad por encima de 100 — más de lo que el ampli tiene', () => {
   const spk = parlanteCat('kef-ls50-meta');
   const amp = ampCat('rega-brio');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia');
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'es'), amplificadorDelCatalogo(amp, 'es'), 3.0, 'referencia', DIM_MAYOR_TEST_M);
   const m = modeloPotencia(spk, amp, r, 3.0, 'Referencia', 105, 'rockpop', 'es');
   assert.equal(r.codigo, 'insuficiente');
   const pct = Number(porcentajeEsperado(r.margenDb));
@@ -165,11 +180,62 @@ test('modeloPotencia: simpleHtml de "insuficiente" declara un % de capacidad por
 test('modeloPotencia en inglés: simpleHtml con el mismo % de capacidad, texto en inglés', () => {
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 2.5, 'alto');
-  const m = modeloPotencia(spk, amp, r, 2.5, 'Loud', 100, 'rockpop', 'en');
+  // 1,0 m — mismo motivo que los tests de "con-margen"/"severidad ok" de arriba.
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const m = modeloPotencia(spk, amp, r, 1.0, 'Loud', 100, 'rockpop', 'en');
   assert.match(m.simpleHtml, new RegExp(`${porcentajeEsperado(r.margenDb)}%`));
   assert.match(m.simpleHtml, /More power than needed/);
   assert.doesNotMatch(m.simpleHtml, /Potencia/);
+});
+
+test('modeloPotencia: margenCruzaUmbral (insuficiente→con-margen) reemplaza el simpleHtml normal por el texto que declara los dos códigos, y calcHtml usa la variante con los dos códigos nombrados', () => {
+  // Mismos parámetros sintéticos que el test de margenCruzaUmbral en
+  // potencia.test.ts (Z=1Ω a propósito, fuera de rango real, para separar
+  // los dos extremos lo bastante como para cruzar los dos umbrales).
+  const spkExtremo: ParlanteCat = {
+    id: 'synthetic-1ohm-sin-convencion',
+    marca: 'Test',
+    nombre: 'Test 1Ω',
+    tipo: { es: 'sintético', en: 'synthetic' },
+    descripcion: { es: '', en: '' },
+    sensibilidadDb: { valor: 92, fuente: { es: 'test', en: 'test' }, confianza: 'alta' },
+    sensibilidadConvencion: null,
+    impedanciaNominalOhm: 1,
+    impedanciaMinOhm: null,
+    impedanciaMaxOhm: null,
+    anguloFaseGrados: null,
+    potenciaRecMinW: null,
+    potenciaRecMaxW: null,
+    maxSplDb: null,
+    chipsExtra: [],
+    fuentes: [],
+  };
+  const ampExtremo: AmplificadorCat = {
+    id: 'synthetic-40w',
+    marca: 'Test',
+    nombre: 'Test 40W',
+    tipo: { es: 'sintético', en: 'synthetic' },
+    descripcion: { es: '', en: '' },
+    potencia8OhmW: { valor: 40, fuente: { es: 'test', en: 'test' }, confianza: 'alta' },
+    potencia4OhmW: null,
+    cargaMinOhm: null,
+    sensEntradaMv: null,
+    impedanciaEntradaOhm: null,
+    factorAmortiguamiento: null,
+    chipsExtra: [],
+    fuentes: [],
+  };
+  const r = evaluarPotencia(parlanteDelCatalogo(spkExtremo, 'es'), amplificadorDelCatalogo(ampExtremo, 'es'), 2.0, 'alto', DIM_MAYOR_TEST_M);
+  assert.equal(r.margenCruzaUmbral, true); // confirma que este fixture sigue ejercitando el caso
+  const m = modeloPotencia(spkExtremo, ampExtremo, r, 2.0, 'Alto', 100, 'rockpop', 'es');
+  // simpleHtml YA NO es el % de capacidad normal — declara los dos códigos.
+  assert.match(m.simpleHtml, /insuficiente/);
+  assert.match(m.simpleHtml, /con margen/);
+  assert.doesNotMatch(m.simpleHtml, /%/); // no el texto normal de "simple", que sí lleva %
+  // calcHtml usa la variante que nombra los dos códigos, no la genérica.
+  assert.match(m.calcHtml, /"insuficiente"/);
+  assert.match(m.calcHtml, /"con margen"/);
+  assert.match(m.calcHtml, /cambia el veredicto/);
 });
 
 // ---- carga ----
@@ -719,9 +785,11 @@ test('modeloResumenFinal en inglés: comportamientoHtml en inglés, sin mezclar 
 test('modeloPotencia en inglés: mismo margenDb numérico, texto y veredicto en inglés, número con punto decimal', () => {
   const spk = parlanteCat('klipsch-rp600m-ii');
   const amp = ampCat('cambridge-cxa81');
-  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 2.5, 'alto');
-  const mEs = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'es');
-  const mEn = modeloPotencia(spk, amp, r, 2.5, 'Alto', 100, 'rockpop', 'en');
+  // 1,0 m — mismo motivo que los tests de "con-margen"/"severidad ok" de arriba
+  // ("With margin"/"Plenty of headroom" abajo exigen codigo 'con-margen').
+  const r = evaluarPotencia(parlanteDelCatalogo(spk, 'en'), amplificadorDelCatalogo(amp, 'en'), 1.0, 'alto', DIM_MAYOR_TEST_M);
+  const mEs = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'es');
+  const mEn = modeloPotencia(spk, amp, r, 1.0, 'Alto', 100, 'rockpop', 'en');
   assert.equal(mEn.margenDb, mEs.margenDb); // el número que calculó el motor no cambia con el idioma
   assert.equal(mEn.verdictoTexto, 'With margin');
   assert.match(mEn.textoHtml, /Plenty of headroom/);
@@ -767,7 +835,7 @@ function datosDocumentoFixture(idioma: 'es' | 'en', streamer: FuenteCat | null =
   const spkM = parlanteDelCatalogo(DOC_SPK, idioma);
   const ampM = amplificadorDelCatalogo(DOC_AMP, idioma);
 
-  const resPot = evaluarPotencia(spkM, ampM, disposicion.distanciaEscuchaM, 'alto');
+  const resPot = evaluarPotencia(spkM, ampM, disposicion.distanciaEscuchaM, 'alto', DIM_MAYOR_TEST_M);
   const mPot = modeloPotencia(DOC_SPK, DOC_AMP, resPot, disposicion.distanciaEscuchaM, idioma === 'es' ? 'Alto' : 'High', 100, 'rockpop', idioma);
   const mCarga = modeloCarga(DOC_SPK, DOC_AMP, evaluarCarga(spkM, ampM), idioma);
   const mAmortiguamiento = modeloAmortiguamiento(evaluarAmortiguamiento(spkM, ampM), idioma);

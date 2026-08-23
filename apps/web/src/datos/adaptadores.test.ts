@@ -34,24 +34,31 @@ function fuente(id: string) {
 
 // ---- motor-mvp.md sección 2 (potencia) ----
 
-test('§2 Vector A — Klipsch + Cambridge CXA81, 2,5 m, alto: margen +6,07 → Con margen', () => {
-  const r = evaluarPotencia(parlante('klipsch-rp600m-ii'), amplificador('cambridge-cxa81'), 2.5, 'alto');
-  assert.ok(Math.abs(r.splDisponibleDb - 106.07) < EPS);
-  assert.ok(Math.abs(r.margenDb - 6.07) < EPS);
-  assert.equal(r.severidad, 'ok');
-  assert.equal(r.codigo, 'con-margen');
-});
+// Vectores recalculados tras la corrección del módulo de potencia
+// (auditoría externa — ver packages/engine/src/potencia.ts y potencia.test.ts
+// para el detalle de los 3 cambios). Klipsch y KEF no declaran convención de
+// sensibilidad en su fuente citada, y son ambos de 8 Ω nominales: el único
+// movimiento real es el del cambio 3 (SUMA_PAR_DB 6→3, sin GANANCIA_SALA_DB
+// sumada), una baja neta de 6 dB — misma cifra que potencia.test.ts.
 
-test('§2 Vector B — KEF + Rega Brio, 3,0 m, alto: margen +1,45 → Justo', () => {
-  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'alto');
-  assert.ok(Math.abs(r.margenDb - 1.45) < EPS);
+test('§2 Vector A — Klipsch + Cambridge CXA81, 2,5 m, alto: margen +0,07 → Justo (antes +6,07 → Con margen)', () => {
+  const r = evaluarPotencia(parlante('klipsch-rp600m-ii'), amplificador('cambridge-cxa81'), 2.5, 'alto', 5.0);
+  assert.ok(Math.abs(r.splDisponibleDb - 100.07) < EPS);
+  assert.ok(Math.abs(r.margenDb - 0.07) < EPS);
   assert.equal(r.severidad, 'warn');
   assert.equal(r.codigo, 'justo');
 });
 
-test('§2 Vector C — KEF + Rega Brio, 3,0 m, referencia: margen −3,55 → Insuficiente', () => {
-  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'referencia');
-  assert.ok(Math.abs(r.margenDb - -3.55) < EPS);
+test('§2 Vector B — KEF + Rega Brio, 3,0 m, alto: margen −4,55 → Insuficiente (antes +1,45 → Justo)', () => {
+  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'alto', 5.0);
+  assert.ok(Math.abs(r.margenDb - -4.55) < EPS);
+  assert.equal(r.severidad, 'alert');
+  assert.equal(r.codigo, 'insuficiente');
+});
+
+test('§2 Vector C — KEF + Rega Brio, 3,0 m, referencia: margen −9,55 → Insuficiente (antes −3,55, ya era Insuficiente)', () => {
+  const r = evaluarPotencia(parlante('kef-ls50-meta'), amplificador('rega-brio'), 3.0, 'referencia', 5.0);
+  assert.ok(Math.abs(r.margenDb - -9.55) < EPS);
   assert.equal(r.severidad, 'alert');
   assert.equal(r.codigo, 'insuficiente');
 });
@@ -194,14 +201,36 @@ test('Genérico: Filtro purista dócil (Zmín 6,2, θ −15°) + Estado sólido 
 });
 
 test('Genérico: Potencia (Hopkins-Stryker) corre de punta a punta para los 6 perfiles — sensibilidadDb/potencia8OhmW nunca faltan', () => {
-  const s1 = evaluarPotencia(parlante('generico-parlante-filtro-docil'), amplificador('generico-ampli-ss-alta-corriente'), 3.0, 'alto');
-  assert.ok(Math.abs(s1.margenDb - 12.2185) < EPS);
+  // Recalculado tras la corrección del módulo de potencia — ver
+  // potencia.test.ts. s1 era margen +12,2185 → "Con margen"; ahora +6,2185
+  // (baja 6 dB, el mismo neto del cambio 3 — filtro-docil es 8 Ω nominal,
+  // los cambios 1/2 no le aplican). Sigue "Con margen": el margen previo
+  // tenía sobra de sobra.
+  const s1 = evaluarPotencia(parlante('generico-parlante-filtro-docil'), amplificador('generico-ampli-ss-alta-corriente'), 3.0, 'alto', 5.0);
+  assert.ok(Math.abs(s1.margenDb - 6.2185) < EPS);
   assert.equal(s1.severidad, 'ok');
   assert.equal(s1.codigo, 'con-margen');
   assert.equal(s1.confianza, 'baja'); // hereda la confianza declarada de los datos sintéticos, no se disfraza de "alta"
 
-  const s2 = evaluarPotencia(parlante('generico-parlante-monitor-reactivo'), amplificador('generico-ampli-valvular-alta-zout'), 3.0, 'alto');
-  assert.ok(Math.abs(s2.margenDb - 0.8983) < EPS);
-  assert.equal(s2.severidad, 'warn');
-  assert.equal(s2.codigo, 'justo');
+  // s2: monitor-reactivo es 4 Ω nominal y no declara convención de
+  // sensibilidad, así que además del cambio 2 (potenciaDeCargaEstimada=true,
+  // el ampli valvular no publica potencia4OhmW) entra sensibilidadRangoAplica
+  // (4Ω<8Ω, la ambigüedad sí mueve el número): el margen headline usa el
+  // extremo PESIMISTA (−8,12, no el −5,10 de una ronda anterior de este
+  // mismo cambio, que todavía no distinguía por impedancia) — sigue
+  // "Insuficiente" de cualquier forma, el rango completo lo confirma.
+  const s2 = evaluarPotencia(parlante('generico-parlante-monitor-reactivo'), amplificador('generico-ampli-valvular-alta-zout'), 3.0, 'alto', 5.0);
+  assert.ok(Math.abs(s2.margenDb - -8.1169) < EPS);
+  assert.equal(s2.severidad, 'alert');
+  assert.equal(s2.codigo, 'insuficiente');
+  assert.equal(s2.potenciaDeCargaEstimada, true);
+  assert.equal(s2.sensibilidadRangoAplica, true);
+  assert.equal(s2.confianza, 'baja');
+  assert.ok(s2.margenRangoDb !== null);
+  // extremo optimista (si la sensibilidad ya estuviera a 1W): −5,1017 —
+  // el mismo número que daba el cálculo antes de distinguir por impedancia.
+  // Negativo también: "Insuficiente" en los dos extremos del rango, no
+  // sólo en el pesimista.
+  assert.ok(Math.abs(s2.margenRangoDb![1] - -5.1017) < EPS);
+  assert.ok(s2.margenRangoDb![1] < 0);
 });

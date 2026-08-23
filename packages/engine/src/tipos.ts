@@ -19,6 +19,13 @@ export interface Parlante {
   nombre: string;
   tipo: string;
   sensibilidadDb: DatoConFuente<number>; // unidad: dB/2.83V·m
+  /** Convención de medición de sensibilidadDb — '2.83V' (medida a 2,83 V/1 m;
+   * sólo equivale exactamente a 1 W/1 m cuando impedanciaNominalOhm=8, ver
+   * unidades.ts sensibilidadA1WDb) o '1W' (ya referida a 1 W, usable tal
+   * cual). null cuando la fuente citada no declara cuál usó — potencia.ts
+   * usa el valor sin corregir en ese caso, pero degrada la confianza del
+   * resultado a 'baja': nunca se asume una convención en silencio. */
+  sensibilidadConvencion: '2.83V' | '1W' | null;
   impedanciaNominalOhm: number;
   impedanciaMinOhm: number | null; // null ⇒ la regla de carga da "sin-datos"
   potenciaRecMinW: number | null;

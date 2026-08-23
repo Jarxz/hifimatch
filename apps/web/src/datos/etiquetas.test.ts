@@ -19,13 +19,18 @@ function fuente(id: string) {
   return f;
 }
 
+// KEF y Klipsch no declaran la convención de sensibilidad (2,83V/1W) en su
+// fuente citada — verificado leyendo el catálogo real antes de la ronda de
+// corrección de potencia.ts — así que el chip deriva el calificador "sin
+// convención"/"no convention" de sensibilidadConvencion=null.
+
 test('KEF: todos los chips son derivados, sin chipsExtra (impedancia, sensibilidad, mínima, rango de potencia, máx SPL)', () => {
-  assert.deepEqual(chipsParlante(parlante('kef-ls50-meta'), 'es'), ['8 Ω', '85 dB', 'mín 3,5 Ω', '40–100 W', '106 dB máx']);
-  assert.equal(especParlante(parlante('kef-ls50-meta'), 'es'), '8 Ω · 85 dB · mín 3,5 Ω · 40–100 W · 106 dB máx');
+  assert.deepEqual(chipsParlante(parlante('kef-ls50-meta'), 'es'), ['8 Ω', '85 dB sin convención', 'mín 3,5 Ω', '40–100 W', '106 dB máx']);
+  assert.equal(especParlante(parlante('kef-ls50-meta'), 'es'), '8 Ω · 85 dB sin convención · mín 3,5 Ω · 40–100 W · 106 dB máx');
 });
 
 test('Klipsch: calificador "anecoica" en el chip de sensibilidad; potenciaRecMinW null → sólo el máximo; sin impedancia mínima', () => {
-  assert.deepEqual(chipsParlante(parlante('klipsch-rp600m-ii'), 'es'), ['8 Ω', '86 dB anecoica', '100 W', '44 Hz–25 kHz']);
+  assert.deepEqual(chipsParlante(parlante('klipsch-rp600m-ii'), 'es'), ['8 Ω', '86 dB anecoica, sin convención', '100 W', '44 Hz–25 kHz']);
 });
 
 test('Dynaudio: potenciaRecMaxW null → "≥70 W"', () => {
@@ -92,7 +97,7 @@ test('Cambridge CXN V2: sin ningún chip físico (salidaV e impedanciaSalidaOhm 
 // ---- idioma 'en' ----
 
 test('KEF en inglés: etiquetas "min"/"max" traducidas, punto decimal', () => {
-  assert.deepEqual(chipsParlante(parlante('kef-ls50-meta'), 'en'), ['8 Ω', '85 dB', 'min 3.5 Ω', '40–100 W', '106 dB max']);
+  assert.deepEqual(chipsParlante(parlante('kef-ls50-meta'), 'en'), ['8 Ω', '85 dB no convention', 'min 3.5 Ω', '40–100 W', '106 dB max']);
 });
 
 test('Bluesound Node en inglés: "output" en vez de "salida", coma de miles si aplica', () => {
@@ -113,12 +118,14 @@ test('Cambridge CXA81 en inglés: "min" en el chip de carga mínima del amplific
 
 test('Genérico (Arquetipo) — Monitor de alta reactividad: agrega chips Zmáx y θ (fase), además de mín', () => {
   const chips = chipsParlante(parlante('generico-parlante-monitor-reactivo'), 'es');
-  assert.deepEqual(chips.slice(0, 5), ['4 Ω', '86 dB', 'mín 3,5 Ω', 'Zmáx 30 Ω', 'θ -55°']);
+  // Perfil sintético: no hay una fuente real que declare convención de
+  // sensibilidad, así que sensibilidadConvencion también queda null acá.
+  assert.deepEqual(chips.slice(0, 5), ['4 Ω', '86 dB sin convención', 'mín 3,5 Ω', 'Zmáx 30 Ω', 'θ -55°']);
 });
 
 test('Genérico (Arquetipo) — Columna estándar en inglés: "Zmax" (no "Zmáx"), mismo signo de fase', () => {
   const chips = chipsParlante(parlante('generico-parlante-columna-estandar'), 'en');
-  assert.deepEqual(chips.slice(0, 5), ['6 Ω', '89 dB', 'min 4.8 Ω', 'Zmax 24 Ω', 'θ -35°']);
+  assert.deepEqual(chips.slice(0, 5), ['6 Ω', '89 dB no convention', 'min 4.8 Ω', 'Zmax 24 Ω', 'θ -35°']);
 });
 
 test('Genérico (Arquetipo) — Filtro purista dócil: no dispara chip de fase/Zmáx si esos campos fueran null (guardia de regresión con el propio arquetipo, que sí los declara)', () => {

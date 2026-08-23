@@ -27,6 +27,10 @@ export interface ParlanteCat {
   tipo: Localizado;
   descripcion: Localizado; // admite <b>…</b>
   sensibilidadDb: DatoCitado<number>; // dB/2.83V·m
+  /** Convención de medición declarada por la fuente citada de
+   * sensibilidadDb — ver packages/engine/src/tipos.ts para el detalle.
+   * Poblar únicamente cuando la fuente lo diga explícito; null si no. */
+  sensibilidadConvencion: '2.83V' | '1W' | null;
   impedanciaNominalOhm: number;
   impedanciaMinOhm: number | null;
   impedanciaMaxOhm: number | null; // pico de resonancia de graves — ver packages/engine/src/amortiguamiento.ts

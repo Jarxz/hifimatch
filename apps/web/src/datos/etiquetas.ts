@@ -36,7 +36,15 @@ function rangoPotenciaW(min: number | null, max: number | null, idioma: Idioma):
 function chipsCoreParlante(p: ParlanteCat, idioma: Idioma): string[] {
   const t = textosDe(idioma);
   const chips: string[] = [`${num(p.impedanciaNominalOhm, 0, idioma)} Ω`];
-  const calificador = p.sensibilidadDb.calificador ? ` ${p.sensibilidadDb.calificador[idioma]}` : '';
+  // El calificador del chip se arma de dos fuentes distintas: texto propio
+  // por equipo (ej. "anecoica", condición de medición) y, ahora, un
+  // indicador derivado de sensibilidadConvencion — nunca texto suelto
+  // inventado por equipo para señalar que falta esa convención.
+  const calificadores = [
+    p.sensibilidadDb.calificador ? p.sensibilidadDb.calificador[idioma] : null,
+    p.sensibilidadConvencion === null ? t.catalogo.sinConvencion : null,
+  ].filter((c): c is string => c !== null);
+  const calificador = calificadores.length > 0 ? ` ${calificadores.join(', ')}` : '';
   chips.push(`${num(p.sensibilidadDb.valor, 0, idioma)} dB${calificador}`);
   if (p.impedanciaMinOhm !== null) {
     chips.push(`${t.catalogo.min} ${num(p.impedanciaMinOhm, decimalesNaturales(p.impedanciaMinOhm), idioma)} Ω`);

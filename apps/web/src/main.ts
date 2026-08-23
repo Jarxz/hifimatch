@@ -321,7 +321,8 @@ function setVistaPlano(vista: Vista): void {
  * `ultimoAnalisis` — no recalcula carga/puente/recorrido/modos/
  * reverberación, sólo lo que sí depende de dónde están los parlantes. */
 function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala): SnapshotAnalisis {
-  const resPot = evaluarPotencia(a.parlanteM, a.ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl]);
+  const dimensionMayorSalaM = Math.max(a.sala.anchoM, a.sala.largoM, a.sala.altoM);
+  const resPot = evaluarPotencia(a.parlanteM, a.ampM, disposicion.distanciaEscuchaM, NIVEL_MOTOR[estado.lvl], dimensionMayorSalaM);
   const mPot = modeloPotencia(a.spk, a.amp, resPot, disposicion.distanciaEscuchaM, a.nivelTexto, a.picoObjetivo, estado.genero, idiomaActual);
 
   // Cruce geometría↔modo: depende de dónde cae el punto dulce en ESTA

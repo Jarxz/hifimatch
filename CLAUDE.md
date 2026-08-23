@@ -2583,7 +2583,192 @@ formulario de contacto, que reusa la misma clase `.analizar`) pasa de
 relleno blanco a dorado. 311 tests sin cambios (sin lógica nueva en el
 motor; `setNivel`/`setGenero` siguen siendo setters triviales).
 
+**Corrección del módulo de potencia (`potencia.ts`) — 7,25 dB de error
+acumulado que una auditoría externa encontró en tres defectos que se
+cancelaban parcialmente entre sí, por eso los 133 tests anteriores
+pasaban.** No era un bug contra la especificación: era la especificación
+la que estaba mal. Los tres, todos en `evaluarPotencia()`:
+
+1. **Convención de sensibilidad sin normalizar.** `unidades.ts` ya tenía
+   `sensibilidadA1WDb(sensibilidad283VDb, impedanciaOhm)` desde hacía
+   tiempo, con un comentario que la describe como "la fuente de error más
+   común del dominio" — nadie la llamaba. `Parlante`/`ParlanteCat` suman
+   `sensibilidadConvencion: '2.83V' | '1W' | null`: `'2.83V'` normaliza
+   con esa función (2,83V sólo equivale a 1W cuando la impedancia nominal
+   es 8 Ω — a 4 Ω sobreestima el SPL en ~3 dB); `null` (la fuente citada
+   no declara cuál usó) usa el valor tal cual pero degrada la confianza
+   del resultado a `'baja'` sin excepción — nunca se asume una convención
+   en silencio.
+2. **Potencia a 8 Ω usada siempre**, aunque el parlante fuera de 4 Ω y el
+   catálogo tuviera `potencia4OhmW` (ej. Cambridge CXA81: 80 W/120 W, 1,76
+   dB reales descartados). Ahora usa la potencia de la carga real cuando
+   corresponde, y marca `potenciaDeCargaEstimada: true` si el ampli no
+   publica el dato a 4 Ω. `carga.ts` no se tocó: el ratio p4/p8 que usa
+   para reserva de corriente es una pregunta distinta.
+3. **`SUMA_PAR_DB` (6→3 dB)**: +6 dB sólo vale para contenido
+   correlacionado (graves prácticamente mono); el estéreo descorrelacionado
+   — casi toda la música en medios/agudos — suma +3 dB. **`GANANCIA_SALA_DB`
+   deja de sumarse al SPL de banda ancha**: ese refuerzo aparece bajo la
+   frecuencia del modo axial de la dimensión mayor de la sala, no en todo
+   el rango — ahora se expone como información
+   (`gananciaSalaDb`/`frecuenciaGananciaSalaHz`, `evaluarPotencia()` gana
+   el parámetro explícito `dimensionMayorSalaM` para calcularla).
+
+**Guardarraíl explícito del pedido, respetado:** el cambio mueve buena
+parte del catálogo hacia `justo`/`insuficiente` en niveles alto y
+referencia — es el resultado correcto, no un problema a compensar. No se
+tocaron `PICO_OBJETIVO_DB` ni los umbrales de severidad (`margenDb≥3`/
+`≥0`), y `GANANCIA_SALA_DB` no se reintrodujo por otra vía.
+
+**Catálogo: `sensibilidadConvencion` poblado sólo donde la fuente ya
+citada lo declara explícito — 2 de 38 parlantes.** `diatone-ds251-mk2`
+(`'1W'`, la nota ya citaba el estándar japonés "New JIS" de época) y
+`wharfedale-linton-heritage` (`'2.83V'`, la nota ya declaraba que el
+valor usado "está en la referencia estándar del proyecto"). Los otros 36
+—incluidos KEF LS50 Meta y Klipsch RP-600M II, los dos parlantes de los
+vectores de prueba— quedan en `null`: no por falta de investigar, sino
+porque se revisó su fuente citada y no lo dice. `etiquetas.ts` deriva el
+calificador del chip de sensibilidad desde ese campo estructurado
+("sin convención"/"no convention") en vez de sólo texto suelto por
+equipo — nuevo, se suma al `calificador` manual existente ("anecoica")
+en vez de reemplazarlo.
+
+**Vectores A/B/C recalculados, vector D nuevo.** Klipsch y KEF son ambos
+de 8 Ω nominales y ninguno declara convención — los cambios 1 y 2 no les
+mueven el SPL (2,83V sobre 8Ω ≈ 1W), así que todo el movimiento es el
+cambio 3: una baja neta de exactamente 6 dB. A (Klipsch+CXA81, 2,5m,
+alto) pasa de "Con margen" a "Justo"; B (KEF+Rega, 3m, alto) de "Justo" a
+"Insuficiente"; C (KEF+Rega, 3m, referencia) ya era "Insuficiente" y
+sigue siéndolo. Los tres bajan de confianza `media`/`alta` a `baja`
+(sensibilidadConvencion null en ambos parlantes). El vector D es
+sintético (88 dB @2,83V, 4 Ω, ampli 80W/120W) — el único que ejercita los
+3 cambios a la vez: SPL sin corregir 106,49 dB ("Con margen") → corregido
+99,23 dB ("Insuficiente"). Textos actualizados en consecuencia: `motor.
+potencia.calc` en `es.ts`/`en.ts` ya no hardcodea "+6 par +3 sala" ni
+"8 Ω" — muestra la potencia realmente usada (8 o 4 Ω) y suma líneas
+condicionales (sensibilidad normalizada, sin convención declarada,
+potencia estimada, refuerzo de sala informativo) sólo cuando aplican.
+314 tests totales entre los 4 workspaces (antes 311) — la mayoría de la
+diferencia son fixtures de `Parlante` en otros archivos de test
+(`carga.test.ts`, `amortiguamiento.test.ts`) que necesitaron el campo
+nuevo para seguir tipando, más los tests nuevos de `potencia.test.ts`
+(vector D, cambio 2 sin dato a 4Ω, informativo de ganancia de sala).
+
+**Ronda posterior sobre el mismo cambio: la degradación de confianza a
+`'baja'` por convención de sensibilidad desconocida se condiciona a la
+impedancia, y el caso donde sí importa muestra un rango, no un punto —
+feedback directo tras ver la primera versión.** El diagnóstico: a 8 Ω,
+2,83V y 1W difieren <0,01 dB — degradar la confianza de Klipsch RP-600M
+II o KEF LS50 Meta (ambos 8 Ω, ninguno declara convención) castigaba un
+dato que en la práctica no tiene ambigüedad, y diluía la señal justo
+donde sí importa (un parlante de 4 Ω con convención desconocida, donde la
+diferencia puede superar 3 dB).
+
+`ResultadoPotencia` suma `sensibilidadRangoAplica: boolean`
+(`sensibilidadSinConvencion && impedanciaNominalOhm<8`) y tres campos de
+rango — `sensibilidadEfectivaRangoDb`/`splDisponibleRangoDb`/
+`margenRangoDb`, todos `[pesimista, optimista] | null`. Cuando
+`sensibilidadRangoAplica` es `true`: la confianza degrada a `'baja'` (acá
+sí hay ambigüedad real) y `sensibilidadEfectivaDb` —de donde salen
+`splDisponibleDb`/`margenDb`/`codigo`/`severidad`— usa el extremo
+**pesimista** (`sensibilidadA1WDb`, como si la fuente hubiera citado a
+2,83V), conservador y coherente con el resto del motor. El extremo
+optimista (el valor citado tal cual, como si ya estuviera a 1W) queda en
+los tres campos de rango — no es un número "menos preciso" descartado,
+es información: la tarjeta ahora puede decir "si tu parlante ya reporta
+a 1W, el margen real sería X en vez de Y". A 8 Ω o más con convención
+`null`, nada de esto aplica — `sensibilidadEfectivaDb` usa el valor
+citado tal cual, la confianza no degrada, y los tres campos de rango
+quedan en `null`; `sensibilidadSinConvencion` sigue declarando el hecho
+(la fuente no dijo cuál convención usó), simplemente sin consecuencia
+numérica.
+
+Efecto en los vectores de prueba: A (Klipsch+CXA81) vuelve a confianza
+`'media'`, B/C (KEF+Rega) vuelven a `'alta'` — exactamente los valores de
+antes de la primera versión de esta corrección, porque a 8 Ω la
+ambigüedad de convención nunca debió cambiar nada. El vector D (sintético
+4 Ω, convención `'2.83V'` conocida) no se toca. Vector nuevo: mismo
+parlante/ampli que D pero con convención `null` — confirma que el
+extremo pesimista del rango coincide casi exacto con D (ambos asumen,
+por distinta razón, 2,83V), que la confianza sí degrada a `'baja'` ahí, y
+que el extremo optimista del rango (`margenRangoDb[1]`) es exactamente el
+número que este mismo cálculo daba en la versión anterior de la
+corrección, antes de distinguir por impedancia — buena señal de que el
+cambio es una restricción del alcance, no un cálculo nuevo. Un archetype
+genérico real del catálogo (`generico-parlante-monitor-reactivo`, 4 Ω,
+convención `null`) también se mueve: su margen headline pasa de −5,10 a
+−8,12 dB (el extremo pesimista, antes se usaba el valor tal cual sin
+distinguir impedancia) — sigue "Insuficiente" en los dos extremos del
+rango. `docs/motor-mvp.md` sección 2 documenta la primera versión
+revertida y el porqué, no sólo el estado final. 316 tests totales (antes
+314): +2 en `potencia.test.ts` (el caso con rango a 4 Ω, y el caso sin
+rango a 8 Ω pese a convención `null`), ajustes de valores esperados en
+`adaptadores.test.ts` sin sumar tests ahí.
+
+**Tercera vuelta sobre la degradación de confianza: el corte a 8 Ω es un
+proxy nominal, declarado como tal; y el rango que cruza un umbral de
+severidad ahora dice los dos veredictos posibles, no sólo el pesimista —
+la mejor pieza de producto de toda esta corrección, según feedback
+directo.** Dos matices más sobre la ronda anterior, ninguno cambia el
+umbral de 8 Ω en sí:
+
+**Límite declarado, no corregido.** El corte usa `impedanciaNominalOhm`
+— un número de ficha, redondo — no la impedancia real en la banda media
+donde se mide la sensibilidad. Un parlante "de 8 Ω nominales" suele caer
+en 6-6,5 Ω reales ahí; a 6 Ω, 2,83V son 1,33 W, ~1,25 dB de diferencia
+(no los <0,01 dB del caso idealizado exacto a 8 Ω). Para varios
+parlantes de 8 Ω nominales del catálogo, la ambigüedad real puede rondar
+1 dB, no cero. **Deliberadamente no se corrige** — el catálogo no tiene
+impedancia media medida por equipo, y asumirla inventaría un dato — pero
+queda declarado en `docs/motor-mvp.md` sección 2, para que quien audite
+el modelo lo encuentre escrito, no lo descubra.
+
+**El caso que faltaba testear: cuando el rango cruza un umbral de
+severidad, no sólo cambia el margen — cambia el veredicto.** Con el
+arquetipo genérico (4 Ω) los dos extremos daban "insuficiente" — el caso
+"limpio", donde reportar el pesimista solo es razonable porque el
+optimista tampoco salva la combinación. El caso interesante es cuando el
+pesimista da "insuficiente" y el optimista "con-margen": ahí el
+`codigo` headline no es una propiedad del sistema, es un artefacto de
+qué dato de catálogo falta. `ResultadoPotencia` suma
+`codigoRangoOptimista: CodigoPotencia | null` (el `codigo` que
+resultaría con el extremo optimista, vía `clasificarMargen()` — extraída
+como función para no duplicar los tres umbrales de severidad) y
+`margenCruzaUmbral: boolean`. Cuando es `true`, `modeloPotencia`
+(`apps/web`) **reemplaza** el `simpleHtml` normal (el % de capacidad
+usada) por un texto que nombra los dos códigos posibles y declara que
+falta el dato de convención para decidir — no un detalle enterrado en
+"Ver detalle técnico": es la frase que se lee sin abrir nada, porque es
+la pieza más accionable de esta ambigüedad. `calcHtml` usa su propia
+variante (`sensibilidadRangoCruzaUmbralHtml`, distinta de
+`sensibilidadRangoHtml`) que también nombra los dos códigos, no sólo los
+números.
+
+Vector de prueba nuevo (sintético, 1 Ω a propósito — fuera del rango real
+de un parlante, para separar los extremos lo bastante como para cruzar
+los dos umbrales de severidad a la vez): sensibilidad 92 dB sin
+convención, amplificador 40 W sin `potencia4OhmW`, 2,0 m, nivel alto.
+Pesimista ≈−4,04 dB ("insuficiente"), optimista +5,0 dB ("con-margen") —
+`margenCruzaUmbral=true`. Test adicional en `resultado.test.ts` verifica
+que `modeloPotencia` realmente reemplaza `simpleHtml`/`calcHtml` con las
+variantes de dos códigos, no sólo que el motor calcula los flags
+correctos. 318 tests totales (antes 316): +2 en `potencia.test.ts`
+(el vector de cruce, y la corrección del comentario de un test anterior
+que ya cruzaba un umbral sin que el test lo dijera), +1 en
+`resultado.test.ts`.
+
 Falta:
+- **Modelo de campo mixto para la regla de potencia** (en vez del término
+  de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla
+  ese término con correcciones que sólo existen porque hay una sala
+  (antes `GANANCIA_SALA_DB` sumado siempre; ahora informativo bajo un
+  techo de frecuencia) — la corrección de fondo sería derivar la
+  distancia crítica de la sala a partir del RT60 que ya calcula
+  `reverberacion.ts`, y usarla para pasar de campo libre a campo
+  reverberante donde corresponda. Identificado explícitamente al corregir
+  el módulo de potencia (auditoría externa) y dejado fuera de esa ronda a
+  propósito: es un cambio de modelo mayor, con sus propios vectores de
+  prueba, no un ajuste de constante.
 - **Factor de amortiguamiento (`factorAmortiguamiento`) e impedancia de
   pico de graves (`impedanciaMaxOhm`)**: los dos campos que necesita
   `amortiguamiento.ts` existen en el esquema (`Parlante`/`Amplificador`

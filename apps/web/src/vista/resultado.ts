@@ -81,15 +81,48 @@ export function modeloPotencia(
     });
   }
 
-  const calcHtml = t.motor.potencia.calc({
-    sens: num(spk.sensibilidadDb.valor, 0, idioma),
-    distM: distFmt,
-    p8: num(amp.potencia8OhmW.valor, 0, idioma),
-    splDb: num(r.splDisponibleDb, 1, idioma),
-    nivel: nivelMinuscula,
-    picoDb: num(picoObjetivoDb, 0, idioma),
-    margenSigno: numConSigno(r.margenDb, 1, idioma),
-  });
+  // Potencia realmente usada por el motor (cambio 2: 4 Ω cuando el parlante
+  // es de esa impedancia nominal y el amplificador publica ese dato) — la
+  // vista replica la misma condición para elegir de qué DatoCitado sacar
+  // fuente/confianza, ya que ResultadoPotencia sólo trae el número crudo.
+  const usaPotencia4Ohm = spk.impedanciaNominalOhm <= 4 && amp.potencia4OhmW !== null;
+  const potenciaUsadaCitada = usaPotencia4Ohm ? amp.potencia4OhmW! : amp.potencia8OhmW;
+  const ohmUsados = usaPotencia4Ohm ? '4' : '8';
+
+  const calcHtml =
+    t.motor.potencia.calc({
+      sens: num(r.sensibilidadEfectivaDb, 1, idioma),
+      distM: distFmt,
+      potenciaUsada: num(r.potenciaUsadaW, 0, idioma),
+      ohmUsados,
+      splDb: num(r.splDisponibleDb, 1, idioma),
+      nivel: nivelMinuscula,
+      picoDb: num(picoObjetivoDb, 0, idioma),
+      margenSigno: numConSigno(r.margenDb, 1, idioma),
+    }) +
+    (spk.sensibilidadConvencion === '2.83V'
+      ? `<br>${t.motor.potencia.sensibilidadNormalizada({ citada: num(spk.sensibilidadDb.valor, 1, idioma), efectiva: num(r.sensibilidadEfectivaDb, 1, idioma) })}`
+      : '') +
+    (r.sensibilidadRangoAplica && r.sensibilidadEfectivaRangoDb && r.margenRangoDb
+      ? `<br>${
+          r.margenCruzaUmbral && r.codigoRangoOptimista
+            ? t.motor.potencia.sensibilidadRangoCruzaUmbralHtml({
+                pesimista: num(r.sensibilidadEfectivaRangoDb[0], 1, idioma),
+                optimista: num(r.sensibilidadEfectivaRangoDb[1], 1, idioma),
+                codigoPesimista: t.motor.potencia.verdicto[r.codigo].toLowerCase(),
+                codigoOptimista: t.motor.potencia.verdicto[r.codigoRangoOptimista].toLowerCase(),
+              })
+            : t.motor.potencia.sensibilidadRangoHtml({
+                pesimista: num(r.sensibilidadEfectivaRangoDb[0], 1, idioma),
+                optimista: num(r.sensibilidadEfectivaRangoDb[1], 1, idioma),
+                margenOptimista: numConSigno(r.margenRangoDb[1], 1, idioma),
+              })
+        }`
+      : r.sensibilidadSinConvencion
+        ? `<br>${t.motor.potencia.sensibilidadSinConvencionIrrelevanteHtml}`
+        : '') +
+    (r.potenciaDeCargaEstimada ? `<br>${t.motor.potencia.potenciaCargaEstimadaHtml}` : '') +
+    `<br>${t.motor.potencia.gananciaSalaInfo({ gananciaDb: num(r.gananciaSalaDb, 0, idioma), frecuenciaHz: num(r.frecuenciaGananciaSalaHz, 0, idioma) })}`;
 
   const avisoHtml =
     r.avisos.length > 0
@@ -103,8 +136,9 @@ export function modeloPotencia(
     sensFuente: spk.sensibilidadDb.fuente[idioma],
     sensNota: spk.sensibilidadDb.nota ? ` — ${spk.sensibilidadDb.nota[idioma]}` : '',
     sensConf: t.catalogo.confianza[spk.sensibilidadDb.confianza],
-    potFuente: amp.potencia8OhmW.fuente[idioma],
-    potConf: t.catalogo.confianza[amp.potencia8OhmW.confianza],
+    potFuente: potenciaUsadaCitada.fuente[idioma],
+    potConf: t.catalogo.confianza[potenciaUsadaCitada.confianza],
+    ohmUsados,
   });
 
   const crestFactorHtml = t.motor.potencia.crestFactor({
@@ -121,10 +155,24 @@ export function modeloPotencia(
   // potencia (ratio<1) — el propio texto lo declara como "más de lo que tiene".
   const porcentajeCapacidad = num(100 * Math.pow(10, -r.margenDb / 10), 0, idioma);
 
+  // Cuando el rango de sensibilidad cruza un umbral de severidad, el
+  // veredicto mismo depende de un dato de catálogo que falta — la frase
+  // simple (la que se lee sin abrir "Ver detalle técnico") lo declara en
+  // vez de mostrar el % de capacidad como si el pesimista fuera el único
+  // resultado posible. Es la pieza más accionable de esta ambigüedad, no
+  // un detalle técnico de segunda: se muestra arriba, no sólo en calcHtml.
+  const simpleHtml =
+    r.margenCruzaUmbral && r.codigoRangoOptimista
+      ? t.motor.potencia.simpleRangoCruzaUmbral({
+          codigoPesimista: t.motor.potencia.verdicto[r.codigo].toLowerCase(),
+          codigoOptimista: t.motor.potencia.verdicto[r.codigoRangoOptimista].toLowerCase(),
+        })
+      : t.motor.potencia.simple[r.codigo]({ porcentaje: porcentajeCapacidad });
+
   return {
     verdictoClase: r.severidad,
     verdictoTexto: t.motor.potencia.verdicto[r.codigo],
-    simpleHtml: t.motor.potencia.simple[r.codigo]({ porcentaje: porcentajeCapacidad }),
+    simpleHtml,
     margenDb: r.margenDb,
     textoHtml,
     calcHtml,

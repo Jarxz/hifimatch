@@ -287,6 +287,8 @@ export const en: Textos = {
         insuficiente: (p) =>
           `Not enough power: reaching this peak would require ${p.porcentaje}% of the amplifier's capacity, more than it has available — risk of clipping on peaks.`,
       },
+      simpleRangoCruzaUmbral: (p) =>
+        `Depending on how this speaker's sensitivity was measured, the result ranges from "${p.codigoPesimista}" to "${p.codigoOptimista}" — that catalog data point is missing to decide which one applies.`,
       conMargen: (p) =>
         `The ${p.amp} delivers the peaks at <b>${p.nivel}</b> level with <b>${p.margenDb} dB</b> of margin at ${p.distM} m. Plenty of headroom.`,
       justoTexto: (p) =>
@@ -294,14 +296,26 @@ export const en: Textos = {
       insuficienteTexto: (p) =>
         `It's <b>${p.margenAbsDb} dB</b> short of the peaks at <b>${p.nivel}</b> level at ${p.distM} m. At that volume the amplifier clips.`,
       calc: (p) =>
-        `Available SPL = ${p.sens} − 20·log₁₀(${p.distM}) + 10·log₁₀(${p.p8}) + 6 <span style="color:var(--faint)">pair</span> + 3 <span style="color:var(--faint)">room</span> = <b>${p.splDb} dB</b><br>` +
+        `Available SPL = ${p.sens} − 20·log₁₀(${p.distM}) + 10·log₁₀(${p.potenciaUsada}) <span style="color:var(--faint)">(${p.ohmUsados} Ω)</span> + 3 <span style="color:var(--faint)">pair</span> = <b>${p.splDb} dB</b><br>` +
         `peak target (${p.nivel}) = <b>${p.picoDb} dB</b><br>` +
         `margin = ${p.splDb} − ${p.picoDb} = <b>${p.margenSigno} dB</b>`,
+      sensibilidadNormalizada: (p) =>
+        `Sensitivity cited at 2.83V/1m (${p.citada} dB) normalized to 1W/1m → <b>${p.efectiva} dB</b> — at this impedance those aren't the same figure (see "confidence and convention" in the guide).`,
+      sensibilidadRangoHtml: (p) =>
+        `The cited source doesn't state whether sensitivity was measured at 2.83V or at 1W/1m — at this impedance that does change the result. If it's at 2.83V, real sensitivity is <b>${p.pesimista} dB</b> (the value used above, the conservative case); if it's already at 1W/1m, it's <b>${p.optimista} dB</b> and the margin would be <b>${p.margenOptimista} dB</b> instead of the one above.`,
+      sensibilidadRangoCruzaUmbralHtml: (p) =>
+        `The cited source doesn't state the measurement convention, and at this impedance that changes the verdict, not just the margin: at 2.83V real sensitivity is <b>${p.pesimista} dB</b> ("${p.codigoPesimista}", the case shown above); at 1W/1m it would be <b>${p.optimista} dB</b> ("${p.codigoOptimista}"). That catalog data point is missing to decide which one applies.`,
+      sensibilidadSinConvencionIrrelevanteHtml:
+        "The cited source doesn't state whether sensitivity was measured at 2.83V or at 1W/1m, but at this impedance (8 Ω or more) the two conventions nearly coincide — it doesn't change the result.",
+      potenciaCargaEstimadaHtml:
+        "The amplifier doesn't publish power into 4 Ω for this speaker — its 8 Ω power figure is used as an approximation of what it actually delivers into this load.",
+      gananciaSalaInfo: (p) =>
+        `Below ≈${p.frecuenciaHz} Hz (the axial mode of the room's largest dimension) there's a typical small-room reinforcement of ~${p.gananciaDb} dB — not included in the wideband calculation above.`,
       avisoRecMin: (p) =>
         `The manufacturer recommends ${p.recomendadaW} W or more for this speaker; the amplifier delivers ${p.entregadaW} W.`,
       fuente: (p) =>
         `<b>Sensitivity source:</b> ${p.sensFuente}${p.sensNota} <span class="conf">${p.sensConf} confidence</span><br>` +
-        `<b>Power source:</b> ${p.potFuente} (RMS, 8 Ω) <span class="conf">${p.potConf} confidence</span>`,
+        `<b>Power source:</b> ${p.potFuente} (RMS, ${p.ohmUsados} Ω) <span class="conf">${p.potConf} confidence</span>`,
       crestFactor: (p) =>
         `With the typical crest factor for <b>${p.genero}</b> (~${p.crestFactorDb} dB peak-to-average), the peak above implies listening at an average of around <b>${p.nivelPromedio} dB</b>. This is a typical genre value, not the specific recording you're playing.`,
     },
@@ -613,6 +627,7 @@ export const en: Textos = {
     min: 'min',
     max: 'max',
     salida: 'output',
+    sinConvencion: 'no convention',
     confianza: { alta: 'high', media: 'medium', baja: 'low' },
   },
 };
