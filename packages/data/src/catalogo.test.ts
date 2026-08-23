@@ -59,13 +59,13 @@ test('ids únicos en todo el catálogo', () => {
   }
 });
 
-test('conteo de equipos por categoría: 38 parlantes (35 reales + 3 genéricos) + 37 amplis (34 reales + 3 genéricos) + 30 streamers + 30 dacs + 3 cables = 138', () => {
-  assert.equal(CATALOGO.parlantes.length, 38);
-  assert.equal(CATALOGO.amplificadores.length, 37);
+test('conteo de equipos por categoría: 39 parlantes (36 reales + 3 genéricos) + 39 amplis (36 reales + 3 genéricos) + 30 streamers + 32 dacs + 3 cables = 143', () => {
+  assert.equal(CATALOGO.parlantes.length, 39);
+  assert.equal(CATALOGO.amplificadores.length, 39);
   assert.equal(CATALOGO.streamers.length, 30);
-  assert.equal(CATALOGO.dacs.length, 30);
+  assert.equal(CATALOGO.dacs.length, 32);
   assert.equal(CATALOGO.cables.length, 3);
-  assert.equal(TODOS_LOS_EQUIPOS.length, 138);
+  assert.equal(TODOS_LOS_EQUIPOS.length, 143);
 });
 
 test('nombre no está vacío en ningún equipo (no se traduce, así que no pasa por el recorrido de Localizado)', () => {

@@ -41,7 +41,7 @@ const FUENTES_GENERICAS = ['The Hifi Match — valores de referencia declarados 
  * un dato que este sitio construye a propósito en vez de citar de un
  * fabricante. sensibilidadDb/potencia8OhmW son valores razonables para
  * cada arquetipo (no vienen de una medición): el motor los exige como
- * campos no-nulos (packages/engine/src/tipos.ts), así que sin un número acá
+ * campos no-nulos (packages/engine/src/tipos.ts), así que sin un número aquí
  * ni potencia.ts ni el resto de la evaluación podrían correr.
  */
 export const PARLANTES_GENERICOS: readonly ParlanteCat[] = [
@@ -777,7 +777,7 @@ export const CATALOGO: Catalogo = {
     chipsExtra: [{ es: '39 Hz–23 kHz, capacidad IEC 180 W', en: '39 Hz–23 kHz, 180 W IEC handling' }],
     fuentes: ['Dynaudio (ficha oficial)'],
     pendiente: {
-      es: 'impedancia mínima y rango de potencia recomendada no están en la ficha oficial de Dynaudio para este modelo. El modelo predecesor (Contour 20, 2016, discontinuado) fue medido por Stereophile sin caer nunca debajo de su nominal de 4 Ω, pero esa cifra pertenece a un producto distinto y no se traslada acá sin verificación propia — se deja en null en vez de estimarlo',
+      es: 'impedancia mínima y rango de potencia recomendada no están en la ficha oficial de Dynaudio para este modelo. El modelo predecesor (Contour 20, 2016, discontinuado) fue medido por Stereophile sin caer nunca debajo de su nominal de 4 Ω, pero esa cifra pertenece a un producto distinto y no se traslada aquí sin verificación propia — se deja en null en vez de estimarlo',
       en: "minimum impedance and a recommended power range aren't on Dynaudio's official spec sheet for this model. The predecessor model (Contour 20, 2016, discontinued) was measured by Stereophile never dipping below its 4 Ω nominal, but that figure belongs to a different product and isn't carried over here without its own verification — left null instead of estimating it",
     },
   },
@@ -1396,6 +1396,42 @@ export const CATALOGO: Catalogo = {
     pendiente: {
       es: 'Yamaha publica "entrada de potencia nominal/máxima" (40 W/160 W), una cifra de soporte de potencia, no un rango de potencia recomendada de amplificador como el resto de las marcas de este catálogo — se deja potenciaRecMinW/MaxW en null en vez de asumir la equivalencia (mismo criterio ya aplicado al Diatone DS-251MK2 de este catálogo). Impedancia mínima tampoco está publicada',
       en: "Yamaha publishes \"nominal/maximum input power\" (40 W/160 W), a power-handling figure, not a recommended amplifier power range like the rest of this catalog's brands — potenciaRecMinW/MaxW are left null instead of assuming the equivalence (the same criterion already applied to this catalog's Diatone DS-251MK2). Minimum impedance is not published either",
+    },
+  },
+  {
+    id: 'wilson-benesch-horizon',
+    marca: 'Wilson Benesch',
+    nombre: 'Wilson Benesch Horizon',
+    tipo: {
+      es: 'Columna compacta de 2,5 vías, medio de acoplamiento directo sin filtro',
+      en: '2.5-way compact floorstander, directly-coupled midrange with no passive filter',
+    },
+    descripcion: {
+      es: 'Columna compacta con chasis monocasco de fibra de carbono. El driver de medios de 17 cm va acoplado directamente al amplificador, sin componentes de filtro en el paso de señal — el fabricante advierte que en ese tramo la calidad del amplificador importa más que la potencia bruta. El tweeter usa un filtro de segundo orden a 5 kHz; el woofer, uno de primer orden.',
+      en: "A compact floorstander with a carbon-fiber monocoque chassis. The 17 cm midrange driver is directly coupled to the amplifier, with no filter components in its signal path — the manufacturer notes that amplifier quality matters more than raw wattage in that section. The tweeter uses a second-order filter at 5 kHz; the woofer, a first-order one.",
+    },
+    sensibilidadDb: {
+      valor: 89,
+      fuente: { es: 'Wilson Benesch (ficha oficial)', en: 'Wilson Benesch (official spec sheet)' },
+      confianza: 'media',
+      nota: {
+        es: 'medida a 2,83 V/1 m; no se encontró medición independiente que la confirme o corrija',
+        en: 'measured at 2.83V/1m; no independent measurement found to confirm or correct it',
+      },
+    },
+    sensibilidadConvencion: '2.83V',
+    impedanciaNominalOhm: 6,
+    impedanciaMinOhm: 4,
+    impedanciaMaxOhm: null,
+    anguloFaseGrados: null,
+    potenciaRecMinW: 50,
+    potenciaRecMaxW: null,
+    maxSplDb: null,
+    chipsExtra: [{ es: '35 Hz–30 kHz, medio de 17 cm acoplado directo', en: '35 Hz–30 kHz, directly-coupled 17 cm midrange' }],
+    fuentes: ['Wilson Benesch (ficha oficial, reproducida por distribuidores)'],
+    pendiente: {
+      es: 'el fabricante no publica un techo de potencia recomendada ("desde 50 W en adelante"), ni impedancia de pico de resonancia, ángulo de fase ni SPL máximo — se dejan en null en vez de asumir un valor',
+      en: 'the manufacturer does not publish an upper bound for recommended power ("from 50 W and up"), nor a resonance-peak impedance, phase angle, or maximum SPL — left null instead of assuming a value',
     },
   },
 
@@ -2082,7 +2118,7 @@ export const CATALOGO: Catalogo = {
     ],
     fuentes: ['Denon (ficha oficial, denon.com)'],
     pendiente: {
-      es: 'impedancia de entrada de línea depende del modo Source Direct: 40 kΩ desactivado (registrado acá) vs. 17 kΩ activado — la sensibilidad (105 mV) es igual en ambos modos. Carga mínima de parlante no declarada explícitamente por el fabricante; factor de amortiguación no publicado',
+      es: 'impedancia de entrada de línea depende del modo Source Direct: 40 kΩ desactivado (registrado aquí) vs. 17 kΩ activado — la sensibilidad (105 mV) es igual en ambos modos. Carga mínima de parlante no declarada explícitamente por el fabricante; factor de amortiguación no publicado',
       en: 'line input impedance depends on the Source Direct mode: 40 kΩ off (recorded here) vs. 17 kΩ on — sensitivity (105 mV) is the same in both modes. Minimum speaker load is not explicitly stated by the manufacturer; damping factor is not published',
     },
   },
@@ -2641,6 +2677,67 @@ export const CATALOGO: Catalogo = {
       en: 'line input impedance is not specifically confirmed for this model (other A-S series integrateds in this catalog state 47 kΩ, but it is not assumed without this model\'s own figure). Minimum speaker load was not found on the specifications page consulted',
     },
   },
+  {
+    id: 'accuphase-e380',
+    marca: 'Accuphase',
+    nombre: 'Accuphase E-380',
+    tipo: { es: 'Integrado Clase AB, salida discreta', en: 'Class AB integrated amplifier, discrete output stage' },
+    descripcion: {
+      es: 'Integrado japonés de gama alta con salida instantánea de corriente (AAVA) y un factor de amortiguamiento muy alto (500, a 8 Ω y 50 Hz) — coloración mínima esperable frente a la curva de impedancia de un parlante, incluso en cargas reactivas.',
+      en: "A high-end Japanese integrated amplifier with instantaneous current output (AAVA) and a very high damping factor (500, at 8 Ω and 50 Hz) — minimal expected coloration against a speaker's impedance curve, even into reactive loads.",
+    },
+    potencia8OhmW: {
+      valor: 120,
+      fuente: { es: 'Accuphase (ficha oficial)', en: 'Accuphase (official spec sheet)' },
+      confianza: 'alta',
+    },
+    potencia4OhmW: {
+      valor: 180,
+      fuente: { es: 'Accuphase (ficha oficial)', en: 'Accuphase (official spec sheet)' },
+      confianza: 'alta',
+    },
+    cargaMinOhm: null,
+    sensEntradaMv: 155,
+    impedanciaEntradaOhm: null,
+    factorAmortiguamiento: 500,
+    chipsExtra: [{ es: 'AAVA, THD 0,05%', en: 'AAVA, 0.05% THD' }],
+    fuentes: ['Accuphase (ficha oficial, accuphase.com)', 'HiFi Engine (manual reproducido)'],
+    pendiente: {
+      es: 'impedancia de entrada de línea y carga mínima de parlante soportada no se encontraron publicadas como cifras separadas',
+      en: 'line input impedance and minimum supported speaker load were not found published as separate figures',
+    },
+  },
+  {
+    id: 'gold-note-is1000-mkii-deluxe',
+    marca: 'Gold Note',
+    nombre: 'Gold Note IS-1000 MkII Deluxe',
+    tipo: { es: 'Integrado Clase AB con DAC, phono y streaming', en: 'Class AB integrated amplifier with DAC, phono, and streaming' },
+    descripcion: {
+      es: 'Integrado italiano de alta corriente (MOSFET) que combina amplificación, DAC, previo phono MM/MC y streamer de red en un solo chasis. Se evalúa aquí sólo como amplificador — el DAC y el streamer integrados no publican cifras de salida hacia una etapa externa, así que no se registran como fuente aparte.',
+      en: "A high-current (MOSFET) Italian integrated amplifier that combines amplification, a DAC, an MM/MC phono stage, and a network streamer in a single chassis. Evaluated here only as an amplifier — its built-in DAC and streamer do not publish output figures toward an external stage, so they are not registered as a separate source.",
+    },
+    potencia8OhmW: {
+      valor: 125,
+      fuente: { es: 'Gold Note (ficha oficial)', en: 'Gold Note (official spec sheet)' },
+      confianza: 'alta',
+      nota: { es: 'medida a 1 kHz', en: 'measured at 1 kHz' },
+    },
+    potencia4OhmW: {
+      valor: 250,
+      fuente: { es: 'Gold Note (ficha oficial)', en: 'Gold Note (official spec sheet)' },
+      confianza: 'alta',
+    },
+    cargaMinOhm: null,
+    sensEntradaMv: null,
+    impedanciaEntradaOhm: null,
+    factorAmortiguamiento: null,
+    chipsExtra: [{ es: 'amort. >100 (cifra exacta no publicada)', en: 'damping >100 (exact figure not published)' }],
+    fuentes: ['Gold Note (ficha oficial, goldnote.it)'],
+    pendiente: {
+      es: 'el fabricante declara el factor de amortiguamiento como ">100" sin dar una cifra exacta — se deja factorAmortiguamiento en null en vez de adoptar 100 como si fuera el valor medido. Sensibilidad e impedancia de entrada de línea, y carga mínima de parlante soportada, tampoco se encontraron publicadas',
+      en: 'the manufacturer states the damping factor as ">100" without giving an exact figure — factorAmortiguamiento is left null instead of adopting 100 as if it were the measured value. Line input sensitivity and impedance, and minimum supported speaker load, were not found published either',
+    },
+  },
 
   ],
 
@@ -2832,7 +2929,7 @@ export const CATALOGO: Catalogo = {
         en: 'Network streamer, integrated DAC, RCA only (fixed or variable level)',
       },
       descripcion: {
-        es: 'DAC ESS Sabre ES9028PRO. Salida sólo RCA, seleccionable como fija o variable. La ficha oficial declara 100 Ω de impedancia de salida, pero esa cifra parece heredada sin actualizar del RS250 original — la medición independiente de este modelo "A" rediseñado da <b>142 Ω</b>, y es la que se registra acá.',
+        es: 'DAC ESS Sabre ES9028PRO. Salida sólo RCA, seleccionable como fija o variable. La ficha oficial declara 100 Ω de impedancia de salida, pero esa cifra parece heredada sin actualizar del RS250 original — la medición independiente de este modelo "A" rediseñado da <b>142 Ω</b>, y es la que se registra aquí.',
         en: 'An ESS Sabre ES9028PRO DAC. RCA-only output, selectable as fixed or variable. The official spec sheet states 100 Ω of output impedance, but that figure appears to be carried over unrevised from the original RS250 — the independent measurement of this redesigned "A" model gives <b>142 Ω</b>, which is what is recorded here.',
       },
       salidaV: 2.3,
@@ -2990,7 +3087,7 @@ export const CATALOGO: Catalogo = {
         en: 'Network streamer, integrated DAC (analog output)',
       },
       descripcion: {
-        es: 'DAC AKM AKM4493SEQ. La salida de línea es <b>configurable por el usuario</b> (500 mV / 800 mV / 1 V / 2 V) — acá se registra el máximo (2,0 V); el recorrido de volumen real depende de en qué nivel esté configurada. Impedancia de salida de 10 Ω medida de forma independiente (no publicada por el fabricante): baja, buen puente con casi cualquier entrada de línea.',
+        es: 'DAC AKM AKM4493SEQ. La salida de línea es <b>configurable por el usuario</b> (500 mV / 800 mV / 1 V / 2 V) — aquí se registra el máximo (2,0 V); el recorrido de volumen real depende de en qué nivel esté configurada. Impedancia de salida de 10 Ω medida de forma independiente (no publicada por el fabricante): baja, buen puente con casi cualquier entrada de línea.',
         en: 'AKM AKM4493SEQ DAC. The line output is <b>user-configurable</b> (500 mV / 800 mV / 1 V / 2 V) — the maximum (2.0 V) is recorded here; the actual volume headroom depends on which level it is set to. Output impedance of 10 Ω independently measured (not published by the manufacturer): low, bridging well with almost any line input.',
       },
       salidaV: 2.0,
@@ -3546,7 +3643,7 @@ export const CATALOGO: Catalogo = {
       nombre: 'Cambridge Audio DacMagic 200M',
       tipo: { es: 'DAC/preamp de escritorio, RCA y XLR', en: 'Desktop DAC/preamp, RCA and XLR' },
       descripcion: {
-        es: 'Preamp/DAC con salida fija o variable; se usan acá los valores de RCA (no balanceada): 2,1 V y menos de 50 Ω de impedancia de salida.',
+        es: 'Preamp/DAC con salida fija o variable; se usan aquí los valores de RCA (no balanceada): 2,1 V y menos de 50 Ω de impedancia de salida.',
         en: 'A preamp/DAC with fixed or variable output; the unbalanced RCA figures are used here: 2.1 V and under 50 Ω of output impedance.',
       },
       salidaV: 2.1,
@@ -3777,7 +3874,7 @@ export const CATALOGO: Catalogo = {
         en: 'Desktop DAC/preamp with headphone stage, 3-step adjustable output',
       },
       descripcion: {
-        es: 'DAC ESS9018 (Sabre32) con re-muestreo propietario DigiMaster a 32-bit/1,4 MHz antes de la conversión. Salida <b>ajustable en tres pasos</b> (1,0/2,0/4,0 V nominal) — acá se registra el máximo medido (3,48 V); el recorrido de volumen real depende de en qué paso esté configurada. Descontinuado (Wadia cerró como marca); DAC confirmado por desarme técnico, no por ficha oficial vigente.',
+        es: 'DAC ESS9018 (Sabre32) con re-muestreo propietario DigiMaster a 32-bit/1,4 MHz antes de la conversión. Salida <b>ajustable en tres pasos</b> (1,0/2,0/4,0 V nominal) — aquí se registra el máximo medido (3,48 V); el recorrido de volumen real depende de en qué paso esté configurada. Descontinuado (Wadia cerró como marca); DAC confirmado por desarme técnico, no por ficha oficial vigente.',
         en: 'An ESS9018 (Sabre32) DAC with proprietary DigiMaster re-sampling to 32-bit/1.4 MHz before conversion. A <b>3-step adjustable output</b> (1.0/2.0/4.0 V nominal) — the measured maximum (3.48 V) is recorded here; the actual volume headroom depends on which step it is set to. Discontinued (Wadia closed as a brand); the DAC chip is confirmed by a technical teardown, not a current official spec sheet.',
       },
       salidaV: 3.48,
@@ -3855,7 +3952,7 @@ export const CATALOGO: Catalogo = {
     nombre: 'Chord Hugo 2',
     tipo: { es: 'DAC/amplificador de audífonos portátil, con modo de nivel de línea fijo', en: 'Portable DAC/headphone amplifier, with fixed line-level mode' },
     descripcion: {
-      es: 'DAC discreto FPGA (misma arquitectura "Pulse Array" que el Qutest), pensado como amplificador de audífonos portátil con salida por RCA y dos salidas de audífonos, las tres cableadas al mismo estado de salida — sin modo de línea, ese estado sigue el volumen (hasta 5 V con audífonos de 300 Ω). Un combo de botones activa un <b>modo de nivel de línea fijo a 3 V</b> pensado para conectarse a un amplificador; es el valor que se registra acá.',
+      es: 'DAC discreto FPGA (misma arquitectura "Pulse Array" que el Qutest), pensado como amplificador de audífonos portátil con salida por RCA y dos salidas de audífonos, las tres cableadas al mismo estado de salida — sin modo de línea, ese estado sigue el volumen (hasta 5 V con audífonos de 300 Ω). Un combo de botones activa un <b>modo de nivel de línea fijo a 3 V</b> pensado para conectarse a un amplificador; es el valor que se registra aquí.',
       en: 'A discrete FPGA DAC (the same "Pulse Array" architecture as the Qutest), designed as a portable headphone amp with an RCA output and two headphone outputs, all three wired to the same output stage — without line mode, that stage follows the volume control (up to 5 V into 300 Ω headphones). A button combo activates a <b>fixed 3 V line-level mode</b> meant for connecting to an amplifier; that is the value recorded here.',
     },
     salidaV: 3.0,
@@ -3974,7 +4071,7 @@ export const CATALOGO: Catalogo = {
     nombre: 'iFi Zen DAC Signature V2',
     tipo: { es: 'DAC de escritorio, RCA, salida fija o variable, etapa analógica mejorada', en: 'Desktop DAC, RCA, fixed or variable output, upgraded analog stage' },
     descripcion: {
-      es: 'Versión con etapa analógica mejorada del Zen DAC V2 ("dual-mono totalmente diferencial", inspirada en la línea Pro de iFi) — mismo voltaje e impedancia de salida nominal que el V2 estándar, con menor ruido y distorsión medidos. Salida RCA seleccionable entre fija (2,1 V) y variable (hasta 3,3 V, registrado acá). Stereophile midió 99,6 Ω de impedancia de salida no balanceada, coincidente con la ficha oficial (≤100 Ω).',
+      es: 'Versión con etapa analógica mejorada del Zen DAC V2 ("dual-mono totalmente diferencial", inspirada en la línea Pro de iFi) — mismo voltaje e impedancia de salida nominal que el V2 estándar, con menor ruido y distorsión medidos. Salida RCA seleccionable entre fija (2,1 V) y variable (hasta 3,3 V, registrado aquí). Stereophile midió 99,6 Ω de impedancia de salida no balanceada, coincidente con la ficha oficial (≤100 Ω).',
       en: "An upgraded-analog-stage version of the Zen DAC V2 (\"fully differential dual-mono\", inspired by iFi's Pro line) — the same nominal output voltage and impedance as the standard V2, with lower measured noise and distortion. RCA output selectable between fixed (2.1 V) and variable (up to 3.3 V, recorded here). Stereophile measured 99.6 Ω of unbalanced output impedance, matching the official spec sheet (≤100 Ω).",
     },
     salidaV: 3.3,
@@ -3997,7 +4094,7 @@ export const CATALOGO: Catalogo = {
     nombre: 'iFi Zen DAC V2',
     tipo: { es: 'DAC de escritorio de entrada, RCA, salida fija o variable', en: 'Entry desktop DAC, RCA, fixed or variable output' },
     descripcion: {
-      es: 'DAC de escritorio de entrada de iFi, con salida RCA seleccionable entre fija (2,1 V) y variable (hasta 3,3 V, registrado acá). La ficha oficial publica el mismo voltaje e impedancia de salida (≤100 Ω) que la versión "Signature V2" — la diferencia entre ambas está en los componentes de la etapa analógica (menor ruido/distorsión en la Signature), no en el nivel ni la impedancia de salida nominal.',
+      es: 'DAC de escritorio de entrada de iFi, con salida RCA seleccionable entre fija (2,1 V) y variable (hasta 3,3 V, registrado aquí). La ficha oficial publica el mismo voltaje e impedancia de salida (≤100 Ω) que la versión "Signature V2" — la diferencia entre ambas está en los componentes de la etapa analógica (menor ruido/distorsión en la Signature), no en el nivel ni la impedancia de salida nominal.',
       en: 'An entry-level iFi desktop DAC, with RCA output selectable between fixed (2.1 V) and variable (up to 3.3 V, recorded here). The official spec sheet publishes the same output voltage and impedance (≤100 Ω) as the "Signature V2" version — the difference between the two is in the analog-stage components (lower noise/distortion on the Signature), not the nominal output level or impedance.',
     },
     salidaV: 3.3,
@@ -4075,7 +4172,7 @@ export const CATALOGO: Catalogo = {
     ],
     fuentes: ['Schiit Audio (ficha oficial, schiit.com/products/gungnir)'],
     pendiente: {
-      es: 'impedancia de salida — no publicada en la ficha oficial ni encontrada en mediciones independientes; otros DAC de Schiit de la misma familia (Bifrost 2/64, Yggdrasil) sí la declaran en 75 Ω, pero no se registra ese valor acá sin confirmación específica para este modelo',
+      es: 'impedancia de salida — no publicada en la ficha oficial ni encontrada en mediciones independientes; otros DAC de Schiit de la misma familia (Bifrost 2/64, Yggdrasil) sí la declaran en 75 Ω, pero no se registra ese valor aquí sin confirmación específica para este modelo',
       en: 'output impedance — not published in the official spec sheet nor found in independent measurements; other Schiit DACs in the same family (Bifrost 2/64, Yggdrasil) do state 75 Ω, but that figure is not recorded here without model-specific confirmation',
     },
   },
@@ -4147,7 +4244,7 @@ export const CATALOGO: Catalogo = {
       'Audio Science Review (medición independiente, amirm) — salida balanceada >4 V; impedancia de salida no medida directamente, estimada "muy por encima de 1000 Ω" a partir de datos de terceros',
     ],
     pendiente: {
-      es: 'impedancia de salida — ni el fabricante ni Audio Science Review (que sí midió el resto del equipo a fondo) publican una cifra exacta; el propio revisor declara no haberla medido y sólo la estima, por datos de terceros, "muy por encima de 1000 Ω" — se registra `null` en vez de adoptar esa estimación como si fuera una medición. El voltaje de salida tampoco tiene una cifra de fábrica clara: varias fuentes independientes coinciden en que supera los 4 V balanceados (el valor que se registra acá), y una de ellas menciona un máximo cercano a 5,3 V sin precisar la condición exacta — no se adopta ese máximo por la misma falta de precisión',
+      es: 'impedancia de salida — ni el fabricante ni Audio Science Review (que sí midió el resto del equipo a fondo) publican una cifra exacta; el propio revisor declara no haberla medido y sólo la estima, por datos de terceros, "muy por encima de 1000 Ω" — se registra `null` en vez de adoptar esa estimación como si fuera una medición. El voltaje de salida tampoco tiene una cifra de fábrica clara: varias fuentes independientes coinciden en que supera los 4 V balanceados (el valor que se registra aquí), y una de ellas menciona un máximo cercano a 5,3 V sin precisar la condición exacta — no se adopta ese máximo por la misma falta de precisión',
       en: 'output impedance — neither the manufacturer nor Audio Science Review (which otherwise measured the unit thoroughly) publish an exact figure; the reviewer states outright that it was not measured and is only estimated, from third-party data, as "well over 1000 Ω" — `null` is recorded here instead of adopting that estimate as if it were an actual measurement. Output voltage also has no clear factory figure: several independent sources agree it exceeds 4V balanced (the value recorded here), and one of them mentions a maximum near 5.3V without specifying the exact condition — that maximum is not adopted for the same lack of precision',
     },
   },
@@ -4242,6 +4339,38 @@ export const CATALOGO: Catalogo = {
       es: 'la salida es conmutable en dos niveles por conector (RCA 2,0/2,5 V; XLR 4/5 V); se registra el máximo, siguiendo el mismo criterio del resto del catálogo con equipos de salida configurable. Una fuente aislada citaba una impedancia de 0,1 Ω que no coincide con el resto de la documentación (esa cifra corresponde a la salida de audífonos, no a la de línea) — se descartó a favor de 50 Ω/100 Ω, consistentes entre varias fuentes',
       en: 'the output is switchable between two levels per connector (RCA 2.0/2.5 V; XLR 4/5 V); the maximum is recorded, following the same criterion the rest of the catalog uses for units with configurable output. One isolated source cited a 0.1 Ω impedance that does not match the rest of the documentation (that figure corresponds to the headphone output, not the line output) — it was discarded in favor of 50 Ω/100 Ω, consistent across multiple sources',
     },
+  },
+  {
+    id: 'accuphase-dc1000',
+    marca: 'Accuphase',
+    nombre: 'Accuphase DC-1000',
+    tipo: { es: 'DAC de referencia, salida RCA y XLR', en: 'Reference DAC, RCA and XLR outputs' },
+    descripcion: {
+      es: 'DAC insignia con ocho conversores ES9038 PRO operando en paralelo por canal (arquitectura MDSD propia de Accuphase). Salida analógica de 2,5 V tanto por RCA como por XLR, con control de nivel en el dominio digital de 0 a −80 dB.',
+      en: "Accuphase's flagship DAC, with eight ES9038 PRO converters running in parallel per channel (Accuphase's own MDSD architecture). A 2.5V analog output on both RCA and XLR, with digital-domain level control from 0 to −80 dB.",
+    },
+    salidaV: 2.5,
+    impedanciaSalidaOhm: 50,
+    fuente: { es: 'Accuphase (ficha técnica oficial)', en: 'Accuphase (official technical datasheet)' },
+    confianza: 'alta',
+    chipsExtra: [{ es: '8× ES9038 PRO (MDSD)', en: '8× ES9038 PRO (MDSD)' }],
+    fuentes: ['Accuphase (ficha técnica oficial, accuphase.com)'],
+  },
+  {
+    id: 'gold-note-ds10-evo',
+    marca: 'Gold Note',
+    nombre: 'Gold Note DS-10 EVO',
+    tipo: { es: 'DAC/streamer de red, salida RCA y XLR', en: 'Network DAC/streamer, RCA and XLR outputs' },
+    descripcion: {
+      es: 'DAC con streamer de red integrado. Salida analógica fija de 2,0 V, igual por RCA no balanceada que por XLR balanceada — ninguna de las dos entrega más tensión que la otra, a diferencia de otros equipos de este catálogo con salida XLR reforzada.',
+      en: "A DAC with a built-in network streamer. Fixed 2.0V analog output, the same on unbalanced RCA as on balanced XLR — neither connector delivers more voltage than the other, unlike some other units in this catalog whose XLR output is boosted.",
+    },
+    salidaV: 2.0,
+    impedanciaSalidaOhm: 50,
+    fuente: { es: 'Gold Note (ficha oficial)', en: 'Gold Note (official spec sheet)' },
+    confianza: 'alta',
+    chipsExtra: [{ es: 'salida idéntica RCA/XLR', en: 'identical RCA/XLR output' }],
+    fuentes: ['Gold Note (ficha oficial, goldnote.it)'],
   },
 
   ],

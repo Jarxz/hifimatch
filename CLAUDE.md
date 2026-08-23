@@ -3171,6 +3171,40 @@ lleva la clase `regla-dim` (tratamiento visual distinto de "warn", nunca
 `apps/web` (antes 177 — suman tests de truncamiento de filtro peine y de
 la cita explícita de 45° en `fuenteHtml`).
 
+**Cinco equipos nuevos — Accuphase, Gold Note, Wilson Benesch — y un
+descarte documentado de Conrad-Johnson.** Catálogo a **143 equipos** (39
+parlantes + 39 amplificadores + 30 streamers + 32 dacs + 3 cables, antes
+138): **Wilson Benesch Horizon** (parlante, columna compacta de chasis
+monocasco de fibra de carbono, medio de 17 cm acoplado directo al
+amplificador sin filtro pasivo — 89 dB/2,83 V/1 m, 6 Ω nominal/4 Ω
+mínima, todas del mismo fabricante y consistentes entre los tres modelos
+de su gama actual consultados); **Accuphase E-380** (integrado, 120 W/
+8 Ω · 180 W/4 Ω, factor de amortiguamiento 500 a 8 Ω/50 Hz — de los más
+altos del catálogo) y **Accuphase DC-1000** (DAC insignia, 8× ES9038 PRO
+en paralelo por canal, 2,5 V/50 Ω idéntico en RCA y XLR); **Gold Note
+IS-1000 MkII Deluxe** (integrado italiano de alta corriente con DAC/
+phono/streamer propios, evaluado sólo como amplificador — 125 W/8 Ω ·
+250 W/4 Ω) y **Gold Note DS-10 EVO** (DAC/streamer de red, 2,0 V/50 Ω
+igual en RCA que en XLR, sin refuerzo balanceado a diferencia de otros
+equipos de este catálogo).
+
+**Conrad-Johnson quedó fuera a propósito, no por falta de investigar.**
+Se relevaron las fichas oficiales de su lineup completo de amplificación
+actual — CAV-60 (el único "control amplifier"/integrado de la marca),
+ART27A, Classic Sixty-Two/62SE, Classic One-Twenty/120SE — y **ninguno
+publica una potencia a 8 Ω**: la convención de la marca es citar la
+potencia únicamente al tap de 4 Ω del transformador de salida (con 8/16 Ω
+disponibles como conexión alternativa, sin cifra propia). `potencia8OhmW`
+es un campo no-nulo del esquema (`AmplificadorCat`, `tipos-catalogo.ts`)
+— completarlo con la cifra de 4 Ω habría hecho pasar un dato de otra
+carga como si fuera el de 8 Ω, y dejarlo en un valor inventado viola la
+misma disciplina que ya regía el resto del catálogo. Conrad-Johnson
+tampoco fabrica parlantes, streamers ni DACs, así que no hay una
+categoría alternativa donde encajarlos limpiamente. Se optó por no
+forzar una entrada en vez de comprometer la disciplina de "nunca
+inventes un dato" — mismo principio que ya regía, aplicado por primera
+vez a una marca completa en vez de a un campo suelto.
+
 Falta:
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla
