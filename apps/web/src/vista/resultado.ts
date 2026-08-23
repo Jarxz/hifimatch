@@ -627,12 +627,25 @@ export interface ModeloTarjetaFiltroPeine {
   verdictoTexto: string;
   simpleHtml: string;
   textoHtml: string;
+  /** Máximo 3 filas — las de peor severidad (ya ponderada por absorción),
+   * o una sola línea declarando que ninguna reflexión cae en zona
+   * problemática cuando las 10 combinaciones dan "ok". Nunca las 10 de
+   * una: diez filas es ruido, no evidencia (ver "Jerarquía de la página
+   * de resultado"). */
   calcHtml: string;
+  /** Las 10 combinaciones completas, siempre en el mismo orden — detrás
+   * del toggle "Ver las diez" de la tarjeta, para quien quiera la
+   * transparencia completa del cálculo. */
+  calcHtmlTodas: string;
   avisoHtml: string | null;
   fuenteHtml: string;
 }
 
 const ORDEN_REFLEXIONES: NombreReflexion[] = ['frontal', 'lateral', 'trasera', 'piso', 'techo'];
+
+/** Cuántas de las 10 combinaciones mostrar en el resumen colapsado de la
+ * fila — el resto vive detrás de "Ver las diez", nunca se pierde. */
+const TOP_N_FILTRO_PEINE = 3;
 
 export function modeloFiltroPeine(resultados: ResultadoFiltroPeine[], idioma: Idioma): ModeloTarjetaFiltroPeine {
   const t = textosDe(idioma).motor.filtroPeine;
@@ -655,7 +668,18 @@ export function modeloFiltroPeine(resultados: ResultadoFiltroPeine[], idioma: Id
           severidad: r.severidad === 'warn' ? t.severidadWarn : t.severidadOk,
         })
       : t.filaDegenerada({ nombre: `${nombreReflexion[r.reflexion]} (${r.canal === 'izq' ? t.canalIzq : t.canalDer})` });
-  const calcHtml = ORDEN_REFLEXIONES.flatMap((nombre) => resultados.filter((r) => r.reflexion === nombre).map(filaHtml)).join('<br>');
+
+  // Resumen: peor severidad primero, y dentro de la misma severidad, la
+  // superficie más reflectante primero (coeficiente de absorción más
+  // bajo) — "ya ponderada por absorción". `Array.prototype.sort` es
+  // estable, así que los empates (ej. los dos canales de una misma
+  // reflexión, casi siempre idénticos) conservan el orden original.
+  const ordenados = [...resultados].sort((a, b) => {
+    const porSeveridad = (a.severidad === 'warn' ? 0 : 1) - (b.severidad === 'warn' ? 0 : 1);
+    return porSeveridad !== 0 ? porSeveridad : a.coeficienteAbsorcion - b.coeficienteAbsorcion;
+  });
+  const calcHtml = conAviso.length === 0 ? t.sinNulos : ordenados.slice(0, TOP_N_FILTRO_PEINE).map(filaHtml).join('<br>');
+  const calcHtmlTodas = ORDEN_REFLEXIONES.flatMap((nombre) => resultados.filter((r) => r.reflexion === nombre).map(filaHtml)).join('<br>');
 
   const avisoHtml =
     conAviso.length > 0
@@ -672,6 +696,7 @@ export function modeloFiltroPeine(resultados: ResultadoFiltroPeine[], idioma: Id
     simpleHtml,
     textoHtml,
     calcHtml,
+    calcHtmlTodas,
     avisoHtml,
     fuenteHtml: t.fuente({
       rangoMin: String(FILTRO_PEINE_RANGO_MIN_HZ),
@@ -700,6 +725,23 @@ export interface ModeloTarjetaTrianguloEscucha {
   fuenteHtml: string;
 }
 
+/**
+ * Ángulo que da la disposición automática de este sitio (factor 1,2 de
+ * `filaEscuchaM`/`puntoDulceDesdeParlantes` en `sala.ts` — ver
+ * `docs/motor-mvp.md` sección 4quater): siempre ≈45,24° en cualquier
+ * sala, nunca 60° (la convención de triángulo equilátero estéreo, dato
+ * real que `colocacion.ts` sigue citando sin cambios). "Opción B" de la
+ * decisión pendiente sobre esto: en vez de mover el factor 1,2 para que
+ * el default caiga en 60° (cambio de motor), se declara 45° como
+ * criterio PROPIO del sitio — texto, no código. No participa de ningún
+ * cálculo ni umbral: `ANGULO_ESCUCHA_MIN_GRADOS`/`MAX_GRADOS` de
+ * `colocacion.ts` (40°-65°) siguen siendo la única fuente de verdad
+ * para la severidad. Sólo cambia cómo se explica el número en pantalla,
+ * para que el sitio deje de leerse como si estuviera fallando su propia
+ * convención en todos los análisis por defecto.
+ */
+const ANGULO_REFERENCIA_SITIO_GRADOS = 45;
+
 export function modeloTrianguloEscucha(
   resAsimetria: ResultadoAsimetria[],
   resAngulo: ResultadoAnguloEscucha,
@@ -727,7 +769,8 @@ export function modeloTrianguloEscucha(
     hayAsimetria && hayAngulo ? t.simpleAmbos : hayAsimetria ? t.simpleAsimetria : hayAngulo ? t.simpleAngulo[resAngulo.codigo] : t.simpleOk;
 
   const anguloFmt = num(resAngulo.anguloGrados, 0, idioma);
-  const textoHtml = t.texto({ angulo: anguloFmt, convencion: String(resAngulo.anguloConvencionGrados) });
+  const referenciaFmt = String(ANGULO_REFERENCIA_SITIO_GRADOS);
+  const textoHtml = t.texto({ angulo: anguloFmt, convencion: String(resAngulo.anguloConvencionGrados), referencia: referenciaFmt });
 
   const directo = resAsimetria.find((r) => r.categoria === 'directo')!;
   const calcHtml =
@@ -759,6 +802,7 @@ export function modeloTrianguloEscucha(
     fuenteHtml: t.fuente({
       umbralM: num(ASIMETRIA_UMBRAL_M, 2, idioma),
       convencion: String(resAngulo.anguloConvencionGrados),
+      referencia: referenciaFmt,
       min: String(ANGULO_ESCUCHA_MIN_GRADOS),
       max: String(ANGULO_ESCUCHA_MAX_GRADOS),
     }),

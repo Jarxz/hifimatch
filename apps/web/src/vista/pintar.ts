@@ -86,8 +86,9 @@ export function pintarSala(anchoLargo: string, alto: string, distancia: string, 
   el('r-peak').textContent = pico;
 }
 
-export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma): void {
+export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma, dato: string): void {
   pintarVerdict('pw-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('pw-dato').textContent = dato;
   el('pw-simple').textContent = m.simpleHtml;
   el('pw-text').innerHTML = m.textoHtml;
   el('pw-calc').innerHTML = m.calcHtml;
@@ -104,7 +105,7 @@ export function pintarPotencia(m: ModeloTarjetaPotencia, idioma: Idioma): void {
  * vez de mostrar un veredicto "Sin dato" que ocupa lugar sin decir nada
  * evaluable.
  */
-export function pintarCarga(m: ModeloTarjetaCarga): void {
+export function pintarCarga(m: ModeloTarjetaCarga, dato: string): void {
   const card = el('card-carga');
   if (m.sinDatos) {
     card.classList.add('hidden');
@@ -112,6 +113,7 @@ export function pintarCarga(m: ModeloTarjetaCarga): void {
   }
   card.classList.remove('hidden');
   pintarVerdict('z-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('z-dato').textContent = dato;
   el('z-simple').textContent = m.simpleHtml;
   el('z-text').innerHTML = m.textoHtml;
   pintarCalcOpcional('z-calc', m.calcHtml);
@@ -122,7 +124,7 @@ export function pintarCarga(m: ModeloTarjetaCarga): void {
 /** Igual patrón que pintarCarga: tarjeta entera oculta si falta el factor
  * de amortiguamiento o la impedancia mínima (sin-datos, catálogo todavía
  * sin poblar estos campos para ningún equipo). */
-export function pintarAmortiguamiento(m: ModeloTarjetaAmortiguamiento): void {
+export function pintarAmortiguamiento(m: ModeloTarjetaAmortiguamiento, dato: string): void {
   const card = el('card-amortiguamiento');
   if (m.sinDatos) {
     card.classList.add('hidden');
@@ -130,6 +132,7 @@ export function pintarAmortiguamiento(m: ModeloTarjetaAmortiguamiento): void {
   }
   card.classList.remove('hidden');
   pintarVerdict('am-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('am-dato').textContent = dato;
   el('am-simple').textContent = m.simpleHtml;
   el('am-text').innerHTML = m.textoHtml;
   pintarCalcOpcional('am-calc', m.calcHtml);
@@ -150,7 +153,9 @@ export function pintarAmortiguamiento(m: ModeloTarjetaAmortiguamiento): void {
 export function pintarGanancia(
   categoria: 'streamer' | 'dac',
   puente: ModeloTarjetaPuente | null,
-  recorrido: ModeloTarjetaRecorrido | null
+  recorrido: ModeloTarjetaRecorrido | null,
+  datoPuente: string,
+  datoRecorrido: string
 ): void {
   const cardPuente = el('card-puente-' + categoria);
   const cardRecorrido = el('card-recorrido-' + categoria);
@@ -160,6 +165,7 @@ export function pintarGanancia(
   } else {
     cardPuente.classList.remove('hidden');
     pintarVerdict('pz-verdict-' + categoria, false, puente.verdictoClase, puente.verdictoTexto);
+    el('pz-dato-' + categoria).textContent = datoPuente;
     el('pz-simple-' + categoria).textContent = puente.simpleHtml;
     el('pz-text-' + categoria).innerHTML = puente.textoHtml;
     el('pz-calc-' + categoria).innerHTML = puente.calcHtml;
@@ -172,6 +178,7 @@ export function pintarGanancia(
   } else {
     cardRecorrido.classList.remove('hidden');
     pintarVerdict('pv-verdict-' + categoria, false, recorrido.verdictoClase, recorrido.verdictoTexto);
+    el('pv-dato-' + categoria).textContent = datoRecorrido;
     el('pv-simple-' + categoria).textContent = recorrido.simpleHtml;
     el('pv-text-' + categoria).innerHTML = recorrido.textoHtml;
     el('pv-calc-' + categoria).innerHTML = recorrido.calcHtml;
@@ -186,8 +193,9 @@ export function pintarPlano(svg: string): void {
 
 /** A diferencia de potencia/carga/ganancia, modos de sala siempre tiene dato
  * (sólo depende de las dimensiones, nunca de equipos) — nunca "sin-datos". */
-export function pintarModos(m: ModeloTarjetaModos): void {
+export function pintarModos(m: ModeloTarjetaModos, dato: string): void {
   pintarVerdict('mo-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('mo-dato').textContent = dato;
   el('mo-simple').textContent = m.simpleHtml;
   el('mo-text').innerHTML = m.textoHtml;
   pintarFlag('mo-flag', m.avisoHtml, false);
@@ -196,19 +204,24 @@ export function pintarModos(m: ModeloTarjetaModos): void {
 
 /** Filtro peine por reflexión — igual patrón que pintarModos: siempre tiene
  * dato (sólo depende de disposición + materiales, nunca del catálogo),
- * nunca "sin-datos". */
-export function pintarFiltroPeine(m: ModeloTarjetaFiltroPeine): void {
+ * nunca "sin-datos". `calcHtml` ya viene recortado a lo sumo 3 filas (o la
+ * línea de "ninguna reflexión..."); `calcHtmlTodas` es el listado completo
+ * de las 10 combinaciones, detrás del toggle anidado "Ver las diez". */
+export function pintarFiltroPeine(m: ModeloTarjetaFiltroPeine, dato: string): void {
   pintarVerdict('fp-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('fp-dato').textContent = dato;
   el('fp-simple').textContent = m.simpleHtml;
   el('fp-text').innerHTML = m.textoHtml;
   el('fp-calc').innerHTML = m.calcHtml;
+  el('fp-calc-todas').innerHTML = m.calcHtmlTodas;
   pintarFlag('fp-flag', m.avisoHtml, false);
   el('fp-src').innerHTML = m.fuenteHtml;
 }
 
 /** Triángulo de escucha (asimetría + ángulo) — mismo patrón, siempre tiene dato. */
-export function pintarTrianguloEscucha(m: ModeloTarjetaTrianguloEscucha): void {
+export function pintarTrianguloEscucha(m: ModeloTarjetaTrianguloEscucha, dato: string): void {
   pintarVerdict('te-verdict', false, m.verdictoClase, m.verdictoTexto);
+  el('te-dato').textContent = dato;
   el('te-simple').textContent = m.simpleHtml;
   el('te-text').innerHTML = m.textoHtml;
   el('te-calc').innerHTML = m.calcHtml;
@@ -221,8 +234,9 @@ export function pintarTrianguloEscucha(m: ModeloTarjetaTrianguloEscucha): void {
  * no emite veredicto ok/warn: `m.verdictoClase` es siempre 'dim', así que
  * el badge se pinta en gris (mismo tratamiento que "sin-datos" en el resto
  * del sitio), nunca con un color de severidad. */
-export function pintarReverberacion(m: ModeloTarjetaReverberacion): void {
+export function pintarReverberacion(m: ModeloTarjetaReverberacion, dato: string): void {
   pintarVerdict('rt-verdict', m.verdictoClase === 'dim', m.verdictoClase, m.verdictoTexto);
+  el('rt-dato').textContent = dato;
   el('rt-simple').textContent = m.simpleHtml;
   el('rt-text').innerHTML = m.textoHtml;
   el('rt-calc').innerHTML = m.calcHtml;
@@ -271,6 +285,19 @@ function pintarEstadoGrupo(prefijo: string, g: ModeloEstadoGrupo): void {
   el(`est-${prefijo}-detalle`).textContent = g.detalleTexto;
 }
 
+/** Resumen de grupo en el summary de cada acordeón de evidencia
+ * (`#grupo-<prefijo>-estado/-linea`) — misma `ModeloEstadoGrupo` que ya
+ * pinta la grilla de "Tres estados" del veredicto (`pintarEstadoGrupo`),
+ * sólo que acá encabeza la evidencia plegada de ese grupo en vez de la
+ * tarjeta de veredicto: una sola fuente de verdad, pintada en dos
+ * lugares. */
+function pintarGrupoResumen(prefijo: string, g: ModeloEstadoGrupo): void {
+  const estadoEl = el(`grupo-${prefijo}-estado`);
+  estadoEl.textContent = g.estadoTexto;
+  estadoEl.className = 'grupo-estado est-' + g.clase;
+  el(`grupo-${prefijo}-linea`).textContent = g.detalleTexto;
+}
+
 /** "Veredicto" + "Tres estados" — la única evaluación de conjunto del
  * sitio (ver CLAUDE.md, "Veredicto y tres estados"); reemplazó por
  * completo a un puntaje 1-10 de una ronda anterior, ya retirado. */
@@ -282,6 +309,9 @@ export function pintarVeredicto(m: ModeloVeredicto): void {
   pintarEstadoGrupo('potencia', m.potencia);
   pintarEstadoGrupo('acople', m.acopleElectrico);
   pintarEstadoGrupo('sala', m.sala);
+  pintarGrupoResumen('potencia', m.potencia);
+  pintarGrupoResumen('acople', m.acopleElectrico);
+  pintarGrupoResumen('sala', m.sala);
 }
 
 /** "Qué conviene hacer" — máximo 3 recomendaciones, las de mayor

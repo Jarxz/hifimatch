@@ -107,7 +107,7 @@ export const en: Textos = {
     triangulo: {
       titulo: 'Listening triangle',
       cuerpoHtml:
-        'Two questions about the SHAPE of the triangle the speakers and the listening spot form, beyond distance alone. <b>Asymmetry:</b> compares the path of each reflection —and the direct path— between the two channels; with the speakers in different positions (or the seat unlocked with the padlock, see the layout card) one side can end up closer than the other, and that time difference pulls the stereo image toward the nearer speaker. <b>Angle:</b> the one the two speakers subtend as seen from the listening spot, compared against the stereo equilateral-triangle convention (60°) — a different angle isn\'t an error (some people prefer a narrower or wider soundstage on purpose), but this card flags it when it falls outside a reasonable range, so it\'s a conscious choice rather than an undeclared side effect. Same caveat as always: rigid room geometry, verified by listening.',
+        'Two questions about the SHAPE of the triangle the speakers and the listening spot form, beyond distance alone. <b>Asymmetry:</b> compares the path of each reflection —and the direct path— between the two channels; with the speakers in different positions (or the seat unlocked with the padlock, see the layout card) one side can end up closer than the other, and that time difference pulls the stereo image toward the nearer speaker. <b>Angle:</b> the one the two speakers subtend as seen from the listening spot, compared against two references — the stereo equilateral-triangle convention (60°, not invented by the site) and this site\'s own criterion (~45°, what its automatic layout gives by design, declared as such instead of forced to match the convention) — an angle that differs from either isn\'t an error (some people prefer a narrower or wider soundstage on purpose), but this card flags it when it falls outside a reasonable range that accounts for both references, so it\'s a conscious choice rather than an undeclared side effect. Same caveat as always: rigid room geometry, verified by listening.',
     },
     reverberacion: {
       titulo: 'Estimated reverberation time (RT60)',
@@ -252,6 +252,7 @@ export const en: Textos = {
       candadoComparadorAviso:
         'Original analysis and Modified use a different method for the listening spot (padlock locked/open) — a difference between the two may come from that, not only from position.',
       referenciaSimetrica: 'symmetric reference position',
+      verLasDiez: 'See the ten',
       ubicacionTitulo: 'Reference speaker placement',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Left speaker: <b>${p.frontalIzq} m</b> from the front wall, <b>${p.lateralIzq} m</b> from its side wall. Right speaker: <b>${p.frontalDer} m</b> from the front wall, <b>${p.lateralDer} m</b> from its side wall. Distance between them: <b>${p.separacion} m</b>. This is the reference layout the rest of the analysis uses (power, modes, reflections) — it gets refined by moving the speakers and listening in the real space.`,
@@ -574,6 +575,7 @@ export const en: Textos = {
       severidadWarn: 'in audible zone, reflective',
       fila: (p) => `${p.nombre}: Δ=${p.deltaM} m → 1st null ${p.nuloHz} Hz, 1st reinforcement ${p.refuerzoHz} Hz (α≈${p.alpha}) — ${p.severidad}`,
       filaDegenerada: (p) => `${p.nombre}: degenerate geometry (speaker ~on the surface) — no finite null to report`,
+      sinNulos: 'None of the 10 combinations (5 reflections × 2 channels) falls in a problematic zone — see "the ten" for the full detail.',
       avisoFila: (p) => `<b>${p.nombre}:</b> first null at ≈${p.nuloHz} Hz.`,
       sugerencia:
         'Treating that surface acoustically (an absorbent panel at the first reflection point) helps, or repositioning speakers/listening spot to change the path difference — verified by listening and, if possible, measuring.',
@@ -608,7 +610,7 @@ export const en: Textos = {
       },
       simpleAmbos: 'The triangle is asymmetric and, on top of that, the angle falls outside the declared range.',
       texto: (p) =>
-        `The angle the two speakers subtend as seen from the listening spot is <b>${p.angulo}°</b>. The stereo equilateral-triangle convention is <b>${p.convencion}°</b> — it's not the only valid layout (a narrower or wider soundstage is a legitimate preference), but an angle outside the declared range gets flagged anyway, so it's a conscious choice rather than an undeclared side effect of the automatic layout.`,
+        `The angle the two speakers subtend as seen from the listening spot is <b>${p.angulo}°</b>. This site's reference layout aims, by design, for <b>~${p.referencia}°</b> — a narrower soundstage than the stereo equilateral-triangle convention (<b>${p.convencion}°</b>), cited here as the other possible reference point, not as a target this analysis has to meet. Neither angle is "wrong" — a narrower or wider soundstage is a legitimate preference —; the flag trips outside a declared range that accounts for both values, so falling outside it is a conscious choice rather than an undeclared side effect of the automatic layout.`,
       calcAngulo: (p) => `angle = ${p.angulo}° (declared range: ${p.min}°-${p.max}°)`,
       filaAsimetria: (p) => `${p.nombre}: Δ = ${p.deltaM} m (${p.deltaUs} µs) between channels`,
       diferenciaNivel: (p) =>
@@ -618,7 +620,7 @@ export const en: Textos = {
       avisoAnguloEstrecho: 'A wider angle (speakers further apart, or the listening spot closer) opens up the stereo image — at the cost of a less defined center if overdone.',
       avisoAnguloAmplio: 'A narrower angle (speakers closer together, or the listening spot further back) closes the central phase gap between the speakers.',
       fuente: (p) =>
-        `<b>Criterion:</b> asymmetry — homologous-path difference between channels greater than ${p.umbralM} m (≈145 µs at 343 m/s), a site criterion. Angle — stereo equilateral-triangle convention (${p.convencion}°, not invented by the site); the declared range ${p.min}°-${p.max}° before flagging it is a site criterion. Rigid room geometry, first order, no directivity — verified by listening.`,
+        `<b>Criterion:</b> asymmetry — homologous-path difference between channels greater than ${p.umbralM} m (≈145 µs at 343 m/s), a site criterion. Angle — stereo equilateral-triangle convention (${p.convencion}°, not invented by the site) and the site's own reference (~${p.referencia}°, what the automatic layout gives due to the 1.2 factor in the listening row — declared, not corrected); the declared range ${p.min}°-${p.max}° before flagging it is a site criterion, chosen to account for both values. Rigid room geometry, first order, no directivity — verified by listening.`,
     },
 
     reverberacion: {

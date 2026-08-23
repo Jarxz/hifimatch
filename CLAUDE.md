@@ -3056,6 +3056,121 @@ arrastrable — sin errores de consola en ningún paso.
 en `packages/data`, 15 en `packages/contact`, 177 en `apps/web` (antes
 156 — suben `resultado.test.ts`/`plano.test.ts`).
 
+**Jerarquía de la página de resultado — de once tarjetas planas a
+veredicto → tres estados → evidencia plegada por grupo, sin tocar una
+sola regla del motor.** Pedido explícitamente como ronda de interfaz:
+"si algo parece necesitar un cambio en `packages/engine`, detente y
+pregunta en vez de hacerlo" — no hizo falta, ningún archivo de
+`packages/engine` se tocó. El único `<details class="detalle-evidencia">`
+que envolvía las 8 tarjetas físicas en una lista plana se reemplaza por
+**tres acordeones de grupo** (`grupo-potencia`/`grupo-acople`/
+`grupo-sala`, clase `.grupo-evidencia` — mismo tratamiento "no-tarjeta"
+que el `<details>` que reemplazan, para no subir el conteo de tarjetas
+visibles), uno por estado del veredicto — "la evidencia se pliega bajo
+el estado que le corresponde" — con las 10 reglas físicas repartidas
+entre los tres (Potencia: 1; Acople eléctrico: hasta 6, carga/
+amortiguamiento/puente×2/recorrido×2; Sala: 4, modos/filtro peine/
+triángulo de escucha/reverberación). El summary de cada acordeón
+reutiliza exactamente los mismos `ModeloEstadoGrupo` (`estadoTexto`/
+`detalleTexto`) que ya pinta la grilla "Tres estados" de la tarjeta de
+veredicto (`pintarGrupoResumen`, nueva función en `pintar.ts`, llamada
+desde el mismo `pintarVeredicto` que ya recibía ese dato) — una sola
+fuente de verdad, pintada en dos lugares, cero redacción nueva.
+
+**Cada regla física deja de ser una tarjeta con marco propio
+(`.card`) y pasa a ser una fila (`<details class="regla-fila">`, mismos
+ids que antes en `card-carga`/`card-amortiguamiento`/etc. — el mecanismo
+de ocultar por `sinDatos` de `pintarCarga`/`pintarGanancia` sigue
+funcionando sin cambios porque sólo togglea `.hidden` sobre el mismo
+id).** Colapsada: nombre a la izquierda, severidad + un "dato" numérico
+en monoespaciado a la derecha (`.fila-dato`). Expandida: el mismo
+contenido de siempre (simple/técnico/calc/aviso/fuente/gráficos),
+reempaquetado sin recortar — los selectores `.card p`/`.card h4`/etc. se
+extendieron a `.regla-fila` en vez de duplicarse. El "dato" de cada fila
+no es texto nuevo del motor: son 8 funciones puras nuevas en `main.ts`
+(`datoPotencia`/`datoCarga`/`datoAmortiguamiento`/`datoPuente`/
+`datoRecorrido`/`datoModos`/`datoFiltroPeine`/`datoTriangulo`/
+`datoReverberacion`) que sólo re-muestran un número que la regla ya
+calculó — mismo principio que `ComponenteResumen.detalle`, que ya hacía
+esto para potencia/puente/recorrido antes de esta ronda. `datoCarga`
+prioriza EPDR sobre la impedancia mínima citada cuando está disponible
+(más decisivo); `datoModos` prioriza la frecuencia del nulo de escucha,
+después la del par agrupado de menor frecuencia, después el % de
+acoplamiento del peor modo — el primero que aplique.
+
+**Filtro peine: diez filas es ruido, no evidencia — recorte a 3, con
+"Ver las diez" para la transparencia completa.** `ModeloTarjetaFiltroPeine`
+gana `calcHtmlTodas` (las 10 combinaciones completas, sin cambios) junto
+al `calcHtml` ya existente, que ahora se recorta a
+`TOP_N_FILTRO_PEINE=3` — peor severidad primero y, dentro de la misma
+severidad, la superficie más reflectante primero (coeficiente de
+absorción más bajo, "ya ponderada por absorción"; `Array.prototype.sort`
+es estable, así que los empates conservan el orden original). Si ninguna
+de las 10 combinaciones supera el umbral, `calcHtml` es una sola línea
+declarando que ninguna reflexión cae en zona problemática — información,
+no ausencia de ella — en vez de mostrar 3 filas "ok" sin valor. La
+tarjeta anida un segundo `<details>` ("Ver las diez",
+`resultado.plano.verLasDiez`) con `calcHtmlTodas` detrás.
+
+**Botón "i" dentro de un `<summary>` — bug de un solo click, encontrado
+al verificar, no al escribir el HTML.** Cada fila de evidencia (y cada
+acordeón de grupo) es ahora un `<details>`, y varios `.infobtn` viven
+adentro de su `<summary>` (para poder verse en el estado colapsado) —
+sin `preventDefault()`, un click en el botón "i" abre el popup de info
+**y** togglea el acordeón a la vez, porque el navegador interpreta
+cualquier click dentro de un `<summary>` como "abrir/cerrar" salvo que
+se lo prevenga explícitamente. El listener de `.infobtn[data-info]` en
+`main.ts` gana `ev.preventDefault(); ev.stopPropagation();` antes de
+abrir el popup — verificado con Chrome headless que el click abre el
+popup sin togglear la fila.
+
+**Decisión pendiente resuelta — Opción B: 45° declarado como criterio
+propio del sitio, sin tocar `colocacion.ts`.** La disposición automática
+de este sitio da siempre ≈45,24° (factor 1,2 de `filaEscuchaM`, ver
+sección "Colocación" más arriba), no 60° (la convención de triángulo
+equilátero estéreo) — mostrar sólo "60°" como referencia hacía que el
+sitio se leyera como si estuviera fallando su propia convención en
+**todos** los análisis por defecto. Opción A (mover el factor 1,2 para
+que el default caiga en 60°) es un cambio de motor —mueve vectores de
+`sala.test.ts`/`modos.test.ts`— y quedó descartada a propósito por el
+propio pedido ("si eliges esta, detente y confírmalo"); se implementó
+la **Opción B**, explícitamente "texto, no código": `colocacion.ts` no
+se tocó — `ANGULO_ESCUCHA_CONVENCION_GRADOS` sigue en 60, el umbral de
+severidad (`ANGULO_ESCUCHA_MIN_GRADOS`/`MAX_GRADOS`, 40°-65°) tampoco
+cambió. Sólo `resultado.ts` gana una constante local nueva,
+`ANGULO_REFERENCIA_SITIO_GRADOS=45` (comentada como decisión de texto,
+no de física), que `modeloTrianguloEscucha`/`motor.triangulo.texto`/
+`.fuente` citan explícitamente como "la disposición de referencia de
+este sitio", aparte de la convención de 60° — las dos declaradas, ninguna
+escondida, y el sitio deja de leerse como si incumpliera su propio
+criterio. `info.triangulo.cuerpoHtml` (la guía) se actualizó con la
+misma explicación.
+
+**"Chequeo aparte" pedido explícitamente tras el bug de Recalcular de la
+ronda anterior — no apareció ningún otro caso silencioso.** Se recorrió
+en Chrome headless: cambiar género, nivel de escucha y un material antes
+de "Analizar" (funcionan como siempre — sólo toman efecto en el próximo
+"Analizar", no hay recálculo en vivo que romper ahí); y, ya en la
+pantalla de resultado, abrir el candado **sin arrastrar nada** y
+"Recalcular" — crea y activa la pestaña "Modificado" correctamente
+(`recalcular()` ya lo cubría desde el fix de la ronda anterior, que
+proceder con el candado abierto solo, sin exigir además un parlante
+arrastrado). Cero errores de consola en todo el recorrido.
+
+**Verificado extremo a extremo con Chrome headless (CDP crudo):** el
+conteo de tarjetas visibles sin expandir nada se midió ANTES de tocar
+código (baseline real: 3 — veredicto, "Qué conviene hacer", geometría) y
+se volvió a medir después del cambio completo — **sigue en 3**, cumple
+el guardarraíl explícito ("si al terminar no bajó respecto de la cuenta
+inicial, la pasada no sirvió"). Los tres acordeones de grupo pintan
+severidad+línea reales desde el primer render; abrir un grupo y una fila
+revela el contenido completo; el botón "i" no togglea su fila; Filtro
+peine recorta a 3 y "Ver las diez" trae las 10; la fila de reverberación
+lleva la clase `regla-dim` (tratamiento visual distinto de "warn", nunca
+ámbar). **397 tests totales** entre los 4 workspaces (antes 395): 179 en
+`apps/web` (antes 177 — suman tests de truncamiento de filtro peine y de
+la cita explícita de 45° en `fuenteHtml`).
+
 Falta:
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla

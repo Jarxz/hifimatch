@@ -154,7 +154,7 @@ export const es = {
     triangulo: {
       titulo: 'Triángulo de escucha',
       cuerpoHtml:
-        'Dos preguntas sobre la FORMA del triángulo que forman los parlantes y el punto de escucha, más allá de la distancia. <b>Asimetría:</b> compara el camino de cada reflexión —y el directo— entre ambos canales; con los parlantes en posiciones distintas (o el asiento desbloqueado con el candado, ver la tarjeta del plano) puede que un lado quede más cerca que el otro, y esa diferencia de tiempo corre la imagen estéreo hacia el parlante más próximo. <b>Ángulo:</b> el que subtienden los dos parlantes visto desde la escucha, comparado contra la convención de triángulo equilátero estéreo (60°) — un ángulo distinto no es un error (hay quien prefiere un escenario más angosto o más amplio a propósito), pero esta tarjeta lo declara cuando cae fuera de un rango razonable, para que sea una decisión consciente. Misma salvedad de siempre: geometría de sala rígida, se verifica escuchando.',
+        'Dos preguntas sobre la FORMA del triángulo que forman los parlantes y el punto de escucha, más allá de la distancia. <b>Asimetría:</b> compara el camino de cada reflexión —y el directo— entre ambos canales; con los parlantes en posiciones distintas (o el asiento desbloqueado con el candado, ver la tarjeta del plano) puede que un lado quede más cerca que el otro, y esa diferencia de tiempo corre la imagen estéreo hacia el parlante más próximo. <b>Ángulo:</b> el que subtienden los dos parlantes visto desde la escucha, comparado contra dos referencias — la convención de triángulo equilátero estéreo (60°, no inventada por el sitio) y el propio criterio de este sitio (~45°, lo que da su disposición automática por diseño, declarado como tal en vez de forzado a coincidir con la convención) — un ángulo distinto de cualquiera de las dos no es un error (hay quien prefiere un escenario más angosto o más amplio a propósito), pero esta tarjeta lo declara cuando cae fuera de un rango razonable que contempla ambas referencias, para que sea una decisión consciente. Misma salvedad de siempre: geometría de sala rígida, se verifica escuchando.',
     },
     reverberacion: {
       titulo: 'Tiempo de reverberación estimado (RT60)',
@@ -301,6 +301,7 @@ export const es = {
       candadoComparadorAviso:
         'Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.',
       referenciaSimetrica: 'posición simétrica de referencia',
+      verLasDiez: 'Ver las diez',
       ubicacionTitulo: 'Ubicación de referencia de los parlantes',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Parlante izquierdo: <b>${p.frontalIzq} m</b> de la pared frontal, <b>${p.lateralIzq} m</b> de su pared lateral. Parlante derecho: <b>${p.frontalDer} m</b> de la pared frontal, <b>${p.lateralDer} m</b> de su pared lateral. Separación entre ambos: <b>${p.separacion} m</b>. Es la disposición de referencia que usa el resto del análisis (potencia, modos, reflexiones) — se afina moviendo los parlantes y escuchando en el espacio real.`,
@@ -668,6 +669,7 @@ export const es = {
       fila: (p: { nombre: string; deltaM: string; nuloHz: string; refuerzoHz: string; alpha: string; severidad: string }): string =>
         `${p.nombre}: Δ=${p.deltaM} m → 1ᵉʳ nulo ${p.nuloHz} Hz, 1ᵉʳ refuerzo ${p.refuerzoHz} Hz (α≈${p.alpha}) — ${p.severidad}`,
       filaDegenerada: (p: { nombre: string }): string => `${p.nombre}: geometría degenerada (parlante ~sobre la superficie) — sin nulo finito que reportar`,
+      sinNulos: 'Ninguna de las 10 combinaciones (5 reflexiones × 2 canales) cae en zona problemática — ver "las diez" para el detalle completo.',
       avisoFila: (p: { nombre: string; nuloHz: string }): string => `<b>${p.nombre}:</b> primer nulo en ≈${p.nuloHz} Hz.`,
       sugerencia:
         'Conviene tratar acústicamente esa superficie (panel absorbente en el primer punto de reflexión) o reposicionar parlantes/escucha para cambiar la diferencia de camino — se verifica escuchando y, si es posible, midiendo.',
@@ -701,8 +703,8 @@ export const es = {
         'angulo-amplio': 'El ángulo entre los parlantes visto desde la escucha es más amplio que el rango declarado — puede dejar un hueco central de fase.',
       } satisfies Record<CodigoAnguloEscucha, string>,
       simpleAmbos: 'El triángulo es asimétrico y, además, el ángulo cae fuera del rango declarado.',
-      texto: (p: { angulo: string; convencion: string }): string =>
-        `El ángulo que subtienden los dos parlantes visto desde el punto de escucha es de <b>${p.angulo}°</b>. La convención de triángulo equilátero estéreo es <b>${p.convencion}°</b> — no es la única disposición válida (un escenario más angosto o más amplio es una preferencia legítima), pero un ángulo fuera del rango declarado se avisa igual, para que sea una decisión consciente y no un efecto no declarado de la disposición automática.`,
+      texto: (p: { angulo: string; convencion: string; referencia: string }): string =>
+        `El ángulo que subtienden los dos parlantes visto desde el punto de escucha es de <b>${p.angulo}°</b>. La disposición de referencia de este sitio apunta, por diseño, a <b>~${p.referencia}°</b> — un escenario más cerrado que la convención de triángulo equilátero estéreo (<b>${p.convencion}°</b>), citada acá como el otro punto de referencia posible, no como un objetivo que este análisis tenga que cumplir. Ninguno de los dos ángulos es "incorrecto" — un escenario más angosto o más amplio es una preferencia legítima —; el aviso salta fuera de un rango declarado que contempla los dos valores, para que quedar fuera sea una decisión consciente y no un efecto no declarado de la disposición automática.`,
       calcAngulo: (p: { angulo: string; min: string; max: string }): string => `ángulo = ${p.angulo}° (rango declarado: ${p.min}°-${p.max}°)`,
       filaAsimetria: (p: { nombre: string; deltaM: string; deltaUs: string }): string => `${p.nombre}: Δ = ${p.deltaM} m (${p.deltaUs} µs) entre canales`,
       diferenciaNivel: (p: { db: string }): string =>
@@ -711,8 +713,8 @@ export const es = {
         `<b>Asimetría por encima del umbral en:</b> ${p.items}. Con cables/canales bien calibrados, esto viene de la posición, no de la electrónica — conviene revisar que ambos parlantes y la escucha estén donde el plano los muestra.`,
       avisoAnguloEstrecho: 'Un ángulo más amplio (parlantes más separados, o escucha más cerca) agranda la imagen estéreo — a costa de un centro más definido si se exagera.',
       avisoAnguloAmplio: 'Un ángulo más angosto (parlantes más juntos, o escucha más lejos) cierra el hueco central de fase entre los parlantes.',
-      fuente: (p: { umbralM: string; convencion: string; min: string; max: string }): string =>
-        `<b>Criterio:</b> asimetría — diferencia de camino homólogo entre canales mayor a ${p.umbralM} m (≈145 µs a 343 m/s), criterio del sitio. Ángulo — convención de triángulo equilátero estéreo (${p.convencion}°, no inventada por el sitio); rango declarado ${p.min}°-${p.max}° antes de avisar, sí criterio del sitio. Geometría de sala rígida, primer orden, sin directividad — se verifica escuchando.`,
+      fuente: (p: { umbralM: string; convencion: string; referencia: string; min: string; max: string }): string =>
+        `<b>Criterio:</b> asimetría — diferencia de camino homólogo entre canales mayor a ${p.umbralM} m (≈145 µs a 343 m/s), criterio del sitio. Ángulo — convención de triángulo equilátero estéreo (${p.convencion}°, no inventada por el sitio) y referencia propia del sitio (~${p.referencia}°, la que da la disposición automática por el factor 1,2 de la fila de escucha — declarada, no corregida); rango declarado ${p.min}°-${p.max}° antes de avisar, criterio del sitio, elegido para contemplar los dos valores. Geometría de sala rígida, primer orden, sin directividad — se verifica escuchando.`,
     },
 
     reverberacion: {

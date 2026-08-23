@@ -638,14 +638,38 @@ test('modeloFiltroPeine: los 10 resultados en "ok" → "Sin nulos en zona audibl
   assert.equal(m.verdictoClase, 'ok');
   assert.equal(m.verdictoTexto, 'Sin nulos en zona audible');
   assert.equal(m.avisoHtml, null);
+  assert.equal(m.calcHtml, 'Ninguna de las 10 combinaciones (5 reflexiones × 2 canales) cae en zona problemática — ver "las diez" para el detalle completo.');
+  assert.equal((m.calcHtmlTodas.match(/<br>/g) ?? []).length, 9); // las 10 filas completas, sin recortar
 });
 
-test('modeloFiltroPeine: geometría degenerada (deltaM no finito) usa su propia fila, sin Hz inventados', () => {
+test('modeloFiltroPeine: con más de 3 combinaciones en "warn" (los 4 muros "vacío" a la vez → todas las reflexiones laterales/frontal/trasera degeneran a "ok" por Δ≤0, deja piso y techo en warn) — calcHtml se recorta a 3, calcHtmlTodas trae las 10', () => {
+  // Vector sintético directo (no pasa por evaluarFiltroPeine/materiales
+  // reales): 6 combinaciones en "warn" a propósito, para forzar el
+  // recorte a TOP_N_FILTRO_PEINE=3 y confirmar que "ver las diez" sigue
+  // trayendo el total.
+  const nombres = ['frontal', 'frontal', 'lateral', 'lateral', 'trasera', 'trasera', 'piso', 'piso', 'techo', 'techo'] as const;
+  const mixto = nombres.map((reflexion, i) => ({
+    reflexion,
+    canal: (i % 2 === 0 ? 'izq' : 'der') as 'izq' | 'der',
+    deltaM: 2,
+    primerNuloHz: 500,
+    primerRefuerzoHz: 1000,
+    coeficienteAbsorcion: 0.05,
+    severidad: (i < 6 ? 'warn' : 'ok') as 'ok' | 'warn',
+  }));
+  const m = modeloFiltroPeine(mixto, 'es');
+  assert.equal(m.verdictoClase, 'warn');
+  assert.equal((m.calcHtml.match(/<br>/g) ?? []).length, 2); // 3 filas = 2 separadores <br>
+  assert.equal((m.calcHtmlTodas.match(/<br>/g) ?? []).length, 9); // las 10, sin recortar
+});
+
+test('modeloFiltroPeine: geometría degenerada (deltaM no finito) usa su propia fila, sin Hz inventados — en calcHtmlTodas (el resumen colapsado, sin ningún "warn", muestra la línea de "ninguna reflexión")', () => {
   const degenerado = [
     { reflexion: 'frontal' as const, canal: 'izq' as const, deltaM: 0, primerNuloHz: Infinity, primerRefuerzoHz: Infinity, coeficienteAbsorcion: 0, severidad: 'ok' as const },
   ];
   const m = modeloFiltroPeine(degenerado, 'es');
-  assert.match(m.calcHtml, /geometría degenerada/);
+  assert.match(m.calcHtml, /Ninguna de las 10/);
+  assert.match(m.calcHtmlTodas, /geometría degenerada/);
 });
 
 test('modeloFiltroPeine en inglés: textos en inglés, sin mezclar idiomas', () => {
@@ -666,6 +690,16 @@ test('modeloTrianguloEscucha: disposición automática → "ok", ángulo ≈45°
   assert.match(m.textoHtml, /45/);
   assert.match(m.textoHtml, /60/);
   assert.equal(m.avisoHtml, null);
+});
+
+test('modeloTrianguloEscucha — decisión "Opción B": declara 45° como referencia propia del sitio (no sólo el ángulo calculado, que también da ~45° y podría confundirse) — fuenteHtml lo cita aparte de la convención de 60°, texto no código (colocacion.ts sigue con ANGULO_ESCUCHA_CONVENCION_GRADOS=60 sin tocar)', () => {
+  const disp = calcularDisposicion(SALA_MODOS);
+  const resAngulo = evaluarAnguloEscucha(disp);
+  assert.equal(resAngulo.anguloConvencionGrados, 60); // colocacion.ts no se tocó — sigue citando la convención real
+  const m = modeloTrianguloEscucha(evaluarAsimetria(disp), resAngulo, null, 'es');
+  assert.match(m.fuenteHtml, /~45°/);
+  assert.match(m.fuenteHtml, /60°/);
+  assert.match(m.fuenteHtml, /referencia propia del sitio/);
 });
 
 test('modeloTrianguloEscucha: parlantes a distinta profundidad (candado cerrado) → asimetría "warn" en las reflexiones; el directo se mantiene simétrico por construcción (mediatriz)', () => {

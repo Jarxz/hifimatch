@@ -288,106 +288,228 @@
       <ul class="rf-recomendaciones" id="top-recomendaciones"></ul>
     </div>
 
-    <details class="detalle-evidencia">
-      <summary data-i18n="resultado.evidenciaTitulo">Ver evidencia técnica completa</summary>
-
-      <div class="card">
-        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pw-verdict">—</span><button type="button" class="infobtn" data-info="potencia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-        <h3 data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</h3>
-        <p class="simple" id="pw-simple">—</p>
-        <p id="pw-text">—</p>
-        <details class="detalle">
-          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-          <div class="meter">
-            <div class="scale" id="pw-scale"></div>
-            <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
+    <details class="grupo-evidencia" id="grupo-potencia">
+      <summary>
+        <span class="grupo-nombre" data-i18n="motor.veredicto.nombrePotencia">Potencia</span>
+        <span class="grupo-estado" id="grupo-potencia-estado">—</span>
+        <span class="grupo-linea" id="grupo-potencia-linea">—</span>
+      </summary>
+      <div class="filas">
+        <details class="regla-fila" id="fila-potencia">
+          <summary>
+            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+            <span class="fila-nombre" data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</span>
+            <span class="verdict" id="pw-verdict">—</span>
+            <span class="fila-dato" id="pw-dato">—</span>
+            <button type="button" class="infobtn" data-info="potencia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="simple" id="pw-simple">—</p>
+            <p id="pw-text">—</p>
+            <div class="meter">
+              <div class="scale" id="pw-scale"></div>
+              <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
+            </div>
+            <div class="calc" id="pw-calc"></div>
+            <div class="flag hidden" id="pw-flag"></div>
+            <p class="src" id="pw-crest"></p>
+            <div class="src" id="pw-src"></div>
           </div>
-          <div class="calc" id="pw-calc"></div>
-          <div class="flag hidden" id="pw-flag"></div>
-          <p class="src" id="pw-crest"></p>
-          <div class="src" id="pw-src"></div>
         </details>
       </div>
+    </details>
 
-      <div class="card" id="card-carga">
-        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="z-verdict">—</span><button type="button" class="infobtn" data-info="carga" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-        <h3 data-i18n="motor.carga.titulo">La carga que ve el amplificador</h3>
-        <p class="simple" id="z-simple">—</p>
-        <p id="z-text">—</p>
-        <details class="detalle">
-          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-          <div class="calc hidden" id="z-calc"></div>
-          <div class="flag hidden" id="z-flag"></div>
-          <div class="src" id="z-src"></div>
+    <details class="grupo-evidencia" id="grupo-acople">
+      <summary>
+        <span class="grupo-nombre" data-i18n="motor.veredicto.nombreAcople">Acople eléctrico</span>
+        <span class="grupo-estado" id="grupo-acople-estado">—</span>
+        <span class="grupo-linea" id="grupo-acople-linea">—</span>
+      </summary>
+      <div class="filas">
+        <details class="regla-fila" id="card-carga">
+          <summary>
+            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+            <span class="fila-nombre" data-i18n="motor.carga.titulo">La carga que ve el amplificador</span>
+            <span class="verdict" id="z-verdict">—</span>
+            <span class="fila-dato" id="z-dato">—</span>
+            <button type="button" class="infobtn" data-info="carga" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="simple" id="z-simple">—</p>
+            <p id="z-text">—</p>
+            <div class="calc hidden" id="z-calc"></div>
+            <div class="flag hidden" id="z-flag"></div>
+            <div class="src" id="z-src"></div>
+          </div>
+        </details>
+
+        <details class="regla-fila" id="card-amortiguamiento">
+          <summary>
+            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+            <span class="fila-nombre" data-i18n="motor.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</span>
+            <span class="verdict" id="am-verdict">—</span>
+            <span class="fila-dato" id="am-dato">—</span>
+            <button type="button" class="infobtn" data-info="amortiguamiento" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="simple" id="am-simple">—</p>
+            <div id="am-text">—</div>
+            <div class="calc hidden" id="am-calc"></div>
+            <div class="flag hidden" id="am-flag"></div>
+            <div class="src" id="am-src"></div>
+          </div>
+        </details>
+
+        <details class="regla-fila hidden" id="card-puente-streamer">
+          <summary>
+            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+            <span class="fila-nombre" data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</span>
+            <span class="verdict" id="pz-verdict-streamer">—</span>
+            <span class="fila-dato" id="pz-dato-streamer">—</span>
+            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
+            <p class="simple" id="pz-simple-streamer">—</p>
+            <p id="pz-text-streamer">—</p>
+            <div class="calc" id="pz-calc-streamer"></div>
+            <div class="flag hidden" id="pz-flag-streamer"></div>
+            <div class="src" id="pz-src-streamer"></div>
+          </div>
+        </details>
+
+        <details class="regla-fila hidden" id="card-recorrido-streamer">
+          <summary>
+            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+            <span class="fila-nombre" data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</span>
+            <span class="verdict" id="pv-verdict-streamer">—</span>
+            <span class="fila-dato" id="pv-dato-streamer">—</span>
+            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
+            <p class="simple" id="pv-simple-streamer">—</p>
+            <p id="pv-text-streamer">—</p>
+            <div class="calc" id="pv-calc-streamer"></div>
+            <div class="flag hidden" id="pv-flag-streamer"></div>
+            <div class="src" id="pv-src-streamer"></div>
+          </div>
+        </details>
+
+        <details class="regla-fila hidden" id="card-puente-dac">
+          <summary>
+            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+            <span class="fila-nombre" data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</span>
+            <span class="verdict" id="pz-verdict-dac">—</span>
+            <span class="fila-dato" id="pz-dato-dac">—</span>
+            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
+            <p class="simple" id="pz-simple-dac">—</p>
+            <p id="pz-text-dac">—</p>
+            <div class="calc" id="pz-calc-dac"></div>
+            <div class="flag hidden" id="pz-flag-dac"></div>
+            <div class="src" id="pz-src-dac"></div>
+          </div>
+        </details>
+
+        <details class="regla-fila hidden" id="card-recorrido-dac">
+          <summary>
+            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+            <span class="fila-nombre" data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</span>
+            <span class="verdict" id="pv-verdict-dac">—</span>
+            <span class="fila-dato" id="pv-dato-dac">—</span>
+            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
+            <p class="simple" id="pv-simple-dac">—</p>
+            <p id="pv-text-dac">—</p>
+            <div class="calc" id="pv-calc-dac"></div>
+            <div class="flag hidden" id="pv-flag-dac"></div>
+            <div class="src" id="pv-src-dac"></div>
+          </div>
         </details>
       </div>
+    </details>
 
-      <div class="card" id="card-amortiguamiento">
-        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="am-verdict">—</span><button type="button" class="infobtn" data-info="amortiguamiento" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-        <h3 data-i18n="motor.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</h3>
-        <p class="simple" id="am-simple">—</p>
-        <div id="am-text">—</div>
-        <details class="detalle">
-          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-          <div class="calc hidden" id="am-calc"></div>
-          <div class="flag hidden" id="am-flag"></div>
-          <div class="src" id="am-src"></div>
+    <details class="grupo-evidencia" id="grupo-sala">
+      <summary>
+        <span class="grupo-nombre" data-i18n="motor.veredicto.nombreSala">Sala</span>
+        <span class="grupo-estado" id="grupo-sala-estado">—</span>
+        <span class="grupo-linea" id="grupo-sala-linea">—</span>
+      </summary>
+      <div class="filas">
+        <details class="regla-fila" id="fila-modos">
+          <summary>
+            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+            <span class="fila-nombre" data-i18n="motor.modos.titulo">Modos de sala (graves)</span>
+            <span class="verdict" id="mo-verdict">—</span>
+            <span class="fila-dato" id="mo-dato">—</span>
+            <button type="button" class="infobtn" data-info="modos" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="simple" id="mo-simple">—</p>
+            <p id="mo-text">—</p>
+            <div class="flag hidden" id="mo-flag"></div>
+            <div class="curvas hidden" id="mo-curvas"></div>
+            <div class="src" id="mo-src"></div>
+          </div>
         </details>
-      </div>
 
-      <div class="card hidden" id="card-puente-streamer">
-        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-streamer">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-        <h3 data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</h3>
-        <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
-        <p class="simple" id="pz-simple-streamer">—</p>
-        <p id="pz-text-streamer">—</p>
-        <details class="detalle">
-          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-          <div class="calc" id="pz-calc-streamer"></div>
-          <div class="flag hidden" id="pz-flag-streamer"></div>
-          <div class="src" id="pz-src-streamer"></div>
+        <details class="regla-fila" id="fila-filtropeine">
+          <summary>
+            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+            <span class="fila-nombre" data-i18n="motor.filtroPeine.titulo">Filtro peine por reflexión</span>
+            <span class="verdict" id="fp-verdict">—</span>
+            <span class="fila-dato" id="fp-dato">—</span>
+            <button type="button" class="infobtn" data-info="filtroPeine" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="simple" id="fp-simple">—</p>
+            <p id="fp-text">—</p>
+            <div class="calc" id="fp-calc"></div>
+            <details class="detalle" id="fp-todas-wrap">
+              <summary data-i18n="resultado.plano.verLasDiez">Ver las diez</summary>
+              <div class="calc" id="fp-calc-todas"></div>
+            </details>
+            <div class="flag hidden" id="fp-flag"></div>
+            <div class="src" id="fp-src"></div>
+          </div>
         </details>
-      </div>
 
-      <div class="card hidden" id="card-recorrido-streamer">
-        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-streamer">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-        <h3 data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</h3>
-        <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
-        <p class="simple" id="pv-simple-streamer">—</p>
-        <p id="pv-text-streamer">—</p>
-        <details class="detalle">
-          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-          <div class="calc" id="pv-calc-streamer"></div>
-          <div class="flag hidden" id="pv-flag-streamer"></div>
-          <div class="src" id="pv-src-streamer"></div>
+        <details class="regla-fila" id="fila-triangulo">
+          <summary>
+            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+            <span class="fila-nombre" data-i18n="motor.triangulo.titulo">Triángulo de escucha</span>
+            <span class="verdict" id="te-verdict">—</span>
+            <span class="fila-dato" id="te-dato">—</span>
+            <button type="button" class="infobtn" data-info="triangulo" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="simple" id="te-simple">—</p>
+            <p id="te-text">—</p>
+            <div class="calc" id="te-calc"></div>
+            <div class="flag hidden" id="te-flag"></div>
+            <div class="src" id="te-src"></div>
+          </div>
         </details>
-      </div>
 
-      <div class="card hidden" id="card-puente-dac">
-        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pz-verdict-dac">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-        <h3 data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</h3>
-        <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
-        <p class="simple" id="pz-simple-dac">—</p>
-        <p id="pz-text-dac">—</p>
-        <details class="detalle">
-          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-          <div class="calc" id="pz-calc-dac"></div>
-          <div class="flag hidden" id="pz-flag-dac"></div>
-          <div class="src" id="pz-src-dac"></div>
-        </details>
-      </div>
-
-      <div class="card hidden" id="card-recorrido-dac">
-        <div class="ct"><span class="layer" data-i18n="resultado.capaFisica">Capa física</span><span class="verdict" id="pv-verdict-dac">—</span><button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-        <h3 data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</h3>
-        <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
-        <p class="simple" id="pv-simple-dac">—</p>
-        <p id="pv-text-dac">—</p>
-        <details class="detalle">
-          <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-          <div class="calc" id="pv-calc-dac"></div>
-          <div class="flag hidden" id="pv-flag-dac"></div>
-          <div class="src" id="pv-src-dac"></div>
+        <details class="regla-fila regla-dim" id="fila-reverberacion">
+          <summary>
+            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+            <span class="fila-nombre" data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</span>
+            <span class="verdict" id="rt-verdict">—</span>
+            <span class="fila-dato" id="rt-dato">—</span>
+            <button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+          </summary>
+          <div class="fila-cuerpo">
+            <p class="simple" id="rt-simple">—</p>
+            <p id="rt-text">—</p>
+            <div class="calc" id="rt-calc"></div>
+            <div class="src" id="rt-src"></div>
+          </div>
         </details>
       </div>
     </details>
@@ -421,49 +543,6 @@
       <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
       <h4 data-i18n="resultado.plano.ubicacionTitulo">Ubicación de referencia de los parlantes</h4>
       <p id="plan-ubicacion">—</p>
-
-      <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="mo-verdict">—</span><button type="button" class="infobtn" data-info="modos" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-      <h3 data-i18n="motor.modos.titulo">Modos de sala (graves)</h3>
-      <p class="simple" id="mo-simple">—</p>
-      <p id="mo-text">—</p>
-      <details class="detalle">
-        <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-        <div class="flag hidden" id="mo-flag"></div>
-        <div class="curvas hidden" id="mo-curvas"></div>
-        <div class="src" id="mo-src"></div>
-      </details>
-
-      <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="fp-verdict">—</span><button type="button" class="infobtn" data-info="filtroPeine" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-      <h3 data-i18n="motor.filtroPeine.titulo">Filtro peine por reflexión</h3>
-      <p class="simple" id="fp-simple">—</p>
-      <p id="fp-text">—</p>
-      <details class="detalle">
-        <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-        <div class="calc" id="fp-calc"></div>
-        <div class="flag hidden" id="fp-flag"></div>
-        <div class="src" id="fp-src"></div>
-      </details>
-
-      <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="te-verdict">—</span><button type="button" class="infobtn" data-info="triangulo" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-      <h3 data-i18n="motor.triangulo.titulo">Triángulo de escucha</h3>
-      <p class="simple" id="te-simple">—</p>
-      <p id="te-text">—</p>
-      <details class="detalle">
-        <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-        <div class="calc" id="te-calc"></div>
-        <div class="flag hidden" id="te-flag"></div>
-        <div class="src" id="te-src"></div>
-      </details>
-
-      <div class="ct geo-split"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" id="rt-verdict">—</span><button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-      <h3 data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3>
-      <p class="simple" id="rt-simple">—</p>
-      <p id="rt-text">—</p>
-      <details class="detalle">
-        <summary data-i18n="resultado.verDetalle">Ver detalle técnico</summary>
-        <div class="calc" id="rt-calc"></div>
-        <div class="src" id="rt-src"></div>
-      </details>
     </div>
 
     <div class="ficha-final">

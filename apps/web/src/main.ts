@@ -181,6 +181,59 @@ function nivelTextoDe(lvl: NivelUI, idioma: Idioma): string {
   return { mod: t.nivelModerado, alto: t.nivelAlto, ref: t.nivelReferencia }[lvl];
 }
 
+/**
+ * "Dato" compacto (número + unidad, monoespaciado) que se lee sin abrir
+ * la fila de cada regla — la "Jerarquía de la página de resultado" pide
+ * nombre a la izquierda, dato a la derecha, nada más, en el resumen
+ * colapsado. Ninguna de estas funciones redacta ni evalúa: sólo
+ * re-muestra un número que la regla correspondiente ya calculó, mismo
+ * principio que `ComponenteResumen.detalle` (que ya hacía esto para
+ * potencia/puente/recorrido antes de esta ronda).
+ */
+function datoPotencia(r: ReturnType<typeof evaluarPotencia>): string {
+  return `${numConSigno(r.margenDb, 1, idiomaActual)} dB`;
+}
+function datoCarga(r: ReturnType<typeof evaluarCarga>, spk: ReturnType<typeof buscarParlante>): string {
+  if (r.severidad === 'sin-datos') return '—';
+  if (r.epdrOhm !== null) return `EPDR ${num(r.epdrOhm, 1, idiomaActual)} Ω`;
+  return spk.impedanciaMinOhm !== null ? `${num(spk.impedanciaMinOhm, 1, idiomaActual)} Ω` : '—';
+}
+function datoAmortiguamiento(r: ReturnType<typeof evaluarAmortiguamiento>): string {
+  return r.severidad === 'sin-datos' || r.deltaDb === null ? '—' : `${numConSigno(r.deltaDb, 2, idiomaActual)} dB`;
+}
+function datoPuente(r: ResultadoPuenteImpedancias): string {
+  return r.severidad === 'sin-datos' || r.ratioZ === null ? '—' : `${num(r.ratioZ, 1, idiomaActual)}×`;
+}
+function datoRecorrido(r: ResultadoRecorridoVolumen): string {
+  return r.severidad === 'sin-datos' || r.margenV === null ? '—' : `${num(r.margenV, 1, idiomaActual)}×`;
+}
+/** Frecuencia del nulo de escucha si hay uno; si no, la del par agrupado
+ * de menor frecuencia; si no, el % de acoplamiento del peor modo; si
+ * ninguno de los tres aplica ("bien distribuidos"), sin dato que mostrar. */
+function datoModos(
+  a: UltimoAnalisis,
+  resNulo: ReturnType<typeof evaluarNuloEscucha>,
+  resAcoplamiento: ReturnType<typeof evaluarAcoplamientoModal>
+): string {
+  if (resNulo.codigo === 'nulo-cerca') return `${num(resNulo.frecuenciaHz, 1, idiomaActual)} Hz`;
+  if (a.resModos.agrupados.length > 0) return `${num(a.resModos.agrupados[0]!.modoA.frecuenciaHz, 1, idiomaActual)} Hz`;
+  if (resAcoplamiento.severidad === 'warn') {
+    return `${num(Math.max(...resAcoplamiento.modos.map((m) => m.producto)) * 100, 0, idiomaActual)}%`;
+  }
+  return '—';
+}
+function datoFiltroPeine(resultados: ReturnType<typeof evaluarFiltroPeine>): string {
+  const n = resultados.filter((r) => r.severidad === 'warn').length;
+  return n > 0 ? `${n}/10` : '—';
+}
+function datoTriangulo(resAngulo: ReturnType<typeof evaluarAnguloEscucha>): string {
+  return `${num(resAngulo.anguloGrados, 0, idiomaActual)}°`;
+}
+function datoReverberacion(r: ReturnType<typeof evaluarReverberacion>): string {
+  const [amoblado, vacio] = r.rt60RangoS;
+  return amoblado === null || vacio === null ? '—' : `≈${num(amoblado, 1, idiomaActual)}–${num(vacio, 1, idiomaActual)} s`;
+}
+
 function buscarParlante(id: string) {
   const p = CATALOGO.parlantes.find((x) => x.id === id);
   if (!p) throw new Error(`parlante no encontrado: ${id}`);
@@ -509,7 +562,7 @@ function construirSnapshot(a: UltimoAnalisis, disposicion: DisposicionSala, cand
  * cambio de pestaña o "Recalcular" — nada de esto recalcula el motor, sólo
  * asigna al DOM lo que el snapshot ya trae calculado. */
 function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
-  pintarPotencia(snap.mPot, idiomaActual);
+  pintarPotencia(snap.mPot, idiomaActual, datoPotencia(snap.resPot));
 
   const t = textosDe(idiomaActual);
   const items = [
@@ -550,9 +603,9 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   // del sitio.
   const resumenFinal = modeloResumenFinal(snap.componentesResumen, snap.mVeredicto, idiomaActual);
 
-  pintarModos(snap.mModos);
-  pintarFiltroPeine(snap.mFiltroPeine);
-  pintarTrianguloEscucha(snap.mTriangulo);
+  pintarModos(snap.mModos, datoModos(a, snap.resNuloEscucha, snap.resAcoplamiento));
+  pintarFiltroPeine(snap.mFiltroPeine, datoFiltroPeine(evaluarFiltroPeine(snap.disposicion, a.materiales)));
+  pintarTrianguloEscucha(snap.mTriangulo, datoTriangulo(evaluarAnguloEscucha(snap.disposicion)));
   pintarVeredicto(snap.mVeredicto);
   pintarRecomendacionesTop(modeloRecomendacionesTop(snap.componentesResumen, idiomaActual));
   pintarNotaSinDatos(modeloNotaSinDatos(snap.componentesResumen, idiomaActual));
@@ -781,13 +834,13 @@ function renderizarResultado(): void {
 
   const resCarga = evaluarCarga(parlanteM, ampM);
   const mCarga = modeloCarga(spk, amp, resCarga, idiomaActual);
-  pintarCarga(mCarga);
+  pintarCarga(mCarga, datoCarga(resCarga, spk));
 
   // Igual que resCarga: no depende de la disposición de parlantes, sólo
   // del equipo elegido — se calcula una sola vez por "Analizar".
   const resAmortiguamiento = evaluarAmortiguamiento(parlanteM, ampM);
   const mAmortiguamiento = modeloAmortiguamiento(resAmortiguamiento, idiomaActual);
-  pintarAmortiguamiento(mAmortiguamiento);
+  pintarAmortiguamiento(mAmortiguamiento, datoAmortiguamiento(resAmortiguamiento));
 
   let resPuenteStreamer: ResultadoPuenteImpedancias | null = null;
   let resRecorridoStreamer: ResultadoRecorridoVolumen | null = null;
@@ -799,9 +852,9 @@ function renderizarResultado(): void {
     resRecorridoStreamer = evaluarRecorridoVolumen(streamerM, ampM);
     mPuenteStreamer = modeloPuente(streamer, amp, resPuenteStreamer, idiomaActual);
     mRecorridoStreamer = modeloRecorrido(streamer, amp, resRecorridoStreamer, idiomaActual);
-    pintarGanancia('streamer', mPuenteStreamer, mRecorridoStreamer);
+    pintarGanancia('streamer', mPuenteStreamer, mRecorridoStreamer, datoPuente(resPuenteStreamer), datoRecorrido(resRecorridoStreamer));
   } else {
-    pintarGanancia('streamer', null, null);
+    pintarGanancia('streamer', null, null, '—', '—');
   }
 
   let resPuenteDac: ResultadoPuenteImpedancias | null = null;
@@ -814,9 +867,9 @@ function renderizarResultado(): void {
     resRecorridoDac = evaluarRecorridoVolumen(dacM, ampM);
     mPuenteDac = modeloPuente(dac, amp, resPuenteDac, idiomaActual);
     mRecorridoDac = modeloRecorrido(dac, amp, resRecorridoDac, idiomaActual);
-    pintarGanancia('dac', mPuenteDac, mRecorridoDac);
+    pintarGanancia('dac', mPuenteDac, mRecorridoDac, datoPuente(resPuenteDac), datoRecorrido(resRecorridoDac));
   } else {
-    pintarGanancia('dac', null, null);
+    pintarGanancia('dac', null, null, '—', '—');
   }
 
   const materiales = {
@@ -840,7 +893,7 @@ function renderizarResultado(): void {
   // "Reverberación" empieza a ser válida queden contiguas, sin hueco.
   const resReverb = evaluarReverberacion(sala, materiales);
   const mReverb = modeloReverberacion(resReverb, materiales, idiomaActual);
-  pintarReverberacion(mReverb);
+  pintarReverberacion(mReverb, datoReverberacion(resReverb));
 
   // resModos sólo depende de las dimensiones — se calcula una vez acá,
   // como el resto de ultimoAnalisis. El veredicto/pintado de la tarjeta
@@ -1207,7 +1260,16 @@ function wireEventos(): void {
   document.querySelector('[data-doc-tab="2"]')?.addEventListener('click', () => abrirGuardarPopup());
 
   document.querySelectorAll<HTMLButtonElement>('.infobtn[data-info]').forEach((b) => {
-    b.addEventListener('click', () => abrirInfoPopup(b.dataset.info as InfoClave));
+    // Varios infobtn viven ahora dentro de un <summary> (cada fila de
+    // evidencia es un <details>) — sin esto, el click abriría el popup Y
+    // además togglearía el acordeón, porque el navegador interpreta
+    // cualquier click dentro de <summary> como "abrir/cerrar" salvo que se
+    // le haga preventDefault().
+    b.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      abrirInfoPopup(b.dataset.info as InfoClave);
+    });
   });
   const infoPopup = document.getElementById('info-popup') as HTMLDialogElement | null;
   document.getElementById('info-popup-cerrar')?.addEventListener('click', () => infoPopup?.close());
