@@ -43,6 +43,14 @@ if (/\b(?:src|href)=["']\//.test(html)) {
 if (!/<script[^>]*>[\s\S]{200,}<\/script>/.test(html)) {
   problemas.push('no se encontró un <script> con contenido inline sustancial — ¿el bundle se generó vacío?');
 }
+// Canario: index.html (el bundle que tiene que abrir por file://) nunca
+// debería incluir three.js/WebXR — eso vive en ar.html, servido aparte
+// (ver vite.ar.config.ts), y sólo entra al grafo de main.ts si algún
+// import futuro de src/ar/** con dependencia de three se cuela ahí por
+// error. Mejor que reviente acá, no que se note por el tamaño del archivo.
+if (/\bimmersive-ar\b/.test(html) || /\bTHREE\./.test(html)) {
+  problemas.push('dist/index.html parece incluir código de AR/three.js — src/main.ts no debería importar nada de src/ar/** con dependencia de three.');
+}
 
 if (problemas.length > 0) {
   console.error('verificar-build: dist/index.html no pasa la verificación de file://\n');

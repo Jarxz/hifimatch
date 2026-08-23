@@ -302,6 +302,7 @@ export const es = {
         'Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.',
       referenciaSimetrica: 'posición simétrica de referencia',
       verLasDiez: 'Ver las diez',
+      verEnArBoton: 'Ver en AR',
       ubicacionTitulo: 'Ubicación de referencia de los parlantes',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Parlante izquierdo: <b>${p.frontalIzq} m</b> de la pared frontal, <b>${p.lateralIzq} m</b> de su pared lateral. Parlante derecho: <b>${p.frontalDer} m</b> de la pared frontal, <b>${p.lateralDer} m</b> de su pared lateral. Separación entre ambos: <b>${p.separacion} m</b>. Es la disposición de referencia que usa el resto del análisis (potencia, modos, reflexiones) — se afina moviendo los parlantes y escuchando en el espacio real.`,
@@ -333,6 +334,27 @@ export const es = {
       'Vista previa interna de un informe exportable — reformatea los datos ya calculados de <b>Análisis 1</b>, ' +
       'sin generar un PDF real todavía. <b>Análisis 2</b>, <b>Comparar</b> y <b>Descargar PDF</b> quedan detrás ' +
       'del inicio de sesión, igual que «Guardar».',
+  },
+
+  ar: {
+    titulo: 'The Hifi Match · AR',
+    pasosTitulo: 'Cómo calibrar',
+    paso1: 'Se apunta el teléfono al piso de la sala y se toca la esquina real donde se juntan la pared frontal y la pared izquierda.',
+    paso2: 'Parado dentro de la sala y mirando hacia el fondo, se toca un segundo punto sobre el piso, a lo largo de la misma pared frontal (por ejemplo, la esquina frontal derecha).',
+    avisoSoloAndroidChrome: 'Esta función sólo funciona en Chrome para Android, con soporte de ARCore. No está disponible en iPhone, en computadoras, ni en otros navegadores de Android.',
+    botonEntrar: 'Entrar en AR',
+    calibrandoPaso1: 'Apuntar al piso y tocar la esquina real frontal-izquierda de la sala.',
+    calibrandoPaso2: 'Mirando hacia el fondo de la sala, tocar un segundo punto sobre el piso, a lo largo de la pared frontal.',
+    anclado: 'Anclado. La geometría calculada queda fija en este punto — es posible recorrer la sala para verla desde otros ángulos.',
+    avisoAlturaSupuesta: 'La altura de parlante y oído se asume en 1,0 m (criterio del sitio) — no es una medición de la instalación real.',
+    avisoWireframeAproximado:
+      'El cubo usa las medidas de sala ingresadas, no una medición del espacio real — si no coinciden, el wireframe no calza exacto con las paredes; no es un error de cálculo.',
+    reiniciarCalibracion: 'Volver a calibrar',
+    noSoportadoTitulo: 'AR no disponible en este navegador',
+    noSoportadoCuerpo:
+      'Esta función usa WebXR con detección de superficies (hit-test), soportado hoy sólo por Chrome en Android con ARCore. No está disponible en iPhone/Safari, en computadoras de escritorio, ni en otros navegadores de Android.',
+    estadoInvalido: 'No se pudieron leer los datos de la sala. Conviene volver al análisis e intentarlo de nuevo desde el botón «Ver en AR».',
+    volverAlAnalisis: '← Volver al análisis',
   },
 
   motor: {

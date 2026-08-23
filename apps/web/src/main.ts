@@ -67,6 +67,9 @@ import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from 
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
 import { num, numConSigno } from './formato/numeros.ts';
 import { idiomaInicial, guardarIdioma, aplicarCromoEstatico, textosDe } from './idioma/idioma.ts';
+import { codificarEstadoAr } from './ar/estadoUrl.ts';
+import type { EstadoAr } from './ar/estadoUrl.ts';
+import { tieneNavigatorXr } from './ar/soporte.ts';
 
 const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alto', ref: 'referencia' };
 
@@ -1024,6 +1027,33 @@ function abrirGuardarPopup(): void {
   abrirPopup(t.guardarPopupTitulo, t.guardarPopupCuerpo);
 }
 
+/** "Ver en AR" navega a ar.html (página separada, servida por red —
+ * ver vite.ar.config.ts) sólo si hay una chance real de que funcione:
+ * nunca por file:// (mismo guardia que ya usa enviarContacto) y sólo si
+ * `navigator.xr` existe. El chequeo autoritativo (`isSessionSupported`)
+ * corre recién dentro de ar.html — acá sólo se descarta lo obviamente
+ * imposible, para no navegar a una página que va a terminar en el mismo
+ * fallback de todos modos si esta comprobación barata ya alcanza. */
+function irAVerEnAr(): void {
+  if (!ultimoPlano) return;
+  if (location.protocol === 'file:' || !tieneNavigatorXr(navigator)) {
+    const t = textosDe(idiomaActual).ar;
+    abrirPopup(t.noSoportadoTitulo, t.noSoportadoCuerpo);
+    return;
+  }
+  const estadoAr: EstadoAr = {
+    sala: ultimoPlano.sala,
+    parlanteIzq: ultimoPlano.disposicion.parlanteIzq,
+    parlanteDer: ultimoPlano.disposicion.parlanteDer,
+    asiento: ultimoPlano.disposicion.puntoDulce,
+    muroFrontalVacio: ultimoPlano.murosVista.frontal === 'vacio',
+    muroPosteriorVacio: ultimoPlano.murosVista.posterior === 'vacio',
+    muroIzquierdoVacio: ultimoPlano.murosVista.izquierdo === 'vacio',
+    muroDerechoVacio: ultimoPlano.murosVista.derecho === 'vacio',
+  };
+  location.href = 'ar.html?' + codificarEstadoAr(estadoAr);
+}
+
 /** Destino del enlace `mailto:` de respaldo cuando el sitio corre por
  * `file://` (ahí no se puede llamar a `/api/contact` — ni siquiera resuelve
  * a un host). Independiente de `CONTACT_TO_EMAIL` (esa es la variable de
@@ -1322,6 +1352,7 @@ function wireEventos(): void {
     b.addEventListener('click', () => activarPestana(b.dataset.pestana as 'original' | 'modificado'));
   });
   document.getElementById('btn-candado')?.addEventListener('click', () => setCandado(!estado.candadoAbierto));
+  document.getElementById('btn-ver-ar')?.addEventListener('click', irAVerEnAr);
   // Delegado sobre #plan-hint, no directo sobre #btn-recalcular: ese botón
   // vive dentro de resultado.plano.hintArrastreHtml, que aplicarCromoEstatico()
   // reescribe entero (innerHTML) en cada cambio de idioma — un listener

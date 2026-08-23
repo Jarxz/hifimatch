@@ -8,8 +8,11 @@ import { en } from './en.ts';
 import { leerRuta } from './idioma.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// apps/web/src/idioma/idioma.test.ts -> apps/web/index.html
-const HTML = readFileSync(join(__dirname, '..', '..', 'index.html'), 'utf8');
+// apps/web/src/idioma/idioma.test.ts -> apps/web/index.html (y ar.html,
+// página propia con su propio entry de Vite — ver vite.ar.config.ts).
+// Concatenados: cualquier data-i18n nuevo en cualquiera de los dos se
+// valida con la misma pasada, sin duplicar la lógica de extracción.
+const HTML = readFileSync(join(__dirname, '..', '..', 'index.html'), 'utf8') + '\n' + readFileSync(join(__dirname, '..', '..', 'ar.html'), 'utf8');
 
 function extraerClaves(atributo: string): string[] {
   const re = new RegExp(`${atributo}="([^"]+)"`, 'g');

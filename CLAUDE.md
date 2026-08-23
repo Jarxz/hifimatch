@@ -3205,7 +3205,135 @@ forzar una entrada en vez de comprometer la disciplina de "nunca
 inventes un dato" — mismo principio que ya regía, aplicado por primera
 vez a una marca completa en vez de a un campo suelto.
 
+**AR anclada (WebXR + hit-test): "Ver en AR" muestra las reflexiones ya
+calculadas superpuestas sobre la sala real, sólo en Chrome/Android —
+pedido explícito con las limitaciones conocidas y aceptadas de
+antemano.** Analizado primero como pregunta abierta ("¿es viable AR
+mostrando esto en la sala real desde el teléfono, sin instalar una
+app?"): el motor ya tenía toda la geometría 3D necesaria
+(`packages/engine/src/sala.ts`, `DisposicionSala`, en metros, origen en
+la esquina frontal-izquierda del piso) sin ningún cambio — el problema
+real no era de tecnología, era de **anclaje**: el motor no sabe dónde
+está la sala real en el espacio, sólo conoce las dimensiones que el
+usuario tipeó. AR con la cámara ANCLADA de verdad (el usuario toca la
+pantalla para fijar un punto real) exige seguimiento 6DoF —
+WebXR `immersive-ar` con hit-test, que **sólo existe en Chrome/Android
+(ARCore)**; Safari/iOS no implementa WebXR AR inmersivo, ninguna versión
+actual, sin indicio de que vaya a cambiar. Se presentó la alternativa
+más barata y compatible con todo (una vista 3D navegable sin cámara,
+sin problema de anclaje) como recomendación por defecto; el usuario, ya
+informado de que la opción "real" excluye a la mitad del mercado de
+teléfonos, eligió construir igual la AR anclada de verdad.
+
+**Página separada `ar.html`, nunca inlineada — la única forma de
+que `three.js` no entre al bundle que abre por `file://`.**
+`apps/web/vite.ar.config.ts` (config de Vite propio, sin
+`vite-plugin-singlefile`, `emptyOutDir:false`) construye `ar.html` como
+segundo paso del script `build` (`vite build && vite build --config
+vite.ar.config.ts && node scripts/verificar-build.mjs`) — no hay
+conflicto doctrinal en que dependa de red: AR nunca puede funcionar por
+`file://` de todos modos (necesita cámara + permisos + ARCore).
+`verificar-build.mjs` (que sigue revisando sólo `dist/index.html`, sin
+tocar su lógica) suma un canario: falla si `index.html` llega a
+contener `'immersive-ar'` o `THREE.` — detecta en el build, no por el
+tamaño del archivo, si algún import futuro de `src/main.ts` hacia
+`src/ar/**` con dependencia de `three` se cuela por error. Confirmado:
+`dist/index.html` creció de 516 KB a 522 KB (el botón + los textos
+nuevos, nada de `three`); `dist/ar.html` es un HTML de 3,6 KB con su
+propio JS de ~643 KB (three.js + la lógica de AR), servido aparte.
+
+**Calibración de 2 toques sobre el piso, no piso+pared — resuelve la
+ambigüedad de orientación con la dirección de mirada de la cámara.**
+`apps/web/src/ar/anclaje.ts` (puro, sin `three`, sin DOM, 8 tests):
+toque 1 fija el origen (esquina real frontal-izquierda), toque 2 marca
+otro punto del piso a lo largo de la pared frontal → define el eje
+"ancho"; la ambigüedad de las dos perpendiculares candidatas para
+"hacia el fondo de la sala" se resuelve con el producto punto contra la
+dirección de mirada de la cámara en el instante del segundo toque —
+declarado explícitamente en la instrucción de calibración ("parado
+dentro de la sala, mirando hacia el fondo"), no asumido en silencio.
+Toques prácticamente coincidentes usan un eje X de emergencia declarado
+(mismo criterio defensivo que ya usa `puntoDulceDesdeParlantes` en
+`sala.ts`) — nunca `NaN`.
+
+**`apps/web/src/ar/geometriaAr.ts`** (puro, 8 tests) traduce una
+`DisposicionSala` ya anclada a segmentos/puntos en el mundo real —
+mismos elementos que ya dibuja `plano.ts` (cubo de sala, triángulo de
+escucha, 8 reflexiones, omitiendo las de un muro `'vacio'`; lógica de
+omisión duplicada a propósito desde `plano.ts`, no extraída a un
+helper compartido — alcance de esta ronda) con el mismo principio
+"wireframe honesto, sin fingir opacidad". **`escenaThree.ts`** es el
+único módulo que importa `three` — arma el `THREE.Group` con la misma
+paleta que ya usa `plano.ts` (dorado para reflexiones, blanco para
+parlantes/punto dulce), esferas chicas (no volúmenes fingidos) y
+etiquetas de texto vía sprites con textura de canvas 2D.
+
+**Handoff de datos por query string, no `sessionStorage`.**
+`apps/web/src/ar/estadoUrl.ts` (puro, 8 tests): codifica sala +
+posición de parlantes/asiento + banderas de muro vacío (booleano, no el
+`MaterialMuro` completo — geometriaAr.ts sólo distingue vacío/no vacío)
+en claves cortas; decodificación defensiva — cualquier campo
+ausente/`NaN`/fuera de rango devuelve `null`, nunca tira (mismo
+criterio que ya declara `calcularDisposicionManual`: el motor no
+confía ciegamente en coordenadas externas). Del lado de `ar.html`, la
+reconstrucción siempre pasa por `calcularDisposicionAsientoManual` —
+la AR nunca recalcula física por su cuenta, sólo ancla lo que
+`sala.ts` ya calculó.
+
+**Detección de soporte, mismo criterio que ya usa `enviarContacto` para
+`file://`: declarar la limitación, nunca fallar en silencio.**
+`apps/web/src/ar/soporte.ts` (puro, `navigator` recibido como
+parámetro — nunca leído del global adentro — para poder testear con
+`node --test`, 7 tests): chequeo síncrono barato
+(`tieneNavigatorXr`) antes de navegar, y uno autoritativo async
+(`soportaArInmersiva`, con try/catch — algunos navegadores rechazan la
+promesa en vez de resolver `false`). El botón "Ver en AR"
+(`#btn-ver-ar`, junto al candado en la tarjeta de Geometría) reusa el
+mismo `<dialog id="info-popup">` de siempre para el mensaje de "no
+soportado" cuando `file:` o sin `navigator.xr` — nunca navega a una
+página muerta. `ar.html` repite el chequeo (defensa en profundidad, por
+si alguien llega por bookmark) más el autoritativo antes de
+`requestSession`.
+
+**Sesión WebXR (`sesion.ts`, impura): retícula por hit-test contra el
+piso, `select` sólo lee valores ya calculados en el loop de render, no
+vuelve a pedir un `XRFrame` dentro del propio evento** (evita depender
+de si `renderer.xr.getFrame()` es seguro de llamar fuera del loop de
+animación, no está claramente documentado). `referenceSpace:
+'local-floor'` da el eje vertical alineado con la gravedad real (IMU)
+sin depender de una calibración propia. Overlay de texto por paso
+(`ar.calibrandoPaso1/2/anclado`) vía callback — `sesion.ts` reporta
+transiciones de estado, `entrada-ar.ts` escribe el texto localizado,
+misma separación pura/impura que el resto del sitio.
+
+**Verificado con Chrome headless (sirviendo `dist/` por HTTP local,
+`file://` habría bloqueado por CORS el JS/CSS externos de `ar.html` —
+esperado, esa página nunca corre por `file://` en producción):** click
+en "Ver en AR" bajo `file://` abre el popup de "no soportado" sin
+navegar; `ar.html` sin query string cae en el fallback de estado
+inválido; con `navigator.xr` real de Chrome headless (que existe, pero
+sin ARCore) cae en "no soportado" vía el chequeo autoritativo; con un
+`navigator.xr` simulado que sí resuelve soporte, muestra los pasos y el
+botón "Entrar en AR"; con `requestSession` rechazando (simula permiso
+de cámara denegado), cae en el panel de error de sesión con el mensaje
+real. Bilingüe confirmado. **Un hit-test real contra una superficie
+real, con cámara y ARCore, no se puede simular con Chrome headless —
+gate de QA manual en un Android+Chrome real, pendiente, antes de dar la
+función por cerrada del todo** (mismo límite de verificación que ya
+tuvo el arrastre táctil del plano en su momento). 428 tests totales
+entre los 4 workspaces (antes 397): 31 nuevos en `apps/web`
+(`anclaje.test.ts`, `geometriaAr.test.ts`, `soporte.test.ts`,
+`estadoUrl.test.ts`).
+
 Falta:
+- **Verificación end-to-end de AR en un Android+Chrome real con
+  ARCore**: todo lo automatizable (geometría de anclaje, construcción
+  de escena, detección de soporte, codificación de estado, fallbacks de
+  UI) tiene test — el hit-test contra una superficie real, la
+  estabilidad de la retícula, y si el anclaje se siente alineado con
+  las paredes reales de una sala real, no. Pendiente de una prueba en
+  teléfono real, mismo patrón que ya pidió confirmación real para el
+  arrastre táctil del plano.
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla
   ese término con correcciones que sólo existen porque hay una sala

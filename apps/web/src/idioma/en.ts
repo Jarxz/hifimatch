@@ -253,6 +253,7 @@ export const en: Textos = {
         'Original analysis and Modified use a different method for the listening spot (padlock locked/open) — a difference between the two may come from that, not only from position.',
       referenciaSimetrica: 'symmetric reference position',
       verLasDiez: 'See the ten',
+      verEnArBoton: 'View in AR',
       ubicacionTitulo: 'Reference speaker placement',
       ubicacion: (p: { frontalIzq: string; lateralIzq: string; frontalDer: string; lateralDer: string; separacion: string }): string =>
         `Left speaker: <b>${p.frontalIzq} m</b> from the front wall, <b>${p.lateralIzq} m</b> from its side wall. Right speaker: <b>${p.frontalDer} m</b> from the front wall, <b>${p.lateralDer} m</b> from its side wall. Distance between them: <b>${p.separacion} m</b>. This is the reference layout the rest of the analysis uses (power, modes, reflections) — it gets refined by moving the speakers and listening in the real space.`,
@@ -285,6 +286,27 @@ export const en: Textos = {
       'Internal preview of an exportable report — reformats data already calculated for <b>Analysis 1</b>, no ' +
       'real PDF is generated yet. <b>Analysis 2</b>, <b>Compare</b>, and <b>Download PDF</b> sit behind sign-in, ' +
       'same as "Save".',
+  },
+
+  ar: {
+    titulo: 'The Hifi Match · AR',
+    pasosTitulo: 'How calibration works',
+    paso1: 'Point the phone at the room floor and tap the real corner where the front wall meets the left wall.',
+    paso2: 'Standing inside the room and facing its far end, tap a second point on the floor, along the same front wall (for example, the front-right corner).',
+    avisoSoloAndroidChrome: 'This only works in Chrome for Android with ARCore support. It is not available on iPhone, on desktop computers, or in other Android browsers.',
+    botonEntrar: 'Enter AR',
+    calibrandoPaso1: 'Point at the floor and tap the real front-left corner of the room.',
+    calibrandoPaso2: 'Facing the far end of the room, tap a second point on the floor, along the front wall.',
+    anclado: 'Anchored. The calculated geometry stays fixed at this point — walk around the room to see it from other angles.',
+    avisoAlturaSupuesta: 'Speaker and ear height is assumed at 1.0 m (site criterion) — not a measurement of the real installation.',
+    avisoWireframeAproximado:
+      'The cube uses the room measurements entered, not a measurement of the real space — if they don’t match, the wireframe won’t line up exactly with the walls; that is not a calculation error.',
+    reiniciarCalibracion: 'Recalibrate',
+    noSoportadoTitulo: 'AR not available in this browser',
+    noSoportadoCuerpo:
+      'This feature uses WebXR with surface detection (hit-test), supported today only by Chrome on Android with ARCore. It is not available on iPhone/Safari, on desktop computers, or in other Android browsers.',
+    estadoInvalido: 'The room data could not be read. Go back to the analysis and try again from the "View in AR" button.',
+    volverAlAnalisis: '← Back to analysis',
   },
 
   motor: {

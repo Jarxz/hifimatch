@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ver en realidad aumentada las reflexiones que calcula The Hifi Match, ancladas en tu sala real.">
+<title>The Hifi Match · AR</title>
+</head>
+<body>
+
+<canvas id="ar-canvas"></canvas>
+
+<div id="ar-overlay">
+  <div id="ar-cargando" class="ar-panel">
+    <p>…</p>
+  </div>
+
+  <div id="ar-no-soportado" class="ar-panel hidden">
+    <h1 data-i18n="ar.noSoportadoTitulo">AR no disponible en este navegador</h1>
+    <p data-i18n="ar.noSoportadoCuerpo">Esta función usa WebXR con detección de superficies (hit-test), soportado hoy sólo por Chrome en Android con ARCore. No está disponible en iPhone/Safari, en computadoras de escritorio, ni en otros navegadores de Android.</p>
+    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+  </div>
+
+  <div id="ar-estado-invalido" class="ar-panel hidden">
+    <p data-i18n="ar.estadoInvalido">No se pudieron leer los datos de la sala. Conviene volver al análisis e intentarlo de nuevo desde el botón «Ver en AR».</p>
+    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+  </div>
+
+  <div id="ar-pasos" class="ar-panel hidden">
+    <h1 class="mark-ar">The Hifi Match · AR</h1>
+    <p class="ar-aviso" data-i18n="ar.avisoSoloAndroidChrome">Esta función sólo funciona en Chrome para Android, con soporte de ARCore. No está disponible en iPhone, en computadoras, ni en otros navegadores de Android.</p>
+    <h2 data-i18n="ar.pasosTitulo">Cómo calibrar</h2>
+    <p data-i18n="ar.paso1">Se apunta el teléfono al piso de la sala y se toca la esquina real donde se juntan la pared frontal y la pared izquierda.</p>
+    <p data-i18n="ar.paso2">Parado dentro de la sala y mirando hacia el fondo, se toca un segundo punto sobre el piso, a lo largo de la misma pared frontal (por ejemplo, la esquina frontal derecha).</p>
+    <button type="button" id="btn-entrar-ar" class="analizar" data-i18n="ar.botonEntrar">Entrar en AR</button>
+    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+  </div>
+
+  <div id="ar-error-sesion" class="ar-panel hidden">
+    <p id="ar-error-sesion-texto">—</p>
+    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+  </div>
+
+  <div id="ar-calibrando" class="ar-hud hidden">
+    <p id="ar-hud-texto" aria-live="polite" data-i18n="ar.calibrandoPaso1">Apuntar al piso y tocar la esquina real frontal-izquierda de la sala.</p>
+  </div>
+
+  <div id="ar-anclado" class="ar-hud hidden">
+    <p aria-live="polite" data-i18n="ar.anclado">Anclado. La geometría calculada queda fija en este punto — es posible recorrer la sala para verla desde otros ángulos.</p>
+    <p class="ar-aviso-chico" data-i18n="ar.avisoAlturaSupuesta">La altura de parlante y oído se asume en 1,0 m (criterio del sitio) — no es una medición de la instalación real.</p>
+    <p class="ar-aviso-chico" data-i18n="ar.avisoWireframeAproximado">El cubo usa las medidas de sala ingresadas, no una medición del espacio real — si no coinciden, el wireframe no calza exacto con las paredes; no es un error de cálculo.</p>
+    <button type="button" id="btn-reiniciar-calibracion" class="back" data-i18n="ar.reiniciarCalibracion">Volver a calibrar</button>
+  </div>
+</div>
+
+<script type="module" src="./src/ar/entrada-ar.ts"></script>
+</body>
+</html>
