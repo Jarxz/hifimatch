@@ -28,6 +28,39 @@ function mostrarSolo(idVisible: (typeof TODOS_LOS_PANELES)[number]): void {
   }
 }
 
+/**
+ * "← Volver al análisis" — antes era un link a "/" siempre, así que
+ * siempre terminaba en la portada, no en el resultado del que salió
+ * quien entró a AR (bug reportado). `ar.html` se llega SIEMPRE por
+ * `location.href = 'ar.html?...'` desde la pantalla de resultado
+ * (`irAVerEnAr()`, main.ts) — nunca en una pestaña nueva — así que hay
+ * una entrada real en el historial del navegador a la que volver.
+ * `history.back()` la restaura completa (equipo elegido, análisis ya
+ * calculado, misma pestaña activa) vía bfcache, sin recalcular nada —
+ * `location.href='/'` en cambio siempre reinicia la app desde la
+ * portada. Se usa `history.back()` sólo cuando el referrer es del mismo
+ * origen (se llegó navegando desde el propio sitio, no por un enlace
+ * externo/marcador guardado, donde no habría nada más atrás) — si no,
+ * `/` sigue siendo el respaldo seguro de siempre.
+ */
+function volverAlAnalisis(): void {
+  let mismoOrigen = false;
+  try {
+    mismoOrigen = document.referrer !== '' && new URL(document.referrer).origin === location.origin;
+  } catch {
+    mismoOrigen = false;
+  }
+  if (mismoOrigen && history.length > 1) {
+    history.back();
+  } else {
+    location.href = '/';
+  }
+}
+
+document.querySelectorAll<HTMLButtonElement>('.volver-analisis').forEach((btn) => {
+  btn.addEventListener('click', volverAlAnalisis);
+});
+
 async function arrancar(): Promise<void> {
   const estado = decodificarEstadoAr(location.search.replace(/^\?/, ''));
   if (!estado) {

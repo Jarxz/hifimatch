@@ -18,12 +18,12 @@
   <div id="ar-no-soportado" class="ar-panel hidden">
     <h1 data-i18n="ar.noSoportadoTitulo">AR no disponible en este navegador</h1>
     <p data-i18n="ar.noSoportadoCuerpo">Esta función usa WebXR con detección de superficies (hit-test), soportado hoy sólo por Chrome en Android con ARCore. No está disponible en iPhone/Safari, en computadoras de escritorio, ni en otros navegadores de Android.</p>
-    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+    <button type="button" class="back volver-analisis" data-i18n="ar.volverAlAnalisis">← Volver al análisis</button>
   </div>
 
   <div id="ar-estado-invalido" class="ar-panel hidden">
     <p data-i18n="ar.estadoInvalido">No se pudieron leer los datos de la sala. Conviene volver al análisis e intentarlo de nuevo desde el botón «Ver en AR».</p>
-    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+    <button type="button" class="back volver-analisis" data-i18n="ar.volverAlAnalisis">← Volver al análisis</button>
   </div>
 
   <div id="ar-pasos" class="ar-panel hidden">
@@ -34,12 +34,12 @@
     <p data-i18n="ar.paso2">Sin moverse de dentro de la sala, se toca la esquina real frontal-derecha (donde esa misma pared llega a la pared derecha) — la distancia entre los dos toques mide el ancho real de la sala.</p>
     <p data-i18n="ar.paso3">Una vez anclado, un tercer toque OPCIONAL en la parte de arriba de esa misma esquina (donde la pared llega al techo) mide también la altura real.</p>
     <button type="button" id="btn-entrar-ar" class="analizar" data-i18n="ar.botonEntrar">Entrar en AR</button>
-    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+    <button type="button" class="back volver-analisis" data-i18n="ar.volverAlAnalisis">← Volver al análisis</button>
   </div>
 
   <div id="ar-error-sesion" class="ar-panel hidden">
     <p id="ar-error-sesion-texto">—</p>
-    <a class="back" href="/" data-i18n="ar.volverAlAnalisis">← Volver al análisis</a>
+    <button type="button" class="back volver-analisis" data-i18n="ar.volverAlAnalisis">← Volver al análisis</button>
   </div>
 
   <div id="ar-calibrando" class="ar-hud hidden">

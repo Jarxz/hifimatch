@@ -3514,6 +3514,34 @@ medición, aviso — todo oculto hasta que corresponde) están presentes y
 bien formadas; el propio flujo de anclaje+medición con hit-test real
 sigue sin poder probarse sin hardware. 434 tests totales (antes 430).
 
+**Confirmado con hardware real: el ancho medido (automático) también
+mejoró la altura sin siquiera usar el toque opcional** — reporte del
+usuario tras la ronda anterior ("al medir los 2 primeros puntos la
+altura es casi perfecta"), esperable ya que `dispActual` se recalcula
+completo con `calcularDisposicionAsientoManual()` cuando el ancho
+cambia, no sólo se estira el dibujo (ver más arriba) — la geometría de
+techo/reflexiones ya se beneficia de eso aunque `altoM` en sí siga sin
+medirse.
+
+**Bug reportado en la misma ronda: "Volver al análisis" volvía a la
+portada, no a la pantalla de resultado de la que salió quien entró a
+AR.** Causa directa: los 4 links "← Volver al análisis" de `ar.html`
+eran `<a href="/">` — cualquier click recargaba el sitio entero desde
+cero, perdiendo el equipo elegido y el análisis ya calculado (todo vive
+en memoria de `main.ts`, no en la URL). Se cambiaron a `<button
+class="back volver-analisis">` cableados a una función nueva en
+`entrada-ar.ts`: si `document.referrer` es del mismo origen (el caso
+real siempre, ya que `irAVerEnAr()` en `main.ts` llega acá con
+`location.href = 'ar.html?...'` desde la propia pantalla de resultado,
+nunca en pestaña nueva), usa `history.back()` — el navegador restaura
+la página anterior completa vía bfcache, sin recalcular nada; si no
+(entrada directa por marcador/enlace externo, sin nada real atrás), cae
+al mismo `location.href='/'` de siempre. Verificado con Chrome headless
+navegando de verdad desde `index.html` (no con `Page.navigate`, que no
+fija `document.referrer`): el click en "Volver al análisis" devuelve
+efectivamente a `index.html`. 434 tests sin cambios (fix de navegación
+puro, sin lógica nueva testeable con `node --test`).
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
