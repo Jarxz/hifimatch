@@ -12,8 +12,13 @@
  *
  * Calibración de 2 toques sobre el piso (ver docs/motor-mvp.md AR):
  * toque 1 fija el origen (esquina real frontal-izquierda), toque 2 marca
- * cualquier punto sobre el piso a lo largo de la pared frontal → define
- * el eje "ancho". La ambigüedad de las dos perpendiculares candidatas
+ * la esquina real frontal-derecha → define el eje "ancho". Que sea la
+ * esquina real (no "cualquier punto a lo largo de la pared", como en la
+ * primera versión) no es sólo por prolijidad: la distancia entre los 2
+ * toques pasa a ser una medición real del ancho de la sala
+ * (`medirAnchoM`, más abajo) — con un punto arbitrario a mitad de pared
+ * esa distancia no significaría nada. La ambigüedad de las dos
+ * perpendiculares candidatas
  * para "hacia el fondo de la sala" se resuelve con la POSICIÓN del
  * visor (el teléfono/cabeza, no hacia dónde mira) en el instante del
  * toque 2 — se elige el candidato que apunta desde la pared hacia donde
@@ -136,4 +141,43 @@ export function resolverAnclaje(toque1: Vec3, toque2: Vec3, posicionVisor: Vec3)
  */
 export function anclarPunto(anclaje: Anclaje, punto: { x: number; y: number }, alturaM: number): Vec3 {
   return sumar(sumar(sumar(anclaje.origen, escalar(anclaje.ejeX, punto.x)), escalar(anclaje.ejeProfundidad, punto.y)), escalar(anclaje.arriba, alturaM));
+}
+
+/**
+ * Medición real del ancho de la sala, a partir de los mismos 2 toques
+ * que ya calibran el anclaje (toque1=esquina frontal-izquierda,
+ * toque2=esquina frontal-derecha) — sin pedir ningún toque extra. Sólo
+ * la componente horizontal, mismo criterio que el resto del módulo.
+ */
+export function medirAnchoM(toque1: Vec3, toque2: Vec3): number {
+  const d = proyectarHorizontal(restar(toque2, toque1));
+  return Math.hypot(d.x, d.z);
+}
+
+/**
+ * Medición real de la altura de la sala — un tercer toque OPCIONAL en
+ * la parte de arriba de la esquina ya tocada (donde esa pared llega al
+ * techo), ver `sesion.ts`. `pisoRef` es cualquier toque ya hecho a nivel
+ * de piso (normalmente toque1); `techoRef` es el toque nuevo, arriba.
+ */
+export function medirAlturaM(pisoRef: Vec3, techoRef: Vec3): number {
+  return techoRef.y - pisoRef.y;
+}
+
+/** Cotas de sanidad para las mediciones reales — descartan un hit-test
+ * claramente erróneo (superficie mal detectada, toque fuera de la sala)
+ * sin pretender validar que la medida en sí sea exacta. Declaradas, no
+ * ocultas: si una medición cae afuera, `sesion.ts` avisa y mantiene la
+ * medida tipeada en la web en vez de aplicar un número sin sentido. */
+export const ANCHO_MEDIDO_MIN_M = 0.5;
+export const ANCHO_MEDIDO_MAX_M = 15;
+export const ALTURA_MEDIDA_MIN_M = 1.5;
+export const ALTURA_MEDIDA_MAX_M = 5;
+
+export function anchoMedidoValido(anchoM: number): boolean {
+  return Number.isFinite(anchoM) && anchoM >= ANCHO_MEDIDO_MIN_M && anchoM <= ANCHO_MEDIDO_MAX_M;
+}
+
+export function alturaMedidaValida(alturaM: number): boolean {
+  return Number.isFinite(alturaM) && alturaM >= ALTURA_MEDIDA_MIN_M && alturaM <= ALTURA_MEDIDA_MAX_M;
 }

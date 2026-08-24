@@ -3445,6 +3445,75 @@ cubiertos (elección de candidato, altura sin efecto, caso degenerado,
 toques coincidentes), vectores nuevos. 430 tests, typecheck y build
 verificados de nuevo tras el cambio.
 
+**Segunda vuelta de hardware real: "mejoró bastante" — y una idea del
+usuario que resultó en medición real de ancho/alto, no sólo un ajuste
+cosmético.** El usuario probó de nuevo con la corrección de arriba y
+mandó una foto: el wireframe ya queda razonablemente alineado con la
+sala real. Sugirió, con sus propias palabras, aprovechar la esquina
+derecha que ya se toca como referencia y sumar un toque en la esquina
+superior derecha "para escalar y ajustar la altura" — pedido explícito
+de evaluar la mejor forma de implementarlo.
+
+**El ancho real sale gratis de los mismos 2 toques que ya existían — no
+hacía falta un toque nuevo para eso.** Cambio de instrucción, no de
+mecánica: el toque 2 pasa de "cualquier punto sobre el piso a lo largo
+de la pared frontal (por ejemplo, la esquina...)" a **la esquina real
+frontal-derecha**, sin la flexibilidad de "cualquier punto" — con eso
+garantizado, la distancia entre los 2 toques (`medirAnchoM`, nuevo en
+`anclaje.ts`) es una medición real del ancho de la sala, disponible en
+el mismo instante en que se ancla, sin acción extra del usuario.
+
+**La altura sí necesita un toque nuevo — pero opcional, no bloqueante.**
+Un botón "Medir altura real" aparece recién después de anclar; al
+tocarlo, se reactiva el hit-test (que en realidad nunca se cancela al
+anclar — sólo se deja de reaccionar a sus resultados hasta que hace
+falta de nuevo, así no hay que volver a pedirlo) y el próximo toque, en
+la parte de arriba de la misma esquina donde la pared llega al techo,
+da `medirAlturaM(toque1, toqueNuevo)` — la diferencia vertical entre el
+toque de piso original y este. Opcional a propósito: hit-testing cerca
+del techo es menos confiable que contra el piso (menos textura, ángulo
+más forzado) y el flujo de 2 toques ya funciona razonablemente solo, no
+convenía arriesgar la robustez del caso base por una mejora que no todos
+van a necesitar.
+
+**Ninguna medición se aplica sin pasar antes por un rango de sanidad
+declarado** (`anchoMedidoValido`/`alturaMedidaValida`, 0,5–15 m y
+1,5–5 m respectivamente — descartan un hit-test claramente erróneo, no
+pretenden validar que la medida en sí sea exacta): si una medición cae
+afuera, se mantiene la medida tipeada en la web para esa dimensión y un
+aviso (`ar.medicionFueraDeRango`) lo declara — nunca un número sin
+sentido aplicado en silencio, mismo principio de todo el sitio.
+
+**Ancho y alto reales, cuando están disponibles, recalculan
+`DisposicionSala` de verdad — no sólo estiran el dibujo.** Con un ancho
+o alto medido, `sesion.ts` arma una `Sala` nueva (`{...sala, anchoM:
+medido}` o `{...sala, altoM: medido}`) y vuelve a llamar a
+`calcularDisposicionAsientoManual()` con las mismas posiciones de
+parlante/asiento — así las reflexiones laterales/de techo (que sí
+dependen de `anchoM`/`altoM`) quedan consistentes con lo que se dibuja,
+en vez de un wireframe con un tamaño y una física con otro. La
+profundidad (`largoM`) sigue sin medirse — sigue siendo la del análisis
+tipeado en la web, declarado en `ar.avisoWireframeAproximado`
+(reescrito para hablar sólo de la profundidad, ya que ancho y alto
+pueden ser reales ahora).
+
+`anclaje.ts` suma `medirAnchoM`/`medirAlturaM`/`anchoMedidoValido`/
+`alturaMedidaValida` (4 tests nuevos, puros). `sesion.ts`:
+`EstadoCalibracion` suma `'midiendo-altura'`; `iniciarSesionAr()` ahora
+devuelve un `ControladorSesionAr` (con `medirAlturaReal()`) cuando la
+sesión arranca bien, para que `entrada-ar.ts` cablee el botón sin que
+`sesion.ts` tenga que conocer ningún id del DOM; nuevo callback
+`onMedicion(info)` (ancho/alto medidos o `null`) además de
+`onCambioEstado`. `entrada-ar.ts` distingue "todavía no se intentó
+medir" de "se intentó y no dio un valor creíble" con un flag local
+(`esperandoAltura`) — sin eso, el aviso de fuera-de-rango se dispararía
+para la altura antes de que nadie tocara el botón. Verificado con
+Chrome headless (sirviendo `dist/` por HTTP): las instrucciones nuevas
+(paso 3) y toda la estructura del panel anclado (botón, líneas de
+medición, aviso — todo oculto hasta que corresponde) están presentes y
+bien formadas; el propio flujo de anclaje+medición con hit-test real
+sigue sin poder probarse sin hardware. 434 tests totales (antes 430).
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
@@ -3452,12 +3521,12 @@ Falta:
   UI) tiene test — el hit-test contra una superficie real, la
   estabilidad de la retícula, la legibilidad real del grosor de línea
   de `Line2` y de la vista previa del muro frontal sobre la cámara de
-  verdad (verificadas hasta ahora sólo con una cámara de prueba fija en
-  Chrome headless, no dentro de una sesión `immersive-ar`), y si el
-  anclaje se siente alineado con las paredes reales de una sala real,
-  no. Pendiente de una prueba en teléfono real, mismo patrón que ya
-  pidió confirmación real para el
-  arrastre táctil del plano.
+  verdad, y ahora también el botón "Medir altura real" (hit-test contra
+  una pared cerca del techo — la superficie más difícil de las tres que
+  usa esta función) quedan pendientes de una prueba en teléfono real.
+  Confirmado hasta la ronda de "posición del visor" que el flujo de
+  2 toques ya funciona razonablemente en hardware real — falta
+  confirmar la medición de ancho/alto de la misma forma.
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla
   ese término con correcciones que sólo existen porque hay una sala

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolverAnclaje, anclarPunto } from './anclaje.ts';
+import { resolverAnclaje, anclarPunto, medirAnchoM, medirAlturaM, anchoMedidoValido, alturaMedidaValida } from './anclaje.ts';
 import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
 
 const CERCA = 1e-9;
@@ -82,4 +82,28 @@ test('anclarPunto: cada punto de una DisposicionSala real cae donde predice la f
     assert.ok(Math.abs(v.y - e.y) < CERCA);
     assert.ok(Math.abs(v.z - e.z) < CERCA);
   }
+});
+
+test('medirAnchoM: distancia horizontal entre los 2 toques, ignora diferencia de altura entre ellos', () => {
+  const m = medirAnchoM({ x: 0, y: 0.03, z: 0 }, { x: 3, y: -0.01, z: 4 });
+  assert.ok(Math.abs(m - 5) < CERCA); // 3-4-5
+});
+
+test('medirAlturaM: diferencia vertical entre el toque de piso y el de techo', () => {
+  assert.ok(Math.abs(medirAlturaM({ x: 0, y: 0, z: 0 }, { x: 1, y: 2.4, z: 0 }) - 2.4) < CERCA);
+});
+
+test('medirAlturaM: puede dar negativo si se invierten los toques — no es su trabajo validar, eso es alturaMedidaValida', () => {
+  assert.ok(medirAlturaM({ x: 0, y: 2.4, z: 0 }, { x: 0, y: 0, z: 0 }) < 0);
+});
+
+test('anchoMedidoValido / alturaMedidaValida: aceptan valores típicos de sala, rechazan fuera de rango y no-finitos', () => {
+  assert.equal(anchoMedidoValido(3.6), true);
+  assert.equal(anchoMedidoValido(0.1), false); // demasiado corto — toques casi coincidentes
+  assert.equal(anchoMedidoValido(50), false); // demasiado largo — hit-test mal detectado
+  assert.equal(anchoMedidoValido(NaN), false);
+  assert.equal(alturaMedidaValida(2.4), true);
+  assert.equal(alturaMedidaValida(0.5), false); // techo imposible
+  assert.equal(alturaMedidaValida(10), false);
+  assert.equal(alturaMedidaValida(-1), false); // toques invertidos, ver test anterior
 });
