@@ -3394,6 +3394,57 @@ usar el sitio":
   visualmente vía Chrome headless con datos de prueba, no en sesión AR
   real.
 
+**Primera prueba real en Android confirma el pipeline completo — y
+encuentra un bug real de orientación en la calibración.** El usuario
+probó "Ver en AR" en su teléfono y mandó una captura: la sesión WebXR
+arrancó, el hit-test detectó el piso, los 2 toques calibraron, y el
+wireframe (líneas gordas, etiquetas, todo) se dibujó anclado sobre la
+cámara real — confirma que toda la mecánica de `sesion.ts` funciona de
+punta a punta en hardware real, la primera vez que se pudo verificar
+eso. Pero el resultado apuntaba "para el lado que no es" (confirmado
+por el usuario entre varias opciones de síntoma) — el eje de
+profundidad quedó mal orientado.
+
+**Causa raíz: la mirada de la cámara en el instante del segundo toque
+es una señal poco confiable — se reemplazó por la posición del
+visor.** La versión anterior de `resolverAnclaje()` (`anclaje.ts`)
+pedía "parado dentro de la sala, mirando hacia el fondo" y usaba la
+dirección de mirada de la cámara en ese instante para elegir cuál de
+las dos perpendiculares candidatas es "hacia el fondo". El problema:
+para tocar un punto de piso pegado a la pared frontal, el usuario
+naturalmente inclina el teléfono hacia abajo y hacia esa pared —
+exactamente lo opuesto a "mirar hacia el fondo" — así que la señal
+estaba rota justo en el momento en que se la necesitaba. Se reemplazó
+por la **posición del visor** (`renderer.xr.getCamera().position`, no
+su dirección): geométricamente, quien calibra está parado en algún
+punto DENTRO de la sala durante todo el proceso, sin importar hacia
+dónde apunte el teléfono en cada instante — un hecho mucho más estable
+que no depende de que el usuario recuerde mirar en una dirección
+particular mientras hace otra cosa con las manos.
+`resolverAnclaje(toque1, toque2, posicionVisor)` ahora calcula la
+dirección desde el punto medio de los 2 toques hacia esa posición, y
+elige el candidato de `ejeProfundidad` más alineado con ella. Como
+consecuencia, **la instrucción de calibración se simplificó** —
+`ar.paso2`/`ar.calibrandoPaso2` dejan de pedir "mirando hacia el
+fondo", ahora sólo "sin moverse de dentro de la sala" — un requisito
+más fácil de cumplir sin querer, porque ya lo cumple cualquiera que
+esté parado ahí calibrando. Los otros dos síntomas que mencionó el
+usuario en el mismo momento ("queda flotando, no a nivel de piso" y
+"probablemente un problema de escala") no se pudieron aislar como
+bugs separados — el análisis geométrico no encontró una causa
+independiente para ninguno de los dos (el origen del anclaje es
+siempre exactamente el punto real tocado, sin offset vertical ni de
+escala posible en `anclarPunto()`), así que quedan como posibles
+consecuencias visuales del mismo eje mal orientado, a confirmar en el
+próximo test real — no se inventó un segundo fix sin evidencia de un
+segundo bug.
+
+5 tests de `anclaje.test.ts` reescritos para el nuevo contrato
+(posición del visor en vez de dirección de mirada) — mismos casos
+cubiertos (elección de candidato, altura sin efecto, caso degenerado,
+toques coincidentes), vectores nuevos. 430 tests, typecheck y build
+verificados de nuevo tras el cambio.
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción

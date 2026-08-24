@@ -14,10 +14,23 @@
  * toque 1 fija el origen (esquina real frontal-izquierda), toque 2 marca
  * cualquier punto sobre el piso a lo largo de la pared frontal → define
  * el eje "ancho". La ambigüedad de las dos perpendiculares candidatas
- * para "hacia el fondo de la sala" se resuelve con la dirección de
- * mirada de la cámara en el instante del toque 2 — se elige el
- * candidato con mayor producto punto contra esa mirada, proyectada al
- * plano horizontal.
+ * para "hacia el fondo de la sala" se resuelve con la POSICIÓN del
+ * visor (el teléfono/cabeza, no hacia dónde mira) en el instante del
+ * toque 2 — se elige el candidato que apunta desde la pared hacia donde
+ * está parado quien calibra.
+ *
+ * Versión anterior de este módulo usaba la dirección de MIRADA de la
+ * cámara para desambiguar, con una instrucción de "parado dentro de la
+ * sala, mirando hacia el fondo" — probada en hardware real (primera
+ * ronda de AR) y descartada: para tocar un punto de piso pegado a la
+ * pared frontal, el usuario naturalmente inclina el teléfono hacia
+ * abajo y hacia esa pared, no "hacia el fondo" — la mirada en ese
+ * instante exacto resultó una señal poco confiable (el eje de
+ * profundidad terminaba apuntando para el lado equivocado). La posición
+ * del visor es mucho más estable: quien calibra está parado en algún
+ * punto DENTRO de la sala durante todo el proceso, sin importar hacia
+ * dónde apunte el teléfono en cada instante — ese hecho geométrico no
+ * depende de un gesto que el usuario tenga que recordar.
  */
 
 export interface Vec3 {
@@ -84,12 +97,14 @@ function normalizarConFallback(v: Vec3, fallback: Vec3): Vec3 {
 
 /**
  * Resuelve la base de anclaje a partir de los 2 toques de calibración.
- * `miradaEnToque2` es la dirección hacia la que apunta la cámara en el
- * instante del segundo toque (ver `sesion.ts`, `XRFrame.getViewerPose`) —
- * sólo se usa su componente horizontal, para desambiguar cuál de las dos
- * perpendiculares al eje X es "hacia el fondo de la sala".
+ * `posicionVisor` es la posición del visor XR (cámara/cabeza, ver
+ * `sesion.ts`, `renderer.xr.getCamera().position`) en el instante del
+ * segundo toque — sólo se usa su componente horizontal, para desambiguar
+ * cuál de las dos perpendiculares al eje X es "hacia el fondo de la
+ * sala" (el candidato que apunta desde la línea de los 2 toques hacia
+ * donde está parado quien calibra).
  */
-export function resolverAnclaje(toque1: Vec3, toque2: Vec3, miradaEnToque2: Vec3): Anclaje {
+export function resolverAnclaje(toque1: Vec3, toque2: Vec3, posicionVisor: Vec3): Anclaje {
   const deltaH = proyectarHorizontal(restar(toque2, toque1));
   const distanciaH = Math.hypot(deltaH.x, deltaH.z);
   const ejeX = distanciaH > DISTANCIA_MIN_TOQUES_M ? escalar(deltaH, 1 / distanciaH) : EJE_X_EMERGENCIA;
@@ -100,12 +115,15 @@ export function resolverAnclaje(toque1: Vec3, toque2: Vec3, miradaEnToque2: Vec3
   // no hace falta guardia de vector nulo acá.
   const candA = cruz(ARRIBA, ejeX);
   const candB = escalar(candA, -1);
-  // Mirada degenerada (cámara mirando derecho al piso/techo, componente
-  // horizontal ~0): sin señal para desambiguar, se declara un default
-  // arbitrario (candA) en vez de NaN — mismo criterio "no NaN, default
-  // declarado" del resto del módulo.
-  const miradaH = normalizarConFallback(proyectarHorizontal(miradaEnToque2), candA);
-  const ejeProfundidad = producto(candA, miradaH) >= producto(candB, miradaH) ? candA : candB;
+  // Dirección desde el punto medio de los 2 toques hacia el visor —
+  // geométricamente, "hacia adentro de la sala" (quien calibra está
+  // parado ahí, no atravesando la pared). Degenerado sólo si el visor
+  // cae exactamente sobre esa línea (perpendicular horizontal nula):
+  // caso de borde declarado con el mismo default arbitrario (candA) que
+  // el resto del módulo, nunca NaN.
+  const medioH: Vec3 = { x: (toque1.x + toque2.x) / 2, y: 0, z: (toque1.z + toque2.z) / 2 };
+  const haciaVisorH = normalizarConFallback(proyectarHorizontal(restar(posicionVisor, medioH)), candA);
+  const ejeProfundidad = producto(candA, haciaVisorH) >= producto(candB, haciaVisorH) ? candA : candB;
 
   return { origen: toque1, ejeX, ejeProfundidad, arriba: ARRIBA };
 }

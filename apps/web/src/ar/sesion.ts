@@ -9,11 +9,13 @@
  * las referencias del DOM del overlay, escriba el texto localizado.
  *
  * Patrón de hit-test seguido: `reticulo` se actualiza una vez por frame
- * en el loop de render (posición + dirección de mirada de la cámara XR
- * en ese instante); el listener de `select` de la sesión sólo LEE esos
- * valores ya calculados — no vuelve a pedir un XRFrame dentro del propio
- * evento, evita depender de si `renderer.xr.getFrame()` es seguro de
- * llamar fuera del loop de animación (no está claramente documentado).
+ * en el loop de render (posición + posición del visor XR en ese
+ * instante — ver `anclaje.ts` sobre por qué es la posición del visor y
+ * no su dirección de mirada); el listener de `select` de la sesión sólo
+ * LEE esos valores ya calculados — no vuelve a pedir un XRFrame dentro
+ * del propio evento, evita depender de si `renderer.xr.getFrame()` es
+ * seguro de llamar fuera del loop de animación (no está claramente
+ * documentado).
  */
 import * as THREE from 'three';
 import { calcularDisposicionAsientoManual } from '../../../../packages/engine/src/sala.ts';
@@ -105,7 +107,7 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
   let referenceSpace: XRReferenceSpace | null = null;
   let hitTestSource: XRHitTestSource | null = null;
   let toque1: Vec3 | null = null;
-  let miradaActual: Vec3 | null = null;
+  let posicionVisorActual: Vec3 | null = null;
   let sesionAnclada = false;
   let grupoAnclado: THREE.Group | null = null;
 
@@ -118,9 +120,9 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
       onCambioEstado('calibrando-2');
       return;
     }
-    if (!miradaActual) return; // no debería pasar en la práctica — sin pose de cámara todavía
+    if (!posicionVisorActual) return; // no debería pasar en la práctica — sin pose de cámara todavía
 
-    const anclaje = resolverAnclaje(toque1, posicionActual, miradaActual);
+    const anclaje = resolverAnclaje(toque1, posicionActual, posicionVisorActual);
     const escenaAr = construirEscenaAr(estado.sala, disp, muros, anclaje, idioma);
     grupoAnclado = construirGrupoThree(escenaAr, resolucionActual);
     scene.add(grupoAnclado);
@@ -160,12 +162,16 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
 
     onCambioEstado('calibrando-1');
 
-    const direccionMirada = new THREE.Vector3();
     renderer.setAnimationLoop((_tiempo, frame) => {
       if (frame && referenceSpace) {
+        // Posición del visor (cabeza/teléfono), no su dirección de mirada
+        // — ver anclaje.ts sobre por qué: es una señal mucho más estable
+        // para desambiguar "hacia dónde es el fondo de la sala" que hacia
+        // dónde apunta la cámara en el instante exacto del toque (que al
+        // tocar un punto de piso pegado a la pared, naturalmente apunta
+        // hacia abajo y hacia esa pared, no hacia el fondo).
         const camaraXr = renderer.xr.getCamera();
-        camaraXr.getWorldDirection(direccionMirada);
-        miradaActual = { x: direccionMirada.x, y: direccionMirada.y, z: direccionMirada.z };
+        posicionVisorActual = { x: camaraXr.position.x, y: camaraXr.position.y, z: camaraXr.position.z };
 
         if (hitTestSource && !sesionAnclada) {
           const resultados = frame.getHitTestResults(hitTestSource);
@@ -184,9 +190,9 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
           // toque 1 ya fijado (se está esperando el toque 2) y una
           // superficie detectada bajo la retícula ahora mismo — usa esa
           // posición como "toque 2" tentativo, sin confirmarlo todavía.
-          if (toque1 && reticulo.visible && miradaActual) {
+          if (toque1 && reticulo.visible && posicionVisorActual) {
             const posicionTentativa: Vec3 = { x: reticulo.position.x, y: reticulo.position.y, z: reticulo.position.z };
-            const anclajeTentativo = resolverAnclaje(toque1, posicionTentativa, miradaActual);
+            const anclajeTentativo = resolverAnclaje(toque1, posicionTentativa, posicionVisorActual);
             actualizarPlanoFrontalPreviewMesh(planoPreview, construirPlanoFrontalPreview(estado.sala, anclajeTentativo));
             planoPreview.visible = true;
           } else {

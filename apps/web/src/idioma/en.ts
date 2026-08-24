@@ -292,11 +292,11 @@ export const en: Textos = {
     titulo: 'The Hifi Match · AR',
     pasosTitulo: 'How calibration works',
     paso1: 'Point the phone at the room floor and tap the real corner where the front wall meets the left wall.',
-    paso2: 'Standing inside the room and facing its far end, tap a second point on the floor, along the same front wall (for example, the front-right corner).',
+    paso2: 'Without moving away from inside the room, tap a second point on the floor, along the same front wall (for example, the front-right corner).',
     avisoSoloAndroidChrome: 'This only works in Chrome for Android with ARCore support. It is not available on iPhone, on desktop computers, or in other Android browsers.',
     botonEntrar: 'Enter AR',
     calibrandoPaso1: 'Point at the floor and tap the real front-left corner of the room.',
-    calibrandoPaso2: 'Facing the far end of the room, tap a second point on the floor, along the front wall.',
+    calibrandoPaso2: 'Without moving away from the room, tap a second point on the floor, along the front wall.',
     anclado: 'Anchored. The calculated geometry stays fixed at this point — walk around the room to see it from other angles.',
     avisoAlturaSupuesta: 'Speaker and ear height is assumed at 1.0 m (site criterion) — not a measurement of the real installation.',
     avisoWireframeAproximado:

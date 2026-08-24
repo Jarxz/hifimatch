@@ -5,36 +5,36 @@ import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
 
 const CERCA = 1e-9;
 
-test('resolverAnclaje: toque2 al este del toque1, mirada al sur → ejeX=(1,0,0), arriba=(0,1,0), ejeProfundidad=mirada', () => {
-  const a = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: -1 });
+test('resolverAnclaje: visor parado 2m hacia -z de la línea de toques → ejeX=(1,0,0), arriba=(0,1,0), ejeProfundidad=(0,0,-1)', () => {
+  const a = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 0, z: -2 });
   assert.ok(Math.abs(a.ejeX.x - 1) < CERCA && Math.abs(a.ejeX.y) < CERCA && Math.abs(a.ejeX.z) < CERCA);
   assert.deepEqual(a.arriba, { x: 0, y: 1, z: 0 });
   assert.ok(Math.abs(a.ejeProfundidad.x) < CERCA && Math.abs(a.ejeProfundidad.y) < CERCA && Math.abs(a.ejeProfundidad.z + 1) < CERCA);
 });
 
-test('resolverAnclaje: elige el candidato de ejeProfundidad más alineado con la mirada, no el otro', () => {
-  // toque2 al este, mirada al norte (+z) en vez de al sur — el candidato
+test('resolverAnclaje: elige el candidato de ejeProfundidad más cercano a donde está parado el visor, no el otro', () => {
+  // toque2 al este, visor parado hacia +z en vez de -z — el candidato
   // elegido tiene que invertirse respecto del test anterior.
-  const a = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: 1 });
-  assert.ok(a.ejeProfundidad.z > 0, 'ejeProfundidad debería apuntar hacia +z, como la mirada');
+  const a = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 0, z: 2 });
+  assert.ok(a.ejeProfundidad.z > 0, 'ejeProfundidad debería apuntar hacia +z, como la posición del visor');
 });
 
-test('resolverAnclaje: la componente vertical de la mirada no afecta la elección (se proyecta al plano horizontal)', () => {
-  const conMiradaHaciaAbajo = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: -5, z: -1 });
-  const sinComponenteVertical = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: -1 });
-  assert.deepEqual(conMiradaHaciaAbajo.ejeProfundidad, sinComponenteVertical.ejeProfundidad);
+test('resolverAnclaje: la altura del visor no afecta la elección (se proyecta al plano horizontal)', () => {
+  const conVisorAlto = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 1.7, z: -2 });
+  const conVisorAlNivelDelPiso = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 0, z: -2 });
+  assert.deepEqual(conVisorAlto.ejeProfundidad, conVisorAlNivelDelPiso.ejeProfundidad);
 });
 
 test('resolverAnclaje: toques prácticamente coincidentes usan el eje X de emergencia (1,0,0), nunca NaN', () => {
-  const a = resolverAnclaje({ x: 2, y: 0, z: 3 }, { x: 2.001, y: 0, z: 3.001 }, { x: 0, y: 0, z: -1 });
+  const a = resolverAnclaje({ x: 2, y: 0, z: 3 }, { x: 2.001, y: 0, z: 3.001 }, { x: 2, y: 1.7, z: 1 });
   assert.deepEqual(a.ejeX, { x: 1, y: 0, z: 0 });
   for (const v of [a.origen, a.ejeX, a.ejeProfundidad, a.arriba]) {
     assert.ok(Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z));
   }
 });
 
-test('resolverAnclaje: mirada degenerada (recta hacia el techo) no produce NaN, usa un default declarado', () => {
-  const a = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 });
+test('resolverAnclaje: visor exactamente sobre la línea de los 2 toques (sin componente horizontal perpendicular) no produce NaN, usa un default declarado', () => {
+  const a = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0.5, y: 1.7, z: 0 });
   for (const v of [a.ejeProfundidad]) {
     assert.ok(Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z));
   }

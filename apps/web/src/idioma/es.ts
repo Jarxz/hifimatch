@@ -340,11 +340,11 @@ export const es = {
     titulo: 'The Hifi Match · AR',
     pasosTitulo: 'Cómo calibrar',
     paso1: 'Se apunta el teléfono al piso de la sala y se toca la esquina real donde se juntan la pared frontal y la pared izquierda.',
-    paso2: 'Parado dentro de la sala y mirando hacia el fondo, se toca un segundo punto sobre el piso, a lo largo de la misma pared frontal (por ejemplo, la esquina frontal derecha).',
+    paso2: 'Sin moverse de dentro de la sala, se toca un segundo punto sobre el piso, a lo largo de la misma pared frontal (por ejemplo, la esquina frontal derecha).',
     avisoSoloAndroidChrome: 'Esta función sólo funciona en Chrome para Android, con soporte de ARCore. No está disponible en iPhone, en computadoras, ni en otros navegadores de Android.',
     botonEntrar: 'Entrar en AR',
     calibrandoPaso1: 'Apuntar al piso y tocar la esquina real frontal-izquierda de la sala.',
-    calibrandoPaso2: 'Mirando hacia el fondo de la sala, tocar un segundo punto sobre el piso, a lo largo de la pared frontal.',
+    calibrandoPaso2: 'Sin moverse de la sala, tocar un segundo punto sobre el piso, a lo largo de la pared frontal.',
     anclado: 'Anclado. La geometría calculada queda fija en este punto — es posible recorrer la sala para verla desde otros ángulos.',
     avisoAlturaSupuesta: 'La altura de parlante y oído se asume en 1,0 m (criterio del sitio) — no es una medición de la instalación real.',
     avisoWireframeAproximado:
