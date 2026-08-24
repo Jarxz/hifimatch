@@ -617,7 +617,7 @@ test('modeloFiltroPeine: sala por defecto con materiales típicos del sitio → 
   const m = modeloFiltroPeine(r, 'es');
   assert.equal(m.verdictoClase, 'warn');
   assert.equal(m.verdictoTexto, 'Nulo de peine en zona audible');
-  assert.match(m.calcHtml, /Piso \(izquierdo\)/);
+  assert.match(m.calcHtml, /Piso \(parlante izquierdo\)/);
   assert.match(m.calcHtml, /250/); // primer nulo del piso ≈250 Hz (vector ya verificado: Δ=0,686 m)
   assert.ok(m.avisoHtml !== null);
   assert.match(m.avisoHtml!, /Piso/);

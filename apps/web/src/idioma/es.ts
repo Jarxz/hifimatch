@@ -677,8 +677,8 @@ export const es = {
       titulo: 'Filtro peine por reflexión',
       verdictoOk: 'Sin nulos en zona audible',
       verdictoWarn: 'Nulo de peine en zona audible',
-      simpleOk: 'Ninguna reflexión temprana cae en un nulo de peine dentro de la zona más audible, contra una superficie reflectante.',
-      simpleWarn: 'Al menos una reflexión temprana produce un nulo de peine en una zona audible, contra una superficie que refleja más de lo que absorbe.',
+      simpleOk: 'Ninguna reflexión cercana llega justo a tiempo como para cancelar una frecuencia en la zona donde más se nota la voz, contra una superficie que no la absorbe.',
+      simpleWarn: 'Al menos una reflexión cercana llega justo a tiempo como para cancelar parcialmente una frecuencia en la zona donde más se nota la voz — un bache angosto de timbre, no de volumen general — contra una superficie que casi no lo absorbe.',
       textoOk:
         'Cada reflexión temprana (frontal, lateral, trasera, techo, piso) interfiere con el sonido directo y cancela/refuerza frecuencias en peine, empezando en el primer nulo (c/2Δ, con Δ = diferencia de camino). Ninguno de los primeros nulos calculados cae, a la vez, dentro de la zona más audible (200-2000 Hz) y contra una superficie que refleje más de lo que absorbe ahí.',
       textoWarn: (p: { n: string }): string =>
@@ -690,15 +690,27 @@ export const es = {
         piso: 'Piso',
         techo: 'Techo',
       } satisfies Record<NombreReflexion, string>,
-      canalIzq: 'izquierdo',
-      canalDer: 'derecho',
+      // "parlante izquierdo/derecho", no "lado izquierdo/derecho": el
+      // canal nombra desde qué parlante sale el camino reflejado, nunca
+      // un lado de la superficie — piso y techo no tienen lado, y
+      // mostrar sólo "(izquierdo)" ahí generaba la duda de si en
+      // realidad se refería a un muro. Reportado por el usuario.
+      canalIzq: 'parlante izquierdo',
+      canalDer: 'parlante derecho',
       severidadOk: 'fuera de zona / absorbida',
       severidadWarn: 'en zona audible, reflectante',
       fila: (p: { nombre: string; deltaM: string; nuloHz: string; refuerzoHz: string; alpha: string; severidad: string }): string =>
         `${p.nombre}: Δ=${p.deltaM} m → 1ᵉʳ nulo ${p.nuloHz} Hz, 1ᵉʳ refuerzo ${p.refuerzoHz} Hz (α≈${p.alpha}) — ${p.severidad}`,
       filaDegenerada: (p: { nombre: string }): string => `${p.nombre}: geometría degenerada (parlante ~sobre la superficie) — sin nulo finito que reportar`,
       sinNulos: 'Ninguna de las 10 combinaciones (5 reflexiones × 2 canales) cae en zona problemática — ver "las diez" para el detalle completo.',
-      avisoFila: (p: { nombre: string; nuloHz: string }): string => `<b>${p.nombre}:</b> primer nulo en ≈${p.nuloHz} Hz.`,
+      // Autocontenida a propósito: este texto también se muestra solo,
+      // sin el simpleHtml/textoHtml de arriba como contexto, dentro de
+      // "Qué conviene hacer" (arriba de la página, modeloRecomendacionesTop)
+      // — tiene que explicarse sin depender de que el usuario haya
+      // abierto la tarjeta completa. Reportado por el usuario: "primer
+      // nulo en ≈250 Hz" solo, sin desarrollo, no se entendía.
+      avisoFila: (p: { nombre: string; nuloHz: string }): string =>
+        `<b>${p.nombre}:</b> el reflejo llega justo a tiempo para cancelar parte del sonido directo cerca de ${p.nuloHz} Hz — un bache angosto de timbre ahí, más notorio en voces e instrumentos, no una pérdida de volumen general.`,
       sugerencia:
         'Conviene tratar acústicamente esa superficie (panel absorbente en el primer punto de reflexión) o reposicionar parlantes/escucha para cambiar la diferencia de camino — se verifica escuchando y, si es posible, midiendo.',
       fuente: (p: { rangoMin: string; rangoMax: string; alphaMax: string }): string =>

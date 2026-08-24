@@ -3569,6 +3569,44 @@ sitio real (Chrome headless): aparece en el selector marca→modelo de
 Gold Note en su posición alfabética (antes de IS-1000 MkII Deluxe), con
 los chips y la descripción correctos al elegirlo.
 
+**Filtro peine: "Piso (izquierdo)" confundía — el usuario preguntó si en
+realidad era un muro mal etiquetado, y el texto acompañante no explicaba
+nada en palabras simples.** Dos problemas reales, no uno:
+
+1. **"(izquierdo)/(derecho)" nombra el parlante de origen del camino
+   reflejado, nunca un lado de la superficie** — pero el piso y el
+   techo no tienen lado, así que "Piso (izquierdo)" leía como si el
+   piso tuviera una mitad izquierda. `motor.filtroPeine.canalIzq/
+   canalDer` (`es.ts`/`en.ts`) pasan de `'izquierdo'`/`'derecho'` a
+   `'parlante izquierdo'`/`'parlante derecho'` — mismo cambio aplicado
+   a las 5 superficies por igual (incluida "Lateral", donde ya
+   coincidía con un lado físico real, para no tener dos convenciones
+   distintas según la superficie).
+2. **La frase que el usuario vio ("Piso (izquierdo): primer nulo en
+   ≈250 Hz.") se muestra SOLA, sin el `simpleHtml`/`textoHtml` de la
+   tarjeta como contexto, dentro de "Qué conviene hacer"**
+   (`modeloRecomendacionesTop`, arriba de la página) — confirmado
+   leyendo `main.ts`: ese bloque arma cada recomendación con
+   `avisoHtml` puro, nunca junto al texto simple. `motor.filtroPeine.
+   avisoFila` se reescribió para ser autocontenida: en vez del dato
+   crudo, ahora explica el mecanismo y el efecto audible en la misma
+   frase ("el reflejo llega justo a tiempo para cancelar parte del
+   sonido directo cerca de ≈X Hz — un bache angosto de timbre ahí, más
+   notorio en voces e instrumentos, no una pérdida de volumen
+   general"). `simpleOk`/`simpleWarn` (el texto italic dentro de la
+   tarjeta expandida) también se reescribieron: usaban "nulo de peine"/
+   "zona audible" sin traducir nunca esa jerga a lenguaje llano — ahora
+   describen el mismo efecto ("cancela una frecuencia en la zona donde
+   más se nota la voz") sin nombrar el término técnico como si ya
+   estuviera explicado en otro lado.
+
+Un test existente (`resultado.test.ts`) esperaba el patrón viejo
+`/Piso \(izquierdo\)/` — actualizado al nuevo. 216 tests sin cambios de
+cantidad. Verificado en el sitio real (Chrome headless): "Qué conviene
+hacer" ya trae el texto autocontenido nuevo sin necesidad de expandir
+la tarjeta, y la tarjeta expandida muestra "Piso (parlante izquierdo)"
+consistente en `simple`/`calc`/`flag`.
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción

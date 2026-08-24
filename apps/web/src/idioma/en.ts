@@ -584,8 +584,8 @@ export const en: Textos = {
       titulo: 'Comb filtering from reflections',
       verdictoOk: 'No nulls in audible zone',
       verdictoWarn: 'Comb null in audible zone',
-      simpleOk: 'No early reflection lands a comb null inside the most audible zone, against a reflective surface.',
-      simpleWarn: 'At least one early reflection produces a comb null in an audible zone, against a surface that reflects more than it absorbs.',
+      simpleOk: 'No nearby reflection arrives just in time to cancel a frequency in the zone where voices are most noticeable, against a surface that doesn’t absorb it.',
+      simpleWarn: 'At least one nearby reflection arrives just in time to partly cancel a frequency in the zone where voices are most noticeable — a narrow dip in tone, not in overall volume — against a surface that barely absorbs it.',
       textoOk:
         'Each early reflection (front, side, rear, ceiling, floor) interferes with the direct sound and cancels/reinforces frequencies in a comb pattern, starting at the first null (c/2Δ, with Δ = path difference). None of the calculated first nulls falls, at the same time, inside the most audible zone (200-2000 Hz) and against a surface that reflects more than it absorbs there.',
       textoWarn: (p) =>
@@ -597,14 +597,24 @@ export const en: Textos = {
         piso: 'Floor',
         techo: 'Ceiling',
       },
-      canalIzq: 'left',
-      canalDer: 'right',
+      // "left/right speaker", not "left/right side": the channel names
+      // which speaker the reflected path comes from, never a side of
+      // the surface — floor and ceiling have no side, and showing just
+      // "(left)" there raised the question of whether it actually meant
+      // a wall. Reported by the user.
+      canalIzq: 'left speaker',
+      canalDer: 'right speaker',
       severidadOk: 'out of zone / absorbed',
       severidadWarn: 'in audible zone, reflective',
       fila: (p) => `${p.nombre}: Δ=${p.deltaM} m → 1st null ${p.nuloHz} Hz, 1st reinforcement ${p.refuerzoHz} Hz (α≈${p.alpha}) — ${p.severidad}`,
       filaDegenerada: (p) => `${p.nombre}: degenerate geometry (speaker ~on the surface) — no finite null to report`,
       sinNulos: 'None of the 10 combinations (5 reflections × 2 channels) falls in a problematic zone — see "the ten" for the full detail.',
-      avisoFila: (p) => `<b>${p.nombre}:</b> first null at ≈${p.nuloHz} Hz.`,
+      // Self-contained on purpose: this text also shows up on its own,
+      // without the simpleHtml/textoHtml above as context, inside "What
+      // to check" (top of the page, modeloRecomendacionesTop) — it has
+      // to make sense without the user having opened the full card.
+      avisoFila: (p) =>
+        `<b>${p.nombre}:</b> the reflection arrives just in time to cancel part of the direct sound near ${p.nuloHz} Hz — a narrow dip in tone there, most noticeable on voices and instruments, not a loss of overall volume.`,
       sugerencia:
         'Treating that surface acoustically (an absorbent panel at the first reflection point) helps, or repositioning speakers/listening spot to change the path difference — verified by listening and, if possible, measuring.',
       fuente: (p) =>
