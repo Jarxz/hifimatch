@@ -181,3 +181,21 @@ export function anchoMedidoValido(anchoM: number): boolean {
 export function alturaMedidaValida(alturaM: number): boolean {
   return Number.isFinite(alturaM) && alturaM >= ALTURA_MEDIDA_MIN_M && alturaM <= ALTURA_MEDIDA_MAX_M;
 }
+
+/**
+ * Anclaje "de libro" — sin ningún toque real, origen en (0,0,0) con los
+ * ejes canónicos (mismo resultado que daría `resolverAnclaje` con un
+ * visor parado mirando hacia -Z, pero declarado directo en vez de
+ * simulando toques inventados). Usado para escenas que no anclan al
+ * mundo real — hoy sólo la vista de Quick Look en iPhone (`escenaMalla.ts`,
+ * `entrada-ar.ts`), que no tiene hit-test propio expuesto a la web: la
+ * sala queda apoyada en el origen del sistema de coordenadas en vez de
+ * un punto real tocado por el usuario, y Quick Look coloca/escala el
+ * conjunto con sus propios gestos nativos.
+ */
+export const ANCLAJE_CANONICO: Anclaje = {
+  origen: { x: 0, y: 0, z: 0 },
+  ejeX: { x: 1, y: 0, z: 0 },
+  ejeProfundidad: { x: 0, y: 0, z: -1 },
+  arriba: { x: 0, y: 1, z: 0 },
+};

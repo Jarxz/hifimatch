@@ -294,7 +294,7 @@ export const en: Textos = {
     paso1: 'Point the phone at the room floor and tap the real corner where the front wall meets the left wall.',
     paso2: 'Without moving away from inside the room, tap the real front-right corner (where that same wall meets the right wall) — the distance between the two taps measures the room’s real width.',
     paso3: 'Once anchored, an OPTIONAL third tap at the top of that same corner (where the wall meets the ceiling) also measures the real height.',
-    avisoSoloAndroidChrome: 'This only works in Chrome for Android with ARCore support. It is not available on iPhone, on desktop computers, or in other Android browsers.',
+    avisoSoloAndroidChrome: 'This tap-based calibration works in Chrome for Android with ARCore support — not on desktop computers or other Android browsers. iPhone has a different, simpler version (AR Quick Look, without this site’s calibration).',
     botonEntrar: 'Enter AR',
     calibrandoPaso1: 'Point at the floor and tap the real front-left corner of the room.',
     calibrandoPaso2: 'Without moving away from the room, tap the real front-right corner, on the floor.',
@@ -310,9 +310,13 @@ export const en: Textos = {
     reiniciarCalibracion: 'Recalibrate',
     noSoportadoTitulo: 'AR not available in this browser',
     noSoportadoCuerpo:
-      'This feature uses WebXR with surface detection (hit-test), supported today only by Chrome on Android with ARCore. It is not available on iPhone/Safari, on desktop computers, or in other Android browsers.',
+      'This feature uses WebXR (Chrome on Android with ARCore) or AR Quick Look (iPhone) — this browser has support for neither. It is not available on desktop computers, or in browsers/versions that don’t include either of those two technologies.',
     estadoInvalido: 'The room data could not be read. Go back to the analysis and try again from the "View in AR" button.',
     volverAlAnalisis: '← Back to analysis',
+    quickLookAviso:
+      'On iPhone, "View in AR" places a model of the calculated room using the measurements already entered on the site — it does not measure the real room the way the Android version does. Position and scale are adjusted with AR Quick Look’s own gestures (drag, pinch), without any extra calibration from this site.',
+    quickLookPreparando: 'Preparing the model…',
+    quickLookError: 'The AR model could not be prepared. Go back to the analysis and try again.',
   },
 
   motor: {

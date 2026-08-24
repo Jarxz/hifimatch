@@ -69,7 +69,7 @@ import { num, numConSigno } from './formato/numeros.ts';
 import { idiomaInicial, guardarIdioma, aplicarCromoEstatico, textosDe } from './idioma/idioma.ts';
 import { codificarEstadoAr } from './ar/estadoUrl.ts';
 import type { EstadoAr } from './ar/estadoUrl.ts';
-import { tieneNavigatorXr } from './ar/soporte.ts';
+import { tieneNavigatorXr, esUserAgentIOS } from './ar/soporte.ts';
 
 const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alto', ref: 'referencia' };
 
@@ -1037,16 +1037,27 @@ function abrirGuardarPopup(): void {
   abrirPopup(t.guardarPopupTitulo, t.guardarPopupCuerpo);
 }
 
+/** ¿El link `<a rel="ar">` de Quick Look tiene alguna chance de andar?
+ * Sólo la mitad barata (UA de iOS + `relList.supports('ar')`) — el
+ * chequeo real (generar el USDZ) corre recién dentro de ar.html, mismo
+ * criterio que ya aplica `soportaArInmersiva()` para WebXR. */
+function tieneChanceDeQuickLook(): boolean {
+  const linkSoportaAr = document.createElement('a').relList?.supports?.('ar') ?? false;
+  return esUserAgentIOS(navigator.userAgent) && linkSoportaAr;
+}
+
 /** "Ver en AR" navega a ar.html (página separada, servida por red —
  * ver vite.ar.config.ts) sólo si hay una chance real de que funcione:
- * nunca por file:// (mismo guardia que ya usa enviarContacto) y sólo si
- * `navigator.xr` existe. El chequeo autoritativo (`isSessionSupported`)
- * corre recién dentro de ar.html — acá sólo se descarta lo obviamente
- * imposible, para no navegar a una página que va a terminar en el mismo
- * fallback de todos modos si esta comprobación barata ya alcanza. */
+ * nunca por file:// (mismo guardia que ya usa enviarContacto), y sólo
+ * si hay `navigator.xr` (WebXR, Android) **o** una chance de Quick Look
+ * (iPhone) — ar.html decide cuál de los dos flujos mostrar. El chequeo
+ * autoritativo de cada uno (`isSessionSupported`/generar el USDZ) corre
+ * recién adentro — acá sólo se descarta lo obviamente imposible, para
+ * no navegar a una página que va a terminar en el mismo fallback de
+ * todos modos si esta comprobación barata ya alcanza. */
 function irAVerEnAr(): void {
   if (!ultimoPlano) return;
-  if (location.protocol === 'file:' || !tieneNavigatorXr(navigator)) {
+  if (location.protocol === 'file:' || (!tieneNavigatorXr(navigator) && !tieneChanceDeQuickLook())) {
     const t = textosDe(idiomaActual).ar;
     abrirPopup(t.noSoportadoTitulo, t.noSoportadoCuerpo);
     return;

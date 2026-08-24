@@ -1,17 +1,24 @@
 /**
  * Bootstrap de ar.html — lee idioma guardado (misma clave de
  * localStorage que index.html, mismo origen en producción), decodifica
- * el estado de la URL, corre el chequeo de soporte de WebXR, y cablea
- * "Entrar en AR" a sesion.ts. Impuro (DOM real) — no testeable con
- * `node --test`; ver la sección de verificación del plan de AR.
+ * el estado de la URL, corre el chequeo de soporte de WebXR (Android) o
+ * de AR Quick Look (iPhone), y cablea "Entrar en AR"/el link de Quick
+ * Look. Impuro (DOM real) — no testeable con `node --test`; ver la
+ * sección de verificación del plan de AR.
  */
 import '../estilos.css';
 import { idiomaInicial, aplicarCromoEstatico, textosDe } from '../idioma/idioma.ts';
 import { num } from '../formato/numeros.ts';
 import { decodificarEstadoAr } from './estadoUrl.ts';
-import { tieneNavigatorXr, soportaArInmersiva } from './soporte.ts';
-import { iniciarSesionAr } from './sesion.ts';
+import type { EstadoAr } from './estadoUrl.ts';
+import { tieneNavigatorXr, soportaArInmersiva, esUserAgentIOS } from './soporte.ts';
+import { iniciarSesionAr, murosVistaDesdeEstado } from './sesion.ts';
 import type { EstadoCalibracion, InfoMedicion } from './sesion.ts';
+import { ANCLAJE_CANONICO } from './anclaje.ts';
+import { construirEscenaAr } from './geometriaAr.ts';
+import { construirGrupoMallaParaUsdz } from './escenaMalla.ts';
+import { calcularDisposicionAsientoManual } from '../../../../packages/engine/src/sala.ts';
+import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
 
 const idioma = idiomaInicial();
 aplicarCromoEstatico(idioma);
@@ -20,7 +27,7 @@ aplicarCromoEstatico(idioma);
 // página, sin tocar la función compartida.
 document.title = textosDe(idioma).ar.titulo;
 
-const TODOS_LOS_PANELES = ['ar-cargando', 'ar-no-soportado', 'ar-estado-invalido', 'ar-pasos', 'ar-error-sesion', 'ar-calibrando', 'ar-anclado'] as const;
+const TODOS_LOS_PANELES = ['ar-cargando', 'ar-no-soportado', 'ar-estado-invalido', 'ar-pasos', 'ar-error-sesion', 'ar-calibrando', 'ar-anclado', 'ar-quicklook'] as const;
 
 function mostrarSolo(idVisible: (typeof TODOS_LOS_PANELES)[number]): void {
   for (const id of TODOS_LOS_PANELES) {
@@ -61,6 +68,60 @@ document.querySelectorAll<HTMLButtonElement>('.volver-analisis').forEach((btn) =
   btn.addEventListener('click', volverAlAnalisis);
 });
 
+/**
+ * AR Quick Look (iPhone) — mismo criterio de detección que ya usa
+ * `<model-viewer>` de Google (referencia externa de patrón, no un
+ * paquete instalado acá): UA de iOS **combinado** con el chequeo real
+ * de soporte del navegador (`relList.supports('ar')`), no uno solo —
+ * evita tanto falsos negativos (UA modificado) como falsos positivos
+ * (Safari de escritorio, que no tiene Quick Look pese a compartir motor).
+ */
+function soportaQuickLook(): boolean {
+  const linkSoportaAr = document.createElement('a').relList?.supports?.('ar') ?? false;
+  return esUserAgentIOS(navigator.userAgent) && linkSoportaAr;
+}
+
+/**
+ * Genera el USDZ en el momento, 100% del lado del cliente
+ * (`USDZExporter` de three.js, sin ningún servidor de conversión) y lo
+ * deja listo en el `href` de `#link-quicklook` — la escena usa
+ * `ANCLAJE_CANONICO` (no un anclaje real: Quick Look no expone
+ * hit-test a la web, así que coloca/escala con sus propios gestos
+ * nativos) y `construirGrupoMallaParaUsdz` (mallas, no las líneas
+ * gordas/etiquetas de la versión WebXR — `USDZExporter` sólo exporta
+ * objetos `.isMesh`, ver escenaMalla.ts).
+ */
+async function mostrarQuickLook(estado: EstadoAr): Promise<void> {
+  mostrarSolo('ar-quicklook');
+  const t = textosDe(idioma).ar;
+  const enlace = document.getElementById('link-quicklook') as HTMLAnchorElement | null;
+  const estadoTexto = document.getElementById('ql-estado');
+  if (!enlace) return;
+
+  try {
+    const disp = calcularDisposicionAsientoManual(estado.sala, estado.parlanteIzq, estado.parlanteDer, estado.asiento);
+    const muros = murosVistaDesdeEstado(estado);
+    const escenaAr = construirEscenaAr(estado.sala, disp, muros, ANCLAJE_CANONICO, idioma);
+    const grupo = construirGrupoMallaParaUsdz(escenaAr);
+
+    const exporter = new USDZExporter();
+    const datos = await exporter.parseAsync(grupo, {
+      ar: { anchoring: { type: 'plane' }, planeAnchoring: { alignment: 'horizontal' } },
+      quickLookCompatible: true,
+    });
+
+    const blob = new Blob([datos], { type: 'model/vnd.usdz+zip' });
+    enlace.href = URL.createObjectURL(blob);
+    enlace.classList.remove('hidden');
+    estadoTexto?.classList.add('hidden');
+  } catch (err) {
+    if (estadoTexto) {
+      estadoTexto.textContent = t.quickLookError;
+      console.error('USDZExporter:', err);
+    }
+  }
+}
+
 async function arrancar(): Promise<void> {
   const estado = decodificarEstadoAr(location.search.replace(/^\?/, ''));
   if (!estado) {
@@ -69,11 +130,19 @@ async function arrancar(): Promise<void> {
   }
 
   if (!tieneNavigatorXr(navigator)) {
+    if (soportaQuickLook()) {
+      await mostrarQuickLook(estado);
+      return;
+    }
     mostrarSolo('ar-no-soportado');
     return;
   }
   const soportado = await soportaArInmersiva(navigator);
   if (!soportado) {
+    if (soportaQuickLook()) {
+      await mostrarQuickLook(estado);
+      return;
+    }
     mostrarSolo('ar-no-soportado');
     return;
   }

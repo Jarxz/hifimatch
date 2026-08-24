@@ -30,3 +30,17 @@ export async function soportaArInmersiva(nav: NavigatorConXr | undefined): Promi
     return false;
   }
 }
+
+/**
+ * ¿Es un iPhone/iPad/iPod? Puro — recibe el `userAgent` como string en
+ * vez de leer `navigator.userAgent` directo, mismo criterio de
+ * testabilidad que el resto del módulo. Sólo la mitad de la detección
+ * de AR Quick Look — la otra mitad (`document.createElement('a').
+ * relList.supports('ar')`) necesita DOM de verdad, así que vive inline
+ * en cada llamador (`main.ts`, `entrada-ar.ts`) en vez de acá, para no
+ * mezclar una función que sólo necesita un string con una que necesita
+ * el navegador real.
+ */
+export function esUserAgentIOS(userAgent: string): boolean {
+  return /iPad|iPhone|iPod/.test(userAgent);
+}

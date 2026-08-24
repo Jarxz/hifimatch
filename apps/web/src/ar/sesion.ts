@@ -66,7 +66,7 @@ export interface ControladorSesionAr {
  * `geometriaAr.ts` sólo distingue "vacío" (omite la reflexión) de "no
  * vacío" (ver estadoUrl.ts) — 'yesoCarton' es un placeholder arbitrario
  * para el caso "no vacío". */
-function murosVistaDesdeEstado(e: EstadoAr): MurosVista {
+export function murosVistaDesdeEstado(e: EstadoAr): MurosVista {
   return {
     frontal: e.muroFrontalVacio ? 'vacio' : 'yesoCarton',
     posterior: e.muroPosteriorVacio ? 'vacio' : 'yesoCarton',

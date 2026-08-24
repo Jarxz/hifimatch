@@ -3607,6 +3607,102 @@ hacer" ya trae el texto autocontenido nuevo sin necesidad de expandir
 la tarjeta, y la tarjeta expandida muestra "Piso (parlante izquierdo)"
 consistente en `simple`/`calc`/`flag`.
 
+**AR en iPhone: AR Quick Look, con la calibración de Android intacta —
+pedido tras analizar por qué ni iPhone ni PC pueden tener la AR anclada
+real, y elegir explícitamente perseguir Quick Look de todos modos.**
+Análisis previo (documentado en el plan de esta ronda): WebXR
+`immersive-ar` no existe en ningún Safari de iOS (nunca lo va a tener,
+no es falta de esfuerzo), y PC no tiene ningún concepto de "cámara de
+ambiente" expuesto a la web en ningún sistema operativo de escritorio —
+ahí no hay AR posible, punto. La única AR real posible en iPhone sin
+instalar una app es **AR Quick Look** (`<a rel="ar" href="modelo.usdz">`,
+el visor nativo de Apple), con dos límites que el usuario aceptó
+conscientemente antes de pedir la implementación: (1) es una caja negra
+— la página nunca se entera de cómo el usuario colocó/escaló el modelo,
+así que **no hay equivalente posible de la calibración de 2 toques ni
+de la medición real de ancho/alto** que sí tiene Android; (2) necesita
+un archivo USDZ.
+
+**Hallazgo que abarató la implementación real, encontrado durante la
+investigación (no asumido de entrada): `three.js` ya trae un exportador
+USDZ 100% del lado del cliente.** La suposición inicial (conversión
+GLB→USDZ del lado del servidor, una segunda función serverless) resultó
+innecesaria — `three/addons/exporters/USDZExporter.js` (ya en el
+paquete `three` instalado para la AR de Android) genera el USDZ
+directo en el navegador vía `parseAsync()`. **Pero tiene un límite real
+que sí cambió el diseño**: revisando su código fuente, sólo procesa
+objetos `.isMesh` — no exporta `LineSegments2` (las líneas gordas de
+`escenaThree.ts`) ni `THREE.Sprite` (las etiquetas de distancia), que
+es justo cómo está armada la escena de Android. Hizo falta un builder
+de malla aparte.
+
+`apps/web/src/ar/escenaMalla.ts` (nuevo) construye un `THREE.Group` de
+**tubos** (`THREE.CylinderGeometry` orientado entre dos puntos, vía
+cuaternión) en vez de líneas, y esferas (`MeshStandardMaterial`, con
+`emissive` propio — Quick Look ilumina con su entorno, sin garantía de
+que alcance) en vez de las de `escenaThree.ts` — a partir del mismo
+`EscenaAr` puro de `geometriaAr.ts`, sin tocarlo: la capa de geometría
+no sabe ni le importa si el consumidor renderiza con líneas o mallas.
+Sin etiquetas de distancia en esta primera versión (quedan fuera,
+declarado como mejora futura no bloqueante). Confirmado de forma
+inesperada pero bienvenida: construir `THREE.Mesh`/`Geometry`/
+`Material`/`Group` no necesita DOM — corre limpio bajo `node --test`
+(4 tests en `escenaMalla.test.ts`, incluido uno que arma la escena
+completa de la sala por defecto y verifica que cada hijo del grupo es
+un `.isMesh` de verdad).
+
+Como no hay hit-test que anclar, la escena de Quick Look usa
+`ANCLAJE_CANONICO` (nuevo en `anclaje.ts`): origen en (0,0,0), ejes de
+libro — la sala queda apoyada en el origen del sistema de coordenadas,
+y Quick Look coloca/escala el conjunto con sus propios gestos nativos
+(arrastrar, pellizcar), no con nada calculado por este sitio.
+
+**Detección**: `esUserAgentIOS()` (nuevo en `soporte.ts`, puro,
+recibe el `userAgent` como parámetro — mismo criterio de testabilidad
+que el resto del módulo) combinado con
+`document.createElement('a').relList.supports('ar')` — mismo patrón de
+dos señales que ya usa `<model-viewer>` de Google (referencia externa
+de criterio, no un paquete instalado acá), para evitar tanto un UA
+manipulado como un falso positivo en Safari de escritorio (que
+comparte motor con iOS pero no tiene Quick Look). `entrada-ar.ts`
+intenta primero WebXR (como siempre) y, sólo si falla, prueba Quick
+Look antes de caer al mensaje de "no disponible" — Android nunca ve el
+panel de Quick Look, ni viceversa. **`main.ts` (`irAVerEnAr()`) tenía
+que actualizarse también**: el guardia que decide si navegar a
+`ar.html` sólo miraba `navigator.xr` — sin el cambio, habría bloqueado
+a todo iPhone antes de siquiera llegar a la página donde Quick Look
+funciona. Se agregó `tieneChanceDeQuickLook()` (misma lógica de
+detección, sin importar `three` — `main.ts` es parte del bundle que
+tiene que abrir por `file://`, y `esUserAgentIOS()` vive en
+`soporte.ts`, que ya no depende de `three` ni de nada más).
+
+**Textos honestos sobre la diferencia real entre las dos versiones** —
+`ar.quickLookAviso` declara explícitamente que la versión de iPhone no
+mide la sala real, a diferencia de la de Android. De paso,
+`avisoSoloAndroidChrome`/`noSoportadoCuerpo` se reescribieron: antes
+decían "no disponible en iPhone" de forma categórica, lo cual dejó de
+ser cierto — ahora nombran las dos tecnologías (WebXR y Quick Look) y
+declaran cuál falta en cada caso, sin la afirmación general que ya no
+aplica.
+
+Verificado con Chrome headless simulando un iPhone real (UA de iOS +
+`relList.supports('ar')` forzado a `true` vía
+`Page.addScriptToEvaluateOnNewDocument`): el panel de Quick Look
+aparece, el USDZ se genera sin errores de consola, y el archivo
+resultante es un ZIP válido de verdad (firma `PK\x03\x04`, ~466 KB
+para la sala por defecto) — la validación más profunda posible sin
+hardware Apple real. Confirmado además que Android (WebXR simulado)
+sigue mostrando el flujo de calibración sin ningún cambio, y que un
+navegador sin ninguna de las dos tecnologías sigue cayendo en el
+mensaje de "no disponible" como antes — sin regresión en ninguno de
+los dos caminos existentes. **Lo que no se puede verificar sin un
+iPhone real**: si Quick Look efectivamente se abre desde una blob URL
+en la versión de iOS actual (documentado como mecanismo esperado,
+usado por otras implementaciones sin servidor, pero no confirmado acá)
+y cómo se ve/comporta el modelo dentro del visor nativo de Apple.
+228 tests totales (antes 222): 4 de `escenaMalla.test.ts` + 2 de
+`esUserAgentIOS` en `soporte.test.ts`.
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
@@ -3620,6 +3716,17 @@ Falta:
   Confirmado hasta la ronda de "posición del visor" que el flujo de
   2 toques ya funciona razonablemente en hardware real — falta
   confirmar la medición de ancho/alto de la misma forma.
+- **Verificación end-to-end de AR Quick Look en un iPhone real**: el
+  USDZ generado se confirmó como un ZIP válido con Chrome headless
+  simulando un iPhone, pero no se pudo confirmar si Quick Look
+  realmente se abre desde una blob URL en la versión de iOS actual
+  (mecanismo esperado, usado por otras implementaciones sin servidor,
+  no verificado acá), ni cómo se ve o se comporta el modelo (tubos +
+  esferas, sin etiquetas de distancia) dentro del visor nativo de
+  Apple. Etiquetas de distancia (omitidas en esta primera versión) y
+  una posible mejora del `<a rel="ar">` (algunas implementaciones usan
+  un `<img>` en vez de texto como contenido visual del link) quedan
+  como ajustes a evaluar después de la primera prueba real.
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla
   ese término con correcciones que sólo existen porque hay una sala
