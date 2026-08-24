@@ -22,8 +22,8 @@ import type { EstadoAr } from './estadoUrl.ts';
 import type { MurosVista } from '../vista/plano.ts';
 import type { Vec3 } from './anclaje.ts';
 import { resolverAnclaje } from './anclaje.ts';
-import { construirEscenaAr } from './geometriaAr.ts';
-import { construirGrupoThree } from './escenaThree.ts';
+import { construirEscenaAr, construirPlanoFrontalPreview } from './geometriaAr.ts';
+import { construirGrupoThree, actualizarResolucionLineas, construirPlanoFrontalPreviewMesh, actualizarPlanoFrontalPreviewMesh } from './escenaThree.ts';
 
 const CARACTERISTICAS_REQUERIDAS: string[] = ['hit-test', 'local-floor'];
 const CARACTERISTICAS_OPCIONALES: string[] = ['dom-overlay'];
@@ -67,7 +67,17 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
-  window.addEventListener('resize', () => renderer.setSize(window.innerWidth, window.innerHeight));
+
+  // LineMaterial (escenaThree.ts, líneas gordas) necesita el tamaño del
+  // viewport en píxeles para seguir calculando el grosor real en cada
+  // resize — se guarda acá y se propaga a lo que ya esté anclado.
+  const resolucionActual = { x: window.innerWidth, y: window.innerHeight };
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    resolucionActual.x = window.innerWidth;
+    resolucionActual.y = window.innerHeight;
+    if (grupoAnclado) actualizarResolucionLineas(grupoAnclado, resolucionActual);
+  });
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera();
@@ -83,11 +93,21 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
   reticulo.visible = false;
   scene.add(reticulo);
 
+  // Vista previa del muro frontal (segundo toque, ver comentario de
+  // cabecera): mesh vacío desde el arranque, se llena/actualiza en el
+  // loop de render mientras se espera el segundo toque, con la posición
+  // ACTUAL de la retícula como "toque 2" tentativo — así el usuario ve,
+  // antes de confirmar, si el muro quedaría bien orientado.
+  const planoPreview = construirPlanoFrontalPreviewMesh();
+  planoPreview.visible = false;
+  scene.add(planoPreview);
+
   let referenceSpace: XRReferenceSpace | null = null;
   let hitTestSource: XRHitTestSource | null = null;
   let toque1: Vec3 | null = null;
   let miradaActual: Vec3 | null = null;
   let sesionAnclada = false;
+  let grupoAnclado: THREE.Group | null = null;
 
   function alSeleccionar(): void {
     if (sesionAnclada || !reticulo.visible) return; // sin superficie detectada bajo la retícula, el toque no cuenta
@@ -102,12 +122,14 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
 
     const anclaje = resolverAnclaje(toque1, posicionActual, miradaActual);
     const escenaAr = construirEscenaAr(estado.sala, disp, muros, anclaje, idioma);
-    scene.add(construirGrupoThree(escenaAr));
+    grupoAnclado = construirGrupoThree(escenaAr, resolucionActual);
+    scene.add(grupoAnclado);
 
     sesionAnclada = true;
     hitTestSource?.cancel();
     hitTestSource = null;
     reticulo.visible = false;
+    planoPreview.visible = false;
     onCambioEstado('anclado');
   }
 
@@ -156,6 +178,19 @@ export async function iniciarSesionAr(canvas: HTMLCanvasElement, opciones: Opcio
             }
           } else {
             reticulo.visible = false;
+          }
+
+          // Vista previa del muro frontal: sólo tiene sentido con el
+          // toque 1 ya fijado (se está esperando el toque 2) y una
+          // superficie detectada bajo la retícula ahora mismo — usa esa
+          // posición como "toque 2" tentativo, sin confirmarlo todavía.
+          if (toque1 && reticulo.visible && miradaActual) {
+            const posicionTentativa: Vec3 = { x: reticulo.position.x, y: reticulo.position.y, z: reticulo.position.z };
+            const anclajeTentativo = resolverAnclaje(toque1, posicionTentativa, miradaActual);
+            actualizarPlanoFrontalPreviewMesh(planoPreview, construirPlanoFrontalPreview(estado.sala, anclajeTentativo));
+            planoPreview.visible = true;
+          } else {
+            planoPreview.visible = false;
           }
         }
       }

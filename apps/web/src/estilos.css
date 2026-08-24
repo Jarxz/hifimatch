@@ -351,6 +351,10 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 .regla-fila > summary::-webkit-details-marker{display:none}
 .regla-fila > summary:hover .fila-nombre{color:var(--text)}
 .regla-fila > summary:focus-visible{outline:2px solid var(--line2); outline-offset:-2px}
+/* Flecha de "esto se despliega" — faltaba acá (ya la tenían .grupo-evidencia/
+   .detalle/.info-item, mismo patrón de siempre: borde en L rotado 45°/225°). */
+.regla-fila > summary::after{content:''; flex:0 0 auto; width:8px; height:8px; border-right:1px solid var(--faint); border-bottom:1px solid var(--faint); transform:rotate(45deg); transition:transform .2s}
+.regla-fila[open] > summary::after{transform:rotate(225deg)}
 /* overflow-wrap es el freno real contra el bug de mobile encontrado en
    producción: con .layer+.verdict+.fila-dato+.infobtn de ancho fijo, la
    columna de .fila-nombre puede quedar más angosta que una sola palabra
@@ -384,6 +388,7 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
   .verdict{order:2; margin-left:0}
   .fila-dato{order:3}
   .infobtn{order:4; margin-left:auto}
+  .regla-fila > summary::after{order:5}
 }
 
 /* 06 Ficha al pie — La cadena + datos de sala, contexto ya ingresado por
@@ -468,8 +473,12 @@ input[type=range]::-moz-range-thumb{width:14px; height:14px; border-radius:50%; 
 /* Candado del punto de escucha: mismo marco que #btn-recalcular ganó
    (borde de línea gris) — abierto se tiñe de dorado, mismo criterio que
    cualquier control "activado" del sitio (.segs button[aria-pressed=true]). */
-.candado-btn{border:1px solid var(--line2); border-radius:6px; padding:6px 12px; margin-left:auto; transition:border-color .2s cubic-bezier(.22,.61,.36,1), color .2s cubic-bezier(.22,.61,.36,1)}
+.candado-btn{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line2); border-radius:6px; padding:6px 12px; margin-left:auto; transition:border-color .2s cubic-bezier(.22,.61,.36,1), color .2s cubic-bezier(.22,.61,.36,1)}
 .candado-btn[aria-pressed="true"]{border-color:var(--warn); color:var(--warn)}
+/* Ícono de líneas (stroke:currentColor) en vez de emoji — hereda el
+   mismo color que el texto del botón, cambia junto con él al abrir
+   (ver [aria-pressed="true"] arriba). */
+.candado-icono{flex:0 0 auto; width:14px; height:14px}
 #plan-hint-asiento{color:var(--warn)}
 .candado-comparador-aviso{border-left:2px solid var(--warn); background:rgba(199,173,124,.06); padding:8px 12px; color:var(--dim)}
 

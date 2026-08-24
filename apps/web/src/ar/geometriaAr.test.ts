@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { calcularDisposicion } from '../../../../packages/engine/src/sala.ts';
 import { resolverAnclaje, anclarPunto } from './anclaje.ts';
-import { construirEscenaAr } from './geometriaAr.ts';
+import { construirEscenaAr, construirPlanoFrontalPreview } from './geometriaAr.ts';
 import type { MurosVista } from '../vista/plano.ts';
 
 const SALA = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
@@ -70,4 +70,18 @@ test('construirEscenaAr en inglés: etiqueta de punto dulce y separador decimal 
   const escena = construirEscenaAr(SALA, DISP, MUROS_TODOS, ANCLAJE, 'en');
   assert.match(escena.puntos.find((p) => p.tipo === 'punto-dulce')!.etiqueta, /sweet spot/i);
   assert.match(escena.puntos.find((p) => p.tipo === 'reflexion')!.etiqueta, /^\d+\.\d+ m$/);
+});
+
+test('construirPlanoFrontalPreview: las 4 esquinas coinciden con anclarPunto aplicado a mano (origen, +ancho, +ancho+alto, +alto)', () => {
+  const esquinas = construirPlanoFrontalPreview(SALA, ANCLAJE);
+  assert.deepEqual(esquinas[0], anclarPunto(ANCLAJE, { x: 0, y: 0 }, 0));
+  assert.deepEqual(esquinas[1], anclarPunto(ANCLAJE, { x: SALA.anchoM, y: 0 }, 0));
+  assert.deepEqual(esquinas[2], anclarPunto(ANCLAJE, { x: SALA.anchoM, y: 0 }, SALA.altoM));
+  assert.deepEqual(esquinas[3], anclarPunto(ANCLAJE, { x: 0, y: 0 }, SALA.altoM));
+});
+
+test('construirPlanoFrontalPreview: con el origen del anclaje en (0,0,0) y ejes canónicos, la esquina 0 es exactamente el origen', () => {
+  const anclajeCanonico = resolverAnclaje({ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: -1 });
+  const esquinas = construirPlanoFrontalPreview(SALA, anclajeCanonico);
+  assert.deepEqual(esquinas[0], { x: 0, y: 0, z: 0 });
 });

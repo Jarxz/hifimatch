@@ -295,8 +295,8 @@ export const es = {
       pestanaModificado: 'Modificado',
       hintArrastreHtml: 'En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.',
       candadoAria: 'Candado del punto de escucha',
-      candadoCerrado: '🔒 Candado cerrado',
-      candadoAbierto: '🔓 Candado abierto',
+      candadoCerrado: 'Candado cerrado',
+      candadoAbierto: 'Candado abierto',
       hintAsiento: 'Candado abierto: el punto de escucha también se puede arrastrar, de forma independiente de los parlantes.',
       candadoComparadorAviso:
         'Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.',

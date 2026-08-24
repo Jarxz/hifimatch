@@ -529,7 +529,10 @@
           <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
           <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
         </div>
-        <button type="button" id="btn-candado" class="back candado-btn" aria-pressed="false" data-i18n-aria="resultado.plano.candadoAria" aria-label="Candado del punto de escucha">🔒 Candado cerrado</button>
+        <button type="button" id="btn-candado" class="back candado-btn" aria-pressed="false" data-i18n-aria="resultado.plano.candadoAria" aria-label="Candado del punto de escucha">
+          <svg class="candado-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path id="candado-shackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span id="btn-candado-texto">Candado cerrado</span>
+        </button>
         <button type="button" id="btn-ver-ar" class="back" data-i18n="resultado.plano.verEnArBoton">Ver en AR</button>
       </div>
       <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.</p>

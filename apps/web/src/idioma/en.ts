@@ -246,8 +246,8 @@ export const en: Textos = {
       pestanaModificado: 'Modified',
       hintArrastreHtml: 'In this view you can move the speakers to try a different layout, <button type="button" id="btn-recalcular">RECALCULATE</button> and compare with Original analysis.',
       candadoAria: 'Listening-spot padlock',
-      candadoCerrado: '🔒 Padlock locked',
-      candadoAbierto: '🔓 Padlock open',
+      candadoCerrado: 'Padlock locked',
+      candadoAbierto: 'Padlock open',
       hintAsiento: 'Padlock open: the listening spot can also be dragged, independently of the speakers.',
       candadoComparadorAviso:
         'Original analysis and Modified use a different method for the listening spot (padlock locked/open) — a difference between the two may come from that, not only from position.',

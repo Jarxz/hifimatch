@@ -49,6 +49,20 @@ interface DescriptorReflexion {
   lado: 'izq' | 'der';
 }
 
+/**
+ * Las 4 esquinas del muro frontal (y=0), ancladas — usado como vista
+ * previa en vivo durante el segundo toque de calibración (`sesion.ts`):
+ * con el origen ya fijado (toque 1) y una posición tentativa de segundo
+ * toque, muestra dónde caería el muro frontal antes de confirmar, para
+ * verificar que el anclaje quedó bien orientado. Orden fijo (origen,
+ * +ejeX, +ejeX+arriba, +arriba) — `escenaThree.ts` arma el mismo quad de
+ * 2 triángulos a partir de este orden.
+ */
+export function construirPlanoFrontalPreview(sala: Sala, anclaje: Anclaje): [Vec3, Vec3, Vec3, Vec3] {
+  const { anchoM: W, altoM: H } = sala;
+  return [anclarPunto(anclaje, { x: 0, y: 0 }, 0), anclarPunto(anclaje, { x: W, y: 0 }, 0), anclarPunto(anclaje, { x: W, y: 0 }, H), anclarPunto(anclaje, { x: 0, y: 0 }, H)];
+}
+
 export function construirEscenaAr(sala: Sala, disp: DisposicionSala, muros: MurosVista, anclaje: Anclaje, idioma: Idioma): EscenaAr {
   const { anchoM: W, largoM: L, altoM: H } = sala;
   const h = disp.alturaM;

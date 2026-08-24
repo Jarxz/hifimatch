@@ -3325,14 +3325,87 @@ entre los 4 workspaces (antes 397): 31 nuevos en `apps/web`
 (`anclaje.test.ts`, `geometriaAr.test.ts`, `soporte.test.ts`,
 `estadoUrl.test.ts`).
 
+**Pulido de UI pedido tras probar: flecha desplegable faltante en
+`.regla-fila`, candado con ícono de líneas en vez de emoji, y dos mejoras
+a la sesión de AR (líneas más gruesas + vista previa del muro frontal).**
+Cuatro pedidos puntuales, sin relación entre sí más que "cosas notadas al
+usar el sitio":
+
+- **`.regla-fila` (las filas "Potencia frente a los picos de la sala",
+  "Modos de sala", etc., dentro de los 3 acordeones de evidencia) no
+  tenía flecha de "esto se despliega"** — sí la tenían ya `.grupo-
+  evidencia`, `.detalle` y `.info-item` (mismo patrón: borde en L
+  rotado 45°→225° al abrir). Hueco real, no una regresión — se sumó el
+  mismo `::after` que ya usan las otras tres, con su propio `order` en
+  el breakpoint mobile de 480px para que caiga junto al botón "i" en la
+  fila apilada.
+- **Candado: emoji 🔒/🔓 → ícono de líneas (Feather lock/unlock,
+  `stroke="currentColor"`).** Un solo `<svg>` fijo en el botón con un
+  `<path id="candado-shackle">` cuyo `d` cambia entre abierto/cerrado —
+  `actualizarUiCandado()` (`main.ts`) dejó de tocar `btn.textContent`
+  (que borraba el ícono) y pasó a escribir sólo en un `<span
+  id="btn-candado-texto">` interno, más el `d` del shackle. Con
+  `stroke="currentColor"`, el ícono hereda el mismo color que el texto
+  del botón — incluido el cambio a `--warn` cuando está abierto
+  (`.candado-btn[aria-pressed=true]`, ya existía), sin CSS de color
+  nuevo. `resultado.plano.candadoCerrado`/`candadoAbierto` pierden el
+  emoji del texto en los dos idiomas — el ícono ya lo comunica.
+- **Líneas del cubo de AR más gruesas — con un hallazgo real detrás:
+  `THREE.LineBasicMaterial.linewidth` no funciona en casi ningún
+  hardware.** Es una limitación conocida y documentada de WebGL: el
+  spec deja el grosor de línea como "puede ignorarse", y prácticamente
+  todo lo que usa ANGLE (desktop) o un driver móvil típico (Android/
+  Chrome/ARCore, el hardware exacto al que apunta esta función) lo
+  ignora — quedaba en 1px real sin importar el valor pedido. Se
+  reemplazó por `Line2`/`LineSegments2`/`LineSegmentsGeometry`/
+  `LineMaterial` de `three/addons/lines/` (el enfoque estándar de
+  three.js para grosor real: dibuja la línea como una cinta con shader
+  propio) — necesita el tamaño del viewport en píxeles
+  (`material.resolution`), por eso `construirGrupoThree()` ahora recibe
+  una `Resolucion` como parámetro en vez de asumirla, y
+  `actualizarResolucionLineas()` (nueva, recorre el grupo con
+  `.traverse()`) se llama de nuevo en cada resize de `sesion.ts`. Sin
+  esto último, rotar el teléfono habría dejado el grosor calculado para
+  la resolución vieja. Verificado visualmente (no en AR real — ver
+  "Falta" — sino renderizando la misma `construirGrupoThree()` con una
+  cámara de prueba normal vía Chrome headless): las líneas del cubo se
+  ven notoriamente más gruesas que antes.
+- **Vista previa del muro frontal durante el segundo toque de
+  calibración — para poder verificar el anclaje ANTES de confirmarlo,
+  no después.** Hasta ahora, entre el toque 1 y el toque 2 no había
+  ninguna señal visual de hacia dónde iba a quedar orientada la sala
+  ancorada — recién se veía el resultado (bien o mal) después del
+  segundo toque, con el único remedio de "Volver a calibrar" (recargar
+  la página) si había quedado mal. `geometriaAr.ts` suma
+  `construirPlanoFrontalPreview(sala, anclaje)` (puro, 2 tests): las 4
+  esquinas del muro frontal ancladas, dado CUALQUIER anclaje —
+  incluido uno todavía no confirmado. `sesion.ts` usa esto en el loop
+  de render, mientras se espera el segundo toque: cada cuadro, si hay
+  una superficie detectada bajo la retícula, trata esa posición como un
+  "toque 2" tentativo, resuelve un anclaje de prueba, y actualiza un
+  plano translúcido (dorado, opacidad 0,22, `DoubleSide`) con esas 4
+  esquinas — un mesh creado una sola vez al arrancar la sesión
+  (`construirPlanoFrontalPreviewMesh`) y actualizado in-place cuadro a
+  cuadro (`actualizarPlanoFrontalPreviewMesh`, escribe directo el
+  `BufferAttribute` en vez de recrear el mesh) para no alocar geometría
+  nueva 60 veces por segundo. Desaparece al confirmar el segundo toque
+  (lo reemplaza el wireframe completo ya anclado) y al perderse la
+  superficie bajo la retícula. Verificado igual que las líneas gordas:
+  visualmente vía Chrome headless con datos de prueba, no en sesión AR
+  real.
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
   de escena, detección de soporte, codificación de estado, fallbacks de
   UI) tiene test — el hit-test contra una superficie real, la
-  estabilidad de la retícula, y si el anclaje se siente alineado con
-  las paredes reales de una sala real, no. Pendiente de una prueba en
-  teléfono real, mismo patrón que ya pidió confirmación real para el
+  estabilidad de la retícula, la legibilidad real del grosor de línea
+  de `Line2` y de la vista previa del muro frontal sobre la cámara de
+  verdad (verificadas hasta ahora sólo con una cámara de prueba fija en
+  Chrome headless, no dentro de una sesión `immersive-ar`), y si el
+  anclaje se siente alineado con las paredes reales de una sala real,
+  no. Pendiente de una prueba en teléfono real, mismo patrón que ya
+  pidió confirmación real para el
   arrastre táctil del plano.
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla

@@ -12,16 +12,34 @@
  * superficie resuelta que este modelo no calcula. No es testeable con
  * `node --test` (necesita `document.createElement('canvas')` para las
  * etiquetas de texto) — ver la sección de verificación del plan de AR.
+ *
+ * Líneas "gordas" (Line2/LineMaterial de three/addons, no
+ * THREE.LineBasicMaterial): el `linewidth` de un material de línea
+ * estándar de WebGL lo ignora la enorme mayoría de plataformas (todo lo
+ * que usa ANGLE en desktop, prácticamente todo Android/Chrome/ARCore) —
+ * queda fijo en 1px de verdad sin importar el valor puesto, así que en
+ * el hardware al que apunta esta función (Android/Chrome) el grosor
+ * pedido no se vería. Line2 dibuja la línea como una malla de cintas con
+ * un shader propio, con grosor real controlado por `resolution`
+ * (tamaño del viewport en píxeles) — por eso `construirGrupoThree` pide
+ * ese dato como parámetro en vez de asumirlo.
  */
 import * as THREE from 'three';
+import { Line2 } from 'three/addons/lines/Line2.js';
+import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import type { EscenaAr, SegmentoAr, PuntoAr } from './geometriaAr.ts';
 
 const COLOR_ARISTA = 0xffffff;
-const OPACIDAD_ARISTA = 0.22;
+const OPACIDAD_ARISTA = 0.55;
+const GROSOR_ARISTA_PX = 3.5;
 const COLOR_TRIANGULO = 0xffffff;
-const OPACIDAD_TRIANGULO = 0.5;
+const OPACIDAD_TRIANGULO = 0.6;
+const GROSOR_TRIANGULO_PX = 2;
 const COLOR_REFLEXION = 0xc7ad7c;
-const OPACIDAD_REFLEXION = 0.55;
+const OPACIDAD_REFLEXION = 0.75;
+const GROSOR_REFLEXION_PX = 2.5;
 const COLOR_PARLANTE = 0xececee;
 const COLOR_DULCE = 0xececee;
 
@@ -31,7 +49,12 @@ const COLOR_DULCE = 0xececee;
  * que sí es ilustrativa de un tamaño típico). */
 const RADIO_PUNTO_M = 0.03;
 
-function lineasDeTipo(segmentos: SegmentoAr[], tipo: SegmentoAr['tipo'], color: number, opacidad: number): THREE.LineSegments | null {
+export interface Resolucion {
+  x: number;
+  y: number;
+}
+
+function lineasDeTipo(segmentos: SegmentoAr[], tipo: SegmentoAr['tipo'], color: number, opacidad: number, grosorPx: number, resolucion: Resolucion): LineSegments2 | null {
   const filtrados = segmentos.filter((s) => s.tipo === tipo);
   if (filtrados.length === 0) return null;
   const posiciones = new Float32Array(filtrados.length * 6);
@@ -43,10 +66,13 @@ function lineasDeTipo(segmentos: SegmentoAr[], tipo: SegmentoAr['tipo'], color: 
     posiciones[i * 6 + 4] = s.b.y;
     posiciones[i * 6 + 5] = s.b.z;
   });
-  const geometria = new THREE.BufferGeometry();
-  geometria.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
-  const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity: opacidad });
-  return new THREE.LineSegments(geometria, material);
+  const geometria = new LineSegmentsGeometry();
+  geometria.setPositions(posiciones);
+  const material = new LineMaterial({ color, transparent: true, opacity: opacidad, linewidth: grosorPx });
+  material.resolution.set(resolucion.x, resolucion.y);
+  const lineas = new LineSegments2(geometria, material);
+  lineas.computeLineDistances();
+  return lineas;
 }
 
 function colorDePunto(tipo: PuntoAr['tipo']): number {
@@ -97,14 +123,14 @@ function etiquetaSprite(p: PuntoAr): THREE.Sprite {
   return sprite;
 }
 
-export function construirGrupoThree(escena: EscenaAr): THREE.Group {
+export function construirGrupoThree(escena: EscenaAr, resolucion: Resolucion): THREE.Group {
   const grupo = new THREE.Group();
 
-  const aristas = lineasDeTipo(escena.segmentos, 'arista-sala', COLOR_ARISTA, OPACIDAD_ARISTA);
+  const aristas = lineasDeTipo(escena.segmentos, 'arista-sala', COLOR_ARISTA, OPACIDAD_ARISTA, GROSOR_ARISTA_PX, resolucion);
   if (aristas) grupo.add(aristas);
-  const triangulo = lineasDeTipo(escena.segmentos, 'triangulo', COLOR_TRIANGULO, OPACIDAD_TRIANGULO);
+  const triangulo = lineasDeTipo(escena.segmentos, 'triangulo', COLOR_TRIANGULO, OPACIDAD_TRIANGULO, GROSOR_TRIANGULO_PX, resolucion);
   if (triangulo) grupo.add(triangulo);
-  const reflexiones = lineasDeTipo(escena.segmentos, 'reflexion', COLOR_REFLEXION, OPACIDAD_REFLEXION);
+  const reflexiones = lineasDeTipo(escena.segmentos, 'reflexion', COLOR_REFLEXION, OPACIDAD_REFLEXION, GROSOR_REFLEXION_PX, resolucion);
   if (reflexiones) grupo.add(reflexiones);
 
   for (const p of escena.puntos) {
@@ -113,4 +139,51 @@ export function construirGrupoThree(escena: EscenaAr): THREE.Group {
   }
 
   return grupo;
+}
+
+/** El shader de `LineMaterial` necesita el tamaño del viewport en cada
+ * resize para seguir calculando el grosor en píxeles reales — se
+ * recorre el grupo en vez de guardar una lista aparte de materiales,
+ * así `sesion.ts` no tiene que llevar su propia contabilidad de qué
+ * objetos son líneas gordas. */
+export function actualizarResolucionLineas(grupo: THREE.Object3D, resolucion: Resolucion): void {
+  grupo.traverse((obj) => {
+    if (obj instanceof LineSegments2 || obj instanceof Line2) {
+      (obj.material as LineMaterial).resolution.set(resolucion.x, resolucion.y);
+    }
+  });
+}
+
+const COLOR_PREVIEW_MURO = 0xc7ad7c;
+const OPACIDAD_PREVIEW_MURO = 0.22;
+
+/**
+ * Plano del muro frontal, vista previa en vivo durante el segundo toque
+ * de calibración (ver `sesion.ts`) — geometría vacía al crearse, se llena
+ * cuadro a cuadro con `actualizarPlanoFrontalPreviewMesh` en vez de
+ * reconstruirse (evita alocar un mesh nuevo por frame mientras el
+ * usuario todavía está apuntando). `DoubleSide` porque la cámara puede
+ * terminar de cualquier lado del plano según hacia dónde mire;
+ * `depthWrite:false` para que no tape after-the-fact al propio retículo
+ * o al resto de la escena aún no anclada.
+ */
+export function construirPlanoFrontalPreviewMesh(): THREE.Mesh {
+  const geometria = new THREE.BufferGeometry();
+  const posiciones = new Float32Array(6 * 3); // 2 triángulos, 6 vértices
+  geometria.setAttribute('position', new THREE.BufferAttribute(posiciones, 3));
+  const material = new THREE.MeshBasicMaterial({ color: COLOR_PREVIEW_MURO, transparent: true, opacity: OPACIDAD_PREVIEW_MURO, side: THREE.DoubleSide, depthWrite: false });
+  return new THREE.Mesh(geometria, material);
+}
+
+/** Actualiza los 6 vértices (2 triángulos) del mesh de vista previa a
+ * partir de las 4 esquinas ancladas del muro frontal — mismo orden que
+ * `construirPlanoFrontalPreview` en geometriaAr.ts: origen(0,0,0),
+ * (W,0,0), (W,0,H), (0,0,H). */
+export function actualizarPlanoFrontalPreviewMesh(mesh: THREE.Mesh, esquinas: readonly [{ x: number; y: number; z: number }, { x: number; y: number; z: number }, { x: number; y: number; z: number }, { x: number; y: number; z: number }]): void {
+  const [a, b, c, d] = esquinas;
+  const orden = [a, b, c, a, c, d];
+  const posicion = (mesh.geometry as THREE.BufferGeometry).attributes.position as THREE.BufferAttribute;
+  orden.forEach((v, i) => posicion.setXYZ(i, v.x, v.y, v.z));
+  posicion.needsUpdate = true;
+  (mesh.geometry as THREE.BufferGeometry).computeBoundingSphere();
 }

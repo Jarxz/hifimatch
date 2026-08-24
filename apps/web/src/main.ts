@@ -742,17 +742,27 @@ function setCandado(abierto: boolean): void {
   actualizarUiCandado(abierto);
 }
 
-/** Refleja el estado del candado en el botón (texto + aria-pressed) y en
- * la visibilidad del hint de arrastre del asiento — separado de
+/** Trazo del candado abierto/cerrado — mismo ícono de líneas (Feather
+ * "lock"/"unlock"), sólo cambia el atributo `d` del shackle; el resto del
+ * SVG (el cuerpo, `<rect>`) es fijo. `stroke="currentColor"` en el propio
+ * SVG (index.html) ya hereda el color del texto del botón, incluido el
+ * cambio a `--warn` cuando está abierto (`.candado-btn[aria-pressed=true]`,
+ * estilos.css) — aquí no hay que tocar color, sólo la forma. */
+const CANDADO_SHACKLE_CERRADO = 'M7 11V7a5 5 0 0 1 10 0v4';
+const CANDADO_SHACKLE_ABIERTO = 'M7 11V7a5 5 0 0 1 9.9-1';
+
+/** Refleja el estado del candado en el botón (ícono + texto + aria-pressed)
+ * y en la visibilidad del hint de arrastre del asiento — separado de
  * `#plan-hint` (arrastre de parlantes), que ya se muestra/oculta según la
  * vista activa; éste depende ADEMÁS de que el candado esté abierto. */
 function actualizarUiCandado(abierto: boolean): void {
   const t = textosDe(idiomaActual).resultado.plano;
   const btn = document.getElementById('btn-candado');
-  if (btn) {
-    btn.textContent = abierto ? t.candadoAbierto : t.candadoCerrado;
-    btn.setAttribute('aria-pressed', String(abierto));
-  }
+  const texto = document.getElementById('btn-candado-texto');
+  const shackle = document.getElementById('candado-shackle');
+  if (btn) btn.setAttribute('aria-pressed', String(abierto));
+  if (texto) texto.textContent = abierto ? t.candadoAbierto : t.candadoCerrado;
+  if (shackle) shackle.setAttribute('d', abierto ? CANDADO_SHACKLE_ABIERTO : CANDADO_SHACKLE_CERRADO);
   const hintAsiento = document.getElementById('plan-hint-asiento');
   if (hintAsiento) hintAsiento.classList.toggle('hidden', !(abierto && estado.vistaPlano === 'superior'));
 }
