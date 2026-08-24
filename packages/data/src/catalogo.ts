@@ -2708,6 +2708,44 @@ export const CATALOGO: Catalogo = {
     },
   },
   {
+    id: 'gold-note-is10',
+    marca: 'Gold Note',
+    nombre: 'Gold Note IS-10',
+    tipo: { es: 'Integrado Clase D con DAC y streaming, chasis compacto', en: 'Class D integrated amplifier with DAC and streaming, compact chassis' },
+    descripcion: {
+      es: 'Integrado italiano compacto (chasis de medio ancho) que combina streaming de red, DAC AKM AK4493, previo y etapa de potencia en un solo aparato. La etapa de potencia es Clase D; reseñas independientes la describen ajustada para sonar más cerca de Clase B/AB (o con un previo Clase A según otra reseña) — el fabricante no declara la clase en su ficha oficial. El factor de amortiguamiento es autoajustable según la carga conectada: Gold Note no publica una cifra fija porque, por diseño, no la hay — no es un dato faltante.',
+      en: "A compact (half-width chassis) Italian all-in-one that combines network streaming, an AKM AK4493 DAC, a preamp, and a power stage in a single unit. The power stage is Class D; independent reviews describe it as tuned to sound closer to Class B/AB (or with a Class A preamp, per another review) — the manufacturer does not state the class on its official spec sheet. The damping factor is self-adjusting depending on the connected load: Gold Note does not publish a fixed figure because, by design, there isn't one — this is not a missing data point.",
+    },
+    potencia8OhmW: {
+      valor: 90,
+      fuente: { es: 'Gold Note (ficha oficial)', en: 'Gold Note (official spec sheet)' },
+      confianza: 'alta',
+    },
+    potencia4OhmW: {
+      valor: 140,
+      fuente: { es: 'Gold Note (ficha oficial)', en: 'Gold Note (official spec sheet)' },
+      confianza: 'alta',
+    },
+    cargaMinOhm: null,
+    sensEntradaMv: null,
+    impedanciaEntradaOhm: null,
+    factorAmortiguamiento: null,
+    chipsExtra: [
+      { es: 'DAC AKM AK4493', en: 'AKM AK4493 DAC' },
+      { es: 'THD 0,001% (1 kHz, 1 W)', en: '0.001% THD (1 kHz, 1 W)' },
+      { es: 'modo mono con PA-10 EVO: 280 W/8 Ω', en: 'mono mode with PA-10 EVO: 280 W/8 Ω' },
+    ],
+    fuentes: [
+      'Gold Note (ficha oficial, goldnote.it)',
+      'Soundnews.net (reseña) — clase de la etapa de potencia y amortiguamiento autoajustable',
+      'Hifi Chicken (reseña) — previo Clase A, etapa de potencia Clase D atenuada',
+    ],
+    pendiente: {
+      es: 'El factor de amortiguamiento es autoajustable según la carga (así lo describe el fabricante en material de reseña, no como cifra fija) — no se adopta ningún valor numérico. Sensibilidad e impedancia de entrada de línea, y carga mínima de parlante soportada, no se encontraron publicadas.',
+      en: 'The damping factor is self-adjusting depending on the load (described as such by the manufacturer via review material, not as a fixed figure) — no numeric value is adopted. Line input sensitivity and impedance, and minimum supported speaker load, were not found published.',
+    },
+  },
+  {
     id: 'gold-note-is1000-mkii-deluxe',
     marca: 'Gold Note',
     nombre: 'Gold Note IS-1000 MkII Deluxe',

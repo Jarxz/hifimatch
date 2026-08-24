@@ -3542,6 +3542,33 @@ fija `document.referrer`): el click en "Volver al análisis" devuelve
 efectivamente a `index.html`. 434 tests sin cambios (fix de navegación
 puro, sin lógica nueva testeable con `node --test`).
 
+**Gold Note IS-10 — catálogo a 144 equipos (40 amplificadores).** Integrado
+italiano compacto (chasis de medio ancho) que combina streaming, DAC
+AKM AK4493 y etapa de potencia en un solo aparato — la otra mitad del
+combo IS-10/PA-10 EVO junto a la Gold Note DS-10 EVO ya catalogada.
+Potencia (90 W/8 Ω · 140 W/4 Ω) de la ficha oficial (goldnote.it), con
+confianza alta. **Caso de interés: el factor de amortiguamiento es
+autoajustable por diseño, no una cifra fija que falte publicar** — dos
+reseñas independientes (Soundnews.net, Hifi Chicken) lo describen así
+("self-adjustable damping factor... depending on the connected load");
+`factorAmortiguamiento` queda en `null` con un `pendiente` que declara
+explícitamente que no es un dato faltante, es una característica de
+diseño — mismo criterio que ya aplicaba a la Gold Note IS-1000 MkII
+Deluxe con su amortiguamiento ">100" sin cifra exacta, llevado un paso
+más allá acá (ni siquiera hay una cifra que redondear). La clase de la
+etapa de potencia tampoco la declara el fabricante en su ficha —
+Class D según ambas reseñas, con matices distintos entre ellas (una
+dice "ajustada para sonar más cerca de Clase B/AB", la otra describe un
+previo Clase A) — se citan las dos en vez de elegir una sola
+caracterización como si fuera la oficial. Sensibilidad e impedancia de
+entrada de línea, y carga mínima de parlante, tampoco se encontraron
+publicadas. 16 tests en `packages/data` (conteo actualizado, sin tests
+nuevos — el lint de separador decimal y el resto de las reglas
+genéricas ya cubren un equipo más automáticamente). Verificado en el
+sitio real (Chrome headless): aparece en el selector marca→modelo de
+Gold Note en su posición alfabética (antes de IS-1000 MkII Deluxe), con
+los chips y la descripción correctos al elegirlo.
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
