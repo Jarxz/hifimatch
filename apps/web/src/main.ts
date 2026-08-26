@@ -69,7 +69,7 @@ import { num, numConSigno } from './formato/numeros.ts';
 import { idiomaInicial, guardarIdioma, aplicarCromoEstatico, textosDe } from './idioma/idioma.ts';
 import { codificarEstadoAr } from './ar/estadoUrl.ts';
 import type { EstadoAr } from './ar/estadoUrl.ts';
-import { tieneNavigatorXr, esUserAgentIOS } from './ar/soporte.ts';
+import { tieneNavigatorXr, esUserAgentIOS, QUICK_LOOK_HABILITADO } from './ar/soporte.ts';
 
 const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alto', ref: 'referencia' };
 
@@ -1042,6 +1042,7 @@ function abrirGuardarPopup(): void {
  * chequeo real (generar el USDZ) corre recién dentro de ar.html, mismo
  * criterio que ya aplica `soportaArInmersiva()` para WebXR. */
 function tieneChanceDeQuickLook(): boolean {
+  if (!QUICK_LOOK_HABILITADO) return false; // ver soporte.ts — deshabilitado tras probarlo en hardware real
   const linkSoportaAr = document.createElement('a').relList?.supports?.('ar') ?? false;
   return esUserAgentIOS(navigator.userAgent) && linkSoportaAr;
 }

@@ -44,3 +44,17 @@ export async function soportaArInmersiva(nav: NavigatorConXr | undefined): Promi
 export function esUserAgentIOS(userAgent: string): boolean {
   return /iPad|iPhone|iPod/.test(userAgent);
 }
+
+/**
+ * Interruptor de la función de Quick Look en iPhone — deshabilitada
+ * después de probarla en hardware real: el usuario reportó que no
+ * funcionaba bien, sin más detalle todavía sobre qué falló
+ * específicamente (ver CLAUDE.md). Queda la implementación completa
+ * (`escenaMalla.ts`, el panel `#ar-quicklook` de `ar.html`, el flujo de
+ * `entrada-ar.ts`) sin usar, no borrada — por si se retoma más adelante
+ * con un diagnóstico más preciso. `main.ts` (`tieneChanceDeQuickLook`)
+ * y `entrada-ar.ts` (`soportaQuickLook`) chequean esto antes que nada,
+ * así que un iPhone hoy cae siempre al mismo mensaje de "no disponible"
+ * que antes de que existiera Quick Look en este sitio.
+ */
+export const QUICK_LOOK_HABILITADO = false;

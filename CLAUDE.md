@@ -3703,6 +3703,30 @@ y cómo se ve/comporta el modelo dentro del visor nativo de Apple.
 228 tests totales (antes 222): 4 de `escenaMalla.test.ts` + 2 de
 `esUserAgentIOS` en `soporte.test.ts`.
 
+**AR Quick Look en iPhone, deshabilitada tras probarla en hardware
+real — el usuario reportó que no funcionaba bien, sin más detalle
+todavía sobre qué falló específicamente.** En vez de borrar el trabajo,
+se apagó con un interruptor: `QUICK_LOOK_HABILITADO = false` (nuevo,
+`soporte.ts`) — `main.ts` (`tieneChanceDeQuickLook`) y `entrada-ar.ts`
+(`soportaQuickLook`) lo chequean antes que cualquier otra cosa, así que
+hoy un iPhone cae siempre al mismo mensaje de "no disponible" que antes
+de que existiera esta función, sin importar si su Safari en particular
+soporta `rel="ar"` o no. La implementación completa
+(`escenaMalla.ts`, el panel `#ar-quicklook` de `ar.html`, el flujo de
+generación de USDZ en `entrada-ar.ts`) queda intacta y sin usar, no
+eliminada — para retomarla más adelante si aparece un diagnóstico más
+preciso de qué salió mal, en vez de tener que reconstruirla de cero.
+Los textos que habían empezado a mencionar "AR Quick Look (iPhone)"
+como alternativa real (`avisoSoloAndroidChrome`, `noSoportadoCuerpo`)
+volvieron a su redacción anterior — con la función apagada, afirmar que
+existe una alternativa en iPhone dejó de ser cierto. Verificado con
+Chrome headless (UA de iPhone + `relList.supports('ar')` simulado en
+`true`, el mismo entorno que antes SÍ mostraba Quick Look): tanto
+`ar.html` directo como el botón "Ver en AR" de `index.html` caen ahora
+en el mensaje de "no disponible", igual que un navegador sin ningún
+soporte de AR. 228 tests sin cambio de cantidad (deshabilitar por flag,
+sin lógica nueva testeable).
+
 Falta:
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
@@ -3716,17 +3740,17 @@ Falta:
   Confirmado hasta la ronda de "posición del visor" que el flujo de
   2 toques ya funciona razonablemente en hardware real — falta
   confirmar la medición de ancho/alto de la misma forma.
-- **Verificación end-to-end de AR Quick Look en un iPhone real**: el
-  USDZ generado se confirmó como un ZIP válido con Chrome headless
-  simulando un iPhone, pero no se pudo confirmar si Quick Look
-  realmente se abre desde una blob URL en la versión de iOS actual
-  (mecanismo esperado, usado por otras implementaciones sin servidor,
-  no verificado acá), ni cómo se ve o se comporta el modelo (tubos +
-  esferas, sin etiquetas de distancia) dentro del visor nativo de
-  Apple. Etiquetas de distancia (omitidas en esta primera versión) y
-  una posible mejora del `<a rel="ar">` (algunas implementaciones usan
-  un `<img>` en vez de texto como contenido visual del link) quedan
-  como ajustes a evaluar después de la primera prueba real.
+- **AR Quick Look en iPhone: pausada, no cerrada.** Deshabilitada por
+  `QUICK_LOOK_HABILITADO=false` (`soporte.ts`) tras probarla en
+  hardware real — no funcionó bien, sin diagnóstico específico todavía
+  de qué falló (¿el USDZ no abría? ¿abría pero se veía mal? ¿el
+  wireframe de tubos no se distinguía?). El USDZ generado sí se
+  confirmó como un ZIP válido con Chrome headless simulando un iPhone,
+  así que el archivo en sí no está corrupto — el problema está en algo
+  posterior a eso (la apertura real en Quick Look, o el resultado
+  visual ahí adentro). Antes de retomarla hace falta ese diagnóstico
+  puntual del usuario; no tiene sentido adivinar un segundo intento a
+  ciegas.
 - **Modelo de campo mixto para la regla de potencia** (en vez del término
   de campo libre puro `−20·log₁₀(distanciaM)`): hoy `potencia.ts` mezcla
   ese término con correcciones que sólo existen porque hay una sala

@@ -342,7 +342,7 @@ export const es = {
     paso1: 'Se apunta el teléfono al piso de la sala y se toca la esquina real donde se juntan la pared frontal y la pared izquierda.',
     paso2: 'Sin moverse de dentro de la sala, se toca la esquina real frontal-derecha (donde esa misma pared llega a la pared derecha) — la distancia entre los dos toques mide el ancho real de la sala.',
     paso3: 'Una vez anclado, un tercer toque OPCIONAL en la parte de arriba de esa misma esquina (donde la pared llega al techo) mide también la altura real.',
-    avisoSoloAndroidChrome: 'Esta calibración con toques funciona en Chrome para Android, con soporte de ARCore — no en computadoras de escritorio ni en otros navegadores de Android. En iPhone existe una versión distinta y más simple (AR Quick Look, sin calibración de este sitio).',
+    avisoSoloAndroidChrome: 'Esta función sólo funciona en Chrome para Android, con soporte de ARCore. No está disponible en iPhone, en computadoras, ni en otros navegadores de Android.',
     botonEntrar: 'Entrar en AR',
     calibrandoPaso1: 'Apuntar al piso y tocar la esquina real frontal-izquierda de la sala.',
     calibrandoPaso2: 'Sin moverse de la sala, tocar la esquina real frontal-derecha, sobre el piso.',
@@ -358,7 +358,7 @@ export const es = {
     reiniciarCalibracion: 'Volver a calibrar',
     noSoportadoTitulo: 'AR no disponible en este navegador',
     noSoportadoCuerpo:
-      'Esta función usa WebXR (Chrome en Android con ARCore) o AR Quick Look (iPhone) — este navegador no tiene soporte de ninguno de los dos. No está disponible en computadoras de escritorio, ni en navegadores o versiones que no incluyan alguna de esas dos tecnologías.',
+      'Esta función usa WebXR con detección de superficies (hit-test), soportado hoy sólo por Chrome en Android con ARCore. No está disponible en iPhone/Safari, en computadoras de escritorio, ni en otros navegadores de Android.',
     estadoInvalido: 'No se pudieron leer los datos de la sala. Conviene volver al análisis e intentarlo de nuevo desde el botón «Ver en AR».',
     volverAlAnalisis: '← Volver al análisis',
     // Quick Look (iPhone): sin calibración ni medición real — Apple no

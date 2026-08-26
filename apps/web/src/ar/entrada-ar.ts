@@ -11,7 +11,7 @@ import { idiomaInicial, aplicarCromoEstatico, textosDe } from '../idioma/idioma.
 import { num } from '../formato/numeros.ts';
 import { decodificarEstadoAr } from './estadoUrl.ts';
 import type { EstadoAr } from './estadoUrl.ts';
-import { tieneNavigatorXr, soportaArInmersiva, esUserAgentIOS } from './soporte.ts';
+import { tieneNavigatorXr, soportaArInmersiva, esUserAgentIOS, QUICK_LOOK_HABILITADO } from './soporte.ts';
 import { iniciarSesionAr, murosVistaDesdeEstado } from './sesion.ts';
 import type { EstadoCalibracion, InfoMedicion } from './sesion.ts';
 import { ANCLAJE_CANONICO } from './anclaje.ts';
@@ -77,6 +77,7 @@ document.querySelectorAll<HTMLButtonElement>('.volver-analisis').forEach((btn) =
  * (Safari de escritorio, que no tiene Quick Look pese a compartir motor).
  */
 function soportaQuickLook(): boolean {
+  if (!QUICK_LOOK_HABILITADO) return false; // ver soporte.ts — deshabilitado tras probarlo en hardware real
   const linkSoportaAr = document.createElement('a').relList?.supports?.('ar') ?? false;
   return esUserAgentIOS(navigator.userAgent) && linkSoportaAr;
 }
