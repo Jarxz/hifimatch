@@ -7,6 +7,7 @@
  * sección de verificación del plan de AR.
  */
 import '../estilos.css';
+import { inject as inicializarVercelAnalytics } from '@vercel/analytics';
 import { idiomaInicial, aplicarCromoEstatico, textosDe } from '../idioma/idioma.ts';
 import { num } from '../formato/numeros.ts';
 import { decodificarEstadoAr } from './estadoUrl.ts';
@@ -242,6 +243,11 @@ async function arrancar(): Promise<void> {
   // "Entrar en AR" desde cero, conservando el estado de la URL (mismos
   // parámetros de sala).
   btnReiniciar.addEventListener('click', () => location.reload());
+}
+
+// Inicializar Vercel Analytics (file:// protocol check similar a main.ts)
+if (location.protocol !== 'file:') {
+  inicializarVercelAnalytics();
 }
 
 void arrancar();
