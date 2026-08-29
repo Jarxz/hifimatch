@@ -1,4 +1,5 @@
 import './estilos.css';
+import { inject } from '@vercel/analytics';
 import { CATALOGO } from '../../../packages/data/src/catalogo.ts';
 import { calcularDisposicion, calcularDisposicionManual, calcularDisposicionAsientoManual } from '../../../packages/engine/src/sala.ts';
 import type { Sala, DisposicionSala, Punto } from '../../../packages/engine/src/sala.ts';
@@ -1403,6 +1404,9 @@ function wireEventos(): void {
 }
 
 function main(): void {
+  // Initialize Vercel Analytics
+  inject();
+  
   inicializarSplash();
   poblarSelectores(idiomaActual);
   aplicarCromoEstatico(idiomaActual);
