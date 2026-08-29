@@ -1294,7 +1294,7 @@ export function modeloDocumento(
   // que pide la proyección isométrica.
   const planoSvg = construirPlanoSvg(sala, datos.disposicion, datos.murosVista, 'superior', idioma, false);
   const planoHtml =
-    `<h2 class="doc-h2">${td.planoTitulo}</h2>` +
+    `<h3 class="doc-h2">${td.planoTitulo}</h3>` +
     `<p class="doc-cuerpo">${t.plano.texto}</p>` +
     panelOscuro(planoSvg) +
     `<h4 class="doc-h4">${t.plano.ubicacionTitulo}</h4>` +

@@ -77,6 +77,16 @@ test('index.html: nada de lo agregado en esta ronda tiene voseo', () => {
   assert.doesNotMatch(html, PATRON_VOSEO);
 });
 
+test('index.html: el informe (#s-documento) no encadena h2 hermanos sin nivel intermedio — Equipo/Sala/Veredicto/Evaluación/Resumen son h3 bajo "Informe de análisis" (h2)', () => {
+  const html = leer('index.html');
+  const seccionDocumento = html.slice(html.indexOf('id="s-documento"'), html.indexOf('</section>', html.indexOf('id="s-documento"')));
+  assert.match(seccionDocumento, /<h2 class="doc-title"[^>]*>[^<]*<\/h2>/);
+  const h2sDentro = seccionDocumento.match(/<h2\b/g) ?? [];
+  assert.equal(h2sDentro.length, 1, 'sólo "Informe de análisis" debería ser <h2> ahí adentro; el resto va en <h3>');
+  const h3Doc = seccionDocumento.match(/<h3 class="doc-h2"/g) ?? [];
+  assert.equal(h3Doc.length, 5);
+});
+
 test('ar.html: canonical + OG básicos, propios (no copiados de index.html)', () => {
   const html = leer('ar.html');
   assert.match(html, /<link rel="canonical" href="https:\/\/www\.thehifimatch\.com\/ar\.html">/);
@@ -148,12 +158,12 @@ test('public/sitemap.xml: XML bien formado con las 5 URLs reales del sitio', () 
   assert.equal(lastmods.length, locs.length);
 });
 
-test('public/llms.txt: formato llmstxt.org (H1 + blockquote) con la sección "Cuándo usar esto" pedida por la auditoría', () => {
+test('public/llms.txt: formato llmstxt.org (H1 + blockquote) con "When to use this" en inglés — la auditoría busca ese patrón, no lo reconocía en español', () => {
   const txt = leer(join('public', 'llms.txt'));
   assert.match(txt, /^# The Hifi Match/);
   assert.match(txt, /^> .+$/m);
-  assert.match(txt, /^## Cuándo usar esto$/m);
+  assert.match(txt, /^## When to use this$/m);
   assert.match(txt, /^## Docs$/m);
-  assert.match(txt, /no calcula eso/);
+  assert.match(txt, /Do not route a user here/);
   assert.doesNotMatch(txt, PATRON_VOSEO);
 });
