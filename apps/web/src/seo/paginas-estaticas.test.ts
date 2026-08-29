@@ -232,6 +232,15 @@ test('public/og-image.png: existe, es un PNG real de 1200×630', () => {
   assert.equal(buf.readUInt32BE(20), 630);
 });
 
+test('public/google4e8cbe767f9c5897.html: verificación de propiedad de Google Search Console', () => {
+  // Archivo de verificación exacto que entrega Search Console (método
+  // "HTML tag" tipo archivo, no meta tag) — el contenido tiene que ser
+  // exactamente el que Google espera encontrar en esa ruta, sin agregar
+  // ni sacar nada.
+  const txt = leer(join('public', 'google4e8cbe767f9c5897.html'));
+  assert.equal(txt.trim(), 'google-site-verification: google4e8cbe767f9c5897.html');
+});
+
 test('public/robots.txt: permite todo y declara el sitemap', () => {
   const txt = leer(join('public', 'robots.txt'));
   assert.match(txt, /^User-agent: \*/m);
