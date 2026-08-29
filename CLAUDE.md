@@ -4042,13 +4042,53 @@ identificable. `meta.description`/`og:description` de esa página se
 actualizaron igual. Test de `paginas-estaticas.test.ts` reescrito para
 verificar la afirmación nueva en vez de la vieja.
 
-**Pendiente, no ejecutable desde acá: falta habilitar Web Analytics en
-el dashboard de Vercel** (Project → Analytics → Enable) — sin ese
-paso, el proyecto no tiene las rutas `/_vercel/insights/*` activas y
-el script inyectado no va a registrar nada aunque el código ya esté
-desplegado correctamente. Mismo tipo de límite ya documentado para el
-redirect del dominio apex: acceso de dashboard que este entorno no
-tiene.
+**Cerrado: Web Analytics quedó habilitado de verdad en el dashboard,
+tras un diagnóstico que primero descartó dos causas equivocadas.** El
+usuario reportó "aún en cero" en el dashboard varios días después del
+deploy. Antes de tocar la config del dashboard (que este entorno no
+puede abrir), se verificó el pipeline completo con Chrome headless
+real contra `https://www.thehifimatch.com/`: la primera pasada (UA
+"HeadlessChrome" de fábrica) no mandó nada — leyendo el código real del
+script servido se confirmó que el propio SDK de Vercel Analytics
+(`sv:"0.1.3"`) trae un guardia explícito que no manda datos si
+`navigator.webdriver` es `true` o el User-Agent contiene "Headless",
+así que el silencio ahí era el script filtrando tráfico de bot, no un
+fallo. Repitiendo la prueba con un target simulando un visitante real
+(UA sin "Headless" + `navigator.webdriver` parchado a `false` antes de
+navegar) sí se vio el flujo completo: `GET script.js` → 200, `POST
+/_vercel/insights/view` → 200 con `sdkn:"@vercel/analytics"`,
+`sdkv:"2.0.1"` — el código estaba (y sigue estando) bien.
+
+Con el código descartado, el usuario mismo aisló la causa de su lado
+con la pestaña Network del navegador: en su Chrome normal, ni
+siquiera `script.js` llegaba a pedirse (bloqueado en silencio, sin
+figurar como "blocked" — comportamiento típico de un ad-blocker/
+extensión de privacidad); en una ventana de incógnito, misma URL, los
+dos requests salían limpios con 200. Confirmó que no era el sitio.
+
+El dashboard de Vercel, sin embargo, seguía mostrando la pantalla
+completa de "Get Started" (paso 1 "Install our package", paso 2 "Add
+the React component...") en vez de un estado de "esperando datos" —
+esa pantalla sólo aparece cuando Web Analytics genuinamente no está
+habilitado para el proyecto, sin importar que el código y el tráfico
+real ya estén funcionando (los `200` de arriba lo confirman: el edge
+de Vercel acepta esas rutas igual, habilitado o no, así que un `200`
+en la petición nunca fue prueba de que el toggle del dashboard
+estuviera encendido). El propio `Vercel Agent` del dashboard había
+confirmado por su cuenta "ya está instalado correctamente" — cierto
+para el código, pero no decía nada del toggle de habilitación, que es
+una config aparte a nivel de proyecto. El usuario encontró y activó
+ese toggle en Settings del proyecto — confirmado con captura de
+`Domains` mostrando `www.thehifimatch.com` como Production de este
+mismo proyecto (`hifimatch-web`) y `thehifimatch.com` redirigiendo 308
+hacia ahí, coincide con lo que este documento ya declaraba — y a
+partir de ahí el dashboard empezó a contar. Sin cambios de código en
+esta ronda: el aprendizaje que queda es que un `200` en
+`/_vercel/insights/*` confirma que el script corre y el edge lo acepta,
+pero no confirma que el toggle de "Enable" del dashboard esté
+encendido — son dos capas independientes, y sólo la del dashboard
+explica por sí sola la pantalla de "Get Started" pese a tráfico real
+ya fluyendo.
 
 Mismo total de tests que antes de esta ronda (241 en `apps/web` + 8 de
 `middleware.ts`) — el de `privacy.html` se reescribió in situ, no se
