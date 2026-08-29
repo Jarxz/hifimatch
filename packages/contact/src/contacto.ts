@@ -37,6 +37,24 @@ export const TIEMPO_MINIMO_MS = 1000;
  * límite pensado para un mensaje humano real (que nunca lo alcanza). */
 export const LARGO_MAXIMO_MENSAJE = 5000;
 
+/** Tope de longitud del nombre — mismo motivo que `LARGO_MAXIMO_MENSAJE`,
+ * acá además evita un `Subject:` de email absurdamente largo. */
+export const LARGO_MAXIMO_NOMBRE = 200;
+
+/**
+ * `nombre` viaja sin más validación que `EntradaContacto` hasta el asunto
+ * del email (`api/contact.ts`: `Subject: Contacto — ${nombre}`) — un campo
+ * de cabecera de email, no el cuerpo. Sin sanear, un `nombre` con `\r`/`\n`
+ * sería una inyección de cabeceras de correo clásica (CRLF injection: el
+ * clásico ataque para colar un `Bcc:`/`Cc:` propio en el header). Se
+ * sanea acá, en el módulo puro y testeado sin red, en vez de confiar en
+ * que el SDK de turno (Resend) lo escape por su cuenta — defensa en
+ * profundidad, no una corrección de un bug ya observado en Resend.
+ */
+function sanearNombre(nombre: string): string {
+  return nombre.replace(/[\r\n]+/g, ' ').trim().slice(0, LARGO_MAXIMO_NOMBRE);
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export interface EntradaContacto {
@@ -88,7 +106,7 @@ export async function manejarContacto(entrada: EntradaContacto, deps: Dependenci
   }
 
   try {
-    await deps.enviarEmail({ nombre: entrada.nombre, email: entrada.email, mensaje: entrada.mensaje });
+    await deps.enviarEmail({ nombre: sanearNombre(entrada.nombre), email: entrada.email, mensaje: entrada.mensaje });
     return { ok: true };
   } catch (err) {
     console.error('contacto: fallo enviarEmail', err);

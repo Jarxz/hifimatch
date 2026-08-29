@@ -64,6 +64,24 @@ test('envío muy rápido → ok:false "muy-rapido", enviarEmail no se llama', as
   assert.equal(llamadas.length, 0);
 });
 
+test('nombre con \\r\\n (inyección de cabecera de email): se sanea antes de llegar a enviarEmail', async () => {
+  const { enviarEmail, llamadas } = enviarEmailFake();
+  const r = await manejarContacto(entradaValida({ nombre: 'Ana\r\nBcc: victima@evil.com' }), { enviarEmail });
+  assert.deepEqual(r, { ok: true });
+  assert.equal(llamadas.length, 1);
+  assert.equal(llamadas[0]?.nombre.includes('\r'), false);
+  assert.equal(llamadas[0]?.nombre.includes('\n'), false);
+  assert.equal(llamadas[0]?.nombre, 'Ana Bcc: victima@evil.com');
+});
+
+test('nombre demasiado largo: se recorta a LARGO_MAXIMO_NOMBRE antes de enviarEmail', async () => {
+  const { enviarEmail, llamadas } = enviarEmailFake();
+  const nombreLargo = 'A'.repeat(500);
+  const r = await manejarContacto(entradaValida({ nombre: nombreLargo }), { enviarEmail });
+  assert.deepEqual(r, { ok: true });
+  assert.equal(llamadas[0]?.nombre.length, 200);
+});
+
 test('si enviarEmail rechaza (falla Resend), ok:false "error-servidor" — sin exponer el error interno', async () => {
   const enviarEmail = async (): Promise<void> => {
     throw new Error('detalle interno que no debería llegar al cliente: API key inválida');

@@ -133,6 +133,40 @@ test('vercel.json: rewrites dan alias sin extensión a las páginas de confianza
   assert.equal(porOrigen['/en/privacy'], '/en/privacy.html');
 });
 
+test('vercel.json: cabeceras de seguridad HTTP en todas las rutas — revisión de seguridad', () => {
+  const raiz = join(WEB_ROOT, '..', '..');
+  const vercelJson = JSON.parse(readFileSync(join(raiz, 'vercel.json'), 'utf8')) as {
+    headers?: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+  };
+  const bloque = (vercelJson.headers ?? []).find((h) => h.source === '/(.*)');
+  assert.ok(bloque, 'falta un bloque de headers que cubra todas las rutas');
+  const porClave = Object.fromEntries(bloque!.headers.map((h) => [h.key, h.value]));
+
+  assert.equal(porClave['X-Content-Type-Options'], 'nosniff');
+  assert.equal(porClave['X-Frame-Options'], 'DENY');
+  assert.match(porClave['Referrer-Policy'] ?? '', /strict-origin/);
+
+  // Permissions-Policy: cámara permitida sólo same-origin (la necesita
+  // ar.html para WebXR), geolocalización/micrófono bloqueados del todo —
+  // este sitio no los usa en ningún lado.
+  const pp = porClave['Permissions-Policy'] ?? '';
+  assert.match(pp, /geolocation=\(\)/);
+  assert.match(pp, /microphone=\(\)/);
+  assert.match(pp, /camera=\(self\)/);
+
+  // CSP: nunca 'unsafe-eval' (no hay motivo para permitirlo en este sitio),
+  // nunca un host externo colado por error (el sitio es 100% autocontenido
+  // — sin CDNs, sin fuentes externas, confirmado en la ronda de esta
+  // revisión), y las directivas de mayor impacto sí presentes.
+  const csp = porClave['Content-Security-Policy'] ?? '';
+  assert.doesNotMatch(csp, /unsafe-eval/);
+  assert.doesNotMatch(csp, /https?:\/\//, 'no debería haber ningún host externo en la CSP — el sitio es autocontenido');
+  assert.match(csp, /default-src 'self'/);
+  assert.match(csp, /object-src 'none'/);
+  assert.match(csp, /base-uri 'none'/);
+  assert.match(csp, /frame-ancestors 'none'/);
+});
+
 test('index.html: el informe (#s-documento) no encadena h2 hermanos sin nivel intermedio — Equipo/Sala/Veredicto/Evaluación/Resumen son h3 bajo "Informe de análisis" (h2)', () => {
   const html = leer('index.html');
   const seccionDocumento = html.slice(html.indexOf('id="s-documento"'), html.indexOf('</section>', html.indexOf('id="s-documento"')));
