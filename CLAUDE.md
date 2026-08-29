@@ -4168,6 +4168,78 @@ específico para la precisión del texto de Analytics en inglés. Grep de
 voseo repetido sobre los 4 archivos, sin coincidencias. `verify`/
 `build` en verde de punta a punta.
 
+**Revisión de seguridad pedida por el usuario ("¿el código está
+protegido?") — dos hallazgos reales, ambos corregidos, más una
+verificación general sin más hallazgos.**
+
+1. **Inyección de cabeceras de email (CRLF injection) en el formulario
+   de contacto, corregida.** `nombre` viajaba sin más validación que
+   `EntradaContacto` hasta el asunto del email
+   (`api/contact.ts`: `Subject: Contacto — ${nombre}`) — un campo de
+   cabecera, no el cuerpo (`mensaje` sí va como `text:`, ahí un salto
+   de línea es inofensivo). Sin filtro, un `nombre` con `\r\n` es la
+   superficie clásica para intentar colar un `Bcc:`/`Cc:` propio en el
+   header. `packages/contact/src/contacto.ts` suma `sanearNombre()`
+   (quita `\r`/`\n`, recorta a `LARGO_MAXIMO_NOMBRE=200`) aplicado
+   antes de que `enviarEmail` reciba los datos — en el módulo puro
+   testeado sin red, no en el adaptador de `api/contact.ts`, mismo
+   criterio de siempre. Es defensa en profundidad, no la corrección de
+   un bug ya observado en Resend — no se confirmó que el SDK sea
+   vulnerable, sólo que confiar en que lo escape por su cuenta es una
+   apuesta innecesaria. 2 tests nuevos en `manejar.test.ts` (el vector
+   de inyección exacto, y el recorte de longitud).
+2. **El sitio no declaraba ninguna cabecera de seguridad HTTP,
+   corregido.** `X-Content-Type-Options`, `X-Frame-Options`,
+   `Referrer-Policy`, `Permissions-Policy` y `Content-Security-Policy`
+   — ninguna de las cinco estaba presente. `vercel.json` gana un
+   bloque `headers` sobre `/(.*)`. La CSP usa `'unsafe-inline'` en
+   `script-src`/`style-src` — necesario: el sitio se sirve como un
+   único HTML autocontenido (`vite-plugin-singlefile`), sin servidor
+   por request que pueda generar un nonce distinto cada vez, así que
+   un CSP estricto sin `unsafe-inline` habría roto el sitio entero.
+   Aun así sigue bloqueando lo que sí importa: todo host externo
+   (`default-src`/`connect-src`/`img-src`/`font-src` en `'self'`,
+   confirmado que el sitio no carga nada externo — ni fuentes, ni
+   CDNs, ni analítica de terceros), `object-src 'none'`,
+   `base-uri 'none'` (bloquea el secuestro de rutas relativas vía
+   `<base>`) y `frame-ancestors 'none'` (clickjacking, junto con
+   `X-Frame-Options: DENY` como respaldo en navegadores viejos).
+   `Permissions-Policy` bloquea `geolocation`/`microphone` por
+   completo (el sitio no los usa en ningún lado) y permite `camera`/
+   `xr-spatial-tracking` sólo `(self)` — `ar.html` sí necesita cámara
+   para WebXR, así que no se podían bloquear del todo.
+
+   **Probado dos veces antes de darlo por cerrado**, siguiendo la
+   misma disciplina de verificación del resto de este documento: (a)
+   un servidor estático local reproduciendo exactamente las mismas
+   cabeceras sobre el `dist/` real, navegado con Chrome headless
+   (`index.html` y `ar.html`) — cero violaciones de CSP, cero
+   excepciones, y confirmado que el JS inline corrió de verdad (el
+   contador animado de la portada llegó a sus valores finales, el
+   chunk de `three.js` de `ar.html` cargó y ejecutó con `200`); (b)
+   repetido después el mismo chequeo contra el sitio real ya
+   desplegado (`https://www.thehifimatch.com/`) — cero entradas de
+   consola en los dos casos. Test nuevo en `paginas-estaticas.test.ts`
+   que valida el bloque de `headers` y que la CSP nunca declare
+   `unsafe-eval` ni un host externo.
+
+**Revisado sin hallazgos**: sin secretos filtrados (API keys, tokens)
+ni en el árbol de trabajo ni en todo el historial de git (`git log
+--all -p`, buscado por los patrones habituales de cada proveedor);
+sin XSS en los puntos donde una URL controla contenido —
+`ar/estadoUrl.ts` decodifica todo el query string como número finito
+antes de usarlo (`Number.isFinite`, rango de sanidad), nunca
+interpola texto crudo en HTML; el `mailto:` de respaldo por `file://`
+(`mostrarFallbackMailto`, `main.ts`) pasa el nombre/mensaje por
+`encodeURIComponent` antes de insertarlos en el `href`, así que ningún
+carácter de ruptura de atributo HTML sobrevive. `npm audit`: de 11
+vulnerabilidades a 6 con `npm audit fix` (sin `--force`, sólo cambios
+de lockfile) — las 6 que quedan son transitivas de `@vercel/node`
+(`devDependency` de sólo-typecheck, nunca se despliega ni corre en la
+función real ni en el bundle del cliente) y exigirían un bump mayor
+con cambios de breaking; no se forzó ese bump sin evidencia de que
+haga falta.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
