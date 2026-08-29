@@ -76,6 +76,26 @@ test('index.html: JSON-LD parsea y trae Organization + WebApplication con los ca
   assert.ok(typeof app?.description === 'string' && (app!.description as string).length > 40);
 });
 
+test('index.html: el contador "reglas físicas" de la portada coincide con las tarjetas .regla-fila reales — nunca queda desactualizado en silencio', () => {
+  // Encontrado al preparar contenido de Instagram: la portada decía "8"
+  // pero el motor ya tenía 9 tarjetas de regla distintas (sumó Filtro
+  // peine y Triángulo de escucha en una ronda posterior a cuando se fijó
+  // ese número, y nunca se actualizó). Este test deriva el número
+  // esperado de la fuente real (los ids de .regla-fila en el propio
+  // HTML, colapsando los pares streamer/dac de puente/recorrido — son
+  // la misma regla aplicada a dos fuentes, no dos reglas) en vez de
+  // mantener una segunda lista a mano que se puede volver a desincronizar.
+  const html = leer('index.html');
+  const ids = [...html.matchAll(/class="regla-fila[^"]*" id="([a-z-]+)"/g)]
+    .map((m) => m[1])
+    .filter((id): id is string => id !== undefined);
+  assert.ok(ids.length > 0, 'no se encontró ninguna tarjeta .regla-fila — ¿cambió el marcado?');
+  const basesUnicas = new Set(ids.map((id) => id.replace(/^(fila|card)-/, '').replace(/-(streamer|dac)$/, '')));
+  const m = html.match(/<div class="proof-num" data-count-to="(\d+)">/);
+  assert.ok(m, 'no se encontró el contador "reglas físicas" de la portada');
+  assert.equal(Number(m![1]), basesUnicas.size);
+});
+
 test('index.html: nada de lo agregado en esta ronda tiene voseo', () => {
   const html = leer('index.html');
   assert.doesNotMatch(html, PATRON_VOSEO);

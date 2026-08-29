@@ -3978,6 +3978,33 @@ estaban ahí visualmente, sólo cambió qué hay en el HTML *antes* de que
 corra JS) y que un análisis real sigue reemplazando "Veredicto del
 análisis" por el veredicto verdadero, sin excepción.
 
+**Contador "reglas físicas" de la portada: 8→9, encontrado preparando
+contenido de Instagram, no por la auditoría.** Armando un carrusel
+sobre "las reglas del motor", se fue a contar `export function
+evaluar*` en `packages/engine/src/*.ts` para no repetir de memoria una
+cifra ya usada en otra ronda — dio 12 funciones, no 8. La cifra real
+para la portada (que cuenta *tarjetas de regla*, no funciones internas)
+es **9**: Potencia, Carga, Amortiguamiento, Puente de impedancias,
+Recorrido de volumen, Modos de sala, Filtro peine, Triángulo de
+escucha, Reverberación — `evaluarNuloEscucha`/`evaluarAcoplamientoModal`
+(modos.ts) y `evaluarAsimetria`/`evaluarAnguloEscucha` (colocacion.ts)
+son señales adicionales plegadas en las tarjetas "Modos de sala" y
+"Triángulo de escucha" ya existentes, no tarjetas propias — de ahí la
+diferencia entre 12 funciones y 9 tarjetas. El "8" databa de antes de
+que Filtro peine y Triángulo de escucha existieran, y nunca se
+actualizó: exactamente el tipo de desfase silencioso que este
+documento lleva página tras página evitando en el motor, colado esta
+vez en un número de portada sin regla propia que lo protegiera.
+
+`data-count-to="8"` pasó a `"9"` en `index.html`. Test nuevo en
+`paginas-estaticas.test.ts` que deriva el número esperado de la fuente
+real —los `id` de las tarjetas `.regla-fila` del propio HTML,
+colapsando los pares `-streamer`/`-dac` de puente/recorrido (misma
+regla, dos fuentes)— en vez de mantener una segunda lista a mano que se
+puede volver a desincronizar igual que la anterior: si se agrega o
+saca una tarjeta de regla sin tocar el contador de portada, el test
+falla solo. 247 tests (antes 246), `verify`/`build` en verde.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
