@@ -37,11 +37,11 @@ test('index.html: un único <h1> real en todo el documento', () => {
 
 test('index.html: canonical + OG completos, sin rutas absolutas "/" (regla de verificar-build.mjs)', () => {
   const html = leer('index.html');
-  assert.match(html, /<link rel="canonical" href="https:\/\/thehifimatch\.com\/">/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/www\.thehifimatch\.com\/">/);
   for (const prop of ['og:type', 'og:site_name', 'og:title', 'og:description', 'og:url', 'og:image']) {
     assert.match(html, new RegExp(`<meta property="${prop}" content="[^"]+">`), `falta meta ${prop}`);
   }
-  assert.match(html, /<meta property="og:image" content="https:\/\/thehifimatch\.com\/og-image\.png">/);
+  assert.match(html, /<meta property="og:image" content="https:\/\/www\.thehifimatch\.com\/og-image\.png">/);
   // Las etiquetas nuevas nunca usan href="/..." ni src="/..." — eso es
   // exactamente lo que verificar-build.mjs prohíbe para poder abrir por
   // file://. Sólo se permiten URLs con protocolo (https://) o relativas
@@ -59,7 +59,7 @@ test('index.html: JSON-LD parsea y trae Organization + WebApplication con los ca
   const org = grafo.find((n) => n['@type'] === 'Organization');
   assert.ok(org, 'falta el nodo Organization');
   assert.equal(org?.name, 'The Hifi Match');
-  assert.equal(org?.url, 'https://thehifimatch.com/');
+  assert.equal(org?.url, 'https://www.thehifimatch.com/');
   assert.ok(Array.isArray(org?.contactPoint) && (org!.contactPoint as unknown[]).length > 0);
   const contactPoint = (org!.contactPoint as Array<Record<string, unknown>>)[0];
   assert.equal(contactPoint?.email, 'thehmcontacto@gmail.com');
@@ -68,7 +68,7 @@ test('index.html: JSON-LD parsea y trae Organization + WebApplication con los ca
   const app = grafo.find((n) => n['@type'] === 'WebApplication');
   assert.ok(app, 'falta el nodo WebApplication');
   assert.equal(app?.name, 'The Hifi Match');
-  assert.equal(app?.url, 'https://thehifimatch.com/');
+  assert.equal(app?.url, 'https://www.thehifimatch.com/');
   assert.ok(typeof app?.description === 'string' && (app!.description as string).length > 40);
 });
 
@@ -79,8 +79,8 @@ test('index.html: nada de lo agregado en esta ronda tiene voseo', () => {
 
 test('ar.html: canonical + OG básicos, propios (no copiados de index.html)', () => {
   const html = leer('ar.html');
-  assert.match(html, /<link rel="canonical" href="https:\/\/thehifimatch\.com\/ar\.html">/);
-  assert.match(html, /<meta property="og:url" content="https:\/\/thehifimatch\.com\/ar\.html">/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/www\.thehifimatch\.com\/ar\.html">/);
+  assert.match(html, /<meta property="og:url" content="https:\/\/www\.thehifimatch\.com\/ar\.html">/);
   assert.match(html, /<meta property="og:title" content="The Hifi Match · AR">/);
 });
 
@@ -92,7 +92,7 @@ for (const pagina of ['about.html', 'contact.html', 'privacy.html']) {
     const h1s = html.match(/<h1\b/g) ?? [];
     assert.equal(h1s.length, 1);
     assert.doesNotMatch(html, PATRON_VOSEO);
-    assert.match(html, /<link rel="canonical" href="https:\/\/thehifimatch\.com\/[a-z.]*">/);
+    assert.match(html, /<link rel="canonical" href="https:\/\/www\.thehifimatch\.com\/[a-z.]*">/);
   });
 }
 
@@ -130,7 +130,7 @@ test('public/robots.txt: permite todo y declara el sitemap', () => {
   const txt = leer(join('public', 'robots.txt'));
   assert.match(txt, /^User-agent: \*/m);
   assert.match(txt, /^Allow: \/$/m);
-  assert.match(txt, /^Sitemap: https:\/\/thehifimatch\.com\/sitemap\.xml$/m);
+  assert.match(txt, /^Sitemap: https:\/\/www\.thehifimatch\.com\/sitemap\.xml$/m);
 });
 
 test('public/sitemap.xml: XML bien formado con las 5 URLs reales del sitio', () => {
@@ -138,11 +138,11 @@ test('public/sitemap.xml: XML bien formado con las 5 URLs reales del sitio', () 
   assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   assert.deepEqual(locs, [
-    'https://thehifimatch.com/',
-    'https://thehifimatch.com/about.html',
-    'https://thehifimatch.com/contact.html',
-    'https://thehifimatch.com/privacy.html',
-    'https://thehifimatch.com/ar.html',
+    'https://www.thehifimatch.com/',
+    'https://www.thehifimatch.com/about.html',
+    'https://www.thehifimatch.com/contact.html',
+    'https://www.thehifimatch.com/privacy.html',
+    'https://www.thehifimatch.com/ar.html',
   ]);
   const lastmods = [...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
   assert.equal(lastmods.length, locs.length);

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://thehifimatch.com/sitemap.xml
+Sitemap: https://www.thehifimatch.com/sitemap.xml

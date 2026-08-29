@@ -38,10 +38,10 @@ The Hifi Match es una herramienta web gratuita, sin registro, que corre enterame
 
 ## Enlaces
 
-- [Analizar un sistema](https://thehifimatch.com/)
-- [Acerca de](https://thehifimatch.com/about.html)
-- [Contacto](https://thehifimatch.com/contact.html)
-- [Mapa del sitio](https://thehifimatch.com/sitemap.xml)
+- [Analizar un sistema](https://www.thehifimatch.com/)
+- [Acerca de](https://www.thehifimatch.com/about.html)
+- [Contacto](https://www.thehifimatch.com/contact.html)
+- [Mapa del sitio](https://www.thehifimatch.com/sitemap.xml)
 `;
 
 /** Puro y testeable aparte de `next()`/del entorno de Vercel: decide si

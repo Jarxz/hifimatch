@@ -3777,10 +3777,37 @@ completo de meta OG (`og:type`/`site_name`/`title`/`description`/`url`/
 `@graph` de dos nodos — `Organization` (contactPoint, sin address) y
 `WebApplication` (`applicationCategory`, `offers` gratuito,
 `isPartOf` apuntando a la Organization). Todas las URLs nuevas son
-absolutas (`https://thehifimatch.com/...`) — nunca `href="/..."`, la
-regla 4 de `verificar-build.mjs` seguiría rompiendo el build si alguna
-lo fuera. `ar.html` suma su propio canonical/OG básico (sin JSON-LD —
-es una vista secundaria, no la identidad del sitio).
+absolutas (`https://www.thehifimatch.com/...`) — nunca `href="/..."`,
+la regla 4 de `verificar-build.mjs` seguiría rompiendo el build si
+alguna lo fuera. `ar.html` suma su propio canonical/OG básico (sin
+JSON-LD — es una vista secundaria, no la identidad del sitio).
+
+**Bug encontrado al verificar contra producción (pedido explícito del
+usuario, "revisa"), no antes de desplegar: el dominio canónico real es
+`www.thehifimatch.com`, no el apex.** La primera versión de esta ronda
+usó `https://thehifimatch.com/...` (sin `www`) en absolutamente todas
+las URLs nuevas — canonical, OG, JSON-LD, `sitemap.xml`, `robots.txt`,
+`llms.txt` — porque es literalmente el dominio que el usuario tipeó al
+correr la auditoría (`npx is-agentic thehifimatch.com`). `curl -sI
+https://thehifimatch.com/` reveló que el apex devuelve **308** hacia
+`https://www.thehifimatch.com/` (configuración de dominios de Vercel,
+preexistente — no algo que esta ronda haya tocado) — el `www` es el que
+sirve `200` con contenido real. Un `rel="canonical"`/`og:url`/JSON-LD
+`url` apuntando a una URL que a su vez redirige es exactamente el caso
+que la práctica de SEO recomienda evitar (apuntar al destino final, no
+a un salto intermedio). Las ~35 URLs nuevas de todos los archivos de
+esta ronda (`index.html`, `ar.html`, los 3 de `public/*.html`,
+`sitemap.xml`, `robots.txt`, `llms.txt`, `middleware.ts`, y las
+aserciones de los dos archivos de test) se corrigieron a `www` — un
+`sed` sobre las ocurrencias de texto plano más 6 correcciones manuales
+donde el dominio vivía dentro de un literal de RegExp de test
+(`/thehifimatch\.com/`, con las barras ya escapadas — el `sed` de texto
+plano no las alcanza porque busca `://` sin barras invertidas de por
+medio). Verificado con `curl` real contra `www.thehifimatch.com` en
+producción después del segundo deploy: middleware, 404, y los 7
+archivos de `public/` responden igual de bien que en el primer chequeo
+(que sin saberlo había sido contra el dominio equivocado, aunque
+funcionalmente ambos dominios sirven el mismo build vía el redirect).
 
 **Jerarquía de encabezados: de tres `<h1>` competidores a uno solo.**
 La auditoría marcaba "contenido sin JavaScript" como parcial pese a
@@ -3846,12 +3873,18 @@ patrón que `tsconfig.api.json`) + `typecheck:middleware` +
 `middleware.ts` no vive dentro de ningún workspace npm) se enganchan a
 `verify`/`test` de siempre.
 
-**Lo que no se pudo verificar sin un deploy real** (mismo criterio que
-ya rige para AR en hardware real): que Vercel efectivamente invoca este
-`middleware.ts` para un proyecto `framework:null`, y que
-`curl -H "Accept: text/markdown" https://thehifimatch.com/` responde
-como se espera en producción. Sí se verificó exhaustivamente todo lo
-que corre local: `prefiereMarkdown()` y el propio `middleware()`
+**Verificado contra producción real, no sólo local — y en verde.**
+`curl -H "Accept: text/markdown" https://www.thehifimatch.com/`
+devuelve `text/markdown` con `Vary: Accept, Accept-Encoding` en el
+deploy real; la ruta HTML normal también trae `Vary`; una ruta
+inexistente da `404` real con el `404.html` nuevo como cuerpo; y los 7
+archivos de `public/` (`robots.txt`/`sitemap.xml`/`llms.txt`/
+`about.html`/`contact.html`/`privacy.html`/`og-image.png`) responden
+`200` con el contenido correcto — confirmado leyendo el HTML servido
+(mismo tamaño de bytes que `dist/index.html`, `sr-only`/JSON-LD/
+`foot-links-splash` presentes). Este chequeo sólo era posible después
+de desplegar — se verificó exhaustivamente todo lo que corre local
+antes de eso: `prefiereMarkdown()` y el propio `middleware()`
 (construyendo un `Request` real y leyendo la `Response`) con 8 tests en
 `middleware.test.ts`; el 404 real y cada archivo nuevo de `public/`
 sirviéndose con el content-type correcto, con un servidor estático
@@ -3874,13 +3907,6 @@ totales**: 187 `packages/engine` + 16 `packages/data` + 15
 (fuera de los 4 workspaces npm de siempre).
 
 Falta:
-- **Verificar en producción que Vercel invoca `middleware.ts`** (el
-  ítem de negociación Accept: text/markdown) — no verificable local,
-  ver el párrafo de arriba. Chequeo real:
-  `curl -H "Accept: text/markdown" https://thehifimatch.com/` debe
-  devolver `text/markdown` con `Vary: Accept, Accept-Encoding`; sin
-  ese header, `curl -sI https://thehifimatch.com/` en cualquier caso
-  debe traer `Vary` igual.
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
   problema de código — depende de NAP consistente en listados
