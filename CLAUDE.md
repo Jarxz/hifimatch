@@ -4054,6 +4054,80 @@ Mismo total de tests que antes de esta ronda (241 en `apps/web` + 8 de
 `middleware.ts`) — el de `privacy.html` se reescribió in situ, no se
 sumó uno nuevo. `verify`/`build` en verde.
 
+**Incidente de producción: el propio asistente de Vercel para activar
+Web Analytics rompió el build, cambiando una configuración que
+CLAUDE.md ya advertía como riesgo antes de que ocurriera.** El usuario
+reportó builds fallando con `npm run verify && npm run build` en
+Vercel. El log real mostraba `npm error location
+/vercel/path0/apps/web` + `Missing script: "verify"` — ese script sólo
+existe en el `package.json` de la raíz, nunca en el de `apps/web`, así
+que el error sólo es posible si Vercel está compilando desde el
+directorio equivocado. Confirmado con una captura del dashboard: el
+asistente "Install and Configure Vercel Web Analytics" había
+sobreescrito el **Root Directory** del proyecto de la raíz del repo a
+`apps/web` — exactamente el escenario que la sección de despliegue de
+este documento ya advertía ("Root Directory en la raíz del repo, no en
+`apps/web` — ese apunte rompe la resolución de workspaces") antes de
+que llegara a pasar de verdad. Corregido borrando el valor del campo en
+el dashboard (deja el default, la raíz del repo) y disparando un
+redeploy real (bump de versión, commit `9c31dfc`) para confirmarlo con
+un build nuevo, no sólo con la promesa de que el próximo iba a andar.
+
+**Un "listo" del usuario no cerró la verificación — la reabrió, y
+encontró dos falsos negativos propios, no del sitio.** Antes de dar el
+incidente por resuelto se repitió el barrido completo de chequeos ya
+hechos en la ronda de auditoría "Is Agentic" contra la producción real,
+por la razón exacta que motivó repetirlo: mientras un build falla,
+Vercel sigue sirviendo el último deploy exitoso, así que un `curl`
+contra producción durante la ventana de fallas puede parecer que
+"confirma" algo que en realidad es contenido viejo. Los dos hallazgos
+de esa repetición fueron errores del propio comando de verificación, no
+del sitio: un grep de `addressCountry` que asumía JSON sin espacio
+después de los dos puntos (el JSON real, con formato legible, sí lo
+tiene) daba un falso "no encontrado"; y Git Bash en Windows convierte
+automáticamente una ruta con barra inicial en un argumento de `curl`
+(`/about`, `/contact`) a una ruta de archivo de Windows (conversión de
+rutas de MSYS), rompiendo la URL real — se corrigió citando la URL
+completa. Los dos, corregidos y vueltos a correr, confirmaron que el
+sitio en sí estaba bien — la lección que queda es sobre el propio
+método de verificación, no sobre el código de producto.
+
+**Selector ES/EN agregado a `/about.html` y `/privacy.html` —
+versiones en inglés nuevas, sin JS, mismo criterio que las páginas
+"de confianza" ya establecido.** Pedido explícito del usuario. Estas
+dos páginas (junto con `/contact.html`/`/404.html`) ya eran HTML
+standalone sin JS a propósito (para que un crawler/verificador las lea
+sin ejecutar nada) — el selector de idioma sigue esa misma doctrina en
+vez de traer el sistema `data-i18n` del sitio principal: dos archivos
+físicos por idioma (`about.html`/`en/about.html`,
+`privacy.html`/`en/privacy.html`) con un `<a href>` simple entre ellos,
+sin estado compartido. `apps/web/public/en/about.html` y
+`apps/web/public/en/privacy.html` son archivos nuevos, traducción
+completa y fiel (no un resumen) de sus pares en español — la afirmación
+más sensible a traducir con precisión, el párrafo de Vercel Web
+Analytics, se verificó frase por frase contra la versión en español ya
+corregida en la ronda anterior ("no cookies... hash derivado de la
+solicitud, descartado a las 24 horas... nunca asociado a una IP
+guardada ni a una persona identificable").
+
+Cada una de las 4 páginas lleva `<link rel="alternate"
+hreflang="es|en|x-default">` recíproco (declarando la contraparte en
+el otro idioma y cuál es la versión por defecto) — señal SEO estándar
+para pares de contenido bilingüe, ausente hasta ahora en todo el
+sitio. `vercel.json` suma dos rutas limpias (`/en/about` →
+`/en/about.html`, `/en/privacy` → `/en/privacy.html`), mismo patrón ya
+usado para las versiones en español. `sitemap.xml` pasa de 5 a 7 URLs,
+con el namespace `xmlns:xhtml` y un `<xhtml:link rel="alternate">` por
+cada par bilingüe (8 en total, 2 por cada una de las 4 URLs) — el
+equivalente en XML del mismo `hreflang` recíproco de las páginas HTML.
+`paginas-estaticas.test.ts` suma un test parametrizado (recorre los 2
+pares es/en) que verifica el selector visible + el `hreflang`
+recíproco en las dos direcciones, más un test de contenido por página
+en inglés (≥500 caracteres reales, un único `<h1>`, `lang="en"`) y uno
+específico para la precisión del texto de Analytics en inglés. Grep de
+voseo repetido sobre los 4 archivos, sin coincidencias. `verify`/
+`build` en verde de punta a punta.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

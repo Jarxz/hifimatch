@@ -118,7 +118,7 @@ test('index.html: los 13 títulos de la Guía y el título del veredicto ya no s
   assert.doesNotMatch(html, /<h2 class="vd-titulo" id="vd-titulo">—<\/h2>/);
 });
 
-test('vercel.json: rewrites dan alias sin extensión a las 3 páginas de confianza (about/contact/privacy), sin tocar nada más', () => {
+test('vercel.json: rewrites dan alias sin extensión a las páginas de confianza (about/contact/privacy, es y en)', () => {
   const raiz = join(WEB_ROOT, '..', '..');
   const vercelJson = JSON.parse(readFileSync(join(raiz, 'vercel.json'), 'utf8')) as {
     rewrites?: Array<{ source: string; destination: string }>;
@@ -129,6 +129,8 @@ test('vercel.json: rewrites dan alias sin extensión a las 3 páginas de confian
   assert.equal(porOrigen['/contact-us'], '/contact.html');
   assert.equal(porOrigen['/privacy'], '/privacy.html');
   assert.equal(porOrigen['/privacy-policy'], '/privacy.html');
+  assert.equal(porOrigen['/en/about'], '/en/about.html');
+  assert.equal(porOrigen['/en/privacy'], '/en/privacy.html');
 });
 
 test('index.html: el informe (#s-documento) no encadena h2 hermanos sin nivel intermedio — Equipo/Sala/Veredicto/Evaluación/Resumen son h3 bajo "Informe de análisis" (h2)', () => {
@@ -159,6 +161,42 @@ for (const pagina of ['about.html', 'contact.html', 'privacy.html']) {
     assert.match(html, /<link rel="canonical" href="https:\/\/www\.thehifimatch\.com\/[a-z.]*">/);
   });
 }
+
+for (const [es_, en_] of [['about.html', 'en/about.html'], ['privacy.html', 'en/privacy.html']] as const) {
+  test(`public/${es_} ↔ public/${en_}: selector ES/EN visible + hreflang recíproco en las dos direcciones`, () => {
+    const htmlEs = leer(join('public', es_));
+    const htmlEn = leer(join('public', en_));
+
+    assert.match(htmlEs, /class="idioma"/, `falta el selector de idioma en ${es_}`);
+    assert.match(htmlEs, /<a href="\/en\/[a-z.]+"[^>]*>EN<\/a>/, `falta el link a la versión EN en ${es_}`);
+    assert.match(htmlEn, /class="idioma"/, `falta el selector de idioma en ${en_}`);
+    assert.match(htmlEn, /<a href="\/[a-z.]+"[^>]*>ES<\/a>/, `falta el link a la versión ES en ${en_}`);
+
+    const urlEs = `https://www.thehifimatch.com/${es_}`;
+    const urlEn = `https://www.thehifimatch.com/${en_}`;
+    for (const html of [htmlEs, htmlEn]) {
+      assert.match(html, new RegExp(`<link rel="alternate" hreflang="es" href="${urlEs.replace(/\./g, '\\.')}">`));
+      assert.match(html, new RegExp(`<link rel="alternate" hreflang="en" href="${urlEn.replace(/\./g, '\\.')}">`));
+      assert.match(html, /<link rel="alternate" hreflang="x-default"/);
+    }
+  });
+
+  test(`public/${en_}: contenido real (≥500 caracteres), un <h1>, en inglés (lang="en"), mismos hechos que ${es_}`, () => {
+    const html = leer(join('public', en_));
+    const textoVisible = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    assert.ok(textoVisible.length >= 500, `sólo ${textoVisible.length} caracteres de texto visible`);
+    const h1s = html.match(/<h1\b/g) ?? [];
+    assert.equal(h1s.length, 1);
+    assert.match(html, /<html lang="en">/);
+  });
+}
+
+test('public/en/privacy.html: misma precisión sobre Vercel Web Analytics que la versión en español', () => {
+  const html = leer(join('public', 'en', 'privacy.html'));
+  assert.match(html, /Vercel Web Analytics/);
+  assert.match(html, /no cookies/i);
+  assert.match(html, /24 hours/);
+});
 
 test('public/contact.html: JSON-LD de Organization/ContactPoint con el email real y el país (sin dirección completa)', () => {
   const html = leer(join('public', 'contact.html'));
@@ -201,19 +239,25 @@ test('public/robots.txt: permite todo y declara el sitemap', () => {
   assert.match(txt, /^Sitemap: https:\/\/www\.thehifimatch\.com\/sitemap\.xml$/m);
 });
 
-test('public/sitemap.xml: XML bien formado con las 5 URLs reales del sitio', () => {
+test('public/sitemap.xml: XML bien formado con las 7 URLs reales del sitio (incluye las versiones /en/)', () => {
   const xml = leer(join('public', 'sitemap.xml'));
   assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   assert.deepEqual(locs, [
     'https://www.thehifimatch.com/',
     'https://www.thehifimatch.com/about.html',
+    'https://www.thehifimatch.com/en/about.html',
     'https://www.thehifimatch.com/contact.html',
     'https://www.thehifimatch.com/privacy.html',
+    'https://www.thehifimatch.com/en/privacy.html',
     'https://www.thehifimatch.com/ar.html',
   ]);
   const lastmods = [...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
   assert.equal(lastmods.length, locs.length);
+  // Las 4 páginas bilingües (about/privacy, es+en) declaran su alternate
+  // recíproco dentro del propio sitemap, no sólo en el <head> del HTML.
+  const alternates = [...xml.matchAll(/<xhtml:link rel="alternate"/g)];
+  assert.equal(alternates.length, 8, '2 alternates (es+en) × 4 URLs bilingües');
 });
 
 test('public/llms.txt: formato llmstxt.org (H1 + blockquote) con "When to use this" en inglés — la auditoría busca ese patrón, no lo reconocía en español', () => {
