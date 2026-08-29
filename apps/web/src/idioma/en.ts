@@ -51,7 +51,7 @@ export const en: Textos = {
     proofReglas: 'physical rules, each with a declared formula and threshold',
     proofEquipos: 'curated pieces of gear, each spec sourced and confidence-rated',
     proofAnalisis: 'analysis built on verified data',
-    version: 'V19.08.26',
+    version: 'V20.08.26',
   },
 
   info: {
