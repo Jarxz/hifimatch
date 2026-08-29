@@ -3924,6 +3924,60 @@ autocontenido, ver la ronda original). 2 tests actualizados en
 `address.addressCountry === 'CL'`, explícitamente comentado como "sólo
 país, nunca una dirección completa".
 
+**Tercera vuelta de la auditoría (86→89): encabezados "—" reemplazados
+por texto real, y rutas sin extensión para las 3 páginas de
+confianza.** Dos hallazgos con causa nueva, distinta de las dos rondas
+anteriores:
+
+- **"Flat heading structure" seguía marcado pese a la jerarquía ya
+  corregida** (un solo `<h1>`, sin `<h2>` hermanos sin nivel
+  intermedio). Revisando el HTML crudo de nuevo: 13 `<h3>` de la Guía
+  del análisis (`info.capas.titulo`...`info.veredicto.titulo`) y el
+  `<h2 id="vd-titulo">` del veredicto mostraban literalmente `—` — el
+  placeholder que `main.ts` pisa recién con JS (`el.textContent =
+  leerRuta(...)`, ver `idioma.ts`). Un rastreador sin JS ve una
+  jerarquía con la forma correcta pero sin contenido real debajo del
+  único `<h1>` — tan "plano" en la práctica como no tener jerarquía. A
+  diferencia de otros textos dinámicos genuinamente dependientes del
+  equipo elegido (que sí deben quedar en `—` hasta que haya un
+  análisis real), estos 13 títulos son fijos — nombran secciones de
+  ayuda que no cambian nunca — así que se hardcodearon con el mismo
+  texto exacto de `es.ts`, mismo patrón que ya usaban "Define la
+  cadena"/"Cómo leer este análisis" antes de esta ronda. `vd-titulo`
+  (el único de los 14 genuinamente dependiente del análisis) pasó de
+  `—` a una etiqueta neutra, "Veredicto del análisis" — no un
+  resultado inventado, sólo un rótulo, reemplazado por el título real
+  en cuanto corre un análisis (confirmado con Chrome headless: KEF
+  LS50 Meta + Rega Brio da "Configuración no recomendada" ahí mismo).
+  Nuevo test compara cada uno de los 13 `<h3>` contra `es.info[clave]
+  .titulo` importado directo — si `es.ts` cambia un título más
+  adelante y el HTML no se actualiza junto, el test lo detecta.
+- **"Trust anchor pages": About y Privacy verificadas, Contact no** —
+  pese a que `/contact.html` responde 200 con el mismo contenido real
+  que las otras dos. Confirmado con `curl` que las tres páginas se
+  comportan idéntico en el dominio real (200 con `.html`, 404 sin
+  extensión) — no hay ninguna asimetría de servidor entre ellas. La
+  explicación más probable es que la lista de rutas candidatas que
+  prueba la auditoría para "about"/"privacy" incluye la forma sin
+  extensión y para "contact" no (o prueba una variante distinta,
+  como `/contact-us`), y nunca llega a pedir `/contact.html`. En vez
+  de adivinar la forma exacta, `vercel.json` gana `rewrites` (rutas
+  sin extensión, mismo contenido, sin redirect — el canonical de cada
+  página sigue apuntando a la versión `.html`, así que no hay
+  contenido duplicado real): `/about`, `/contact`, `/contact-us`,
+  `/privacy`, `/privacy-policy` → sus `.html` respectivos. Cubre
+  varias formas plausibles a la vez en vez de una sola adivinanza.
+
+Ninguno de los dos hallazgos restantes de esta ronda (marca en
+buscadores, 404 en el apex sin `www`) tiene código pendiente — quedan
+igual que en la ronda anterior. 246 tests (240 + 4 nuevos en
+`paginas-estaticas.test.ts` — comparación de los 13 títulos contra
+`es.ts`, y validación de los 5 `rewrites` de `vercel.json`). Verificado
+con Chrome headless que la Guía se ve idéntica (los 13 títulos ya
+estaban ahí visualmente, sólo cambió qué hay en el HTML *antes* de que
+corra JS) y que un análisis real sigue reemplazando "Veredicto del
+análisis" por el veredicto verdadero, sin excepción.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { es } from '../idioma/es.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = join(__dirname, '..', '..');
@@ -78,6 +79,36 @@ test('index.html: JSON-LD parsea y trae Organization + WebApplication con los ca
 test('index.html: nada de lo agregado en esta ronda tiene voseo', () => {
   const html = leer('index.html');
   assert.doesNotMatch(html, PATRON_VOSEO);
+});
+
+test('index.html: los 13 títulos de la Guía y el título del veredicto ya no son "—" en el HTML crudo — coinciden exactamente con es.ts (JS los pisa igual, esto es sólo el snapshot sin JS)', () => {
+  const html = leer('index.html');
+  const clavesInfo = [
+    'capas', 'confianza', 'generico', 'potencia', 'carga', 'amortiguamiento',
+    'ganancia', 'modos', 'filtroPeine', 'triangulo', 'reverberacion', 'plano', 'veredicto',
+  ] as const;
+  for (const clave of clavesInfo) {
+    const tituloReal = es.info[clave].titulo;
+    const regex = new RegExp(`<h3 data-i18n="info\\.${clave}\\.titulo">([^<]+)</h3>`);
+    const m = html.match(regex);
+    assert.ok(m, `no se encontró el <h3> de info.${clave}.titulo`);
+    assert.equal(m![1], tituloReal, `info.${clave}.titulo quedó desincronizado del HTML crudo`);
+    assert.notEqual(m![1], '—');
+  }
+  assert.doesNotMatch(html, /<h2 class="vd-titulo" id="vd-titulo">—<\/h2>/);
+});
+
+test('vercel.json: rewrites dan alias sin extensión a las 3 páginas de confianza (about/contact/privacy), sin tocar nada más', () => {
+  const raiz = join(WEB_ROOT, '..', '..');
+  const vercelJson = JSON.parse(readFileSync(join(raiz, 'vercel.json'), 'utf8')) as {
+    rewrites?: Array<{ source: string; destination: string }>;
+  };
+  const porOrigen = Object.fromEntries((vercelJson.rewrites ?? []).map((r) => [r.source, r.destination]));
+  assert.equal(porOrigen['/about'], '/about.html');
+  assert.equal(porOrigen['/contact'], '/contact.html');
+  assert.equal(porOrigen['/contact-us'], '/contact.html');
+  assert.equal(porOrigen['/privacy'], '/privacy.html');
+  assert.equal(porOrigen['/privacy-policy'], '/privacy.html');
 });
 
 test('index.html: el informe (#s-documento) no encadena h2 hermanos sin nivel intermedio — Equipo/Sala/Veredicto/Evaluación/Resumen son h3 bajo "Informe de análisis" (h2)', () => {
