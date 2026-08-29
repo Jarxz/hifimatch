@@ -1,5 +1,9 @@
 import './estilos.css';
+import { inject } from '@vercel/analytics';
 import { CATALOGO } from '../../../packages/data/src/catalogo.ts';
+
+// Initialize Vercel Web Analytics
+inject();
 import { calcularDisposicion, calcularDisposicionManual, calcularDisposicionAsientoManual } from '../../../packages/engine/src/sala.ts';
 import type { Sala, DisposicionSala, Punto } from '../../../packages/engine/src/sala.ts';
 import { evaluarPotencia, PICO_OBJETIVO_DB } from '../../../packages/engine/src/potencia.ts';
