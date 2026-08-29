@@ -3906,6 +3906,24 @@ totales**: 187 `packages/engine` + 16 `packages/data` + 15
 `packages/contact` + 237 `apps/web` (antes 222) + 8 de `middleware.ts`
 (fuera de los 4 workspaces npm de siempre).
 
+**Segunda vuelta de la auditoría (86→ítem 5 sigue Partial): `address`
+en Organization JSON-LD, sólo país — nunca una dirección completa
+inventada.** Confrontado de nuevo con el hueco de "Organization schema
+completeness", el usuario confirmó que no tiene un domicilio comercial
+real, pero autorizó explícitamente declarar el país (`"Chile"`,
+codificado `addressCountry: "CL"`, el campo que schema.org/Google
+reconocen como suficiente por sí solo dentro de `PostalAddress` — no
+hace falta calle/ciudad para que el tipo sea válido). Es un dato real
+(coherente con `lang="es-CL"` en todo el sitio), no inventado — sigue
+la misma disciplina de "declarar lo que se sabe, nunca rellenar lo que
+no" que ya regía la decisión de omitirlo por completo en la ronda
+anterior. Agregado en los dos lugares donde vive el nodo Organization:
+`index.html` y `public/contact.html` (cada uno con su propio JSON-LD
+autocontenido, ver la ronda original). 2 tests actualizados en
+`paginas-estaticas.test.ts` (uno por archivo) confirman
+`address.addressCountry === 'CL'`, explícitamente comentado como "sólo
+país, nunca una dirección completa".
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

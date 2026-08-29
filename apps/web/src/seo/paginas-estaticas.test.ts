@@ -60,6 +60,9 @@ test('index.html: JSON-LD parsea y trae Organization + WebApplication con los ca
   assert.ok(org, 'falta el nodo Organization');
   assert.equal(org?.name, 'The Hifi Match');
   assert.equal(org?.url, 'https://www.thehifimatch.com/');
+  const address = org?.address as Record<string, unknown> | undefined;
+  assert.equal(address?.['@type'], 'PostalAddress');
+  assert.equal(address?.addressCountry, 'CL', 'sólo país — nunca se inventa una dirección completa');
   assert.ok(Array.isArray(org?.contactPoint) && (org!.contactPoint as unknown[]).length > 0);
   const contactPoint = (org!.contactPoint as Array<Record<string, unknown>>)[0];
   assert.equal(contactPoint?.email, 'thehmcontacto@gmail.com');
@@ -106,13 +109,16 @@ for (const pagina of ['about.html', 'contact.html', 'privacy.html']) {
   });
 }
 
-test('public/contact.html: JSON-LD de Organization/ContactPoint con el email real', () => {
+test('public/contact.html: JSON-LD de Organization/ContactPoint con el email real y el país (sin dirección completa)', () => {
   const html = leer(join('public', 'contact.html'));
   const bloques = extraerJsonLd(html) as Array<Record<string, unknown>>;
   assert.equal(bloques.length, 1);
   assert.equal(bloques[0]?.['@type'], 'Organization');
   const contactPoint = (bloques[0]?.contactPoint as Array<Record<string, unknown>>)[0];
   assert.equal(contactPoint?.email, 'thehmcontacto@gmail.com');
+  const address = bloques[0]?.address as Record<string, unknown> | undefined;
+  assert.equal(address?.['@type'], 'PostalAddress');
+  assert.equal(address?.addressCountry, 'CL');
 });
 
 test('public/privacy.html: declara explícitamente ausencia de analytics/cookies de terceros', () => {
