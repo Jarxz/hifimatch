@@ -4005,6 +4005,55 @@ puede volver a desincronizar igual que la anterior: si se agrega o
 saca una tarjeta de regla sin tocar el contador de portada, el test
 falla solo. 247 tests (antes 246), `verify`/`build` en verde.
 
+**`@vercel/analytics` instalado — reabre y corrige la afirmación de
+"sin analítica" que `public/privacy.html` había declarado dos rondas
+atrás.** El usuario pidió explícitamente instalarlo. Antes de tocar
+código se verificó contra la documentación oficial de Vercel (no de
+memoria, dado que ya hubo un intento fallido con `@vercel/edge` en la
+ronda de middleware): paquete `@vercel/analytics` v2, API genérica
+(sin framework) es `import { inject } from '@vercel/analytics';
+inject();`, llamada una sola vez en el cliente. Reusa el mismo patrón
+ya establecido para `enviarContacto` (`location.protocol === 'file:'`
+como guardia): `inicializarAnalytics()` en `main.ts` no llama a
+`inject()` si el sitio corre por `file://` — ahí un `<script>` inyectado
+apuntando a una ruta relativa (`/_vercel/insights/script.js`) no
+resuelve a ningún host, mismo problema ya resuelto ahí. Verificado con
+Chrome headless en los dos casos: por `file://`, cero requests a
+`/_vercel/*` y cero errores de consola (el guardia corta antes);
+servido por HTTP, `inject()` corre sin tirar ninguna excepción (el
+único log es un 404 esperable, porque el entorno de prueba no tiene el
+backend real de Vercel detrás — en producción esa misma petición sí
+resuelve).
+
+**`public/privacy.html` se actualizó para seguir siendo honesta, no
+para "sonar bien".** La frase "sin cookies de seguimiento ni analítica
+de terceros" (escrita cuando el usuario explícitamente eligió no tener
+analytics, en la ronda de la auditoría "Is Agentic") dejó de ser
+cierta con este cambio — mantenerla habría sido exactamente el tipo de
+afirmación falsa que este proyecto no tolera en ninguna capa. Se
+reemplazó por una descripción precisa, tomada de la documentación
+oficial de privacidad de Vercel Web Analytics (no una paráfrasis
+optimista): sin cookies, cada visitante se reconoce con un hash
+derivado de la solicitud que se descarta a las 24 horas (nunca un
+identificador persistente), y lo que se registra por visita queda
+agregado (país/ciudad aproximados, dispositivo, navegador, página
+vista, referrer) sin asociarse a una IP guardada ni a una persona
+identificable. `meta.description`/`og:description` de esa página se
+actualizaron igual. Test de `paginas-estaticas.test.ts` reescrito para
+verificar la afirmación nueva en vez de la vieja.
+
+**Pendiente, no ejecutable desde acá: falta habilitar Web Analytics en
+el dashboard de Vercel** (Project → Analytics → Enable) — sin ese
+paso, el proyecto no tiene las rutas `/_vercel/insights/*` activas y
+el script inyectado no va a registrar nada aunque el código ya esté
+desplegado correctamente. Mismo tipo de límite ya documentado para el
+redirect del dominio apex: acceso de dashboard que este entorno no
+tiene.
+
+Mismo total de tests que antes de esta ronda (241 en `apps/web` + 8 de
+`middleware.ts`) — el de `privacy.html` se reescribió in situ, no se
+sumó uno nuevo. `verify`/`build` en verde.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

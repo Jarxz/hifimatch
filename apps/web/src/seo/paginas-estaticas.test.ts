@@ -172,10 +172,11 @@ test('public/contact.html: JSON-LD de Organization/ContactPoint con el email rea
   assert.equal(address?.addressCountry, 'CL');
 });
 
-test('public/privacy.html: declara explícitamente ausencia de analytics/cookies de terceros', () => {
+test('public/privacy.html: declara Vercel Web Analytics con precisión — sin cookies, hash descartado a las 24 horas', () => {
   const html = leer(join('public', 'privacy.html'));
-  assert.match(html, /analítica de terceros/i);
-  assert.match(html, /cookies de seguimiento/i);
+  assert.match(html, /Vercel Web Analytics/);
+  assert.match(html, /no usa cookies/i);
+  assert.match(html, /24 horas/);
 });
 
 test('public/404.html: standalone (sin <script>), enlaces de recuperación a inicio/sitemap/llms.txt', () => {

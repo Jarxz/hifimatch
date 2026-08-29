@@ -1,4 +1,5 @@
 import './estilos.css';
+import { inject as inicializarVercelAnalytics } from '@vercel/analytics';
 import { CATALOGO } from '../../../packages/data/src/catalogo.ts';
 import { calcularDisposicion, calcularDisposicionManual, calcularDisposicionAsientoManual } from '../../../packages/engine/src/sala.ts';
 import type { Sala, DisposicionSala, Punto } from '../../../packages/engine/src/sala.ts';
@@ -1402,7 +1403,18 @@ function wireEventos(): void {
   });
 }
 
+// Vercel Web Analytics: sin cookies, visitante identificado por un hash
+// de la request que se descarta a las 24 h (ver public/privacy.html) —
+// nunca corre por file:// (ahí `inject()` intentaría cargar un script
+// desde una ruta relativa que no resuelve a ningún host, mismo problema
+// ya resuelto para el formulario de contacto en `enviarContacto`).
+function inicializarAnalytics(): void {
+  if (location.protocol === 'file:') return;
+  inicializarVercelAnalytics();
+}
+
 function main(): void {
+  inicializarAnalytics();
   inicializarSplash();
   poblarSelectores(idiomaActual);
   aplicarCromoEstatico(idiomaActual);
