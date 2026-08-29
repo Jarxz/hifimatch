@@ -4,9 +4,53 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Analiza si un sistema hi-fi es compatible entre sí y qué entrega en tu sala.">
+<link rel="canonical" href="https://thehifimatch.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Hifi Match">
+<meta property="og:title" content="The Hifi Match · compatibilidad hi-fi">
+<meta property="og:description" content="Analiza si un sistema hi-fi es compatible entre sí y qué entrega en tu sala.">
+<meta property="og:url" content="https://thehifimatch.com/">
+<meta property="og:image" content="https://thehifimatch.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
 <title>The Hifi Match · compatibilidad hi-fi</title>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://thehifimatch.com/#organization",
+      "name": "The Hifi Match",
+      "url": "https://thehifimatch.com/",
+      "email": "thehmcontacto@gmail.com",
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "email": "thehmcontacto@gmail.com",
+          "contactType": "customer support",
+          "availableLanguage": ["Spanish", "English"]
+        }
+      ]
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://thehifimatch.com/#webapp",
+      "name": "The Hifi Match",
+      "url": "https://thehifimatch.com/",
+      "description": "Analiza si un sistema hi-fi (parlantes, amplificador, streamer, DAC) es compatible entre sí y qué entrega en una sala determinada, con reglas físicas verificables: margen de potencia, carga e impedancia, puente de impedancias, modos de sala y reverberación.",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any (navegador web)",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "isPartOf": { "@id": "https://thehifimatch.com/#organization" },
+      "inLanguage": ["es", "en"]
+    }
+  ]
+}
+</script>
 </head>
 <body>
+
+<h1 class="sr-only">The Hifi Match — análisis de compatibilidad hi-fi basado en física</h1>
 
 <!-- SPLASH -->
 <section class="screen active" id="s-splash">
@@ -18,7 +62,11 @@
         <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
-    <button type="button" class="back contacto-splash" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
+    <div class="foot-links-splash">
+      <button type="button" class="back" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
+      <a href="./about.html" class="back" data-i18n="comun.acercaDe">Acerca de</a>
+      <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
+    </div>
     <div class="version-splash" data-i18n="splash.version">V18.08.26</div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
@@ -70,7 +118,7 @@
     </div>
 
     <div class="cfg-lead-box">
-      <h1 class="lead" data-i18n="config.lead">Define la cadena</h1>
+      <h2 class="lead" data-i18n="config.lead">Define la cadena</h2>
       <p class="lead-note" data-i18n="config.leadNote">Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
     </div>
 
@@ -592,7 +640,7 @@
       </div>
     </div>
 
-    <h1 class="lead" data-i18n="info.titulo">Cómo leer este análisis</h1>
+    <h2 class="lead" data-i18n="info.titulo">Cómo leer este análisis</h2>
     <p class="lead-note" data-i18n="info.intro">—</p>
 
     <details class="card info-item"><summary><h3 data-i18n="info.capas.titulo">—</h3></summary><p data-i18n-html="info.capas.cuerpoHtml">—</p></details>
@@ -651,7 +699,7 @@
 
     <div class="doc-paper">
       <div class="doc-logo"><b class="doc-logo-the">THE</b> HIFI <b>MATCH</b></div>
-      <h1 class="doc-title" data-i18n="documento.titulo">Informe de análisis</h1>
+      <h2 class="doc-title" data-i18n="documento.titulo">Informe de análisis</h2>
       <div class="doc-fecha" id="doc-fecha">—</div>
 
       <h2 class="doc-h2" data-i18n="documento.equipoTitulo">Equipo</h2>

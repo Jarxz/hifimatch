@@ -59,6 +59,8 @@ export const es = {
     idiomaAria: 'Cambiar idioma',
     infoAria: 'Ver información',
     cerrarAria: 'Cerrar',
+    acercaDe: 'Acerca de',
+    privacidad: 'Privacidad',
   },
 
   contacto: {

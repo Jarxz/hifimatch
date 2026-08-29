@@ -16,6 +16,8 @@ export const en: Textos = {
     idiomaAria: 'Change language',
     infoAria: 'View information',
     cerrarAria: 'Close',
+    acercaDe: 'About',
+    privacidad: 'Privacy',
   },
 
   contacto: {

@@ -3727,7 +3727,166 @@ en el mensaje de "no disponible", igual que un navegador sin ningún
 soporte de AR. 228 tests sin cambio de cantidad (deshabilitar por flag,
 sin lógica nueva testeable).
 
+**Preparación para agentes de IA (auditoría externa "Is Agentic",
+60/100) — sitemap, robots.txt, llms.txt, JSON-LD, OG/canonical,
+jerarquía de encabezados, tres páginas de confianza reales, y
+negociación de contenido Markdown vía Vercel Routing Middleware.** El
+usuario corrió una auditoría de terceros contra `thehifimatch.com` en
+producción y pasó 9 hallazgos priorizados, orden fallas-primero. Se
+implementó todo lo corregible con código; lo que no lo es
+(descubribilidad de marca en buscadores) queda declarado como
+recomendación, no como tarea de motor ni de frontend.
+
+`apps/web/public/` (carpeta nueva — Vite copia su contenido tal cual a
+la raíz de `dist/`, sin pasar por `vite-plugin-singlefile` ni por
+`verificar-build.mjs`, que sólo inspecciona `dist/index.html`) suma:
+`sitemap.xml` (las 5 URLs reales del sitio), `robots.txt` (permite
+todo, declara el sitemap), `llms.txt` (formato llmstxt.org — H1,
+blockquote de resumen, sección `## Cuándo usar esto` con casos de uso
+concretos y el límite declarado del motor: no recomienda marcas por
+gusto ni predice sinergia sonora), `404.html` (standalone, sin JS, con
+enlaces de recuperación a inicio/sitemap/llms.txt — Vercel ya devolvía
+404 real para rutas inexistentes en output estático; sólo faltaba
+darle un cuerpo útil), `og-image.png` (1200×630, generada con Chrome
+headless sobre una tarjeta hecha a medida con el wordmark/paleta ya
+establecidos, no un screenshot del sitio real), y tres páginas de
+confianza reales — `about.html`/`contact.html`/`privacy.html`, HTML
+plano sin JS con `<style>` inline reusando la paleta oscura/dorada del
+sitio, ≥500 caracteres de texto visible cada una, español neutro
+verificado con grep. `privacy.html` declara explícitamente lo único
+que el código confirma: sin cuentas, sin cookies de seguimiento ni
+analítica de terceros — el único dato personal es el del formulario de
+contacto (nombre opcional/email/mensaje), enviado por email vía Resend,
+nunca guardado en una base de datos propia. El Organization JSON-LD
+(ver abajo) y `contact.html` usan `thehmcontacto@gmail.com` — el valor
+real de `CONTACTO_EMAIL_FALLBACK` en `main.ts`, no el
+`contacto@thehifimatch.com` que este mismo documento mencionaba en una
+sección "Falta" de una ronda anterior: ese texto había quedado
+desactualizado: el código es la fuente de verdad, no la prosa.
+
+**Omitido a propósito: `address` (PostalAddress) en el Organization
+JSON-LD.** La auditoría lo pide para "completeness", pero el sitio no
+tiene un domicilio comercial que publicar — inventar uno violaría la
+misma doctrina de "no inventes un dato" que rige el motor, aplicada acá
+a los metadatos del sitio. Se prefirió puntaje parcial en ese ítem
+antes que un dato falso.
+
+`index.html` gana, en el `<head>`: `<link rel="canonical">`, el set
+completo de meta OG (`og:type`/`site_name`/`title`/`description`/`url`/
+`image`) y un único `<script type="application/ld+json">` con
+`@graph` de dos nodos — `Organization` (contactPoint, sin address) y
+`WebApplication` (`applicationCategory`, `offers` gratuito,
+`isPartOf` apuntando a la Organization). Todas las URLs nuevas son
+absolutas (`https://thehifimatch.com/...`) — nunca `href="/..."`, la
+regla 4 de `verificar-build.mjs` seguiría rompiendo el build si alguna
+lo fuera. `ar.html` suma su propio canonical/OG básico (sin JSON-LD —
+es una vista secundaria, no la identidad del sitio).
+
+**Jerarquía de encabezados: de tres `<h1>` competidores a uno solo.**
+La auditoría marcaba "contenido sin JavaScript" como parcial pese a
+4244 caracteres reales en el HTML crudo (ya sobraba el mínimo de 500)
+— el defecto era estructural: `index.html` tenía tres `<h1 class=
+"lead">`/`<h1 class="doc-title">` distintos (pantallas configurar/
+guía/informe), sin ningún `<h1>` en portada ni en resultado — un
+esqueleto plano, no una jerarquía. Los tres bajaron a `<h2>` (cero
+cambio visual: `.lead`/`.doc-title` están definidos por clase en
+`estilos.css`, no por tag) y se agregó un único `<h1 class="sr-only">`
+real al principio de `<body>` con el título/tagline del sitio — oculto
+visualmente con la técnica estándar de accesibilidad
+(`position:absolute` + `clip`, no `display:none`, que algunos
+crawlers penalizan por parecer contenido oculto/spam), pero presente
+en el HTML crudo. No es SSR real (el sitio sigue sin servidor, tiene
+que abrir por `file://`) — el hueco de fondo que la auditoría señalaba
+(encabezados) sí se resuelve sin tocar esa arquitectura.
+
+**Dos links nuevos en el pie de la portada, nada más — deliberadamente
+sin tocar los `.hright` de configurar/resultado/guía.** "Acerca de" y
+"Privacidad" se suman a "Contacto" dentro de un contenedor fijo nuevo
+(`.foot-links-splash`, reemplaza el `position:fixed` que antes tenía
+`.contacto-splash` sola) en la portada — mismo componente visual
+`.back` que ya usan todos los botones de navegación del sitio (que
+ganó `text-decoration:none` para poder aplicarse también a un `<a>`,
+no sólo a `<button>`). Se evaluó agregarlos también a los headers de
+las otras pantallas, pero se descartó: esas filas de botones ya
+pasaron por varias rondas de ajuste fino de quiebre responsive
+documentadas en este mismo archivo, y el riesgo de una regresión
+visual no se justificaba frente al beneficio marginal —
+sitemap.xml/llms.txt/robots.txt ya cubren el descubrimiento por
+rastreadores sin necesidad de un link en cada pantalla.
+
+**`middleware.ts` (nuevo, raíz del repo): negociación de contenido
+Accept sobre la portada — el único ítem que exige lógica de servidor
+por petición, algo que este sitio no tenía fuera de
+`api/contact.ts`.** Vercel Routing Middleware (el nombre vigente de lo
+que documentación anterior llama "Edge Middleware"), matcher `'/'`
+únicamente: si el `Accept` del cliente prefiere `text/markdown` sobre
+`text/html` (comparando `q=` cuando ambos aparecen; si el cliente sólo
+pide `text/markdown` — el caso exacto de la auditoría — se asume
+preferencia), responde un Markdown corto escrito a mano (mismo
+contenido de fondo que `meta.descripcion`, con links a inicio/acerca-
+de/contacto/sitemap) con `Content-Type: text/markdown; charset=utf-8`;
+en cualquier otro caso, deja pasar el HTML estático de siempre pero
+agregando `Vary: Accept, Accept-Encoding` — el header que la auditoría
+marcaba como ausente en los dos casos. Usa `next()` de
+`@vercel/functions` (paquete oficial vigente para middleware sin
+framework — verificado contra la documentación real de Vercel antes de
+escribir código, no asumido de memoria; `@vercel/edge`, el nombre
+planeado originalmente, quedó reemplazado por ese paquete) para
+continuar la cadena sin re-fetchear el origen a mano.
+
+El `package.json` raíz gana `"type":"module"` — sin eso, Vercel
+compilaría `middleware.ts` como CommonJS y el `import` de un paquete
+ESM reventaría en runtime (`ERR_REQUIRE_ESM`, el mismo bug ya sufrido y
+documentado con `api/contact.ts`, esta vez evitado antes de desplegar
+en vez de después). Confirmado que ningún archivo `.js`/`.cjs` suelto
+del repo (fuera de `node_modules`) dependía del default CommonJS de la
+raíz antes de este cambio. `tsconfig.middleware.json` (nuevo, mismo
+patrón que `tsconfig.api.json`) + `typecheck:middleware` +
+`test:middleware` (`node --test middleware.test.ts`, en la raíz —
+`middleware.ts` no vive dentro de ningún workspace npm) se enganchan a
+`verify`/`test` de siempre.
+
+**Lo que no se pudo verificar sin un deploy real** (mismo criterio que
+ya rige para AR en hardware real): que Vercel efectivamente invoca este
+`middleware.ts` para un proyecto `framework:null`, y que
+`curl -H "Accept: text/markdown" https://thehifimatch.com/` responde
+como se espera en producción. Sí se verificó exhaustivamente todo lo
+que corre local: `prefiereMarkdown()` y el propio `middleware()`
+(construyendo un `Request` real y leyendo la `Response`) con 8 tests en
+`middleware.test.ts`; el 404 real y cada archivo nuevo de `public/`
+sirviéndose con el content-type correcto, con un servidor estático
+mínimo hecho a mano sobre `dist/` (`curl` real, no mock); y la
+jerarquía de encabezados/JSON-LD/links nuevos con Chrome headless real
+sobre `dist/index.html` vía `file://`, sin errores de consola, en
+portada (1400px y 390px), configurar, resultado y guía.
+
+**Ítem de la auditoría "brand name discoverability" queda fuera de
+alcance — no es corregible con código.** Depende de NAP consistente en
+listados externos, menciones de prensa que enlacen al dominio raíz, y
+evitar cadenas de redirect que lo oculten en resultados de búsqueda;
+queda como recomendación para el usuario, no como tarea de esta ronda.
+
+15 tests nuevos en `apps/web/src/seo/paginas-estaticas.test.ts` (PURO,
+lee `index.html`/`ar.html`/`public/*` reales de disco con `node:fs`,
+sin DOM ni bundler) + 8 en `middleware.test.ts` (raíz). **463 tests
+totales**: 187 `packages/engine` + 16 `packages/data` + 15
+`packages/contact` + 237 `apps/web` (antes 222) + 8 de `middleware.ts`
+(fuera de los 4 workspaces npm de siempre).
+
 Falta:
+- **Verificar en producción que Vercel invoca `middleware.ts`** (el
+  ítem de negociación Accept: text/markdown) — no verificable local,
+  ver el párrafo de arriba. Chequeo real:
+  `curl -H "Accept: text/markdown" https://thehifimatch.com/` debe
+  devolver `text/markdown` con `Vary: Accept, Accept-Encoding`; sin
+  ese header, `curl -sI https://thehifimatch.com/` en cualquier caso
+  debe traer `Vary` igual.
+- **Descubribilidad de marca ("The Hifi Match" no aparece en los
+  primeros resultados de una búsqueda de su propio nombre)**: no es un
+  problema de código — depende de NAP consistente en listados
+  externos, menciones de prensa que enlacen al dominio raíz, y evitar
+  redirects que lo oculten en resultados de búsqueda. Fuera del
+  alcance de este repo.
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
   de escena, detección de soporte, codificación de estado, fallbacks de

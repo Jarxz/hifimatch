@@ -8,6 +8,12 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0}
+/* Único <h1> real del documento (ver index.html) — visible para
+   rastreadores que leen el HTML crudo sin ejecutar JS, oculto para la
+   vista (el logo animado ya cumple ese rol visualmente). Técnica
+   estándar de accesibilidad, no oculta contenido falso: mismo texto que
+   ya declaran meta.descripcion/splash.subtitulo. */
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
 body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased}
 .wrap{max-width:1120px; margin:0 auto; padding:22px 22px 46px}
 .screen{display:none}
@@ -109,7 +115,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 /* IDIOMA */
 .idioma-splash{position:fixed; top:20px; right:22px; z-index:21}
 .segs.idioma button{padding:7px 12px; font-size:11.5px; letter-spacing:.1em}
-.contacto-splash{position:fixed; bottom:20px; right:22px; z-index:1}
+.foot-links-splash{position:fixed; bottom:20px; right:22px; z-index:1; display:flex; align-items:center; gap:16px}
 .version-splash{position:fixed; bottom:20px; left:22px; z-index:1; color:var(--faint); font-size:10px; letter-spacing:.12em}
 
 /* HEAD */
@@ -120,7 +126,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .head .hm b{font-weight:600}
 .head .hs{grid-area:hs; color:var(--label); font-size:11px; letter-spacing:.2em; text-transform:uppercase; margin-top:3px}
 .head .hright{grid-area:hright; display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:18px}
-.back{background:transparent; border:0; color:var(--dim); cursor:pointer; font:inherit; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:6px 0; transition:color .2s cubic-bezier(.22,.61,.36,1)}
+.back{background:transparent; border:0; color:var(--dim); cursor:pointer; font:inherit; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:6px 0; text-decoration:none; transition:color .2s cubic-bezier(.22,.61,.36,1)}
 .back:hover{color:var(--text)}
 
 /* .idioma-splash es position:fixed, independiente de .head — en escritorio

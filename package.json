@@ -1,6 +1,7 @@
 {
   "name": "cadena",
   "private": true,
+  "type": "module",
   "description": "CADENA — motor de compatibilidad hi-fi. Monorepo: packages/engine (motor), packages/data (catálogo bilingüe), apps/web (frontend).",
   "workspaces": [
     "packages/*",
@@ -12,13 +13,16 @@
   "scripts": {
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web",
-    "test": "npm test -w packages/engine && npm test -w packages/data && npm test -w packages/contact && npm test -w apps/web",
-    "typecheck": "npm run typecheck -w packages/engine && npm run typecheck -w packages/data && npm run typecheck -w packages/contact && npm run typecheck -w apps/web && npm run typecheck:api",
+    "test": "npm test -w packages/engine && npm test -w packages/data && npm test -w packages/contact && npm test -w apps/web && npm run test:middleware",
+    "test:middleware": "node --test middleware.test.ts",
+    "typecheck": "npm run typecheck -w packages/engine && npm run typecheck -w packages/data && npm run typecheck -w packages/contact && npm run typecheck -w apps/web && npm run typecheck:api && npm run typecheck:middleware",
     "typecheck:api": "tsc --noEmit -p tsconfig.api.json",
+    "typecheck:middleware": "tsc --noEmit -p tsconfig.middleware.json",
     "verify": "npm run typecheck && npm run test"
   },
   "dependencies": {
-    "resend": "^6.20.0"
+    "resend": "^6.20.0",
+    "@vercel/functions": "^3.9.5"
   },
   "devDependencies": {
     "@vercel/node": "^5.10.1"
