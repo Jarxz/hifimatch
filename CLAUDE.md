@@ -4174,7 +4174,14 @@ Falta:
   problema de código — depende de NAP consistente en listados
   externos, menciones de prensa que enlacen al dominio raíz, y evitar
   redirects que lo oculten en resultados de búsqueda. Fuera del
-  alcance de este repo.
+  alcance de este repo. **Primer paso ya dado**: propiedad verificada
+  en Google Search Console (método de archivo,
+  `apps/web/public/google4e8cbe767f9c5897.html`, servido tal cual por
+  Vite — ver más arriba), `sitemap.xml` enviado, e indexación de la
+  portada solicitada manualmente. Falta todavía Bing Webmaster Tools,
+  y sobre todo backlinks reales (foros de audio, Reddit, Product
+  Hunt) — sin eso, un dominio nuevo tarda en ganar autoridad aunque ya
+  esté indexado.
 - **Verificación end-to-end de AR en un Android+Chrome real con
   ARCore**: todo lo automatizable (geometría de anclaje, construcción
   de escena, detección de soporte, codificación de estado, fallbacks de
