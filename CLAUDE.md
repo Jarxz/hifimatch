@@ -4427,6 +4427,53 @@ Verificado con Chrome headless: las 8 marcas ya listadas ahora
 muestran 2 modelos cada una en su selector, todas las tarjetas nuevas
 renderizan sin errores de consola.
 
+**Cuarta tanda: 6 marcas nuevas — el resto de las hi-end chilenas
+identificadas (Onkyo, Magnat, Børresen, Line Magnetic) más dos
+internacionales sin restricción de mercado (Magico, Nagra).** Cierra
+la lista completa de marcas del relevamiento original de tiendas
+chilenas. Catálogo a **172 equipos** (49 parlantes + 52
+amplificadores + 34 streamers + 34 dacs + 3 cables, antes 166):
+Børresen X3, Magico A3, Magnat Signature 909 (parlantes); Line
+Magnetic LM-518IA, Nagra Classic AMP, Onkyo A-9110 (amplificadores).
+
+**El caso más distinto de todo el catálogo hasta ahora: Line Magnetic
+LM-518IA es un integrado SET (triodo de simple terminación, válvulas
+845, Clase A pura) con transformador de salida de tomas
+conmutables (4/8/16 Ω) en vez de una etapa que "duplica potencia" al
+bajar la carga como un diseño de estado sólido.** Sólo 22 W en 8 Ω —
+mucho menos que cualquier otro amplificador del catálogo, coherente
+con lo que es un SET. `potencia4OhmW` se deja explícitamente en
+`null`: no es un dato faltante, es que "potencia a 4 Ω" no es una
+pregunta que este diseño responda de la misma manera — la toma se
+elige para adaptar impedancia, no para entregar más vatios. Mismo
+principio de declarar la física real en vez de forzar el dato en el
+molde de los demás amplificadores.
+
+Otros casos de interés:
+
+- **Nagra Classic AMP**: sólo publica una cifra a 4 Ω para el modo
+  puenteado a mono (200 W) — no comparable con la cifra estéreo de
+  8 Ω (100 W), así que `potencia4OhmW` queda en `null` en vez de usar
+  un número de una configuración distinta.
+- **Magnat Signature 909**: impedancia nominal de 4 Ω que cae en dos
+  bandas de la música (3,7 Ω a 800 Hz, 3,2 Ω a 100 Hz) — se registra
+  el mínimo más exigente de las dos, con ambas declaradas en
+  `chipsExtra`.
+- **Børresen X3** declara la sensibilidad explícitamente a 1 W (88
+  dB/1W) — otra marca hi-end de este catálogo, junto a Wilson Audio,
+  que no usa la convención de 2,83 V dominante en el resto.
+- **Onkyo A-9110**: la cifra de 8 Ω (30 W) sólo se pudo confirmar en
+  reseñas técnicas que reproducen la ficha del fabricante, no
+  directamente en la página de onkyo.com consultada (que sólo
+  mostraba la de 4 Ω) — confianza degradada a `media` por esa razón,
+  declarado en `pendiente`.
+
+Sin tests nuevos (476 totales, mismo patrón). Verificado con Chrome
+headless: las 6 marcas nuevas aparecen en sus selectores, tarjetas
+sin errores de consola. Con esta tanda se cierra el relevamiento
+original de tiendas chilenas (CF Audio, Highend Chile, AQ Hifi World,
+FG High End) — toda marca identificada ahí ya está catalogada.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
