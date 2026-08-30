@@ -59,13 +59,13 @@ test('ids únicos en todo el catálogo', () => {
   }
 });
 
-test('conteo de equipos por categoría: 39 parlantes (36 reales + 3 genéricos) + 40 amplis (37 reales + 3 genéricos) + 30 streamers + 32 dacs + 3 cables = 144', () => {
-  assert.equal(CATALOGO.parlantes.length, 39);
-  assert.equal(CATALOGO.amplificadores.length, 40);
-  assert.equal(CATALOGO.streamers.length, 30);
+test('conteo de equipos por categoría: 41 parlantes (38 reales + 3 genéricos) + 42 amplis (39 reales + 3 genéricos) + 32 streamers + 32 dacs + 3 cables = 150', () => {
+  assert.equal(CATALOGO.parlantes.length, 41);
+  assert.equal(CATALOGO.amplificadores.length, 42);
+  assert.equal(CATALOGO.streamers.length, 32);
   assert.equal(CATALOGO.dacs.length, 32);
   assert.equal(CATALOGO.cables.length, 3);
-  assert.equal(TODOS_LOS_EQUIPOS.length, 144);
+  assert.equal(TODOS_LOS_EQUIPOS.length, 150);
 });
 
 test('nombre no está vacío en ningún equipo (no se traduce, así que no pasa por el recorrido de Localizado)', () => {
@@ -94,6 +94,7 @@ test('lint de separador decimal: "es" no lleva punto entre dígitos, "en" no lle
   const ALLOWLIST_ES = [
     /\b\d\.\d+\s?V\b/i, // "2.83V" citado dentro de prosa técnica en español
     /\bDiamond 12\.1\b/, // nombre de producto (Wharfedale Diamond 12.1), no un decimal
+    /\bM50\.2\b/, // nombre de producto (NAD M50.2), no un decimal
   ];
   const ALLOWLIST_EN: RegExp[] = [];
 

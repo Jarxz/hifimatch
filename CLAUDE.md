@@ -4240,6 +4240,74 @@ función real ni en el bundle del cliente) y exigirían un bump mayor
 con cambios de breaking; no se forzó ese bump sin evidencia de que
 haga falta.
 
+**Ampliación de catálogo: primer lote priorizando el mercado chileno —
+6 equipos, 6 marcas nuevas, todas confirmadas como realmente
+distribuidas en Chile antes de elegir qué investigar.** Pedido
+explícito del usuario: "considera primero el mercado Chile y después
+sigue extendiendo con marcas hi-end". Antes de tocar el catálogo se
+investigaron tiendas reales de audio hi-fi en Chile (CF Audio,
+Highend Chile, AQ Hifi World, FG High End, HiFi Chile, Music World) y
+qué marcas distribuye cada una — no se adivinó qué "debería" venderse
+ahí. De esa lista, se priorizaron 6 marcas confirmadas y todavía
+ausentes del catálogo: **Paradigm** y **PSB** (parlantes, FG High
+End/CF Audio), **Rotel** y **Bryston** (amplificadores, CF Audio/AQ
+Hifi World), **Aurender** y **Eversolo** (streamers, Highend
+Chile/CF Audio). Catálogo a **150 equipos** (41 parlantes + 42
+amplificadores + 32 streamers + 32 dacs + 3 cables, antes 144).
+
+**Dos casos que exigieron el mismo cuidado de siempre con datos
+ausentes o de fuente secundaria:**
+
+- **PSB Alpha P5** es de los pocos parlantes del catálogo cuya ficha
+  oficial declara explícitamente la convención de sensibilidad
+  ("measured at 2.83V standard") — se registra `sensibilidadConvencion:
+  '2.83V'` con confianza `alta`, sin necesidad del fallback conservador
+  de `potencia.ts`. **Paradigm Premier 200B**, en cambio, no declara la
+  convención pese a dar dos cifras (87 dB anecoica / 90 dB "en sala") ni
+  publica impedancia mínima para este modelo — se usa la anecoica (mismo
+  criterio del resto del catálogo) y la impedancia mínima queda en
+  `null` con `pendiente`, en vez de asumir que el nominal de 8 Ω es
+  también el mínimo real.
+- **Bryston B135³ Cubed**: la ficha oficial de bryston.com sólo publica
+  potencia/respuesta en frecuencia/THD/impedancia de entrada — el factor
+  de amortiguamiento (500) y la sensibilidad de entrada (500 mV) citados
+  vienen de la hoja de especificaciones del manual, reproducida por
+  varios distribuidores, no verificados directo contra el sitio del
+  fabricante — declarado explícitamente en `pendiente`, no mezclado con
+  el resto de los datos de confianza `alta`.
+- **Rotel A14MKII**: los 150 W a 4 Ω están etiquetados por el propio
+  Rotel como "salida máxima no-FTC", no continua — a diferencia de los
+  80 W a 8 Ω (continua, también no-FTC) — la descripción declara
+  explícitamente que la reserva real entre ambas cargas es menor de lo
+  que parece a simple vista, mismo criterio que ya distinguía potencia
+  continua de dinámica en el Marantz SR6008.
+- **Aurender N200**: transporte de red puro, confirmado en la ficha
+  oficial ("Analog Outputs: N/A", "DAC Chipset: N/A") — mismo
+  tratamiento que el HiFi Rose RS130 y el NAD M50.2 ya catalogados:
+  `salidaV`/`impedanciaSalidaOhm` en `null` con confianza **alta** (no
+  es un dato pendiente de investigar, es un equipo que por diseño no
+  tiene esa salida).
+- **Eversolo DMP-A6 Master Edition (Gen 2)**: la ficha oficial da 2,6 V
+  (RCA) / 5,2 V (XLR); una medición independiente de Stereophile sobre
+  esta misma variante dio 51 Ω (RCA) / 189 Ω (XLR) de impedancia de
+  salida — se registra la cifra RCA (más comparable con el resto del
+  catálogo) y se cataloga bajo el nombre completo de la variante exacta
+  medida, no como "DMP-A6" genérico, para no atribuirle a otra variante
+  una medición que podría no aplicarle.
+
+`catalogo.test.ts` (lint de separador decimal) sumó una excepción para
+`M50.2` (nombre de producto, no un decimal) — mismo mecanismo ya usado
+para `Diamond 12.1`. 476 tests totales (antes 470: 187 engine + 16
+data + 17 contact + 248 web + 8 middleware). Verificado con Chrome
+headless sobre el build real: las 6 marcas nuevas aparecen en sus
+selectores marca→modelo, las tarjetas de equipo muestran los chips
+correctos (incluida la ausencia de chips analógicos en Aurender), y un
+análisis completo con Paradigm + Bryston corre de punta a punta sin
+errores de consola. Quedan más marcas hi-end confirmadas en el
+relevamiento de tiendas chilenas sin catalogar todavía —Anthem,
+Technics, Primare, Lyngdorf, Audiovector, Martin Logan, además de más
+modelos de Paradigm/PSB/Rotel/Bryston— para una próxima ronda.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

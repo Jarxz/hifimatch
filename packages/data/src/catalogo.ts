@@ -1434,6 +1434,74 @@ export const CATALOGO: Catalogo = {
       en: 'the manufacturer does not publish an upper bound for recommended power ("from 50 W and up"), nor a resonance-peak impedance, phase angle, or maximum SPL — left null instead of assuming a value',
     },
   },
+  {
+    id: 'paradigm-premier-200b',
+    marca: 'Paradigm',
+    nombre: 'Paradigm Premier 200B',
+    tipo: {
+      es: 'Monitor de estantería de 2 vías, bass reflex',
+      en: '2-way bookshelf monitor, bass reflex',
+    },
+    descripcion: {
+      es: 'Tweeter de domo X-PAL de 1" y woofer de 16,5 cm con cono de polipropileno reforzado con carbono. Paradigm mide sus parlantes con el NRC (National Research Council de Canadá) para su gama superior, pero no publica una impedancia mínima para este modelo — se deja en null en vez de asumir el nominal de 8 Ω como si fuera el mínimo real.',
+      en: 'A 1" X-PAL dome tweeter over a 16.5 cm carbon-infused polypropylene woofer. Paradigm measures its higher-end lines at the NRC (Canada\'s National Research Council), but does not publish a minimum impedance for this specific model — left null instead of assuming the 8 Ω nominal figure is also the real minimum.',
+    },
+    sensibilidadDb: {
+      valor: 87,
+      fuente: { es: 'Paradigm (ficha oficial)', en: 'Paradigm (official spec sheet)' },
+      confianza: 'media',
+      nota: {
+        es: 'la ficha oficial da dos cifras, 87 dB anecoica y 90 dB "en sala" — se usa la anecoica, mismo criterio que el resto del catálogo aplica cuando el fabricante publica ambas',
+        en: 'the official spec sheet gives two figures, 87 dB anechoic and 90 dB "in-room" — the anechoic one is used, same criterion the rest of the catalog applies when the manufacturer publishes both',
+      },
+    },
+    sensibilidadConvencion: null,
+    impedanciaNominalOhm: 8,
+    impedanciaMinOhm: null,
+    impedanciaMaxOhm: null,
+    anguloFaseGrados: null,
+    potenciaRecMinW: 15,
+    potenciaRecMaxW: 130,
+    maxSplDb: null,
+    chipsExtra: [{ es: '90 dB en sala (cifra de marketing)', en: '90 dB in-room (marketing figure)' }],
+    fuentes: ['Paradigm (ficha oficial, paradigm.com)'],
+    pendiente: {
+      es: 'impedancia mínima no publicada por el fabricante para este modelo, y no se encontró medición independiente (NRC u otra) específica de esta generación Premier — la convención de sensibilidad (2,83V vs 1W) tampoco se declara explícitamente',
+      en: 'minimum impedance not published by the manufacturer for this model, and no independent measurement (NRC or otherwise) specific to this Premier generation was found — the sensitivity convention (2.83V vs 1W) is also not explicitly declared',
+    },
+  },
+  {
+    id: 'psb-alpha-p5',
+    marca: 'PSB',
+    nombre: 'PSB Alpha P5',
+    tipo: {
+      es: 'Monitor de estantería de 2 vías, tweeter de domo de aluminio',
+      en: '2-way bookshelf monitor, aluminum dome tweeter',
+    },
+    descripcion: {
+      es: 'Tweeter de domo de aluminio de 19 mm con ferrofluido y woofer de polipropileno de 133 mm, cruce a 2,5 kHz. Uno de los pocos parlantes del catálogo cuya ficha oficial declara explícitamente la convención de medición de su sensibilidad (2,83 V).',
+      en: 'A 19 mm aluminum dome tweeter with ferrofluid cooling and a 133 mm polypropylene woofer, crossing at 2.5 kHz. One of the few speakers in the catalog whose official spec sheet explicitly declares the measurement convention behind its sensitivity figure (2.83 V).',
+    },
+    sensibilidadDb: {
+      valor: 87,
+      fuente: { es: 'PSB Speakers (ficha oficial)', en: 'PSB Speakers (official spec sheet)' },
+      confianza: 'alta',
+      nota: {
+        es: 'la ficha oficial declara explícitamente "measured at 2.83V standard" — convención sin ambigüedad',
+        en: 'the official spec sheet explicitly states "measured at 2.83V standard" — an unambiguous convention',
+      },
+    },
+    sensibilidadConvencion: '2.83V',
+    impedanciaNominalOhm: 8,
+    impedanciaMinOhm: 4,
+    impedanciaMaxOhm: null,
+    anguloFaseGrados: null,
+    potenciaRecMinW: 10,
+    potenciaRecMaxW: 90,
+    maxSplDb: null,
+    chipsExtra: [],
+    fuentes: ['PSB Speakers (ficha oficial, psbspeakers.com)'],
+  },
 
   ],
 
@@ -2776,6 +2844,80 @@ export const CATALOGO: Catalogo = {
       en: 'the manufacturer states the damping factor as ">100" without giving an exact figure — factorAmortiguamiento is left null instead of adopting 100 as if it were the measured value. Line input sensitivity and impedance, and minimum supported speaker load, were not found published either',
     },
   },
+  {
+    id: 'bryston-b135-cubed',
+    marca: 'Bryston',
+    nombre: 'Bryston B135³ Cubed',
+    tipo: { es: 'Integrado Clase AB canadiense, alta gama', en: 'Canadian Class AB integrated amplifier, high-end' },
+    descripcion: {
+      es: '135 W en 8 Ω que suben a 180 W en 4 Ω (reserva 1,33×, por debajo del umbral 1,7×). Bryston publica en su propia ficha oficial potencia, respuesta en frecuencia, THD e impedancia de entrada; el factor de amortiguamiento y la sensibilidad de entrada citados acá vienen de la hoja de especificaciones del manual, reproducida por varios distribuidores — no se pudo confirmar directamente contra bryston.com, que no las lista en su página de producto.',
+      en: '135 W into 8 Ω rising to 180 W into 4 Ω (1.33x reserve, below the 1.7x threshold). Bryston\'s own official page lists power, frequency response, THD, and input impedance; the damping factor and input sensitivity cited here come from the manual\'s specification sheet, reproduced by several dealers — not directly confirmed against bryston.com, which does not list them on its product page.',
+    },
+    potencia8OhmW: {
+      valor: 135,
+      fuente: { es: 'Bryston (ficha oficial, bryston.com)', en: 'Bryston (official spec sheet, bryston.com)' },
+      confianza: 'alta',
+    },
+    potencia4OhmW: {
+      valor: 180,
+      fuente: { es: 'Bryston (ficha oficial, bryston.com)', en: 'Bryston (official spec sheet, bryston.com)' },
+      confianza: 'alta',
+    },
+    cargaMinOhm: null,
+    sensEntradaMv: 500,
+    impedanciaEntradaOhm: 30000,
+    factorAmortiguamiento: 500,
+    chipsExtra: [{ es: 'garantía 20 años (marca)', en: '20-year warranty (brand)' }],
+    fuentes: [
+      'Bryston (ficha oficial, bryston.com — potencia, respuesta en frecuencia, THD, impedancia de entrada)',
+      'Manual del fabricante (reproducido por HiFi Engine / distribuidores — factor de amortiguamiento ">500 @ 20 Hz/8 Ω" y sensibilidad de entrada "500 mV")',
+    ],
+    pendiente: {
+      es: 'carga mínima soportada no encontrada publicada en ninguna fuente consultada; factor de amortiguamiento y sensibilidad de entrada vienen de una fuente secundaria (manual reproducido), no verificados directo contra bryston.com',
+      en: 'minimum supported load not found published in any source consulted; damping factor and input sensitivity come from a secondary source (reproduced manual), not verified directly against bryston.com',
+    },
+  },
+  {
+    id: 'rotel-a14mkii',
+    marca: 'Rotel',
+    nombre: 'Rotel A14MKII',
+    tipo: { es: 'Integrado Clase AB con DAC y Bluetooth', en: 'Class AB integrated amplifier with DAC and Bluetooth' },
+    descripcion: {
+      es: '80 W en 8 Ω (continua, no-FTC) que suben a 150 W en 4 Ω — Rotel etiqueta esta segunda cifra como "salida máxima no-FTC", no continua, así que la reserva real entre ambas cargas es menor de lo que parece a simple vista. DAC integrado con soporte MQA y Bluetooth aptX HD.',
+      en: '80 W into 8 Ω (continuous, non-FTC) rising to 150 W into 4 Ω — Rotel labels this second figure as "maximum non-FTC output", not continuous, so the real headroom between the two loads is smaller than it looks at a glance. Built-in DAC with MQA support and aptX HD Bluetooth.',
+    },
+    potencia8OhmW: {
+      valor: 80,
+      fuente: { es: 'Rotel (ficha oficial, rotel.com)', en: 'Rotel (official spec sheet, rotel.com)' },
+      confianza: 'media',
+      nota: {
+        es: 'declarada "no-FTC" — Rotel no especifica la condición de THD/duración con la que se midió',
+        en: 'declared "non-FTC" — Rotel does not specify the THD/duration condition used to measure it',
+      },
+    },
+    potencia4OhmW: {
+      valor: 150,
+      fuente: { es: 'Rotel (ficha oficial, rotel.com)', en: 'Rotel (official spec sheet, rotel.com)' },
+      confianza: 'media',
+      nota: {
+        es: 'declarada explícitamente como "salida máxima", no continua — no comparable 1:1 con la cifra de 8 Ω',
+        en: 'explicitly declared as "maximum output", not continuous — not directly comparable 1:1 with the 8 Ω figure',
+      },
+    },
+    cargaMinOhm: null,
+    sensEntradaMv: 230,
+    impedanciaEntradaOhm: 24000,
+    factorAmortiguamiento: 220,
+    chipsExtra: [
+      { es: 'DAC integrado con MQA', en: 'Built-in MQA DAC' },
+      { es: 'Bluetooth aptX HD', en: 'aptX HD Bluetooth' },
+    ],
+    fuentes: ['Rotel (ficha oficial, rotel.com)'],
+    pendiente: {
+      es: 'carga mínima soportada no declarada explícitamente — el rating de potencia a 4 Ω sugiere que está diseñado para esa carga, pero Rotel no publica un mínimo garantizado por debajo de eso',
+      en: 'minimum supported load not explicitly declared — the 4 Ω power rating suggests it is designed for that load, but Rotel does not publish a guaranteed minimum below it',
+    },
+  },
 
   ],
 
@@ -3671,6 +3813,61 @@ export const CATALOGO: Catalogo = {
       fuentes: [
         'Yamaha (manual oficial, "Advanced Owner\'s Manual") — "PRE OUT (1 kHz) 2.0 V/470 Ω"; "AUX OUT 2.0 V/1 kΩ"; máximo PRE OUT 4,0 V a 0,9 % THD',
       ],
+    },
+    {
+      id: 'aurender-n200',
+      marca: 'Aurender',
+      nombre: 'Aurender N200',
+      tipo: {
+        es: 'Transporte de red puro, sin DAC ni salida analógica',
+        en: 'Pure network transport, no DAC or analog output',
+      },
+      descripcion: {
+        es: 'Servidor/transporte de red de gama media de Aurender — sin DAC integrado ni salida analógica alguna, sólo salidas digitales (USB Audio aislado y coaxial S/PDIF) hacia un DAC externo. Misma categoría de equipo que el HiFi Rose RS130 o el NAD M50.2 ya catalogados: no es un dato que falte, es un equipo que por diseño no tiene esa salida.',
+        en: "Aurender's mid-range network server/transport — no built-in DAC and no analog output at all, only digital outputs (isolated USB Audio and coaxial S/PDIF) toward an external DAC. Same category of equipment as the already-cataloged HiFi Rose RS130 or NAD M50.2: not a missing datum, but a device that by design has no such output.",
+      },
+      salidaV: null,
+      impedanciaSalidaOhm: null,
+      fuente: { es: 'Aurender (ficha oficial, aurender.com)', en: 'Aurender (official spec sheet, aurender.com)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'sin salida analógica (transporte puro)', en: 'no analog output (pure transport)' },
+        { es: 'USB Audio aislado + coaxial S/PDIF', en: 'isolated USB Audio + coaxial S/PDIF' },
+      ],
+      fuentes: ['Aurender (ficha oficial, aurender.com) — "Analog Outputs: N/A", "DAC Chipset: N/A"'],
+      pendiente: {
+        es: 'salidaV/impedanciaSalidaOhm quedan en null con confianza alta a propósito: no es un dato pendiente de investigar, es un equipo que por diseño no tiene salida analógica',
+        en: 'salidaV/impedanciaSalidaOhm are left null with high confidence on purpose: it is not a datum pending research, it is a device that by design has no analog output',
+      },
+    },
+    {
+      id: 'eversolo-dmp-a6-master-edition-gen2',
+      marca: 'Eversolo',
+      nombre: 'Eversolo DMP-A6 Master Edition (Gen 2)',
+      tipo: {
+        es: 'Streamer de red, DAC integrado, salida RCA y XLR variable',
+        en: 'Network streamer, integrated DAC, variable RCA and XLR output',
+      },
+      descripcion: {
+        es: 'Streamer/DAC chino de gama media-alta con salida totalmente variable (funciona como preamplificador digital). La ficha oficial da 2,6 V en RCA y 5,2 V en XLR; una medición independiente de Stereophile sobre esta misma variante ("Master Edition Gen2") dio impedancias de salida de 51 Ω (RCA) y 189 Ω (XLR) — se registra la cifra RCA, que es la más comparable con el resto del catálogo.',
+        en: 'A mid-to-high-end Chinese streamer/DAC with a fully variable output (works as a digital preamplifier). The official spec sheet gives 2.6 V on RCA and 5.2 V on XLR; an independent Stereophile measurement of this same variant ("Master Edition Gen2") found output impedances of 51 Ω (RCA) and 189 Ω (XLR) — the RCA figure is registered here, the one most comparable to the rest of the catalog.',
+      },
+      salidaV: 2.6,
+      impedanciaSalidaOhm: 51,
+      fuente: { es: 'Eversolo (ficha oficial) + Stereophile (medición independiente)', en: 'Eversolo (official spec sheet) + Stereophile (independent measurement)' },
+      confianza: 'alta',
+      chipsExtra: [
+        { es: 'XLR balanceada 5,2 V / 189 Ω (medido)', en: 'balanced XLR 5.2 V / 189 Ω (measured)' },
+        { es: 'salida totalmente variable', en: 'fully variable output' },
+      ],
+      fuentes: [
+        'Eversolo (ficha oficial, música.eversolo.com — manual de usuario)',
+        'Stereophile (Measurements) — impedancia de salida medida: 51 Ω (RCA) / 189 Ω (XLR), variante "Master Edition Gen2"',
+      ],
+      pendiente: {
+        es: 'la medición de impedancia de salida es de la variante "Master Edition Gen2" específicamente — se registra bajo ese nombre completo, no como "DMP-A6" genérico, para no atribuir la medición a una variante distinta que pudiera diferir en la etapa de salida',
+        en: 'the output-impedance measurement is for the "Master Edition Gen2" variant specifically — it is registered under that full name, not as a generic "DMP-A6", to avoid attributing the measurement to a different variant whose output stage could differ',
+      },
     },
   ],
 
