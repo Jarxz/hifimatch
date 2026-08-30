@@ -4379,6 +4379,54 @@ de catálogo). Verificado con Chrome headless sobre el build real: las
 8 marcas aparecen en sus selectores, las tarjetas muestran los chips
 correctos, sin excepciones de consola.
 
+**Tercera tanda: un segundo modelo para cada una de las 8 marcas
+agregadas en las dos rondas anteriores — profundidad en vez de más
+marcas nuevas.** Pedido explícito tras la segunda tanda ("cada una
+con 1 solo equipo hoy" era la limitación señalada). Catálogo a **166
+equipos** (46 parlantes + 49 amplificadores + 34 streamers + 34 dacs +
+3 cables, antes 158): Paradigm Founder 40B, PSB Synchrony B600
+(parlantes, ambos un escalón sobre el modelo ya catalogado de la
+misma marca); Rotel A11MKII, Bryston 4B³ Cubed, Anthem MRX 740 8K
+(amplificadores); Aurender A10, Eversolo DMP-A8 (streamers); dCS Lina
+DAC. Las 8 marcas ya listadas pasan de 1 a 2 modelos cada una en el
+selector marca→modelo.
+
+**Casos de interés de esta tanda:**
+
+- **Anthem MRX 740 8K** es un receptor AV multicanal, no un
+  integrado estéreo — mismo tratamiento que ya recibía el Marantz
+  SR6008: se registra el rating con **2 canales excitados** (140 W/
+  8 Ω), no la cifra de 1 canal que otros fabricantes usan para
+  inflar el marketing. La notación "11.2" (11 pre-salidas + 2 de
+  subwoofer) se escribió en prosa ("11 pre-salidas + 2 subwoofer")
+  en vez de como "11.2" — mismo criterio ya aplicado al "7.1" del
+  Marantz, para no disparar el lint de separador decimal del
+  catálogo con una notación de canales que no es un número decimal.
+- **Bryston 4B³ Cubed** es un amplificador de potencia puro (sin
+  previo) — mismo tratamiento de categoría que el Hegel H30A ya
+  catalogado.
+- **Aurender A10**: a diferencia del N200 ya catalogado (transporte
+  puro sin DAC), el A10 sí tiene DAC integrado y salida analógica —
+  Stereophile midió una impedancia de salida extremadamente baja,
+  "1 Ω o menos" en todo el rango de audio; se registra 1 Ω como techo
+  conservador de esa medición en vez de asumir un valor más cómodo.
+- **Rotel A11MKII**: la ficha oficial de rotel.com muestra tres
+  cifras de potencia con etiquetas que no se lograron desambiguar con
+  certeza ("FTC"/"no-FTC" aplicados de forma que parecía contradecir
+  la convención esperada) — se optó por la lectura consistente entre
+  múltiples fuentes independientes (50 W/8 Ω, 62 W/4 Ω) en vez de
+  arriesgar una interpretación errónea de una ficha ambigua,
+  declarado explícitamente en `pendiente`.
+- **dCS Lina DAC** comparte literalmente la misma etapa de salida que
+  el Bartók ya catalogado (mismos 4 niveles configurables, mismas
+  impedancias 52 Ω RCA / 3 Ω XLR) — declarado así en la descripción
+  en vez de presentarlo como un dato de investigación independiente.
+
+Sin tests nuevos (mismo patrón que la tanda anterior — 476 totales).
+Verificado con Chrome headless: las 8 marcas ya listadas ahora
+muestran 2 modelos cada una en su selector, todas las tarjetas nuevas
+renderizan sin errores de consola.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
