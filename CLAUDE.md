@@ -4474,6 +4474,24 @@ sin errores de consola. Con esta tanda se cierra el relevamiento
 original de tiendas chilenas (CF Audio, Highend Chile, AQ Hifi World,
 FG High End) — toda marca identificada ahí ya está catalogada.
 
+**Contador de equipos de la portada actualizado ("130+" → "170+"), y
+un test nuevo para que no vuelva a desactualizarse en silencio.** El
+catálogo llegó a 172 equipos reales a lo largo de las cuatro tandas
+anteriores; el "130+" de la portada (fijado cuando el catálogo tenía
+138) llevaba más de 30 equipos de atraso. Se sube a "170+" —
+redondeo hacia abajo, mismo criterio ya declarado ("una cifra
+redondeada... se mantiene cierta aunque el catálogo siga creciendo,
+sin exigir tocar la portada en cada ronda de catálogo futura"). Nuevo
+test en `paginas-estaticas.test.ts`, mismo espíritu que el que ya
+protegía el contador de "9 reglas físicas" (encontrado desactualizado
+en una ronda anterior): no puede pedir igualdad exacta porque el
+número es deliberadamente una cota, así que verifica en cambio que
+(1) nunca supere al catálogo real ("nunca miente por arriba"), (2) la
+distancia entre la cifra mostrada y el total real se mantenga acotada
+(<30, aprox. 2-3 tandas de crecimiento típico) en vez de crecer sin
+límite, y (3) siga siendo un múltiplo de 10. 477 tests totales (antes
+476).
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

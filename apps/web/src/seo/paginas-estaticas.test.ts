@@ -12,6 +12,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { es } from '../idioma/es.ts';
+import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = join(__dirname, '..', '..');
@@ -94,6 +95,26 @@ test('index.html: el contador "reglas físicas" de la portada coincide con las t
   const m = html.match(/<div class="proof-num" data-count-to="(\d+)">/);
   assert.ok(m, 'no se encontró el contador "reglas físicas" de la portada');
   assert.equal(Number(m![1]), basesUnicas.size);
+});
+
+test('index.html: el contador "equipos" de la portada ("N+") nunca miente por arriba y no se desactualiza demasiado', () => {
+  // Mismo espíritu que el test de "reglas físicas" de arriba, pero acá el
+  // número es deliberadamente una cota redondeada hacia abajo (ver
+  // CLAUDE.md: "una cifra redondeada... se mantiene cierta aunque el
+  // catálogo siga creciendo"), no un conteo exacto — así que no se puede
+  // pedir igualdad estricta. Lo que sí se puede garantizar: (1) nunca
+  // supera al catálogo real (nunca "miente por arriba"), y (2) la
+  // distancia entre la cifra mostrada y el total real no crece sin límite
+  // — sin este chequeo, el catálogo puede duplicarse varias veces sin que
+  // nadie note que "170+" ya describe menos de la mitad del total.
+  const html = leer('index.html');
+  const m = html.match(/<div class="proof-num" data-count-to="(\d+)\+">/);
+  assert.ok(m, 'no se encontró el contador "equipos" de la portada (formato "N+")');
+  const mostrado = Number(m![1]);
+  const real = CATALOGO.parlantes.length + CATALOGO.amplificadores.length + CATALOGO.streamers.length + CATALOGO.dacs.length + CATALOGO.cables.length;
+  assert.ok(mostrado <= real, `la portada muestra "${mostrado}+" equipos pero el catálogo real sólo tiene ${real}`);
+  assert.ok(real - mostrado < 30, `la portada muestra "${mostrado}+" pero el catálogo real ya tiene ${real} — conviene actualizarla`);
+  assert.equal(mostrado % 10, 0, 'la cifra mostrada debería ser un múltiplo de 10 (redondeo hacia abajo declarado)');
 });
 
 test('index.html: nada de lo agregado en esta ronda tiene voseo', () => {
