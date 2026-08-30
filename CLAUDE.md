@@ -4308,6 +4308,77 @@ relevamiento de tiendas chilenas sin catalogar todavía —Anthem,
 Technics, Primare, Lyngdorf, Audiovector, Martin Logan, además de más
 modelos de Paradigm/PSB/Rotel/Bryston— para una próxima ronda.
 
+**Segunda tanda: las 6 marcas hi-end chilenas pendientes de la ronda
+anterior, más dos marcas hi-end de referencia internacional sin
+restricción de mercado.** Pedido explícito: "sigue y hifi también" —
+se interpretó como cerrar la lista de marcas chilenas identificadas y,
+además, sumar marcas hi-end reconocidas mundialmente sin exigirles
+presencia confirmada en Chile (la segunda mitad del pedido original,
+"y después sigue extendiendo y agregando marcas hiend"). Catálogo a
+**158 equipos** (44 parlantes + 46 amplificadores + 32 streamers + 33
+dacs + 3 cables, antes 150): **MartinLogan ElectroMotion ESL X**,
+**Audiovector QR3** y **Wilson Audio Sabrina V** (parlantes);
+**Anthem STR Integrated**, **Lyngdorf TDAI-3400**, **Primare I25
+Prisma** y **Technics SU-G700M2** (amplificadores); **dCS Bartók**
+(DAC) — 8 marcas nuevas.
+
+**Casos que exigieron el mismo criterio de siempre frente a diseños
+poco convencionales o datos ambiguos:**
+
+- **MartinLogan ElectroMotion ESL X** es un híbrido electrostático —
+  panel curvo sin filtro para medios/agudos, con una curva de
+  impedancia mucho más reactiva en agudos que un parlante dinámico
+  convencional. La ficha oficial declara un mínimo de 1,6 Ω a 20 kHz;
+  una medición independiente (Sound & Vision, HT Labs) dio un mínimo
+  más alto, 2,03 Ω a 17,2 kHz — se registra la cifra oficial por ser
+  la más exigente de las dos (criterio conservador), con la
+  discrepancia declarada en `chipsExtra` y `pendiente`, mismo patrón
+  ya usado con el Mola Mola Tambaqui.
+- **Wilson Audio Sabrina V** es de los pocos parlantes del catálogo
+  cuya ficha oficial declara la sensibilidad explícitamente **a 1 W**
+  ("87 dB @ 1 Watt @ 1 meter @ 1 kHz") en vez de la convención de
+  2,83 V que domina el resto del catálogo — `sensibilidadConvencion:
+  '1W'` sin ambigüedad.
+- **Audiovector QR3**: la ficha oficial declara la impedancia como un
+  rango "4-8 Ω" en vez de un nominal único — se registra el extremo
+  bajo (4 Ω), el criterio conservador. El fabricante da "200 W
+  (music)" como manejo de potencia, no un rango de potencia
+  recomendada de amplificador — mismo criterio ya aplicado a las
+  fuentes Yamaha del catálogo: se deja `potenciaRecMinW`/`MaxW` en
+  `null` en vez de asumir la equivalencia.
+- **Tres amplificadores Clase D de esta tanda (Lyngdorf, Primare,
+  y el "digital" Technics) no publican un factor de amortiguamiento
+  clásico** — declarado explícitamente en cada `pendiente` como una
+  característica real del diseño (la etapa de salida ya integra su
+  propio control/realimentación digital), no como un dato que
+  simplemente falte investigar. El Technics además declara texto
+  propio: DF "alto en graves, bajo en agudos", sin cifra única — se
+  deja en `null` en vez de resumir mal un comportamiento dependiente
+  de la frecuencia.
+- **Anthem STR Integrated**: el fabricante publica una cifra continua
+  incluso a 2 Ω (550 W) — se usa esa evidencia para declarar
+  `cargaMinOhm: 2`, mismo criterio que ya usaba el Advance Paris A10
+  Classic con su tercer punto de tabla a 2,66 Ω.
+- **dCS Bartók**: salida configurable en 4 niveles (0,2/0,6/2/6 V,
+  mismo criterio que el WiiM Pro Plus — se registra el máximo) con
+  impedancias de salida muy distintas entre conectores (52 Ω RCA vs.
+  3 Ω XLR) — se registra la RCA por ser más comparable con el resto
+  del catálogo, con la XLR declarada en `chipsExtra`, no descartada.
+- **Lyngdorf TDAI-3400**: no se pudo acceder directamente a una ficha
+  oficial (steinwaylyngdorf.com bloqueado) — la potencia se confirma
+  de forma consistente entre tres reseñas técnicas independientes que
+  citan la misma cifra, declarado así en `fuentes`/`pendiente` en vez
+  de presentarlo como si viniera de una única fuente oficial directa.
+
+`catalogo.test.ts`: la marca se registra como `MartinLogan` (una sola
+palabra, la estilización oficial de la marca, confirmada en su propio
+sitio) para que pase el lint de "nombre empieza con marca". 476 tests
+totales (mismo total que la ronda anterior — esta tanda no sumó tests
+nuevos, sólo equipos, siguiendo el mismo patrón que otras ampliaciones
+de catálogo). Verificado con Chrome headless sobre el build real: las
+8 marcas aparecen en sus selectores, las tarjetas muestran los chips
+correctos, sin excepciones de consola.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
