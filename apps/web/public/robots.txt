@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /prototipo-ar.html
 
 Sitemap: https://www.thehifimatch.com/sitemap.xml

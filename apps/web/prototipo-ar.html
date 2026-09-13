@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>The Hifi Match · Prototipo AR</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --fg: #f2f2f2;
+    --muted: #8a8a8a;
+    --line: #2a2a2a;
+    --accent: #e6e6e6;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+  }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    gap: 16px;
+    z-index: 2;
+  }
+  #overlay.hidden { display: none; }
+  h1 {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+  p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 340px;
+    margin: 0;
+  }
+  button {
+    background: var(--fg);
+    color: #0a0a0a;
+    border: none;
+    padding: 12px 28px;
+    font-size: 14px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: var(--line);
+    color: var(--muted);
+  }
+  #hud {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 20px calc(24px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2;
+    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+  }
+  #hud.hidden { display: none; }
+  #readout {
+    font-size: 13px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    line-height: 1.6;
+  }
+  #readout span { color: var(--fg); }
+  #controls {
+    display: flex;
+    gap: 10px;
+  }
+  #controls button {
+    flex: 1;
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--line);
+  }
+  #instructions {
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <h1>THE HIFI MATCH — prototipo AR</h1>
+  <p id="status">Verificando soporte AR en este dispositivo…</p>
+  <button id="start-btn" disabled>Iniciar escaneo</button>
+</div>
+
+<div id="hud" class="hidden">
+  <div id="instructions">Apunta al piso. Toca la pantalla para dejar un punto. Con 2 o más puntos se muestra la distancia entre el último par.</div>
+  <div id="readout">Puntos: <span id="count">0</span> · Última distancia: <span id="dist">—</span></div>
+  <div id="controls">
+    <button id="reset-btn">Reiniciar puntos</button>
+    <button id="exit-btn">Salir de AR</button>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+const statusEl = document.getElementById('status');
+const startBtn = document.getElementById('start-btn');
+const overlay = document.getElementById('overlay');
+const hud = document.getElementById('hud');
+const countEl = document.getElementById('count');
+const distEl = document.getElementById('dist');
+const resetBtn = document.getElementById('reset-btn');
+const exitBtn = document.getElementById('exit-btn');
+
+let scene, camera, renderer, reticle, controller;
+let hitTestSource = null;
+let hitTestSourceRequested = false;
+const anchors = []; // { mesh, position: THREE.Vector3 }
+let xrSession = null;
+
+init();
+
+async function init() {
+  if (!navigator.xr) {
+    statusEl.textContent = 'Este navegador no soporta WebXR. Prueba en Chrome para Android actualizado.';
+    return;
+  }
+  const supported = await navigator.xr.isSessionSupported('immersive-ar');
+  if (!supported) {
+    statusEl.textContent = 'Este dispositivo no soporta AR inmersivo (immersive-ar).';
+    return;
+  }
+  statusEl.textContent = 'AR disponible. Pulsa para iniciar el escaneo.';
+  startBtn.disabled = false;
+
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+  const light = new THREE.HemisphereLight(0xffffff, 0x222222, 1);
+  scene.add(light);
+
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.xr.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  // Retícula: marca dónde está el suelo detectado
+  reticle = new THREE.Mesh(
+    new THREE.RingGeometry(0.06, 0.08, 32).rotateX(-Math.PI / 2),
+    new THREE.MeshBasicMaterial({ color: 0xf2f2f2 })
+  );
+  reticle.matrixAutoUpdate = false;
+  reticle.visible = false;
+  scene.add(reticle);
+
+  controller = renderer.xr.getController(0);
+  controller.addEventListener('select', onSelect);
+  scene.add(controller);
+
+  window.addEventListener('resize', onResize);
+  resetBtn.addEventListener('click', resetAnchors);
+  exitBtn.addEventListener('click', () => xrSession && xrSession.end());
+
+  startBtn.addEventListener('click', startAR);
+}
+
+function startAR() {
+  const sessionInit = {
+    requiredFeatures: ['hit-test'],
+    optionalFeatures: ['dom-overlay'],
+    domOverlay: { root: document.body }
+  };
+  navigator.xr.requestSession('immersive-ar', sessionInit).then(onSessionStarted);
+}
+
+function onSessionStarted(session) {
+  xrSession = session;
+  renderer.xr.setReferenceSpaceType('local');
+  renderer.xr.setSession(session);
+  overlay.classList.add('hidden');
+  hud.classList.remove('hidden');
+  hitTestSourceRequested = false;
+  hitTestSource = null;
+  session.addEventListener('end', onSessionEnd);
+  renderer.setAnimationLoop(render);
+}
+
+function onSessionEnd() {
+  hud.classList.add('hidden');
+  overlay.classList.remove('hidden');
+  statusEl.textContent = 'Sesión AR finalizada. Pulsa para reiniciar.';
+  renderer.setAnimationLoop(null);
+  resetAnchors();
+  xrSession = null;
+}
+
+function onSelect() {
+  if (!reticle.visible) return;
+  const pos = new THREE.Vector3();
+  pos.setFromMatrixPosition(reticle.matrix);
+
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.035, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xe6e6e6 })
+  );
+  mesh.position.copy(pos);
+  scene.add(mesh);
+
+  anchors.push({ mesh, position: pos });
+  countEl.textContent = anchors.length;
+
+  if (anchors.length >= 2) {
+    const a = anchors[anchors.length - 2].position;
+    const b = anchors[anchors.length - 1].position;
+    const meters = a.distanceTo(b);
+    distEl.textContent = meters.toFixed(2) + ' m';
+    drawLine(a, b);
+  }
+}
+
+function drawLine(a, b) {
+  const geometry = new THREE.BufferGeometry().setFromPoints([a, b]);
+  const material = new THREE.LineBasicMaterial({ color: 0x8a8a8a });
+  const line = new THREE.Line(geometry, material);
+  scene.add(line);
+}
+
+function resetAnchors() {
+  anchors.forEach(a => scene.remove(a.mesh));
+  anchors.length = 0;
+  countEl.textContent = '0';
+  distEl.textContent = '—';
+  scene.children
+    .filter(c => c.type === 'Line')
+    .forEach(l => scene.remove(l));
+}
+
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function render(timestamp, frame) {
+  if (frame) {
+    const referenceSpace = renderer.xr.getReferenceSpace();
+    const session = renderer.xr.getSession();
+
+    if (!hitTestSourceRequested) {
+      session.requestReferenceSpace('viewer').then((viewerSpace) => {
+        session.requestHitTestSource({ space: viewerSpace }).then((source) => {
+          hitTestSource = source;
+        });
+      });
+      session.addEventListener('end', () => {
+        hitTestSourceRequested = false;
+        hitTestSource = null;
+      });
+      hitTestSourceRequested = true;
+    }
+
+    if (hitTestSource) {
+      const hitTestResults = frame.getHitTestResults(hitTestSource);
+      if (hitTestResults.length > 0) {
+        const hit = hitTestResults[0];
+        const pose = hit.getPose(referenceSpace);
+        reticle.visible = true;
+        reticle.matrix.fromArray(pose.transform.matrix);
+      } else {
+        reticle.visible = false;
+      }
+    }
+  }
+  renderer.render(scene, camera);
+}
+</script>
+</body>
+</html>

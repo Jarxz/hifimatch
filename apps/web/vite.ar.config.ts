@@ -17,6 +17,15 @@ import { defineConfig } from 'vite';
  * paso. apps/web/package.json corre los dos build en orden dentro de
  * "build". verificar-build.mjs sigue revisando sólo dist/index.html — un
  * segundo HTML en dist/ no lo toca.
+ *
+ * prototipo-ar.html se cuelga del mismo entry (misma razón: WebXR, nunca
+ * funciona por file://, no tiene sentido inlinearlo). Es una página de
+ * prueba aparte, sin ningún link desde el sitio — no toca index.html/
+ * main.ts ni ningún módulo de src/. Bundlea three.js desde el propio
+ * paquete npm (mismo que ya usa ar.html) en vez del import map a un CDN
+ * externo del prototipo original: así queda self-hosted, sirve bajo el
+ * mismo CSP script-src 'self' de vercel.json sin necesitar excepción
+ * ninguna (mismo motivo por el que ar.html ya pasa esa CSP hoy).
  */
 export default defineConfig({
   base: './',
@@ -24,7 +33,7 @@ export default defineConfig({
     target: 'es2022',
     outDir: 'dist',
     emptyOutDir: false,
-    rollupOptions: { input: 'ar.html' },
+    rollupOptions: { input: ['ar.html', 'prototipo-ar.html'] },
     sourcemap: false,
   },
 });
