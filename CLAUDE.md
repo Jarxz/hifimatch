@@ -4492,6 +4492,132 @@ distancia entre la cifra mostrada y el total real se mantenga acotada
 límite, y (3) siga siendo un múltiplo de 10. 477 tests totales (antes
 476).
 
+**"The Match Recomendado" — un solo sistema, elegido en vivo por el
+motor entre todo el catálogo, que rota una vez por mes. LOCAL, sin
+commit/push todavía — pedido explícito del usuario ("primero sólo
+desarrollar en modo local") antes de aprobar el deploy.** No es una
+vitrina de varios productos (esa primera idea se descartó a mitad de
+la planificación) ni una selección editorial: es la combinación que
+el propio motor evalúa, en vivo, en el navegador del visitante,
+contra los ~150 equipos reales del catálogo — sin backend, sin lista
+a mano, sin juicio de gusto. Reemplaza por completo un diseño inicial
+de 6 fichas de producto "recomendadas" que llegó a planificarse en
+detalle (imagen paramétrica incluida) antes de que el usuario pidiera
+justo lo contrario: un único "reconocimiento" del sitio, no una
+vitrina.
+
+**Hallazgo real que cambió el criterio de selección: "totalmente
+compatible" es inalcanzable siempre, para cualquier equipo, en
+cualquier sala — no es cuestión de elegir bien la sala de
+referencia.** Se probaron miles de combinaciones de dimensiones y
+materiales buscando una sala donde el grupo "Sala" del veredicto
+diera `ok`. Ninguna lo logra. La causa es álgebra, no mala suerte: la
+distancia horizontal parlante↔oído en la disposición automática es
+una función fija del ANCHO de la sala únicamente (`separacionM`
+depende sólo de `anchoM`; `filaEscuchaM` resulta ser
+`separacionM×1,2` sin importar el largo, mientras no choque contra el
+clamp del fondo de la sala) — y con la altura de oído/parlante fija
+en 1,0 m (`ALTURA_ESCUCHA_M`), el nulo de filtro peine de la
+reflexión de PISO cae siempre entre ~204 y ~360 Hz, sea cual sea el
+ancho elegido (el propio clamp de `separacionM` a un mínimo de 1,5 m
+pone un piso matemático de ~203,5 Hz, apenas por encima del umbral de
+200 Hz de la regla). Ningún material de piso del catálogo
+(hormigón/madera laminado/porcelanato/alfombra) tiene coeficiente de
+absorción suficiente ahí — la alfombra, el mejor caso, da 0,14 justo
+por debajo del umbral de 0,15. Confirmado con el usuario antes de
+seguir: el criterio de selección pasa a ser el mejor resultado real
+que el motor puede dar — **Potencia y Acople eléctrico en `ok`, Sala
+en `warn`** ("Configuración soportada, con límites"), nunca
+"totalmente compatible". La sala de referencia final (3,8×4,5×2,5 m,
+muros/techo con panel acústico, piso con alfombra) se verificó por
+cómputo directo: da `ok` en modos/nulo de escucha/acoplamiento modal/
+asimetría/ángulo — sólo el piso, por el límite ya explicado, queda en
+`warn`. Documentado con detalle en el comentario de cabecera de
+`apps/web/src/datos/matchDelMes.ts`.
+
+**Por qué el cálculo corre en el navegador sin ser combinatoriamente
+explosivo.** Los componentes del veredicto se separan en grupos que
+no interactúan: Sala depende sólo de la sala de referencia (se
+calcula una única vez); Potencia/Carga/Amortiguamiento dependen sólo
+de (parlante, amplificador); Puente/Recorrido dependen sólo de
+(fuente, amplificador), streamer y dac entre sí independientes. Así
+que el algoritmo real, para cada amplificador real del catálogo
+(excluyendo `Genérico (Arquetipo)`), filtra qué parlantes/streamers/
+dacs son compatibles con ÉL — nunca un producto cartesiano de las 4
+categorías (que sería inmanejable) — unas ~5.100 llamadas a funciones
+aritméticas simples en total, confirmado en Chrome real que no
+introduce ninguna demora perceptible al cargar la portada.
+
+**Amortiguamiento se acepta en `sin-datos`, a propósito — el resto de
+las reglas de acople exige `ok` estricto.** Ningún amplificador real
+del catálogo tiene `factorAmortiguamiento` publicado todavía (ver
+más arriba) — exigirle `ok` habría dejado esta función sin ningún
+candidato posible, siempre. `sin-datos` se acepta ahí igual que en
+`calcularVeredicto()` (nunca cuenta como reparo); carga y puente/
+recorrido de streamer/dac sí exigen `ok` estricto, porque la mayoría
+de los equipos reales sí tienen esos datos y exigirlo de verdad da
+una selección genuinamente verificada, no una vacía.
+
+**Selección determinística por mes, sin backend, sin azar**:
+`indice = (año×12 + mes) % candidatos.length` sobre la lista de
+amplificadores candidatos (ordenada por id) — un catálogo que crece
+cambia la rotación sola, nunca hay que tocar código ni mantener una
+lista a mano. `elegirMatchDelMes(fecha: Date)` nunca lee `Date.now()`
+internamente (recibe la fecha como parámetro) — 100% determinística y
+testeable.
+
+**Reuso, cero texto nuevo sobre física o sonido.** Los chips de cada
+pieza son exactamente `chipsParlante`/`chipsAmplificador`/
+`chipsFuente` de `datos/etiquetas.ts` — los mismos que ya muestra la
+tarjeta de equipo elegido en Configurar. El título/subtexto del
+veredicto salieron de extraer una función nueva,
+`tituloYSubtextoVeredicto()`, de adentro de `modeloVeredicto()` en
+`vista/resultado.ts` (refactor puro, sin cambio de comportamiento —
+`modeloVeredicto()` la llama internamente ahora) — así un consumidor
+que sólo necesita el titular (este, que no calcula ninguna de las
+tarjetas de detalle que `modeloVeredicto()` sí necesita) no tiene que
+arrastrar esa dependencia completa. El rótulo de capa reusa
+`resultado.capaCriterioEditorial` tal cual — misma dualidad que ya
+declara `veredicto.ts`: la selección/rotación es criterio del sitio,
+el veredicto que se muestra sobre ella es 100% físico.
+
+**Ícono lineal paramétrico por equipo, no una foto de producto —
+descartado por derechos del fabricante y porque el CSP del sitio sólo
+deja `img-src 'self' data:`.** `apps/web/src/vista/iconosCategoria.ts`
+arma un SVG por composición de formas simples (caja, círculo de
+driver, tweeter de domo/cinta/bocina, válvulas, pantalla, perilla)
+según palabras clave que busca en `tipo`/`descripcion` — texto que el
+catálogo YA tiene, nunca un campo nuevo ni una foto por equipo. Las
+variantes se diseñaron mirando 5 fotos oficiales reales de equipos ya
+catalogados (PSB Alpha P5, MartinLogan ElectroMotion ESL X, Anthem
+MRX 740 8K, Rotel A14MKII, Eversolo DMP-A6 — descargadas sólo para
+referencia visual local, nunca alojadas ni redistribuidas) para que
+las proporciones no fueran inventadas. Límite real encontrado al
+testear: el catálogo describe specs eléctricas, no aspecto físico —
+el Eversolo DMP-A6 tiene pantalla de verdad (confirmado en la foto)
+pero su texto no dice "pantalla" en ningún lado, así que esa variante
+no se dispara para él (sí se dispara la de perilla, porque "salida
+totalmente variable"/"preamplificador digital" sí son palabras del
+propio catálogo) — declarado como limitación real en el test, no
+corregido inventando una palabra clave por marca (eso violaría el
+principio de "cero equipo hardcodeado" extendido a la capa de
+presentación). `packages/data/src/tipos-catalogo.ts` no ganó ningún
+campo `imagenUrl` en esta ronda (se había planeado en el diseño de la
+vitrina de 6 fichas, descartado junto con esa idea).
+
+**Verificado.** `npm run verify` (505 tests totales entre los 4
+workspaces — 187 engine + 16 data + 17 contact + 277 web + 8
+middleware, antes 477) y `npm run build` en verde.
+`resultado.test.ts` (249 tests) sigue en verde tras el refactor de
+`tituloYSubtextoVeredicto` — comportamiento preservado, no un cambio
+de lógica. Chrome headless sobre `dist/index.html` real: la sección
+aparece con datos reales (ej. B&W 606 S2 + Denon PMA-800NE + Bluesound
+Node 2i, "Configuración soportada, con límites"), sin errores de
+consola, `domContentLoaded`≈120ms/`load`≈202ms (nada de demora
+perceptible), sin overflow horizontal en 1400/768/390px, grilla
+4→2→1 columnas según el ancho. **Pendiente**: aprobación del usuario
+antes de commit/push/deploy.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

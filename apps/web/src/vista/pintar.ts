@@ -17,6 +17,7 @@ import type {
   ModeloEstadoGrupo,
 } from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
+import type { ModeloMatchDelMes } from './matchDelMes.ts';
 import { actualizarMedidor, construirEscala } from './medidor.ts';
 
 function el(id: string): HTMLElement {
@@ -348,4 +349,52 @@ export function pintarDocumento(m: ModeloDocumento, margenDbPotencia: number, id
     construirEscala(escalaDoc, 'doc-pw');
     actualizarMedidor(margenDbPotencia, idioma, 'doc-pw');
   }
+}
+
+/**
+ * "The Match Recomendado" — sección de la portada. `null` cuando
+ * `elegirMatchDelMes` no encontró ningún candidato contra el catálogo
+ * vigente (caso límite, no esperado hoy): la sección se oculta entera,
+ * mismo patrón que `pintarCarga`/`pintarGanancia` con "sin-datos", en vez
+ * de mostrar una tarjeta vacía.
+ *
+ * El veredicto reusa exactamente las clases CSS ya existentes de la
+ * tarjeta de veredicto de Resultado (`card veredicto-card veredicto-*`,
+ * `vd-titulo`) — mismo color por clase, sin CSS nuevo para eso.
+ */
+export function pintarMatchDelMes(modelo: ModeloMatchDelMes | null): void {
+  const contenedor = document.getElementById('splash-match-mes');
+  if (!contenedor) return;
+  if (!modelo) {
+    contenedor.classList.add('hidden');
+    contenedor.innerHTML = '';
+    return;
+  }
+  contenedor.classList.remove('hidden');
+
+  const itemsHtml = modelo.items
+    .map(
+      (item) =>
+        `<div class="match-mes-item">` +
+        `<div class="match-mes-icono">${item.iconoSvg}</div>` +
+        `<div class="match-mes-cat">${item.categoriaLabel}</div>` +
+        `<div class="match-mes-nombre">${item.nombre}</div>` +
+        `<div class="chips">${item.chips.map((c) => `<span>${c}</span>`).join('')}</div>` +
+        `</div>`
+    )
+    .join('');
+
+  contenedor.innerHTML =
+    `<div class="match-mes-head">` +
+    `<span class="layer">${modelo.rotuloCriterio}</span>` +
+    `<h2 class="match-mes-titulo">${modelo.tituloSeccion}</h2>` +
+    `<p class="match-mes-intro">${modelo.introHtml} · ${modelo.mesEtiqueta}</p>` +
+    `</div>` +
+    `<div class="match-mes-grid">${itemsHtml}</div>` +
+    `<div class="card veredicto-card veredicto-${modelo.veredictoClase} match-mes-veredicto">` +
+    `<div class="vd-titulo">${modelo.veredictoTituloHtml}</div>` +
+    `<div class="vd-subtexto">${modelo.veredictoSubtextoHtml}</div>` +
+    `</div>` +
+    `<p class="src match-mes-nota">${modelo.notaSalaReferencia}</p>` +
+    `<div class="info-linkwrap"><span class="info-link">${modelo.verFicha}</span></div>`;
 }

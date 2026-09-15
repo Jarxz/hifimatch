@@ -61,6 +61,26 @@ export const es = {
     cerrarAria: 'Cerrar',
     acercaDe: 'Acerca de',
     privacidad: 'Privacidad',
+    // Pie de página real (Configurar/Resultado/Guía) — mismo lugar que
+    // ocupa el footer de la referencia de Stitch, con texto real en vez
+    // de "LAB INSTRUMENT PLATFORM"/"CALIBRATED SPECS: IEC-60268-5".
+    pieDescripcion: 'Diagnóstico de acople eléctrico, reserva de potencia y acústica de sala — cada regla con su fórmula y su fuente.',
+    pieNota: 'Se calcula en tu navegador, sin servidor',
+  },
+
+  // Barra de navegación fija (las 6 secciones, siempre visibles — ver
+  // estilos.css .head-nav y wireNavHead() en main.ts). Etiquetas cortas a
+  // propósito, distintas de los *.hs más largos que cada pantalla ya usa
+  // como título de sección.
+  nav: {
+    portada: 'Portada',
+    configurar: 'Configurar',
+    resultado: 'Resultado',
+    guia: 'Guía',
+    documento: 'Documento',
+    ar: 'AR',
+    arAria: 'Ver en realidad aumentada — Chrome/Android con un análisis ya calculado',
+    deshabilitadaAria: 'Disponible después de analizar un sistema',
   },
 
   contacto: {
@@ -90,15 +110,76 @@ export const es = {
     entrarAria: 'Entrar al análisis de compatibilidad',
     subtitulo: 'análisis de compatibilidad hi-fi · basado en física',
     remate: 'tú escuchas y decides',
+    // Párrafo de precisión bajo el remate — describe el motor real (qué
+    // evalúa), sin adjetivos de "laboratorio" ni certificaciones que el
+    // sitio no tiene.
+    leadParrafo:
+      'Evalúa el acople eléctrico, la reserva de potencia y la acústica de la sala entre los equipos que elijas, con reglas físicas propias: cada una declara su fórmula, su umbral y de dónde sale el dato.',
     cta: 'Analizar un sistema',
+    ctaSecundaria: 'Explorar la guía',
     proofReglas: 'reglas físicas, cada una con fórmula y umbral declarado',
+    // Chips de marca bajo el conteo de equipos — 4 marcas reales del
+    // catálogo (packages/data/src/catalogo.ts), no inventadas.
+    proofEquiposChips: 'KEF · Bowers & Wilkins · Hegel · McIntosh',
     proofEquipos: 'equipos curados, con fuente y confianza por dato',
+    // Fórmula real bajo el conteo de reglas — el modo axial que
+    // frecuenciaModoAxialHz() calcula de verdad (packages/engine/src/
+    // unidades.ts): órdenes superiores/tangenciales/oblicuos NO están
+    // implementados, así que no se muestra la fórmula general de Rayleigh.
+    proofReglasFormula: 'f = n · 343 / (2·L) — modo axial',
     proofAnalisis: 'análisis con datos comprobados',
+    // Detalle bajo "0% opiniones de gusto" — cita directa de las
+    // prohibiciones ya declaradas en CLAUDE.md, no una afirmación nueva.
+    proofSinOpinionDetalle: 'sin juicios de carácter tonal ni sinergia entre marcas',
     // Marca de versión, no texto de producto traducible — mismo valor en
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
     // mes/año son los del deploy. Se actualiza a mano en cada push.
     version: 'V20.08.26',
+    // Nombre propio de la sección — igual en los dos idiomas, mismo
+    // criterio que splash.version.
+    recomendadoTitulo: 'The Match Recomendado',
+    recomendadoIntro: 'Elegido por el propio motor entre todo el catálogo — cambia cada mes.',
+    recomendadoNotaSala:
+      'Evaluado en una sala de referencia, no la tuya. El grupo Sala queda en advertencia por un límite del propio modelo (la reflexión del piso siempre cae en una frecuencia audible, sin importar la sala), no por este sistema en particular.',
+    // Intro de arranque (ver vista/bootSplash.ts) — puramente decorativa,
+    // nombra mecanismos reales del motor (catálogo, Rayleigh, Sabine/
+    // Eyring, la separación de capas), nunca una certificación o auditoría
+    // que este sitio no tiene.
+    bootPaso1: 'Cargando catálogo (170+ equipos)…',
+    bootPaso2: 'Aplicando reglas físicas (modos de Rayleigh, Sabine/Eyring)…',
+    bootPaso3: 'Separando ley física de criterio editorial…',
+    bootProcesando: 'Procesando…',
+    bootListo: 'Listo',
+    bootSaltar: 'Saltar intro',
+    bootSistema: 'Motor CADENA v2.4',
+    bootInicializacion: 'Inicialización determinista',
+    bootBadgeTop: 'Sin servidor',
+    bootDiagnostico: 'Diagnóstico del sistema',
+    bootPieIzq: 'Arquitectura determinista, sin intervención humana en el resultado',
+    bootPieDer: 'Basado en física, specs medidos',
+    // Barra de telemetría + sección "Dos capas" de la portada (rediseño a
+    // partir del sistema de Google Stitch, corregido: reusa capaFisica/
+    // capaCriterioEditorial de motor.veredicto en vez de duplicar el
+    // rótulo, y cita criterios editoriales REALES del motor — nunca los
+    // inventados del mockup original (AES20, "instrumental Audio
+    // Precision/Klippel", un reparto de presupuesto 85/15 que no existe).
+    telemetriaEstado: 'Motor en vivo, sin servidor',
+    capasEyebrow: 'Regla estructural del proyecto',
+    capasTitulo: 'Dos capas de información. Cero confusión.',
+    capasIntro:
+      'Todo lo que este sitio afirma pertenece a una de dos capas, y la capa se declara siempre — nunca mezcladas.',
+    capasFisicaDesc:
+      'Fórmula, umbral y fuente declarados. Cada dato viene de la ficha del fabricante o de una medición independiente ya publicada (Stereophile, Audio Science Review, Hi-Fi News), con su nivel de confianza junto al número.',
+    capasFisicaNota: 'Se calcula en tu navegador — sin servidor, sin intervención humana en el resultado.',
+    capasCriterioDesc:
+      'Decisiones de diseño del propio sitio, rotuladas como tales, nunca mezcladas con un veredicto físico.',
+    capasCriterioEj1:
+      'SPL de pico objetivo por nivel de escucha: 90 dB (moderado) · 100 dB (alto) · 105 dB (referencia).',
+    capasCriterioEj2:
+      'Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.',
+    capasCriterioEj3:
+      'Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.',
   },
 
   info: {
@@ -185,8 +266,30 @@ export const es = {
     amplificador: 'Amplificador',
     streamer: 'Streamer',
     dac: 'DAC',
+    // Subtítulo real bajo cada categoría (terminología técnica exacta del
+    // rol que cumple, no un dato inventado) — mismo lugar que ocupa el
+    // título grande de la referencia de Stitch ("Parlantes Pasivos",
+    // "Amplificador Integrado"...) bajo la etiqueta numerada.
+    parlantesRol: 'Transductor principal',
+    amplificadorRol: 'Etapa de amplificación',
+    streamerRol: 'Fuente de streaming',
+    dacRol: 'Conversor digital-analógico',
     requerido: 'requerido',
     opcionalFuente: 'opcional',
+    // Etiquetas de los dos bloques del rediseño (ver estilos.css .cfg-grid)
+    // — puramente organizativas, agrupan visualmente lo que ya existía.
+    bloqueA: 'Cadena de señal',
+    bloqueB: 'Sala de escucha',
+    eyebrowFase: 'Fase 01',
+    eyebrowMatriz: 'Matriz de configuración',
+    eyebrowEstado: 'Cálculo en el navegador, sin servidor',
+    estadoAnalisisLabel: 'Estado de la selección',
+    estadoAnalisisValor: (p: { hechos: string; total: string }): string => `${p.hechos} de ${p.total} requeridos`,
+    bloqueAMeta: '6 reglas físicas aplicables',
+    matrizTitulo: 'Matriz de la cadena',
+    faltanDatos: 'Faltan datos',
+    listoAnalizar: 'Listo para analizar',
+    sinInconsistencias: 'Sin inconsistencias detectadas — listo para calcular.',
     marcaPlaceholder: '— Marca —',
     modeloPlaceholder: '— Modelo —',
     modeloSinMarca: '— Elige una marca primero —',
@@ -202,7 +305,18 @@ export const es = {
     personalizarSala: 'Personalizar sala',
     resumenSala: (p: { ancho: string; largo: string; alto: string; muro: string; piso: string }): string =>
       `${p.ancho} × ${p.largo} × ${p.alto} m · ${p.muro} + ${p.piso}`,
+    // Volumen (m³) junto al título "Personalizar sala" — mismo dato que
+    // el badge de volumen de la referencia, acá real (W×L×H).
+    volumenBadge: (p: { m3: string }): string => `${p.m3} m³`,
     dimensionesTitulo: 'Dimensiones de la sala',
+    // Relación ancho/largo respecto del alto (siempre el más chico en la
+    // sala por defecto) — sólo aritmética sobre las 3 medidas ya
+    // ingresadas, no una regla nueva del motor.
+    relacion: (p: { w: string; l: string }): string => `Relación (alto=1) 1 : ${p.w} : ${p.l}`,
+    // Lectura en vivo (packages/engine/src/unidades.ts, frecuenciaModoAxialHz)
+    // — el modo axial de orden 1 de la dimensión más larga, se recalcula al
+    // mover cualquier slider.
+    modoAxial: 'Modo axial de la dimensión mayor',
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',
     alto: 'Alto',
@@ -228,10 +342,17 @@ export const es = {
     nivelModerado: 'Moderado',
     nivelAlto: 'Alto',
     nivelReferencia: 'Referencia',
+    // Badge mono debajo de cada botón de nivel: el pico objetivo real que
+    // PICO_OBJETIVO_DB (potencia.ts) usa para ese nivel — nunca un valor
+    // aparte a mantener sincronizado a mano, main.ts lo calcula en vivo.
+    nivelPico: (p: { db: string }): string => `${p.db} dB pico`,
     genero: 'Género musical',
     generoRockPop: 'Rock/Pop',
     generoJazzVocal: 'Jazz/Vocal',
     generoClasica: 'Clásica',
+    // Badge mono debajo de cada botón de género: el crest factor real de
+    // CREST_FACTOR_DB (genero.ts) para ese género.
+    generoCresta: (p: { db: string }): string => `≈${p.db} dB`,
     distanciaResultante: 'Distancia de escucha resultante',
     volumenPrefix: 'volumen',
     proximamente: 'Próximamente',

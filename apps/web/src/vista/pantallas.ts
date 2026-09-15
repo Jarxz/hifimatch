@@ -5,6 +5,14 @@ export function ir(pantalla: Pantalla): void {
   const cambiar = (): void => {
     document.querySelectorAll<HTMLElement>('.screen').forEach((s) => s.classList.remove('active'));
     document.getElementById('s-' + pantalla)?.classList.add('active');
+    // Resalta la pestaña activa en .head-nav (ver estilos.css) — corre acá,
+    // no en cada botón que llama a ir(), para que cualquier camino de
+    // navegación (la pestaña misma, "Analizar", los botones "Volver" que
+    // quedan) deje la barra sincronizada sin duplicar la lógica.
+    document.querySelectorAll<HTMLButtonElement>('.head-nav-btn[data-nav-ir]').forEach((b) => {
+      if (b.dataset.navIr === pantalla) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
     window.scrollTo(0, 0);
   };
   if (typeof document.startViewTransition === 'function') {

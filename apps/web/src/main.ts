@@ -9,10 +9,12 @@ import { evaluarAmortiguamiento } from '../../../packages/engine/src/amortiguami
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import { evaluarModos, evaluarNuloEscucha, evaluarAcoplamientoModal, techoModosDesdeSchroeder } from '../../../packages/engine/src/modos.ts';
-import { evaluarReverberacion } from '../../../packages/engine/src/reverberacion.ts';
+import { evaluarReverberacion, ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho, Materiales } from '../../../packages/engine/src/reverberacion.ts';
+import { frecuenciaModoAxialHz } from '../../../packages/engine/src/unidades.ts';
 import { evaluarFiltroPeine, evaluarAsimetria, evaluarAnguloEscucha } from '../../../packages/engine/src/colocacion.ts';
 import type { Genero } from '../../../packages/engine/src/genero.ts';
+import { CREST_FACTOR_DB } from '../../../packages/engine/src/genero.ts';
 import { calcularVeredicto } from '../../../packages/engine/src/veredicto.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
@@ -22,8 +24,10 @@ import type { EntradaContacto } from '../../../packages/contact/src/contacto.ts'
 import { estado } from './estado.ts';
 import type { NivelUI } from './estado.ts';
 import { ir } from './vista/pantallas.ts';
+import type { Pantalla } from './vista/pantallas.ts';
 import { poblarSelectores, poblarModelos, vaciarModelos, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { construirEscala } from './vista/medidor.ts';
+import { iniciarBootSplash } from './vista/bootSplash.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
 import type { MurosVista, Vista } from './vista/plano.ts';
 import { activarArrastre } from './vista/arrastre.ts';
@@ -63,7 +67,10 @@ import {
   pintarRecomendacionesTop,
   pintarNotaSinDatos,
   pintarDocumento,
+  pintarMatchDelMes,
 } from './vista/pintar.ts';
+import { elegirMatchDelMes } from './datos/matchDelMes.ts';
+import { modeloMatchDelMes } from './vista/matchDelMes.ts';
 import { parlanteDelCatalogo, amplificadorDelCatalogo, fuenteDelCatalogo } from './datos/adaptadores.ts';
 import { especParlante, especAmplificador, especFuente } from './datos/etiquetas.ts';
 import { num, numConSigno } from './formato/numeros.ts';
@@ -137,6 +144,12 @@ interface SnapshotAnalisis {
    * "Recalcular". El comparador avisa cuando difieren entre pestañas. */
   candadoAbierto: boolean;
 }
+
+/** "The Match Recomendado" se calcula UNA sola vez al cargar (no depende
+ * de nada que el usuario elija) y se cachea acá — cambiar de idioma sólo
+ * re-redacta el mismo resultado, nunca vuelve a correr el motor sobre
+ * todo el catálogo. */
+let matchDelMesCache: ReturnType<typeof elegirMatchDelMes> = null;
 
 let ultimoAnalisis: UltimoAnalisis | null = null;
 let analisisOriginal: SnapshotAnalisis | null = null; // se fija una vez por "Analizar", nunca se pisa
@@ -271,6 +284,64 @@ function actualizarTextosDimension(): void {
     const el = document.getElementById('v-' + dim);
     if (el) el.textContent = num(estado[dim], decimales, idiomaActual) + ' m';
   });
+  // Lectura en vivo del modo axial de orden 1 de la dimensión mayor
+  // (ancho o largo, la que sea más grande en cada momento) — misma
+  // fórmula real que usa evaluarModos() (frecuenciaModoAxialHz,
+  // unidades.ts), no un número aparte inventado para esta vista previa.
+  const modoAxialEl = document.getElementById('v-modo-axial');
+  if (modoAxialEl) {
+    const dimensionMayorM = Math.max(estado.W, estado.L);
+    modoAxialEl.textContent = num(frecuenciaModoAxialHz(dimensionMayorM, 1), 1, idiomaActual) + ' Hz';
+  }
+}
+
+/** Banda de 500 Hz — misma "banda de referencia" que ya usa la tarjeta de
+ * Reverberación para el desglose superficie por superficie (CoefBandas es
+ * [125, 500, 2000] Hz). Puramente informativo acá: sólo redondea a la
+ * vista un coeficiente que el motor ya declara en reverberacion.ts, no
+ * calcula nada nuevo. */
+const BANDA_REFERENCIA_INDICE = 1;
+
+function actualizarAlfas(): void {
+  const filas: Array<[string, number]> = [
+    ['alfa-murofrontal', ABSORCION_MURO_BANDAS[estado.muroFrontal][BANDA_REFERENCIA_INDICE]],
+    ['alfa-muroposterior', ABSORCION_MURO_BANDAS[estado.muroPosterior][BANDA_REFERENCIA_INDICE]],
+    ['alfa-muroizquierdo', ABSORCION_MURO_BANDAS[estado.muroIzquierdo][BANDA_REFERENCIA_INDICE]],
+    ['alfa-muroderecho', ABSORCION_MURO_BANDAS[estado.muroDerecho][BANDA_REFERENCIA_INDICE]],
+    ['alfa-piso', ABSORCION_PISO_BANDAS[estado.piso][BANDA_REFERENCIA_INDICE]],
+    ['alfa-techo', ABSORCION_TECHO_BANDAS[estado.techo][BANDA_REFERENCIA_INDICE]],
+  ];
+  for (const [id, valor] of filas) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = 'α ' + num(valor, 2, idiomaActual);
+  }
+}
+
+/** Badges mono de los botones de Nivel de escucha / Género musical (ver
+ * index.html .cfg-seg3) — mismos números que ya usa el motor
+ * (PICO_OBJETIVO_DB en potencia.ts, CREST_FACTOR_DB en genero.ts), nunca
+ * un valor aparte inventado para que el botón "se vea con datos" como en
+ * la maqueta de Stitch (esa mostraba dBA/DR sin relación con este motor). */
+function actualizarBadgesNivelGenero(): void {
+  const t = textosDe(idiomaActual).config;
+  const nivelBadges: Array<[string, NivelUI]> = [
+    ['v-pico-mod', 'mod'],
+    ['v-pico-alto', 'alto'],
+    ['v-pico-ref', 'ref'],
+  ];
+  for (const [id, lvl] of nivelBadges) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t.nivelPico({ db: num(PICO_OBJETIVO_DB[NIVEL_MOTOR[lvl]], 0, idiomaActual) });
+  }
+  const generoBadges: Array<[string, Genero]> = [
+    ['v-cresta-rockpop', 'rockpop'],
+    ['v-cresta-jazzvocal', 'jazzvocal'],
+    ['v-cresta-clasica', 'clasica'],
+  ];
+  for (const [id, genero] of generoBadges) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t.generoCresta({ db: num(CREST_FACTOR_DB[genero], 0, idiomaActual) });
+  }
 }
 
 function refrescar(): void {
@@ -290,7 +361,22 @@ function refrescar(): void {
     const faltantes = [!estado.spk ? t.faltaParlantes : null, !estado.amp ? t.faltaAmplificador : null].filter(
       (x): x is string => x !== null
     );
-    miss.textContent = ok ? '' : t.faltaElegir({ que: faltantes.join(t.faltaY) });
+    miss.textContent = ok ? t.sinInconsistencias : t.faltaElegir({ que: faltantes.join(t.faltaY) });
+    miss.classList.toggle('miss-ok', ok);
+  }
+
+  // Contador real de requeridos elegidos (parlante + amplificador) — mismo
+  // booleano `ok` de arriba, sólo expresado como "X de 2" para la caja de
+  // estado del encabezado y la insignia de la barra inferior.
+  const hechos = (estado.spk !== null ? 1 : 0) + (estado.amp !== null ? 1 : 0);
+  const estadoValorEl = document.getElementById('cfg-estado-valor');
+  if (estadoValorEl) estadoValorEl.textContent = t.estadoAnalisisValor({ hechos: String(hechos), total: '2' });
+  const estadoDotEl = document.getElementById('cfg-estado-dot');
+  if (estadoDotEl) estadoDotEl.classList.toggle('cfg-estado-dot-listo', ok);
+  const footBadge = document.getElementById('foot-bar-badge');
+  if (footBadge) {
+    footBadge.textContent = ok ? t.listoAnalizar : t.faltanDatos;
+    footBadge.classList.toggle('foot-bar-badge-listo', ok);
   }
 }
 
@@ -366,6 +452,9 @@ function setDim(dim: 'W' | 'L' | 'H', valor: number): void {
 
 function setNivel(lvl: NivelUI): void {
   estado.lvl = lvl;
+  document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-lvl]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.lvl === lvl));
+  });
 }
 
 // Los 6 selectores de material son <select> nativos (menú desplegable, ver
@@ -375,26 +464,35 @@ function setNivel(lvl: NivelUI): void {
 function setMuroFrontal(muro: MaterialMuro): void {
   estado.muroFrontal = muro;
   actualizarResumenSala();
+  actualizarAlfas();
 }
 function setMuroPosterior(muro: MaterialMuro): void {
   estado.muroPosterior = muro;
+  actualizarAlfas();
 }
 function setMuroIzquierdo(muro: MaterialMuro): void {
   estado.muroIzquierdo = muro;
+  actualizarAlfas();
 }
 function setMuroDerecho(muro: MaterialMuro): void {
   estado.muroDerecho = muro;
+  actualizarAlfas();
 }
 function setPiso(piso: MaterialPiso): void {
   estado.piso = piso;
   actualizarResumenSala();
+  actualizarAlfas();
 }
 function setTecho(techo: MaterialTecho): void {
   estado.techo = techo;
+  actualizarAlfas();
 }
 
 function setGenero(genero: Genero): void {
   estado.genero = genero;
+  document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-genero]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.genero === genero));
+  });
 }
 
 /** A diferencia de los demás `set*`, esto vive en la pantalla de resultado
@@ -616,17 +714,17 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
 
   const referenciaSimetricaM = snap.candadoAbierto ? calcularDisposicionManual(a.sala, snap.disposicion.parlanteIzq, snap.disposicion.parlanteDer).puntoDulce : null;
   ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista, referenciaSimetricaM };
+  actualizarNavHabilitada();
   repintarPlano();
   const ubicacionEl = document.getElementById('plan-ubicacion');
   if (ubicacionEl) ubicacionEl.innerHTML = modeloUbicacionParlantes(a.sala, snap.disposicion, idiomaActual);
   actualizarUiCandado(snap.candadoAbierto);
   actualizarAvisoCandadoComparador();
 
-  // Vista previa interna "Documento" (#s-documento, sin botón visible — ver
-  // CLAUDE.md): se repinta junto con el resto del resultado para que
-  // ir('documento') (sólo alcanzable desde devtools) siempre muestre el
-  // análisis vigente. fechaTexto no es un dato del motor, se arma acá con
-  // Date.
+  // "Documento" (#s-documento, ahora con pestaña propia — ver
+  // actualizarNavHabilitada()): se repinta junto con el resto del
+  // resultado para que siempre muestre el análisis vigente. fechaTexto no
+  // es un dato del motor, se arma acá con Date.
   const fechaTexto = new Date().toLocaleDateString(idiomaActual === 'es' ? 'es-CL' : 'en-US', {
     day: 'numeric',
     month: 'long',
@@ -985,7 +1083,10 @@ function cambiarIdioma(idioma: Idioma): void {
   guardarIdioma(idioma);
   aplicarCromoEstatico(idioma);
   actualizarTextosDimension();
+  actualizarAlfas();
+  actualizarBadgesNivelGenero();
   actualizarResumenSala();
+  repintarMatchDelMes();
 
   (['spk', 'amp', 'streamer', 'dac'] as const).forEach((kind) => {
     const valor = estado[kind];
@@ -1236,6 +1337,18 @@ function inicializarSplash(): void {
   }
   pintarFondoAmbiente();
   iniciarContadorProof();
+  const tBoot = textosDe(idiomaActual).splash;
+  iniciarBootSplash(tBoot.bootProcesando, tBoot.bootListo);
+
+  // "The Match Recomendado" corre una sola vez, contra la fecha real de
+  // carga — determinístico por mes (ver datos/matchDelMes.ts), no depende
+  // de nada que el usuario elija todavía.
+  matchDelMesCache = elegirMatchDelMes(new Date());
+  repintarMatchDelMes();
+}
+
+function repintarMatchDelMes(): void {
+  pintarMatchDelMes(matchDelMesCache ? modeloMatchDelMes(matchDelMesCache, idiomaActual) : null);
 }
 
 /** Cuenta rápido de 0 al valor final de cada `.proof-num` — el sufijo ("+",
@@ -1282,31 +1395,69 @@ function iniciarContadorProof(): void {
 function actualizarResumenSala(): void {
   const t = textosDe(idiomaActual).config;
   const el = document.getElementById('room-summary-desc');
-  if (!el) return;
-  el.textContent = t.resumenSala({
-    ancho: num(estado.W, 1, idiomaActual),
-    largo: num(estado.L, 1, idiomaActual),
-    alto: num(estado.H, 2, idiomaActual),
-    muro: t.materiales[estado.muroFrontal],
-    piso: t.materiales[estado.piso],
+  if (el) {
+    el.textContent = t.resumenSala({
+      ancho: num(estado.W, 1, idiomaActual),
+      largo: num(estado.L, 1, idiomaActual),
+      alto: num(estado.H, 2, idiomaActual),
+      muro: t.materiales[estado.muroFrontal],
+      piso: t.materiales[estado.piso],
+    });
+  }
+  const vol = document.getElementById('room-summary-vol');
+  if (vol) vol.textContent = t.volumenBadge({ m3: num(estado.W * estado.L * estado.H, 2, idiomaActual) });
+  // Relación W:L respecto de H — H suele ser la dimensión más chica de una
+  // sala doméstica, así que se normaliza a ella (mismo criterio que la
+  // referencia visual: "1 : x.xx : y.yy" con el 1 en la más chica).
+  const ratio = document.getElementById('v-ratio');
+  if (ratio) {
+    ratio.textContent = t.relacion({
+      w: num(estado.W / estado.H, 2, idiomaActual),
+      l: num(estado.L / estado.H, 2, idiomaActual),
+    });
+  }
+}
+
+/** Habilita/deshabilita las pestañas "Documento" y "AR" de .head-nav según
+ * si ya existe un análisis real (`ultimoPlano`, misma variable que ya usa
+ * irAVerEnAr() para su propio guardia) — evita mostrar un informe vacío o
+ * intentar una sesión de AR sin geometría que anclar. "Resultado" no se
+ * deshabilita: su estado sin analizar ("Veredicto del análisis", guiones)
+ * ya es un placeholder honesto, no un resultado a medias. */
+function actualizarNavHabilitada(): void {
+  const disponible = ultimoPlano !== null;
+  document.querySelectorAll<HTMLButtonElement>('[data-nav-ir="documento"]').forEach((b) => {
+    b.disabled = !disponible;
   });
+  const btnAr = document.getElementById('btn-nav-ar') as HTMLButtonElement | null;
+  if (btnAr) btnAr.disabled = !disponible;
 }
 
 function wireEventos(): void {
   document.getElementById('btn-entrar')?.addEventListener('click', () => ir('config'));
-  document.getElementById('btn-volver-splash')?.addEventListener('click', () => ir('splash'));
-  document.getElementById('btn-volver-config')?.addEventListener('click', () => ir('config'));
-  document.getElementById('btn-info')?.addEventListener('click', () => ir('info'));
-  document.getElementById('btn-info-volver')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
 
-  // "Documento" (#s-documento) queda guardado para retomar más adelante,
-  // pero desconectado de nuevo — sin botón visible en ningún lado (ver
-  // exposición de `ir` en `window` más abajo). "Análisis 2"/"Comparar"/
-  // "Descargar PDF", adentro de esa pantalla, siguen reusando el mismo
-  // popup que #btn-guardar.
-  document.getElementById('btn-doc-volver')?.addEventListener('click', () => ir('results'));
+  // Navegación de las 6 secciones (.head-nav, ver estilos.css) — un solo
+  // listener delegado por tipo de botón, en vez de uno por pantalla:
+  // los 5 destinos alcanzables con ir() comparten el mismo atributo
+  // data-nav-ir; AR es un caso aparte (página distinta, con su propio
+  // chequeo de soporte ya resuelto en irAVerEnAr()). El resaltado del
+  // botón activo (aria-current) lo actualiza ir() mismo, en
+  // vista/pantallas.ts — corre para cualquier navegación, no sólo la
+  // disparada desde acá.
+  document.querySelectorAll<HTMLButtonElement>('.head-nav-btn[data-nav-ir], .cta-sec[data-nav-ir]').forEach((boton) => {
+    boton.addEventListener('click', () => ir(boton.dataset.navIr as Pantalla));
+  });
+  document.getElementById('btn-nav-ar')?.addEventListener('click', () => irAVerEnAr());
+
+  // "Documento" (#s-documento) ahora SÍ tiene una entrada visible (la
+  // pestaña "Documento" de arriba) — ya no es una pantalla oculta
+  // alcanzable sólo desde la consola. Se habilita recién con un análisis
+  // real (ver actualizarNavHabilitada()) para no mostrar un informe vacío
+  // a quien todavía no configuró nada. "Análisis 2"/"Comparar"/"Descargar
+  // PDF", adentro de esa pantalla, siguen reusando el mismo popup que
+  // #btn-guardar.
   document.getElementById('btn-doc-volver-2')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-doc-comparar')?.addEventListener('click', () => abrirGuardarPopup());
   document.getElementById('btn-doc-pdf')?.addEventListener('click', () => abrirGuardarPopup());
@@ -1332,6 +1483,7 @@ function wireEventos(): void {
 
   document.getElementById('btn-contacto-splash')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-config')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-config-foot')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-resultado')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-info')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-documento')?.addEventListener('click', () => abrirContactoPopup());
@@ -1356,7 +1508,9 @@ function wireEventos(): void {
   wireSlider('in-L', 'L');
   wireSlider('in-H', 'H');
 
-  document.getElementById('sel-nivel')?.addEventListener('change', (e) => setNivel((e.target as HTMLSelectElement).value as NivelUI));
+  document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-lvl]').forEach((b) => {
+    b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));
+  });
 
   document.getElementById('sel-murofrontal')?.addEventListener('change', (e) => setMuroFrontal((e.target as HTMLSelectElement).value as MaterialMuro));
   document.getElementById('sel-muroposterior')?.addEventListener('change', (e) => setMuroPosterior((e.target as HTMLSelectElement).value as MaterialMuro));
@@ -1365,7 +1519,9 @@ function wireEventos(): void {
   document.getElementById('sel-piso')?.addEventListener('change', (e) => setPiso((e.target as HTMLSelectElement).value as MaterialPiso));
   document.getElementById('sel-techo')?.addEventListener('change', (e) => setTecho((e.target as HTMLSelectElement).value as MaterialTecho));
 
-  document.getElementById('sel-genero')?.addEventListener('change', (e) => setGenero((e.target as HTMLSelectElement).value as Genero));
+  document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-genero]').forEach((b) => {
+    b.addEventListener('click', () => setGenero(b.dataset.genero as Genero));
+  });
 
   document.querySelectorAll<HTMLButtonElement>('.segs button[data-vista]').forEach((b) => {
     b.addEventListener('click', () => setVistaPlano(b.dataset.vista as Vista));
@@ -1424,14 +1580,15 @@ function main(): void {
   if (escala) construirEscala(escala);
 
   actualizarTextosDimension();
+  actualizarAlfas();
+  actualizarBadgesNivelGenero();
   actualizarResumenSala();
+  actualizarNavHabilitada();
   refrescar();
 
-  // Único hook de devtools del sitio: "Documento" (#s-documento) queda
-  // guardado para retomar más adelante, pero sin botón visible en ningún
-  // lado (ver CLAUDE.md) — se llega escribiendo ir('documento') en la
-  // consola. No agrega ninguna afordancia de UI, sólo hace alcanzable esa
-  // pantalla sin exponerla.
+  // Hook de devtools, ya no el único camino a "Documento" (tiene su propia
+  // pestaña en .head-nav) — se conserva como atajo para saltar la
+  // deshabilitación de la pestaña durante pruebas manuales.
   (window as unknown as { ir: typeof ir }).ir = ir;
 }
 

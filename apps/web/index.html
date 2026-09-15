@@ -55,7 +55,90 @@
 
 <!-- SPLASH -->
 <section class="screen active" id="s-splash">
+  <div class="boot-splash" id="boot-splash" role="status" aria-live="polite">
+    <div class="boot-ambient" aria-hidden="true">
+      <svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" fill="none">
+        <line class="boot-grid" x1="100" y1="300" x2="900" y2="300" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 5"></line>
+        <line class="boot-grid" x1="500" y1="50" x2="500" y2="550" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 5"></line>
+        <circle class="boot-wave" cx="500" cy="300" r="130" stroke="var(--faint)" stroke-width="0.75" stroke-dasharray="3 6"></circle>
+        <circle class="boot-wave boot-wave-2" cx="500" cy="300" r="230" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 8"></circle>
+        <path class="boot-trace" d="M60 380 C 180 420, 260 200, 360 220 C 460 240, 500 460, 620 400 C 720 350, 780 180, 940 260" stroke="var(--dorado)" stroke-width="1"></path>
+        <path class="boot-trace boot-trace-2" d="M60 240 C 200 260, 300 380, 460 340 C 560 315, 640 420, 780 380 C 850 360, 900 300, 940 320" stroke="var(--ok)" stroke-width="0.75"></path>
+        <circle class="boot-nodo" cx="360" cy="220" r="3"></circle>
+        <circle class="boot-nodo boot-nodo-2" cx="620" cy="400" r="3"></circle>
+      </svg>
+    </div>
+    <div class="boot-topbar">
+      <span class="boot-sys">
+        <span class="boot-sys-dot"></span>
+        <span data-i18n="splash.bootSistema">Motor CADENA v2.4</span>
+        <span class="boot-sys-sep">|</span>
+        <span data-i18n="splash.bootInicializacion">Inicialización determinista</span>
+      </span>
+      <span class="boot-topbar-right">
+        <span class="boot-badge-top" data-i18n="splash.bootBadgeTop">Sin servidor</span>
+        <button type="button" class="boot-saltar" id="btn-boot-saltar">
+          <span data-i18n="splash.bootSaltar">Saltar intro</span>
+          <span aria-hidden="true">▶▶</span>
+        </button>
+      </span>
+    </div>
+    <div class="boot-inner">
+      <div class="boot-emblema" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path d="M2 12h2M6 8v8M10 5v14M14 9v6M18 4v16M22 12h-2" stroke-linecap="square"></path>
+        </svg>
+      </div>
+      <div class="boot-mark">
+        <span class="boot-mark-linea">THE <b>HIFI MATCH</b> <span class="boot-syslab">SYS.LAB</span></span>
+        <span class="boot-tagline" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</span>
+      </div>
+      <div class="boot-panel">
+        <div class="boot-panel-head">
+          <span data-i18n="splash.bootDiagnostico">Diagnóstico del sistema</span>
+          <span class="boot-pct" id="boot-pct">0%</span>
+        </div>
+        <div class="boot-bar"><div class="boot-bar-fill" id="boot-bar-fill"></div></div>
+        <div class="boot-pasos">
+          <div class="boot-paso" id="boot-paso-1">
+            <span class="boot-paso-texto" data-i18n="splash.bootPaso1">Cargando catálogo (170+ equipos)…</span>
+            <span class="boot-paso-estado" id="boot-estado-1"></span>
+          </div>
+          <div class="boot-paso" id="boot-paso-2">
+            <span class="boot-paso-texto" data-i18n="splash.bootPaso2">Aplicando reglas físicas (modos de Rayleigh, Sabine/Eyring)…</span>
+            <span class="boot-paso-estado" id="boot-estado-2"></span>
+          </div>
+          <div class="boot-paso" id="boot-paso-3">
+            <span class="boot-paso-texto" data-i18n="splash.bootPaso3">Separando ley física de criterio editorial…</span>
+            <span class="boot-paso-estado" id="boot-estado-3"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="boot-footbar">
+      <span data-i18n="splash.bootPieIzq">Arquitectura determinista, sin intervención humana en el resultado</span>
+      <span data-i18n="splash.bootPieDer">Basado en física, specs medidos</span>
+    </div>
+  </div>
   <div class="wrap">
+    <div class="head">
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
+      <div class="hright">
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
+      </div>
+    </div>
     <div class="ambient"><svg data-ambient width="100%" height="100%" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" stroke="var(--dorado)" stroke-width="1" fill="none"></svg></div>
     <div class="idioma-splash">
       <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
@@ -69,6 +152,14 @@
       <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
     </div>
     <div class="version-splash" data-i18n="splash.version">V20.08.26</div>
+    <div class="splash-telemetry">
+      <span class="st-badge"><span class="st-dot"></span><span data-i18n="splash.telemetriaEstado">Motor en vivo, sin servidor</span></span>
+      <span class="st-layers">
+        <span class="st-layer st-layer-fisica"><i></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+        <span class="st-sep">/</span>
+        <span class="st-layer st-layer-criterio"><i></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+      </span>
+    </div>
     <div class="splash">
       <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
         <div class="subm" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</div>
@@ -81,23 +172,58 @@
         </div>
         <div class="ticks" id="splash-ticks" aria-hidden="true"></div>
         <div class="remate" data-i18n="splash.remate">tú escuchas y decides</div>
+        <p class="lead-parrafo" data-i18n="splash.leadParrafo">Evalúa el acople eléctrico, la reserva de potencia y la acústica de la sala entre los equipos que elijas, con reglas físicas propias: cada una declara su fórmula, su umbral y de dónde sale el dato.</p>
         <div class="cta"><span data-i18n="splash.cta">Analizar un sistema</span> <span aria-hidden="true">→</span></div>
-        <div class="proof">
-          <div class="proof-item">
-            <div class="proof-num" data-count-to="9">0</div>
-            <div class="proof-label" data-i18n="splash.proofReglas">reglas físicas, cada una con fórmula y umbral declarado</div>
-          </div>
-          <div class="proof-item">
-            <div class="proof-num" data-count-to="170+">0</div>
-            <div class="proof-label" data-i18n="splash.proofEquipos">equipos curados, con fuente y confianza por dato</div>
-          </div>
-          <div class="proof-item">
-            <div class="proof-num" data-count-to="100%">0</div>
-            <div class="proof-label" data-i18n="splash.proofAnalisis">análisis con datos comprobados</div>
-          </div>
-        </div>
       </button>
+      <!-- Botón secundario fuera de .enter a propósito: .enter ya es un
+           <button> que envuelve todo el hero (navega a Configurar) — un
+           elemento interactivo (botón/link) no puede anidarse dentro de
+           otro sin romper la semántica ni el manejo real del click. Este
+           navega a la Guía en vez de Configurar, así que necesita su
+           propio <button> al lado, no adentro. -->
+      <button type="button" class="cta-sec" data-nav-ir="info"><span data-i18n="splash.ctaSecundaria">Explorar la guía</span></button>
+      <div class="proof">
+        <div class="proof-item">
+          <div class="proof-num" data-count-to="9">0</div>
+          <div class="proof-label" data-i18n="splash.proofReglas">reglas físicas, cada una con fórmula y umbral declarado</div>
+          <div class="proof-detalle mono" data-i18n="splash.proofReglasFormula">f = n · 343 / (2·L) — modo axial</div>
+        </div>
+        <div class="proof-item">
+          <div class="proof-num" data-count-to="170+">0</div>
+          <div class="proof-label" data-i18n="splash.proofEquipos">equipos curados, con fuente y confianza por dato</div>
+          <div class="proof-detalle mono" data-i18n="splash.proofEquiposChips">KEF · Bowers &amp; Wilkins · Hegel · McIntosh</div>
+        </div>
+        <div class="proof-item">
+          <div class="proof-num" data-count-to="100%">0</div>
+          <div class="proof-label" data-i18n="splash.proofAnalisis">análisis con datos comprobados</div>
+          <div class="proof-detalle" data-i18n="splash.proofSinOpinionDetalle">sin juicios de carácter tonal ni sinergia entre marcas</div>
+        </div>
+      </div>
     </div>
+    <div class="dos-capas">
+      <div class="dos-capas-head">
+        <span class="dc-eyebrow" data-i18n="splash.capasEyebrow">Regla estructural del proyecto</span>
+        <h2 class="dc-titulo" data-i18n="splash.capasTitulo">Dos capas de información. Cero confusión.</h2>
+        <p class="dc-intro" data-i18n="splash.capasIntro">Todo lo que este sitio afirma pertenece a una de dos capas, y la capa se declara siempre — nunca mezcladas.</p>
+      </div>
+      <div class="dc-grid">
+        <div class="dc-col dc-col-fisica">
+          <div class="dc-col-head"><i class="dc-dot dc-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></div>
+          <p data-i18n="splash.capasFisicaDesc">Fórmula, umbral y fuente declarados. Cada dato viene de la ficha del fabricante o de una medición independiente ya publicada (Stereophile, Audio Science Review, Hi-Fi News), con su nivel de confianza junto al número.</p>
+          <p class="dc-nota" data-i18n="splash.capasFisicaNota">Se calcula en tu navegador — sin servidor, sin intervención humana en el resultado.</p>
+        </div>
+        <div class="dc-col dc-col-criterio">
+          <div class="dc-col-head"><i class="dc-dot dc-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></div>
+          <p data-i18n="splash.capasCriterioDesc">Decisiones de diseño del propio sitio, rotuladas como tales, nunca mezcladas con un veredicto físico.</p>
+          <ul class="dc-lista">
+            <li data-i18n="splash.capasCriterioEj1">SPL de pico objetivo por nivel de escucha: 90 dB (moderado) · 100 dB (alto) · 105 dB (referencia).</li>
+            <li data-i18n="splash.capasCriterioEj2">Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.</li>
+            <li data-i18n="splash.capasCriterioEj3">Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="match-mes hidden" id="splash-match-mes"></div>
   </div>
 </section>
 
@@ -105,10 +231,22 @@
 <section class="screen" id="s-config">
   <div class="wrap">
     <div class="head">
-      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="config.hs">Configurar</div>
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
       <div class="hright">
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
         <button class="back" id="btn-contacto-config" data-i18n="contacto.boton">Contacto</button>
-        <button class="back" id="btn-volver-splash" data-i18n="config.volver">← Volver</button>
       </div>
     </div>
     <div class="idioma-splash">
@@ -119,21 +257,59 @@
     </div>
 
     <div class="cfg-lead-box">
-      <h2 class="lead" data-i18n="config.lead">Define la cadena</h2>
-      <p class="lead-note" data-i18n="config.leadNote">Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
+      <div class="cfg-lead-row">
+        <div class="cfg-lead-texto">
+          <div class="cfg-eyebrow">
+            <span data-i18n="config.eyebrowFase">Fase 01</span>
+            <span>/</span>
+            <span data-i18n="config.eyebrowMatriz">Matriz de configuración</span>
+            <span>/</span>
+            <span><span class="cfg-eyebrow-dot"></span><b data-i18n="config.eyebrowEstado">Cálculo en el navegador, sin servidor</b></span>
+          </div>
+          <h2 class="lead" data-i18n="config.lead">Define la cadena</h2>
+          <p class="lead-note" data-i18n="config.leadNote">Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
+        </div>
+        <div class="cfg-estado-box">
+          <span class="cfg-estado-label" data-i18n="config.estadoAnalisisLabel">Estado de la selección</span>
+          <span class="cfg-estado-valor" id="cfg-estado-valor">— de 2 requeridos</span>
+          <i class="cfg-estado-dot" id="cfg-estado-dot"></i>
+        </div>
+      </div>
     </div>
 
-    <div class="split">
+    <div class="cfg-grid">
+    <div class="cfg-col cfg-col-equipo">
+    <div class="cfg-block-label">
+      <span class="cfg-block-label-izq"><svg class="cfg-block-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"></path></svg><span data-i18n="config.bloqueA">Cadena de señal</span></span>
+      <span class="cfg-block-label-der" data-i18n="config.bloqueAMeta">6 reglas físicas aplicables</span>
+    </div>
+    <div class="split split-full">
       <div class="picker">
-        <div class="rowlabel"><span data-i18n="config.parlantes">Parlantes</span> <span class="req" data-i18n="config.requerido">requerido</span></div>
+        <div class="picker-head">
+          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2"></rect><circle cx="12" cy="8" r="1.8"></circle><circle cx="12" cy="15" r="3.2"></circle></svg></div>
+          <div class="rowlabel-stack">
+            <div class="rowlabel"><span><span class="rowlabel-num">01 ·</span> <span data-i18n="config.parlantesRol">Transductor principal</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
+            <div class="picker-rol" data-i18n="config.parlantes">Parlantes</div>
+          </div>
+          <span class="picker-ref"><i class="picker-ref-dot"></i>REF: CATÁLOGO #01</span>
+        </div>
         <div class="marca-modelo">
           <div class="sel sel-marca"><select id="sel-spk-marca" class="empty"></select></div>
           <div class="sel sel-modelo"><select id="sel-spk" class="empty" disabled></select></div>
         </div>
         <div id="info-spk"></div>
       </div>
+    </div>
+    <div class="split split-full">
       <div class="picker">
-        <div class="rowlabel"><span data-i18n="config.amplificador">Amplificador</span> <span class="req" data-i18n="config.requerido">requerido</span></div>
+        <div class="picker-head">
+          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="1.8"></rect><circle cx="8" cy="12.5" r="2.2"></circle><line x1="13" y1="10.5" x2="19" y2="10.5"></line><line x1="13" y1="14.5" x2="17" y2="14.5"></line></svg></div>
+          <div class="rowlabel-stack">
+            <div class="rowlabel"><span><span class="rowlabel-num">02 ·</span> <span data-i18n="config.amplificadorRol">Etapa de amplificación</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
+            <div class="picker-rol" data-i18n="config.amplificador">Amplificador</div>
+          </div>
+          <span class="picker-ref"><i class="picker-ref-dot"></i>REF: CATÁLOGO #02</span>
+        </div>
         <div class="marca-modelo">
           <div class="sel sel-marca"><select id="sel-amp-marca" class="empty"></select></div>
           <div class="sel sel-modelo"><select id="sel-amp" class="empty" disabled></select></div>
@@ -144,7 +320,14 @@
 
     <div class="split">
       <div class="picker">
-        <div class="rowlabel"><span data-i18n="config.streamer">Streamer</span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
+        <div class="picker-head">
+          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="9" width="19" height="8" rx="1.8"></rect><path d="M8 9a4 4 0 0 1 8 0"></path><circle cx="12" cy="13" r="1" fill="currentColor" stroke="none"></circle></svg></div>
+          <div class="rowlabel-stack">
+            <div class="rowlabel"><span><span class="rowlabel-num">03 ·</span> <span data-i18n="config.streamerRol">Fuente de streaming</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
+            <div class="picker-rol" data-i18n="config.streamer">Streamer</div>
+          </div>
+          <span class="picker-ref"><i class="picker-ref-dot"></i>REF: CATÁLOGO #03</span>
+        </div>
         <div class="marca-modelo">
           <div class="sel sel-marca"><select id="sel-streamer-marca" class="empty"></select></div>
           <div class="sel sel-modelo"><select id="sel-streamer" class="empty" disabled></select></div>
@@ -152,7 +335,14 @@
         <div id="info-streamer"></div>
       </div>
       <div class="picker">
-        <div class="rowlabel"><span data-i18n="config.dac">DAC</span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
+        <div class="picker-head">
+          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="1.8"></rect><path d="M6 14h2v-3h2v5h2v-7h2v9h2v-4h2"></path></svg></div>
+          <div class="rowlabel-stack">
+            <div class="rowlabel"><span><span class="rowlabel-num">04 ·</span> <span data-i18n="config.dacRol">Conversor digital-analógico</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
+            <div class="picker-rol" data-i18n="config.dac">DAC</div>
+          </div>
+          <span class="picker-ref"><i class="picker-ref-dot"></i>REF: CATÁLOGO #04</span>
+        </div>
         <div class="marca-modelo">
           <div class="sel sel-marca"><select id="sel-dac-marca" class="empty"></select></div>
           <div class="sel sel-modelo"><select id="sel-dac" class="empty" disabled></select></div>
@@ -161,14 +351,25 @@
       </div>
     </div>
 
-    <details class="room-toggle" id="room-toggle">
+    </div>
+    <div class="cfg-col cfg-col-sala">
+    <div class="cfg-block-label">
+      <span class="cfg-block-label-izq"><svg class="cfg-block-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 12 3l9 7"></path><path d="M5 9v11h14V9"></path><path d="M9 20v-6h6v6"></path></svg><span data-i18n="config.bloqueB">Sala de escucha</span></span>
+      <span class="cfg-block-label-der">SABINE / EYRING</span>
+    </div>
+    <details class="room-toggle" id="room-toggle" open>
       <summary class="room-summary">
+        <svg class="room-summary-icono" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"></line><circle cx="9" cy="6" r="2" fill="var(--bg)"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="16" cy="12" r="2" fill="var(--bg)"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="11" cy="18" r="2" fill="var(--bg)"></circle></svg>
         <span class="room-summary-title" data-i18n="config.personalizarSala">Personalizar sala</span>
         <span class="room-summary-desc" id="room-summary-desc">—</span>
+        <span class="room-summary-vol" id="room-summary-vol">— m³</span>
         <span class="req" data-i18n="config.opcionalFuente">opcional</span>
       </summary>
       <div class="room">
-      <h3 data-i18n="config.dimensionesTitulo">Dimensiones de la sala</h3>
+      <div class="cfg-dims-head">
+        <h3 data-i18n="config.dimensionesTitulo">Dimensiones de la sala</h3>
+        <span class="cfg-dims-ratio" id="v-ratio">—</span>
+      </div>
       <div class="dims">
         <div class="dim">
           <div class="dl"><span data-i18n="config.ancho">Ancho (frente)</span> <b id="v-W">3,6 m</b></div>
@@ -183,11 +384,15 @@
           <input type="range" id="in-H" min="2.2" max="3.5" step="0.05" value="2.4">
         </div>
       </div>
+      <div class="cfg-modo-axial">
+        <span data-i18n="config.modoAxial">Modo axial de la dimensión mayor</span>
+        <b id="v-modo-axial">—</b>
+      </div>
 
       <h3 data-i18n="config.materialesTitulo">Materiales de la sala</h3>
       <div class="materiales-grid">
         <div class="rline">
-          <span class="rl" data-i18n="config.muroFrontal">Muro frontal</span>
+          <div class="rl-row"><span class="rl" data-i18n="config.muroFrontal">Muro frontal</span><span class="alfa-valor" id="alfa-murofrontal">α 0.10</span></div>
           <div class="sel sel-compact"><select id="sel-murofrontal">
             <option value="hormigon" data-i18n="config.materiales.hormigon">Hormigón</option>
             <option value="vidrio" data-i18n="config.materiales.vidrio">Vidrio / ventanal</option>
@@ -198,7 +403,7 @@
           </select></div>
         </div>
         <div class="rline">
-          <span class="rl" data-i18n="config.muroPosterior">Muro posterior</span>
+          <div class="rl-row"><span class="rl" data-i18n="config.muroPosterior">Muro posterior</span><span class="alfa-valor" id="alfa-muroposterior">α 0.10</span></div>
           <div class="sel sel-compact"><select id="sel-muroposterior">
             <option value="hormigon" data-i18n="config.materiales.hormigon">Hormigón</option>
             <option value="vidrio" data-i18n="config.materiales.vidrio">Vidrio / ventanal</option>
@@ -209,7 +414,7 @@
           </select></div>
         </div>
         <div class="rline">
-          <span class="rl" data-i18n="config.muroIzquierdo">Muro izquierdo</span>
+          <div class="rl-row"><span class="rl" data-i18n="config.muroIzquierdo">Muro izquierdo</span><span class="alfa-valor" id="alfa-muroizquierdo">α 0.10</span></div>
           <div class="sel sel-compact"><select id="sel-muroizquierdo">
             <option value="hormigon" data-i18n="config.materiales.hormigon">Hormigón</option>
             <option value="vidrio" data-i18n="config.materiales.vidrio">Vidrio / ventanal</option>
@@ -220,7 +425,7 @@
           </select></div>
         </div>
         <div class="rline">
-          <span class="rl" data-i18n="config.muroDerecho">Muro derecho</span>
+          <div class="rl-row"><span class="rl" data-i18n="config.muroDerecho">Muro derecho</span><span class="alfa-valor" id="alfa-muroderecho">α 0.10</span></div>
           <div class="sel sel-compact"><select id="sel-muroderecho">
             <option value="hormigon" data-i18n="config.materiales.hormigon">Hormigón</option>
             <option value="vidrio" data-i18n="config.materiales.vidrio">Vidrio / ventanal</option>
@@ -231,7 +436,7 @@
           </select></div>
         </div>
         <div class="rline">
-          <span class="rl" data-i18n="config.piso">Material del piso</span>
+          <div class="rl-row"><span class="rl" data-i18n="config.piso">Material del piso</span><span class="alfa-valor" id="alfa-piso">α 0.07</span></div>
           <div class="sel sel-compact"><select id="sel-piso">
             <option value="hormigon" data-i18n="config.materiales.hormigon">Hormigón</option>
             <option value="maderaLaminado" selected data-i18n="config.materiales.maderaLaminado">Madera laminado</option>
@@ -240,7 +445,7 @@
           </select></div>
         </div>
         <div class="rline">
-          <span class="rl" data-i18n="config.techo">Material del cielo</span>
+          <div class="rl-row"><span class="rl" data-i18n="config.techo">Material del cielo</span><span class="alfa-valor" id="alfa-techo">α 0.10</span></div>
           <div class="sel sel-compact"><select id="sel-techo">
             <option value="hormigon" data-i18n="config.materiales.hormigon">Hormigón</option>
             <option value="madera" data-i18n="config.materiales.madera">Madera</option>
@@ -249,22 +454,20 @@
           </select></div>
         </div>
       </div>
-      <div class="materiales-grid nivel-genero-grid">
-        <div class="rline">
-          <span class="rl" data-i18n="config.nivelEscucha">Nivel de escucha</span>
-          <div class="sel sel-compact"><select id="sel-nivel">
-            <option value="mod" data-i18n="config.nivelModerado">Moderado</option>
-            <option value="alto" selected data-i18n="config.nivelAlto">Alto</option>
-            <option value="ref" data-i18n="config.nivelReferencia">Referencia</option>
-          </select></div>
+      <div class="cfg-segbloque">
+        <span class="cfg-segbloque-label" data-i18n="config.nivelEscucha">Nivel de escucha</span>
+        <div class="segs cfg-seg3" role="group" data-i18n-aria="config.nivelEscucha">
+          <button type="button" data-lvl="mod"><span data-i18n="config.nivelModerado">Moderado</span><b id="v-pico-mod">—</b></button>
+          <button type="button" data-lvl="alto" aria-pressed="true"><span data-i18n="config.nivelAlto">Alto</span><b id="v-pico-alto">—</b></button>
+          <button type="button" data-lvl="ref"><span data-i18n="config.nivelReferencia">Referencia</span><b id="v-pico-ref">—</b></button>
         </div>
-        <div class="rline">
-          <span class="rl" data-i18n="config.genero">Género musical</span>
-          <div class="sel sel-compact"><select id="sel-genero">
-            <option value="rockpop" selected data-i18n="config.generoRockPop">Rock/Pop</option>
-            <option value="jazzvocal" data-i18n="config.generoJazzVocal">Jazz/Vocal</option>
-            <option value="clasica" data-i18n="config.generoClasica">Clásica</option>
-          </select></div>
+      </div>
+      <div class="cfg-segbloque">
+        <span class="cfg-segbloque-label" data-i18n="config.genero">Género musical</span>
+        <div class="segs cfg-seg3" role="group" data-i18n-aria="config.genero">
+          <button type="button" data-genero="rockpop" aria-pressed="true"><span data-i18n="config.generoRockPop">Rock/Pop</span><b id="v-cresta-rockpop">—</b></button>
+          <button type="button" data-genero="jazzvocal"><span data-i18n="config.generoJazzVocal">Jazz/Vocal</span><b id="v-cresta-jazzvocal">—</b></button>
+          <button type="button" data-genero="clasica"><span data-i18n="config.generoClasica">Clásica</span><b id="v-cresta-clasica">—</b></button>
         </div>
       </div>
       <div class="rline">
@@ -273,6 +476,8 @@
       </div>
       </div>
     </details>
+    </div>
+    </div>
 
     <div class="soon">
       <span class="st" data-i18n="config.proximamente">Próximamente</span>
@@ -281,9 +486,35 @@
     </div>
 
     <div class="foot-bar">
-      <div class="miss" id="miss">Falta elegir parlantes y amplificador</div>
-      <button class="analizar" id="btn-an" disabled data-i18n="config.analizar">Analizar</button>
+      <div class="foot-bar-info">
+        <div class="foot-bar-icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 15l3-4 3 3 5-7"></path></svg>
+        </div>
+        <div class="foot-bar-texto">
+          <div class="foot-bar-titulo">
+            <span data-i18n="config.matrizTitulo">Matriz de la cadena</span>
+            <span class="foot-bar-badge" id="foot-bar-badge">—</span>
+          </div>
+          <div class="miss" id="miss">Falta elegir parlantes y amplificador</div>
+        </div>
+      </div>
+      <button class="analizar" id="btn-an" disabled><span data-i18n="config.analizar">Analizar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></button>
     </div>
+    <footer class="site-foot">
+      <div class="site-foot-marca">
+        <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+        <p data-i18n="comun.pieDescripcion">Diagnóstico de acople eléctrico, reserva de potencia y acústica de sala — cada regla con su fórmula y su fuente.</p>
+      </div>
+      <div class="site-foot-links">
+        <button type="button" class="back" id="btn-contacto-config-foot" data-i18n="contacto.boton">Contacto</button>
+        <a href="./about.html" class="back" data-i18n="comun.acercaDe">Acerca de</a>
+        <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
+      </div>
+      <div class="site-foot-bar">
+        <span data-i18n="comun.pieNota">Se calcula en tu navegador, sin servidor</span>
+        <span data-i18n="splash.version">V20.08.26</span>
+      </div>
+    </footer>
   </div>
 </section>
 
@@ -291,12 +522,23 @@
 <section class="screen" id="s-results">
   <div class="wrap">
     <div class="head">
-      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="resultado.hs">Resultado</div>
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
       <div class="hright">
-        <button class="back" id="btn-info" data-i18n="info.boton">Info</button>
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
         <button class="back" id="btn-guardar" data-i18n="resultado.guardarBoton">Guardar</button>
         <button class="back" id="btn-contacto-resultado" data-i18n="contacto.boton">Contacto</button>
-        <button class="back" id="btn-volver-config" data-i18n="resultado.volver">← Cambiar sistema</button>
       </div>
     </div>
     <div class="idioma-splash">
@@ -628,10 +870,22 @@
 <section class="screen" id="s-info">
   <div class="wrap">
     <div class="head">
-      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="info.hs">Guía del análisis</div>
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
       <div class="hright">
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
         <button class="back" id="btn-contacto-info" data-i18n="contacto.boton">Contacto</button>
-        <button class="back" id="btn-info-volver" data-i18n="info.volver">← Volver al análisis</button>
       </div>
     </div>
     <div class="idioma-splash">
@@ -674,10 +928,22 @@
 <section class="screen" id="s-documento">
   <div class="wrap">
     <div class="head">
-      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div><div class="hs" data-i18n="documento.hs">Informe (vista previa)</div>
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
       <div class="hright">
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
         <button class="back" id="btn-contacto-documento" data-i18n="contacto.boton">Contacto</button>
-        <button class="back" id="btn-doc-volver" data-i18n="info.volver">← Volver al análisis</button>
       </div>
     </div>
     <div class="idioma-splash">

@@ -14,3 +14,9 @@ apps/web/dist/
 
 # Maquetas de diseño locales — exploración visual, nunca se commitea ni se despliega.
 /mockup-rediseno/
+
+# Vault de Obsidian del asistente (notas de proyecto/proceso, ver
+# obsidian-vault/The Hifi Match.md) — vive dentro del repo por comodidad,
+# pero nunca se commitea: .obsidian/ trae la API key del plugin Local REST
+# API en texto plano.
+/obsidian-vault/

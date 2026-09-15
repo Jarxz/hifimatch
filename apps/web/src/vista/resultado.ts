@@ -1119,7 +1119,16 @@ function peorEntre<T extends { verdictoClase: ClaseVerdicto }>(items: Array<T | 
  * reusa el `verdictoTexto` del componente más grave de ese grupo — nunca
  * inventa una evaluación nueva.
  */
-export function modeloVeredicto(v: ResultadoVeredicto, e: EntradasEstadoGrupo, idioma: Idioma): ModeloVeredicto {
+/**
+ * Sólo el titular + subtexto del veredicto (sin el detalle por grupo, que
+ * exige toda `EntradasEstadoGrupo` con el texto ya redactado de cada
+ * tarjeta) — separado de `modeloVeredicto()` para que un consumidor que
+ * sólo necesita el titular (ej. `datos/matchDelMes.ts`, que no calcula
+ * ninguna de esas tarjetas) pueda reusarlo sin arrastrar esa dependencia.
+ * Mismo criterio de siempre: reusar la redacción ya hecha, nunca
+ * inventar una nueva.
+ */
+export function tituloYSubtextoVeredicto(v: ResultadoVeredicto, idioma: Idioma): { tituloHtml: string; subtextoHtml: string } {
   const t = textosDe(idioma).motor.veredicto;
 
   const nombreGrupo: Record<'potencia' | 'acopleElectrico' | 'sala', string> = {
@@ -1134,6 +1143,13 @@ export function modeloVeredicto(v: ResultadoVeredicto, e: EntradasEstadoGrupo, i
   const tituloHtml = v.general === 'alert' ? t.tituloAlert : v.general === 'warn' ? t.tituloWarn : t.tituloOk;
   const subtextoHtml =
     v.general === 'alert' ? t.subtextoAlert({ grupos: gruposTexto }) : v.general === 'warn' ? t.subtextoWarn({ grupos: gruposTexto }) : t.subtextoOk;
+
+  return { tituloHtml, subtextoHtml };
+}
+
+export function modeloVeredicto(v: ResultadoVeredicto, e: EntradasEstadoGrupo, idioma: Idioma): ModeloVeredicto {
+  const t = textosDe(idioma).motor.veredicto;
+  const { tituloHtml, subtextoHtml } = tituloYSubtextoVeredicto(v, idioma);
 
   const peorPotencia = e.mPot; // potencia siempre tiene un único componente, es directo
   const peorAcople = peorEntre([e.mCarga, e.mAmortiguamiento, e.mPuenteStreamer, e.mRecorridoStreamer, e.mPuenteDac, e.mRecorridoDac]);

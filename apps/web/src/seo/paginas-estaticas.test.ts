@@ -117,6 +117,17 @@ test('index.html: el contador "equipos" de la portada ("N+") nunca miente por ar
   assert.equal(mostrado % 10, 0, 'la cifra mostrada debería ser un múltiplo de 10 (redondeo hacia abajo declarado)');
 });
 
+test('index.html: existe el contenedor de "The Match Recomendado", fuera del botón principal de la portada', () => {
+  const html = leer('index.html');
+  assert.match(html, /<div class="match-mes hidden" id="splash-match-mes">/);
+  // Tiene que vivir DESPUÉS de cerrar el <button id="btn-entrar"> — así
+  // las fichas del match del mes nunca quedan anidadas dentro del botón
+  // "Analizar un sistema" (ver datos/matchDelMes.ts).
+  const idxBotonCierre = html.indexOf('</button>', html.indexOf('id="btn-entrar"'));
+  const idxMatchMes = html.indexOf('id="splash-match-mes"');
+  assert.ok(idxBotonCierre > 0 && idxMatchMes > idxBotonCierre, 'splash-match-mes debería estar fuera de <button id="btn-entrar">');
+});
+
 test('index.html: nada de lo agregado en esta ronda tiene voseo', () => {
   const html = leer('index.html');
   assert.doesNotMatch(html, PATRON_VOSEO);
