@@ -378,12 +378,12 @@
       </div>
       <div class="dims">
         <div class="dim">
-          <div class="dl"><span data-i18n="config.ancho">Ancho (frente)</span> <b id="v-W">3,6 m</b></div>
-          <input type="range" id="in-W" min="2.5" max="7" step="0.1" value="3.6">
+          <div class="dl"><span data-i18n="config.ancho">Ancho (frente)</span> <b id="v-W">3,2 m</b></div>
+          <input type="range" id="in-W" min="2.5" max="7" step="0.1" value="3.2">
         </div>
         <div class="dim">
-          <div class="dl"><span data-i18n="config.largo">Largo (fondo)</span> <b id="v-L">5,0 m</b></div>
-          <input type="range" id="in-L" min="3" max="9" step="0.1" value="5.0">
+          <div class="dl"><span data-i18n="config.largo">Largo (fondo)</span> <b id="v-L">3,2 m</b></div>
+          <input type="range" id="in-L" min="3" max="9" step="0.1" value="3.2">
         </div>
         <div class="dim">
           <div class="dl"><span data-i18n="config.alto">Alto</span> <b id="v-H">2,4 m</b></div>
@@ -445,9 +445,9 @@
           <div class="rl-row"><span class="rl" data-i18n="config.piso">Material del piso</span><span class="alfa-valor" id="alfa-piso">α 0.07</span></div>
           <div class="sel sel-compact"><select id="sel-piso">
             <option value="hormigon" data-i18n="config.materiales.hormigon">Hormigón</option>
-            <option value="maderaLaminado" selected data-i18n="config.materiales.maderaLaminado">Madera laminado</option>
+            <option value="maderaLaminado" data-i18n="config.materiales.maderaLaminado">Madera laminado</option>
             <option value="porcelanato" data-i18n="config.materiales.porcelanato">Porcelanato</option>
-            <option value="alfombra" data-i18n="config.materiales.alfombra">Alfombra</option>
+            <option value="alfombra" selected data-i18n="config.materiales.alfombra">Alfombra</option>
           </select></div>
         </div>
         <div class="rline">
@@ -460,20 +460,22 @@
           </select></div>
         </div>
       </div>
-      <div class="cfg-segbloque">
-        <span class="cfg-segbloque-label" data-i18n="config.nivelEscucha">Nivel de escucha</span>
-        <div class="segs cfg-seg3" role="group" data-i18n-aria="config.nivelEscucha">
-          <button type="button" data-lvl="mod"><span data-i18n="config.nivelModerado">Moderado</span><b id="v-pico-mod">—</b></button>
-          <button type="button" data-lvl="alto" aria-pressed="true"><span data-i18n="config.nivelAlto">Alto</span><b id="v-pico-alto">—</b></button>
-          <button type="button" data-lvl="ref"><span data-i18n="config.nivelReferencia">Referencia</span><b id="v-pico-ref">—</b></button>
+      <div class="cfg-segbloque-fila">
+        <div class="cfg-segbloque">
+          <span class="cfg-segbloque-label" data-i18n="config.nivelEscucha">Nivel de escucha</span>
+          <div class="segs cfg-seg3" role="group" data-i18n-aria="config.nivelEscucha">
+            <button type="button" data-lvl="mod" aria-pressed="true"><span data-i18n="config.nivelModerado">Moderado</span><b id="v-pico-mod">—</b></button>
+            <button type="button" data-lvl="alto"><span data-i18n="config.nivelAlto">Alto</span><b id="v-pico-alto">—</b></button>
+            <button type="button" data-lvl="ref"><span data-i18n="config.nivelReferencia">Referencia</span><b id="v-pico-ref">—</b></button>
+          </div>
         </div>
-      </div>
-      <div class="cfg-segbloque">
-        <span class="cfg-segbloque-label" data-i18n="config.genero">Género musical</span>
-        <div class="segs cfg-seg3" role="group" data-i18n-aria="config.genero">
-          <button type="button" data-genero="rockpop" aria-pressed="true"><span data-i18n="config.generoRockPop">Rock/Pop</span><b id="v-cresta-rockpop">—</b></button>
-          <button type="button" data-genero="jazzvocal"><span data-i18n="config.generoJazzVocal">Jazz/Vocal</span><b id="v-cresta-jazzvocal">—</b></button>
-          <button type="button" data-genero="clasica"><span data-i18n="config.generoClasica">Clásica</span><b id="v-cresta-clasica">—</b></button>
+        <div class="cfg-segbloque">
+          <span class="cfg-segbloque-label" data-i18n="config.genero">Género musical</span>
+          <div class="segs cfg-seg3" role="group" data-i18n-aria="config.genero">
+            <button type="button" data-genero="rockpop"><span data-i18n="config.generoRockPop">Rock/Pop</span><b id="v-cresta-rockpop">—</b></button>
+            <button type="button" data-genero="jazzvocal" aria-pressed="true"><span data-i18n="config.generoJazzVocal">Jazz/Vocal</span><b id="v-cresta-jazzvocal">—</b></button>
+            <button type="button" data-genero="clasica"><span data-i18n="config.generoClasica">Clásica</span><b id="v-cresta-clasica">—</b></button>
+          </div>
         </div>
       </div>
       <div class="rline">

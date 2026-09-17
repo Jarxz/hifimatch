@@ -666,6 +666,14 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    reales, ver actualizarBadgesNivelGenero() en main.ts). Reemplaza el
    <select> que tenían antes — mismo criterio de fidelidad visual. */
 .cfg-segbloque{margin-top:18px}
+/* Nivel de escucha y Género musical van uno al lado del otro, no
+   apilados — mismo patrón de 2 columnas que .materiales-grid a este
+   mismo ancho, mismo quiebre a 1 columna en mobile (480px). Cada
+   .cfg-segbloque hijo conserva su margin-top:18px (no colapsa dentro de
+   un grid), así separa igual de lo que esté arriba tanto en la fila
+   como si volviera a apilarse en pantallas angostas. */
+.cfg-segbloque-fila{display:grid; grid-template-columns:1fr 1fr; gap:0 24px}
+@media (max-width:480px){ .cfg-segbloque-fila{grid-template-columns:1fr} }
 .cfg-segbloque-label{display:block; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); font-weight:600; margin-bottom:8px}
 .cfg-seg3{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; background:var(--panel2); border:1px solid var(--line3); border-radius:4px; padding:4px}
 /* flex:1 1 0 en vez de depender sólo de grid-template-columns: la regla
