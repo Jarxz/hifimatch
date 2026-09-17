@@ -18,12 +18,29 @@ export type CategoriaLocal = 'spk' | 'amp' | 'streamer' | 'dac';
 export type EquipoCatalogo = ParlanteCat | AmplificadorCat | FuenteCat;
 
 const RESULTADOS_MAX = 8;
-/** 0=exacto, 1=cualquier cosa. Más bajo que el default de Fuse (0.6) —
- * se prefiere no mostrar nada antes que un resultado irrelevante en una
- * lista de sólo 8 huecos. Calibrado contra vectores reales del catálogo
- * (ver buscadorLocal.test.ts): suficiente para "wharfdale"→Wharfedale,
- * no tan laxo como para que cualquier palabra traiga resultados. */
+/** 0=exacto, 1=cualquier cosa. Umbral INTERNO de Fuse — genera candidatos,
+ * no rechaza el conjunto marca+modelo (ver UMBRAL_ACEPTACION más abajo,
+ * que sí lo hace). */
 const UMBRAL = 0.4;
+
+/**
+ * Hallazgo real, no documentado en ningún lado de Fuse.js hasta que se
+ * midió con vectores del catálogo: con varias `keys` ponderadas, Fuse
+ * incluye un ítem si CUALQUIER campo matchea bien — acá "marca" sola con
+ * score ~0 — no si el score COMBINADO (marca+modelo) es bueno. El score
+ * combinado sólo ordena, nunca excluye. Consecuencia real observada:
+ * buscar "WiiM" + "Ultra" (que no existe en el catálogo) devolvía "WiiM
+ * Pro Plus" — mismo fabricante, modelo completamente distinto — y la
+ * búsqueda web nunca llegaba a intentarse, porque el catálogo local
+ * "encontraba algo" aunque fuera lo que no era.
+ *
+ * Corte calibrado con vectores reales (ver buscadorLocal.test.ts):
+ * "Wharfdale Linton" (typo real que SÍ debe aceptarse) da 0,504;
+ * "WiiM Ultra"→WiiM Pro Plus y "Sonos Move"→Sonus Faber (falsos
+ * positivos que SÍ deben rechazarse) dan 0,797 y 0,567. 0,55 separa
+ * limpio los dos casos, con margen de sobra a ambos lados.
+ */
+const UMBRAL_ACEPTACION = 0.55;
 
 /** Duplicado deliberado de la normalización de
  * packages/buscador/src/buscador.ts (NFD + quitar diacríticos +
@@ -59,6 +76,7 @@ function indiceDe(categoria: CategoriaLocal): Fuse<EquipoCatalogo> {
       ],
       threshold: UMBRAL,
       ignoreLocation: true, // sin esto Fuse sólo acierta cerca del principio de la cadena
+      includeScore: true, // necesario para el filtro explícito por UMBRAL_ACEPTACION de abajo
     });
     indicesPorCategoria.set(categoria, indice);
   }
@@ -81,5 +99,6 @@ export function buscarLocal(categoria: CategoriaLocal, marca: string, modelo: st
   if (consulta === '') return [];
   return indiceDe(categoria)
     .search(consulta, { limit: RESULTADOS_MAX })
+    .filter((r) => (r.score ?? 1) <= UMBRAL_ACEPTACION) // ver UMBRAL_ACEPTACION: Fuse no rechaza esto solo
     .map((r) => r.item);
 }

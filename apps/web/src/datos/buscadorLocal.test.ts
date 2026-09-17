@@ -31,6 +31,21 @@ test('buscarLocal: una consulta sin sentido devuelve vacío, nunca un resultado 
   assert.deepEqual(r, []);
 });
 
+test('buscarLocal: bug real encontrado en vivo — "WiiM"+"Ultra" (modelo que NO existe en el catálogo) ya NO devuelve "WiiM Pro Plus" (mismo fabricante, modelo completamente distinto). Antes de este fix, coincidir sólo en la marca bastaba para Fuse.js y la búsqueda web nunca se intentaba.', () => {
+  const r = buscarLocal('streamer', 'WiiM', 'Ultra');
+  assert.deepEqual(r, [], 'un modelo inexistente de una marca SÍ catalogada debe caer a la búsqueda web, no mostrar un modelo distinto');
+});
+
+test('buscarLocal: "Sonos"+"Move" no matchea "Sonus Faber" por parecido superficial del nombre de marca', () => {
+  const r = buscarLocal('spk', 'Sonos', 'Move');
+  assert.deepEqual(r, []);
+});
+
+test('buscarLocal: el filtro por score no rompe el caso de tipeo real (Wharfdale sigue aceptándose con marca+modelo juntos)', () => {
+  const r = buscarLocal('spk', 'Wharfdale', 'Linton');
+  assert.ok(r.some((eq) => eq.marca === 'Wharfedale'), JSON.stringify(r.map((e) => e.marca)));
+});
+
 test('buscarLocal: ambos campos vacíos devuelve el catálogo COMPLETO de la categoría (explorar sin buscar)', () => {
   const r = buscarLocal('dac', '', '');
   assert.equal(r.length, CATALOGO.dacs.length);
