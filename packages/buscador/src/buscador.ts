@@ -66,6 +66,74 @@ function dentroDe(valor: number, min: number, max: number): boolean {
   return Number.isFinite(valor) && valor >= min && valor <= max;
 }
 
+// ── 1b. Estándares de categoría — SOLO para equipos hallados por búsqueda
+// web, NUNCA para el catálogo curado real (packages/data/src/catalogo.ts
+// sigue con su disciplina de fuente+confianza real, sin cambios). Pedido
+// explícito del usuario tras confirmar la tensión con la doctrina de
+// "nunca inventes un dato" (ver CLAUDE.md, sección de datos incompletos):
+// el catálogo real tiene demasiada dispersión en varios de estos campos
+// (impedancia de salida de fuentes: 10 Ω a 500 Ω; sensibilidad de entrada:
+// 110 mV a 1600 mV) como para que un valor único sea honesto ahí — pero acá
+// el objetivo es distinto: sin ESTOS valores, "Acople eléctrico" queda
+// SIEMPRE sin evaluar para cualquier equipo hallado por búsqueda web (el
+// esquema de extracción ni siquiera pide factorAmortiguamiento — no hay un
+// solo equipo, real o web, que lo tenga poblado hoy). Cada constante está
+// justificada individualmente, no es un promedio inventado:
+//   - impedancia de entrada: 47 kΩ es la convención casi universal de
+//     entrada de línea RCA en electrónica de audio de consumo — no una
+//     estimación estadística, una convención de la industria.
+//   - tensión de salida: 2,0 V es el nivel "Red Book" (CD) — la referencia
+//     de salida analógica más común en DACs/streamers desde hace décadas.
+//   - sensibilidad de entrada e impedancia de salida SÍ son campos con
+//     dispersión real — se elige el valor observado con más frecuencia en
+//     pruebas reales (sensibilidad) o el extremo más exigente para el
+//     puente de impedancias (impedancia de salida, favorece señalar un
+//     problema real antes que ocultarlo con un supuesto optimista).
+//   - factor de amortiguamiento: los dos valores YA existían, aprobados,
+//     como specs de los 3 arquetipos genéricos de amplificador
+//     (`packages/data/src/catalogo.ts`, sección "Perfiles genéricos") — acá
+//     se reusan tal cual en vez de inventar cifras nuevas: el más
+//     conservador de los dos arquetipos de estado sólido (60, no el 400 de
+//     "alta corriente") y el del arquetipo valvular (8), elegido por
+//     palabra clave en la descripción ya extraída.
+// Todo supuesto aplicado se declara en la descripción de la ficha
+// (`notaSupuestos`/`descripcionWeb` más abajo) — nunca en silencio, mismo
+// principio que ya rige el fallback de fase (-45°) y de Zmáx (25 Ω) del
+// motor para equipos reales sin ese dato.
+export const IMPEDANCIA_ENTRADA_ESTANDAR_OHM = 47_000;
+export const SENS_ENTRADA_ESTANDAR_MV = 200;
+export const SALIDA_ESTANDAR_V = 2.0;
+export const IMPEDANCIA_SALIDA_ESTANDAR_OHM = 200;
+export const DF_ESTANDAR_ESTADO_SOLIDO = 60;
+export const DF_ESTANDAR_VALVULAR = 8;
+
+const PALABRAS_VALVULAR = ['válvula', 'valvula', 'valvular', 'tubo', 'triodo', 'valve', 'tube'];
+
+/** Detecta un amplificador valvular a partir de la descripción YA extraída
+ * (nunca un campo nuevo que pedirle al proveedor) — la inmensa mayoría de
+ * amplificadores del mercado son de estado sólido, así que ese es el
+ * default cuando no hay ninguna palabra clave. */
+function esValvular(descripcionEs: string | null | undefined, descripcionEn: string | null | undefined): boolean {
+  const texto = `${descripcionEs ?? ''} ${descripcionEn ?? ''}`.toLowerCase();
+  return PALABRAS_VALVULAR.some((palabra) => texto.includes(palabra));
+}
+
+interface SupuestoDeclarado {
+  es: string;
+  en: string;
+}
+
+/** Une los campos sustituidos por un estándar de categoría en una sola
+ * frase, para agregar a la descripción — `null` si no se sustituyó nada
+ * (equipo con todos sus datos reales, el caso más común). */
+function notaSupuestos(items: readonly SupuestoDeclarado[]): Localizado | null {
+  if (items.length === 0) return null;
+  return {
+    es: `Sin dato propio de esta búsqueda para ${items.map((i) => i.es).join(', ')} — se usa un valor típico de la categoría, no medido de este equipo en particular.`,
+    en: `No data from this search for ${items.map((i) => i.en).join(', ')} — a typical value for the category is used, not measured for this specific unit.`,
+  };
+}
+
 // ── 2. Formas crudas que el proveedor puede devolver ───────────────────
 // `tipo` se sintetiza acá mismo (plantilla fija por categoría, ver más
 // abajo) — nunca varía, así que pedírselo al proveedor sería tokens
@@ -108,6 +176,15 @@ export interface SpecsCrudasAmplificador extends DescripcionExtraida {
 export interface SpecsCrudasFuente extends DescripcionExtraida {
   salidaV: number | null;
   impedanciaSalidaOhm: number | null;
+  // Opcional, default `true` cuando el proveedor no lo declara: la inmensa
+  // mayoría de streamers/DACs SÍ tiene alguna salida analógica. `false`
+  // sólo cuando el proveedor confirma que es un transporte puro (mismo caso
+  // que el HiFi Rose RS130/Aurender N200/NAD M50.2 ya catalogados a mano) —
+  // distingue "no se encontró el dato" (sí sustituye un estándar, ver más
+  // abajo) de "este equipo no tiene ese dato por diseño" (nunca sustituye:
+  // inventarle una salida a un transporte puro sería un dato falso, no una
+  // aproximación).
+  tieneSalidaAnalogica?: boolean;
 }
 
 export type CategoriaBusqueda = 'parlante' | 'amplificador' | 'streamer' | 'dac';
@@ -236,14 +313,22 @@ function sanearDescripcion(s: string): string {
  * proveedor), cae al texto genérico de siempre; con ella, la tarjeta de
  * un equipo web queda tan informativa como la de uno curado, que
  * describe a mano qué es el equipo (ver ParlanteCat.descripcion). */
-function descripcionWeb(marca: string, modelo: string, descripcionEs?: string | null, descripcionEn?: string | null): Localizado {
+function descripcionWeb(
+  marca: string,
+  modelo: string,
+  descripcionEs?: string | null,
+  descripcionEn?: string | null,
+  supuestos?: Localizado | null
+): Localizado {
   const avisoEs = 'No forma parte del catálogo curado del sitio: nadie lo revisó a mano, y puede contener errores de la extracción.';
   const avisoEn = "Not part of the site's curated catalog: no one reviewed it by hand, and it may contain extraction errors.";
   const tecnicaEs = descripcionEs ? sanearDescripcion(descripcionEs) : null;
   const tecnicaEn = descripcionEn ? sanearDescripcion(descripcionEn) : null;
+  const colaEs = supuestos ? ` ${supuestos.es}` : '';
+  const colaEn = supuestos ? ` ${supuestos.en}` : '';
   return {
-    es: tecnicaEs ? `${tecnicaEs} ${avisoEs}` : `Datos obtenidos automáticamente de la web para ${marca} ${modelo}. ${avisoEs}`,
-    en: tecnicaEn ? `${tecnicaEn} ${avisoEn}` : `Data obtained automatically from the web for ${marca} ${modelo}. ${avisoEn}`,
+    es: (tecnicaEs ? `${tecnicaEs} ${avisoEs}` : `Datos obtenidos automáticamente de la web para ${marca} ${modelo}. ${avisoEs}`) + colaEs,
+    en: (tecnicaEn ? `${tecnicaEn} ${avisoEn}` : `Data obtained automatically from the web for ${marca} ${modelo}. ${avisoEn}`) + colaEn,
   };
 }
 
@@ -283,18 +368,38 @@ export function construirAmplificadorWeb(marcaCruda: string, modeloCrudo: string
   const marca = sanearMarcaModelo(marcaCruda);
   const modelo = sanearMarcaModelo(modeloCrudo);
   const cita = fuenteCita(fuenteUrl);
+
+  // Estándares de categoría — sólo para "Acople eléctrico" (ver comentario
+  // de cabecera de la sección 1b): factorAmortiguamiento NUNCA llega desde
+  // el proveedor (ni un solo equipo, real o web, lo tiene hoy), así que
+  // siempre se sustituye; impedanciaEntradaOhm/sensEntradaMv sólo cuando
+  // la búsqueda no los trajo.
+  const supuestos: SupuestoDeclarado[] = [];
+  let impedanciaEntradaOhm = specs.impedanciaEntradaOhm;
+  if (impedanciaEntradaOhm === null) {
+    impedanciaEntradaOhm = IMPEDANCIA_ENTRADA_ESTANDAR_OHM;
+    supuestos.push({ es: 'impedancia de entrada', en: 'input impedance' });
+  }
+  let sensEntradaMv = specs.sensEntradaMv;
+  if (sensEntradaMv === null) {
+    sensEntradaMv = SENS_ENTRADA_ESTANDAR_MV;
+    supuestos.push({ es: 'sensibilidad de entrada', en: 'input sensitivity' });
+  }
+  const factorAmortiguamiento = esValvular(specs.descripcionEs, specs.descripcionEn) ? DF_ESTANDAR_VALVULAR : DF_ESTANDAR_ESTADO_SOLIDO;
+  supuestos.push({ es: 'factor de amortiguamiento', en: 'damping factor' });
+
   return {
     id: idWeb('amplificador', marca, modelo),
     marca,
     nombre: `${marca} ${modelo}`.trim(),
     tipo: TIPO_POR_CATEGORIA.amplificador,
-    descripcion: descripcionWeb(marca, modelo, specs.descripcionEs, specs.descripcionEn),
+    descripcion: descripcionWeb(marca, modelo, specs.descripcionEs, specs.descripcionEn, notaSupuestos(supuestos)),
     potencia8OhmW: { valor: specs.potencia8OhmW, fuente: cita, confianza: CONFIANZA_WEB },
     potencia4OhmW: specs.potencia4OhmW !== null ? { valor: specs.potencia4OhmW, fuente: cita, confianza: CONFIANZA_WEB } : null,
     cargaMinOhm: specs.cargaMinOhm,
-    sensEntradaMv: specs.sensEntradaMv,
-    impedanciaEntradaOhm: specs.impedanciaEntradaOhm,
-    factorAmortiguamiento: null,
+    sensEntradaMv,
+    impedanciaEntradaOhm,
+    factorAmortiguamiento,
     chipsExtra: [],
     fuentes: fuenteUrl ? [fuenteUrl] : [],
   };
@@ -303,14 +408,35 @@ export function construirAmplificadorWeb(marcaCruda: string, modeloCrudo: string
 export function construirFuenteWeb(categoria: 'streamer' | 'dac', marcaCruda: string, modeloCrudo: string, specs: SpecsCrudasFuente, fuenteUrl: string | null): FuenteCat {
   const marca = sanearMarcaModelo(marcaCruda);
   const modelo = sanearMarcaModelo(modeloCrudo);
+
+  // A diferencia del amplificador, acá SÍ puede no aplicar: un transporte
+  // puro (HiFi Rose RS130, Aurender N200, NAD M50.2 ya catalogados a mano)
+  // no tiene salida analógica por diseño — sustituir ahí sería un dato
+  // falso, no una aproximación. `tieneSalidaAnalogica` default `true`
+  // (la mayoría sí tiene) salvo que el proveedor confirme lo contrario.
+  const tieneSalidaAnalogica = specs.tieneSalidaAnalogica !== false;
+  const supuestos: SupuestoDeclarado[] = [];
+  let salidaV = specs.salidaV;
+  let impedanciaSalidaOhm = specs.impedanciaSalidaOhm;
+  if (tieneSalidaAnalogica) {
+    if (salidaV === null) {
+      salidaV = SALIDA_ESTANDAR_V;
+      supuestos.push({ es: 'tensión de salida', en: 'output voltage' });
+    }
+    if (impedanciaSalidaOhm === null) {
+      impedanciaSalidaOhm = IMPEDANCIA_SALIDA_ESTANDAR_OHM;
+      supuestos.push({ es: 'impedancia de salida', en: 'output impedance' });
+    }
+  }
+
   return {
     id: idWeb(categoria, marca, modelo),
     marca,
     nombre: `${marca} ${modelo}`.trim(),
     tipo: TIPO_POR_CATEGORIA[categoria],
-    descripcion: descripcionWeb(marca, modelo, specs.descripcionEs, specs.descripcionEn),
-    salidaV: specs.salidaV,
-    impedanciaSalidaOhm: specs.impedanciaSalidaOhm,
+    descripcion: descripcionWeb(marca, modelo, specs.descripcionEs, specs.descripcionEn, notaSupuestos(supuestos)),
+    salidaV,
+    impedanciaSalidaOhm,
     fuente: fuenteCita(fuenteUrl),
     confianza: CONFIANZA_WEB,
     chipsExtra: [],

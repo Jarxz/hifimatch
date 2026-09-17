@@ -147,11 +147,16 @@ function schemaFuente(): Schema {
   return {
     type: Type.OBJECT,
     properties: {
-      salidaV: { type: Type.NUMBER, nullable: true, description: 'Tensión de salida analógica RMS en voltios, null si no tiene salida analógica o no se publica' },
-      impedanciaSalidaOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de salida en ohms, null si no se publica' },
+      salidaV: { type: Type.NUMBER, nullable: true, description: 'Tensión de salida analógica RMS en voltios, null si no se publica (pero el equipo sí tiene salida analógica)' },
+      impedanciaSalidaOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de salida en ohms, null si no se publica (pero el equipo sí tiene salida analógica)' },
+      tieneSalidaAnalogica: {
+        type: Type.BOOLEAN,
+        description:
+          'true si el equipo tiene alguna salida analógica (RCA/XLR) hacia un amplificador. false SÓLO si los resultados confirman que es un transporte de red puro sin salida analógica alguna (sólo digital: coaxial/óptica/USB/HDMI). Si no queda claro, usa true — es el caso más común.',
+      },
       ...CAMPOS_DESCRIPCION,
     },
-    required: ['salidaV', 'impedanciaSalidaOhm', ...REQUERIDOS_DESCRIPCION],
+    required: ['salidaV', 'impedanciaSalidaOhm', 'tieneSalidaAnalogica', ...REQUERIDOS_DESCRIPCION],
   };
 }
 
@@ -224,6 +229,7 @@ function parsearSpecs(categoria: CategoriaBusqueda, json: unknown): SpecsCrudas 
   return {
     salidaV: numOrNull(o.salidaV),
     impedanciaSalidaOhm: numOrNull(o.impedanciaSalidaOhm),
+    tieneSalidaAnalogica: o.tieneSalidaAnalogica !== false, // default true — ver schemaFuente()
     descripcionEs,
     descripcionEn,
   };

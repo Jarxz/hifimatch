@@ -14,6 +14,12 @@ import {
   SENSIBILIDAD_MAX_DB,
   IMPEDANCIA_NOMINAL_MAX_OHM,
   POTENCIA_8OHM_MAX_W,
+  IMPEDANCIA_ENTRADA_ESTANDAR_OHM,
+  SENS_ENTRADA_ESTANDAR_MV,
+  SALIDA_ESTANDAR_V,
+  IMPEDANCIA_SALIDA_ESTANDAR_OHM,
+  DF_ESTANDAR_ESTADO_SOLIDO,
+  DF_ESTANDAR_VALVULAR,
 } from './buscador.ts';
 import type { SpecsCrudasParlante, SpecsCrudasAmplificador, SpecsCrudasFuente, EquipoWeb, ResultadoProveedor, SolicitudBusqueda } from './buscador.ts';
 
@@ -127,6 +133,57 @@ test('construirFuenteWeb: streamer y dac usan textos distintos por categoría', 
   const dac = construirFuenteWeb('dac', 'Topping', 'D90', { salidaV: 2, impedanciaSalidaOhm: 50 }, 'https://example.com');
   assert.notEqual(streamer.tipo.es, dac.tipo.es);
   assert.equal(streamer.confianza, 'baja');
+});
+
+// ── Estándares de categoría para "Acople eléctrico" (SOLO equipos web) ──
+test('construirAmplificadorWeb: impedanciaEntradaOhm/sensEntradaMv faltantes se sustituyen por el estándar, declarado en la descripción', () => {
+  const a = construirAmplificadorWeb('X', 'Y', ampOk({ impedanciaEntradaOhm: null, sensEntradaMv: null }), 'https://example.com');
+  assert.equal(a.impedanciaEntradaOhm, IMPEDANCIA_ENTRADA_ESTANDAR_OHM);
+  assert.equal(a.sensEntradaMv, SENS_ENTRADA_ESTANDAR_MV);
+  assert.ok(a.descripcion.es.includes('valor típico de la categoría'), a.descripcion.es);
+  assert.ok(a.descripcion.es.includes('impedancia de entrada'), a.descripcion.es);
+  assert.ok(a.descripcion.es.includes('sensibilidad de entrada'), a.descripcion.es);
+});
+test('construirAmplificadorWeb: con datos reales completos, NO se sustituye impedanciaEntradaOhm/sensEntradaMv ni se menciona en la descripción', () => {
+  const a = construirAmplificadorWeb('X', 'Y', ampOk({ impedanciaEntradaOhm: 22000, sensEntradaMv: 350 }), 'https://example.com');
+  assert.equal(a.impedanciaEntradaOhm, 22000);
+  assert.equal(a.sensEntradaMv, 350);
+  assert.ok(!a.descripcion.es.includes('impedancia de entrada'), a.descripcion.es);
+  assert.ok(!a.descripcion.es.includes('sensibilidad de entrada'), a.descripcion.es);
+});
+test('construirAmplificadorWeb: factorAmortiguamiento SIEMPRE se sustituye (el proveedor nunca lo extrae) — estado sólido por defecto', () => {
+  const a = construirAmplificadorWeb('X', 'Y', ampOk({ descripcionEs: 'Amplificador integrado de estado sólido en clase AB.' }), 'https://example.com');
+  assert.equal(a.factorAmortiguamiento, DF_ESTANDAR_ESTADO_SOLIDO);
+  assert.ok(a.descripcion.es.includes('factor de amortiguamiento'), a.descripcion.es);
+});
+test('construirAmplificadorWeb: descripción con "válvulas"/"tubo" usa el estándar valvular, no el de estado sólido', () => {
+  const a = construirAmplificadorWeb('X', 'Y', ampOk({ descripcionEs: 'Amplificador integrado a válvulas 300B en configuración SET.' }), 'https://example.com');
+  assert.equal(a.factorAmortiguamiento, DF_ESTANDAR_VALVULAR);
+});
+test('construirAmplificadorWeb: detección valvular también funciona sobre la descripción en inglés', () => {
+  const a = construirAmplificadorWeb('X', 'Y', ampOk({ descripcionEs: null, descripcionEn: 'A single-ended triode (SET) tube amplifier.' }), 'https://example.com');
+  assert.equal(a.factorAmortiguamiento, DF_ESTANDAR_VALVULAR);
+});
+
+test('construirFuenteWeb: salidaV/impedanciaSalidaOhm faltantes (sin declarar tieneSalidaAnalogica) se sustituyen por el estándar — la mayoría sí tiene salida analógica', () => {
+  const f = construirFuenteWeb('dac', 'X', 'Y', { salidaV: null, impedanciaSalidaOhm: null }, 'https://example.com');
+  assert.equal(f.salidaV, SALIDA_ESTANDAR_V);
+  assert.equal(f.impedanciaSalidaOhm, IMPEDANCIA_SALIDA_ESTANDAR_OHM);
+  assert.ok(f.descripcion.es.includes('tensión de salida'), f.descripcion.es);
+  assert.ok(f.descripcion.es.includes('impedancia de salida'), f.descripcion.es);
+});
+test('construirFuenteWeb: tieneSalidaAnalogica=false (transporte puro confirmado) NUNCA sustituye — un dato inventado ahí sería falso, no una aproximación', () => {
+  const f = construirFuenteWeb('streamer', 'HiFi Rose', 'RS130', { salidaV: null, impedanciaSalidaOhm: null, tieneSalidaAnalogica: false }, 'https://example.com');
+  assert.equal(f.salidaV, null);
+  assert.equal(f.impedanciaSalidaOhm, null);
+  assert.ok(!f.descripcion.es.includes('tensión de salida'), f.descripcion.es);
+  assert.ok(!f.descripcion.es.includes('valor típico de la categoría'), f.descripcion.es);
+});
+test('construirFuenteWeb: con datos reales completos, no se sustituye ni se menciona nada', () => {
+  const f = construirFuenteWeb('dac', 'X', 'Y', { salidaV: 2.5, impedanciaSalidaOhm: 75 }, 'https://example.com');
+  assert.equal(f.salidaV, 2.5);
+  assert.equal(f.impedanciaSalidaOhm, 75);
+  assert.ok(!f.descripcion.es.includes('valor típico de la categoría'), f.descripcion.es);
 });
 
 // ── Ficha manual: fuenteUrl=null, mismas funciones, cita distinta ───────
@@ -267,7 +324,19 @@ test('manejarBusqueda: amplificador sin el dato obligatorio (potencia8OhmW null)
   assert.deepEqual(r, { ok: false, codigo: 'datos-insuficientes' });
 });
 
-test('manejarBusqueda: fuente (streamer) con ambos campos null es válida — el motor la oculta sola', async () => {
+test('manejarBusqueda: fuente (streamer) con ambos campos null y tieneSalidaAnalogica:false (transporte puro confirmado) — la ficha queda sin esos datos, el motor la oculta sola', async () => {
+  const { cache } = cacheFake();
+  const buscarEnProveedor = async (): Promise<ResultadoProveedor> => ({
+    ok: true,
+    specs: { salidaV: null, impedanciaSalidaOhm: null, tieneSalidaAnalogica: false } as SpecsCrudasFuente,
+    fuenteUrl: 'https://example.com',
+  });
+  const r = await manejarBusqueda({ categoria: 'streamer', marca: 'HiFi Rose', modelo: 'RS130' }, { cache, buscarEnProveedor });
+  assert.equal(r.ok, true);
+  if (r.ok && 'salidaV' in r.equipo) assert.equal(r.equipo.salidaV, null);
+});
+
+test('manejarBusqueda: fuente (streamer) con ambos campos null SIN declarar tieneSalidaAnalogica — usa el estándar de categoría (la mayoría sí tiene salida)', async () => {
   const { cache } = cacheFake();
   const buscarEnProveedor = async (): Promise<ResultadoProveedor> => ({
     ok: true,
@@ -276,6 +345,7 @@ test('manejarBusqueda: fuente (streamer) con ambos campos null es válida — el
   });
   const r = await manejarBusqueda({ categoria: 'streamer', marca: 'Sonos', modelo: 'Port' }, { cache, buscarEnProveedor });
   assert.equal(r.ok, true);
+  if (r.ok && 'salidaV' in r.equipo) assert.notEqual(r.equipo.salidaV, null, 'sin dato explícito de "sin salida analógica", se asume el estándar');
 });
 
 test('manejarBusqueda: marca/modelo con espacios de más se recortan antes de construir la ficha', async () => {
