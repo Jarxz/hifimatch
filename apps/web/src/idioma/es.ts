@@ -127,10 +127,12 @@ export const es = {
     // unidades.ts): órdenes superiores/tangenciales/oblicuos NO están
     // implementados, así que no se muestra la fórmula general de Rayleigh.
     proofReglasFormula: 'f = n · 343 / (2·L) — modo axial',
-    proofAnalisis: 'análisis con datos comprobados',
-    // Detalle bajo "0% opiniones de gusto" — cita directa de las
-    // prohibiciones ya declaradas en CLAUDE.md, no una afirmación nueva.
-    proofSinOpinionDetalle: 'sin juicios de carácter tonal ni sinergia entre marcas',
+    proofAnalisis: 'análisis de equipos comprobados',
+    // Complementa proofAnalisis: el catálogo curado no es la única fuente
+    // — un equipo fuera de catálogo se busca en la web (packages/buscador).
+    proofBusquedaOnlineDetalle: 'y por búsqueda online',
+    proofAr: 'Simulación con AR',
+    proofArDetalle: 'Realidad aumentada de reflexiones en tu sala',
     // Marca de versión, no texto de producto traducible — mismo valor en
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
@@ -140,8 +142,11 @@ export const es = {
     // criterio que splash.version.
     recomendadoTitulo: 'The Match Recomendado',
     recomendadoIntro: 'Elegido por el propio motor entre todo el catálogo — cambia cada mes.',
-    recomendadoNotaSala:
-      'Evaluado en una sala de referencia, no la tuya. El grupo Sala queda en advertencia por un límite del propio modelo (la reflexión del piso siempre cae en una frecuencia audible, sin importar la sala), no por este sistema en particular.',
+    // Titular deliberadamente positivo: el match recomendado siempre pasa
+    // el filtro de Potencia y Acople eléctrico (ver el comentario de
+    // ModeloMatchDelMes en vista/matchDelMes.ts), así que el titular nunca
+    // necesita matizar por severidad.
+    recomendadoPositivoTitulo: 'Potencia y acople eléctrico verificados',
     // Intro de arranque (ver vista/bootSplash.ts) — puramente decorativa,
     // nombra mecanismos reales del motor (catálogo, Rayleigh, Sabine/
     // Eyring, la separación de capas), nunca una certificación o auditoría

@@ -48,14 +48,24 @@ test('modeloMatchDelMes: cada ítem trae al menos un chip físico y un ícono SV
   }
 });
 
-test('modeloMatchDelMes: el veredicto se reusa tal cual (no se redacta de nuevo) — clase "warn", título de "con límites"', () => {
+test('modeloMatchDelMes: sólo muestra lo positivo — clase "ok" siempre, sin mencionar Sala ni "límites" (pedido explícito del usuario)', () => {
   const match = elegirMatchDelMes(FECHA_FIJA);
   assert.ok(match);
+  // Precondición real del filtro (datos/matchDelMes.ts): Sala nunca da
+  // 'ok' para la sala de referencia — si esto deja de ser cierto, esta
+  // prueba ya no ejercitaría el caso real que motivó "sólo lo positivo".
+  assert.equal(match!.veredicto.sala, 'warn');
+  assert.equal(match!.veredicto.potencia, 'ok');
+  assert.equal(match!.veredicto.acopleElectrico, 'ok');
+
   const modelo = modeloMatchDelMes(match!, 'es');
   assert.ok(modelo);
-  assert.equal(modelo!.veredictoClase, match!.veredicto.general);
-  assert.equal(modelo!.veredictoClase, 'warn');
+  assert.equal(modelo!.veredictoClase, 'ok');
   assert.ok(modelo!.veredictoTituloHtml.length > 0);
+  assert.ok(!/sala/i.test(modelo!.veredictoTituloHtml), modelo!.veredictoTituloHtml);
+  assert.ok(!/sala|límite/i.test(modelo!.veredictoSubtextoHtml), modelo!.veredictoSubtextoHtml);
+  assert.match(modelo!.veredictoSubtextoHtml, /Potencia/);
+  assert.match(modelo!.veredictoSubtextoHtml, /Acople eléctrico/);
 });
 
 test('modeloMatchDelMes en inglés: textos en inglés, sin mezclar idiomas', () => {
@@ -76,10 +86,3 @@ test('modeloMatchDelMes: mesEtiqueta refleja el mes/año del match, capitalizado
   assert.match(modelo!.mesEtiqueta, /2027/);
 });
 
-test('modeloMatchDelMes: nota de sala de referencia declara explícitamente que no es la sala del visitante', () => {
-  const match = elegirMatchDelMes(FECHA_FIJA);
-  assert.ok(match);
-  const modelo = modeloMatchDelMes(match!, 'es');
-  assert.ok(modelo);
-  assert.match(modelo!.notaSalaReferencia, /no la tuya|sala de referencia/i);
-});

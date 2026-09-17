@@ -13,7 +13,6 @@ import type { MatchDelMes } from '../datos/matchDelMes.ts';
 import { chipsParlante, chipsAmplificador, chipsFuente } from '../datos/etiquetas.ts';
 import { iconoEquipoSvg } from './iconosCategoria.ts';
 import type { CategoriaEquipo } from './iconosCategoria.ts';
-import { tituloYSubtextoVeredicto } from './resultado.ts';
 import { textosDe } from '../idioma/idioma.ts';
 
 export interface ItemMatchDelMes {
@@ -31,11 +30,24 @@ export interface ModeloMatchDelMes {
   introHtml: string;
   mesEtiqueta: string;
   rotuloCriterio: string;
-  notaSalaReferencia: string;
   items: ItemMatchDelMes[]; // 2 a 4 piezas: parlante, amplificador, y streamer/dac si hay uno compatible
+  /**
+   * Deliberadamente sólo lo positivo del match — pedido explícito del
+   * usuario. `elegirMatchDelMes()` (datos/matchDelMes.ts) sólo selecciona
+   * combinaciones donde Potencia y Acople eléctrico ya dan 'ok' (Sala
+   * queda afuera del filtro porque NINGUNA sala de referencia posible
+   * logra que dé 'ok' — límite estructural del modelo, no de un sistema
+   * puntual, ver el comentario de cabecera de datos/matchDelMes.ts). Por
+   * eso este titular nunca necesita ramificar por severidad ni mencionar
+   * Sala: son los dos únicos grupos que el propio filtro ya garantiza
+   * 'ok' para cualquier match que llegue a mostrarse acá. Reusa el mismo
+   * vocabulario de motor.veredicto (nombrePotencia/nombreAcople/
+   * estadoPotencia/estadoAcople) que ya usa la tarjeta de veredicto real
+   * de Resultado — no redacta una evaluación nueva.
+   */
   veredictoTituloHtml: string;
   veredictoSubtextoHtml: string;
-  veredictoClase: 'ok' | 'warn' | 'alert';
+  veredictoClase: 'ok';
   verFicha: string;
 }
 
@@ -100,7 +112,9 @@ export function modeloMatchDelMes(match: MatchDelMes, idioma: Idioma): ModeloMat
     });
   }
 
-  const { tituloHtml, subtextoHtml } = tituloYSubtextoVeredicto(match.veredicto, idioma);
+  const tv = t.motor.veredicto;
+  const potenciaTexto = tv.estadoPotencia[match.veredicto.potencia];
+  const acopleTexto = match.veredicto.acopleElectrico === 'sin-datos' ? tv.estadoAcopleSinDatos : tv.estadoAcople[match.veredicto.acopleElectrico];
 
   const fechaMes = new Date(match.anio, match.mes, 1);
   const mesEtiqueta = capitalizar(new Intl.DateTimeFormat(idioma === 'es' ? 'es-CL' : 'en-US', { month: 'long', year: 'numeric' }).format(fechaMes));
@@ -110,11 +124,10 @@ export function modeloMatchDelMes(match: MatchDelMes, idioma: Idioma): ModeloMat
     introHtml: t.splash.recomendadoIntro,
     mesEtiqueta,
     rotuloCriterio: t.resultado.capaCriterioEditorial,
-    notaSalaReferencia: t.splash.recomendadoNotaSala,
     items,
-    veredictoTituloHtml: tituloHtml,
-    veredictoSubtextoHtml: subtextoHtml,
-    veredictoClase: match.veredicto.general,
+    veredictoTituloHtml: t.splash.recomendadoPositivoTitulo,
+    veredictoSubtextoHtml: `${tv.nombrePotencia}: ${potenciaTexto} · ${tv.nombreAcople}: ${acopleTexto}`,
+    veredictoClase: 'ok',
     verFicha: t.config.verFicha,
   };
 }

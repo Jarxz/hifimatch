@@ -395,6 +395,5 @@ export function pintarMatchDelMes(modelo: ModeloMatchDelMes | null): void {
     `<div class="vd-titulo">${modelo.veredictoTituloHtml}</div>` +
     `<div class="vd-subtexto">${modelo.veredictoSubtextoHtml}</div>` +
     `</div>` +
-    `<p class="src match-mes-nota">${modelo.notaSalaReferencia}</p>` +
     `<div class="info-linkwrap"><span class="info-link">${modelo.verFicha}</span></div>`;
 }

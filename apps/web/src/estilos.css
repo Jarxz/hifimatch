@@ -162,7 +162,13 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    Ver detalle técnico como regla general"), texto alineado a la
    izquierda (a diferencia de .splash, que está centrado) porque acá
    el contenido es informativo/de lectura, no un CTA. */
-.match-mes{max-width:640px; margin:56px auto 0; text-align:left; border:1px solid var(--line); border-radius:4px; padding:6px 22px 22px; position:relative; z-index:1}
+/* Ancho de referencia del sitio: el mismo que .wrap (1120px, ver :root
+   arriba) — el mismo que ya usan el header y sus badges "Capa física /
+   Criterio editorial, no física" (.hright) y cualquier .card de
+   Resultado. Antes tenía su propio max-width:640px, más angosto que el
+   resto de la página — pedido explícito del usuario, y vale como
+   referencia para cualquier otro cuadro nuevo de la portada. */
+.match-mes{margin:56px 0 0; text-align:left; border:1px solid var(--line); border-radius:4px; padding:6px 22px 22px; position:relative; z-index:1}
 .match-mes-head{padding-top:8px}
 .match-mes-titulo{font-weight:400; font-size:19px; margin:8px 0 4px; letter-spacing:.01em; color:var(--dorado)}
 .match-mes-intro{color:var(--faint); font-size:12px; line-height:1.6; margin:0}
@@ -176,7 +182,6 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .match-mes-veredicto{margin-top:4px}
 .match-mes-veredicto .vd-titulo{font-size:16px; font-weight:500}
 .match-mes-veredicto .vd-subtexto{font-size:12px; color:var(--faint); margin-top:2px}
-.match-mes-nota{margin-top:2px}
 @media (max-width:820px){ .match-mes-grid{grid-template-columns:1fr 1fr} }
 @media (max-width:480px){ .match-mes{padding:6px 16px 18px} .match-mes-grid{grid-template-columns:1fr} }
 
