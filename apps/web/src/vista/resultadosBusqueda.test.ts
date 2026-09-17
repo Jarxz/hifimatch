@@ -53,6 +53,26 @@ test('modeloListaResultados: escapa caracteres HTML de marca/nombre (equipo web 
   assert.ok(html.includes('&lt;script&gt;'), html);
 });
 
+test('modeloListaResultados: mostrarBuscarWeb=false (default) no agrega el botón de saltar al catálogo local', () => {
+  const kef = CATALOGO.parlantes.find((p) => p.id === 'kef-ls50-meta')!;
+  const html = modeloListaResultados([kef], 'spk', 'es', true);
+  assert.ok(!html.includes('buscar-ninguno-web'), html);
+});
+
+test('modeloListaResultados: mostrarBuscarWeb=true agrega el botón "ninguno de estos" — Fuse.js encuentra un candidato local parecido pero no bloquea la búsqueda web', () => {
+  const kef = CATALOGO.parlantes.find((p) => p.id === 'kef-ls50-meta')!;
+  const html = modeloListaResultados([kef], 'spk', 'es', true, true);
+  assert.ok(html.includes('buscar-ninguno-web'), html);
+  assert.ok(html.includes('Ninguno de estos'), html);
+});
+
+test('modeloListaResultados: mostrarBuscarWeb=true en inglés, sin mezclar idiomas', () => {
+  const kef = CATALOGO.parlantes.find((p) => p.id === 'kef-ls50-meta')!;
+  const html = modeloListaResultados([kef], 'spk', 'en', true, true);
+  assert.ok(html.includes('None of these'), html);
+  assert.ok(!html.includes('Ninguno'), html);
+});
+
 test('modeloEstadoBusqueda: envuelve el texto ya redactado sin modificarlo', () => {
   assert.equal(modeloEstadoBusqueda('Buscando en la web…'), '<p class="resultado-estado">Buscando en la web…</p>');
 });

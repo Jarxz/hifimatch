@@ -544,17 +544,26 @@ function wireAccionesSinResultado(p: PanelBuscador, marca: string, modelo: strin
  * manual. Con los 2 campos vacíos, lista el catálogo completo de la
  * categoría (explorar sin saber qué buscar) — lo único bueno que tenían
  * los 2 `<select>` en cascada que esto reemplaza.
+ *
+ * `forzarWeb` (default false): salta el catálogo local y va directo a
+ * la web, sin importar si Fuse.js encontraría algo — lo dispara el
+ * botón "ninguno de estos es mi equipo" de `modeloListaResultados`. Sin
+ * esto, un candidato local parecido pero equivocado (ej. "Yamaha
+ * A-S1200" al buscar "Yamaha A-S3200") bloqueaba la búsqueda web sin
+ * dar ningún camino hacia adelante — bug real reportado por el usuario.
  */
-async function ejecutarBusqueda(p: PanelBuscador): Promise<void> {
+async function ejecutarBusqueda(p: PanelBuscador, forzarWeb = false): Promise<void> {
   const marca = p.inputMarca.value.trim();
   const modelo = p.inputModelo.value.trim();
   const t = textosDe(idiomaActual).config;
 
-  const locales = buscarLocal(p.kind, marca, modelo);
-  const explorando = marca === '' && modelo === '';
-  if (explorando || locales.length > 0) {
-    mostrarPanelBuscador(p, modeloListaResultados(locales, p.kind, idiomaActual, !explorando));
-    return;
+  if (!forzarWeb) {
+    const locales = buscarLocal(p.kind, marca, modelo);
+    const explorando = marca === '' && modelo === '';
+    if (explorando || locales.length > 0) {
+      mostrarPanelBuscador(p, modeloListaResultados(locales, p.kind, idiomaActual, !explorando, !explorando));
+      return;
+    }
   }
 
   if (marca === '' || modelo === '') {
@@ -613,7 +622,12 @@ function iniciarBuscadorEquipos(): void {
     // mismo patrón que #plan-hint/RECALCULAR: un listener puesto directo
     // en un botón se perdería en el primer repintado.
     p.panel.addEventListener('click', (ev) => {
-      const boton = (ev.target as HTMLElement).closest<HTMLElement>('.resultado-item');
+      const target = ev.target as HTMLElement;
+      if (target.closest('.buscar-ninguno-web')) {
+        void ejecutarBusqueda(p, true);
+        return;
+      }
+      const boton = target.closest<HTMLElement>('.resultado-item');
       const id = boton?.dataset.elegirId;
       if (!id) return;
       const equipo = buscarEquipoPorId(p.kind, id);

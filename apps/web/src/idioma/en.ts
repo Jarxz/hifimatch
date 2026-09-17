@@ -220,6 +220,7 @@ export const en: Textos = {
     buscarEstadoSinResultado: 'No reliable information was found for that equipment.',
     buscarEstadoError: 'Something went wrong while searching.',
     buscarSinCoincidenciasLocales: 'No matches in the curated catalog.',
+    buscarNingunoEsBuscarWeb: 'None of these is my gear — search the web instead',
     // No numeric fields for speaker/amplifier on purpose: sensitivity,
     // impedance, and power come from the search (catalog or web), never
     // typed by the user.

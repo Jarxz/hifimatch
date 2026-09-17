@@ -85,7 +85,7 @@ async function buscarEnTavily(categoria: CategoriaBusqueda, marca: string, model
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       query,
-      max_results: 5,
+      max_results: 8, // más fuentes por búsqueda, sin costo extra: Tavily cobra por search_depth, no por max_results (confirmado contra su documentación) — más resultados reduce la chance de que los pocos elegidos sean todos páginas sin specs extraíbles
       search_depth: 'basic', // 1 crédito por búsqueda (no 2) — alcanza y estira el cupo gratuito mensual
     }),
   });
@@ -229,12 +229,30 @@ function parsearSpecs(categoria: CategoriaBusqueda, json: unknown): SpecsCrudas 
   };
 }
 
+/** true sólo si la extracción no sacó absolutamente ningún dato (ni
+ * numérico ni descripción) — señal de que la búsqueda de esta pasada
+ * trajo fuentes sin nada aprovechable (ej. una ficha oficial cuyas specs
+ * se renderizan con JS, que Tavily no ejecuta), no de que el equipo
+ * carezca de ese dato en particular. Genérico entre las 3 categorías a
+ * propósito: no necesita conocer los campos obligatorios de cada una
+ * (eso es responsabilidad de `validarParlante`/`validarAmplificador`/
+ * `validarFuente` en packages/buscador, que este archivo no importa por
+ * diseño) — sólo detecta el caso extremo de "no se extrajo nada". */
+function extraccionCompletamenteVacia(specs: SpecsCrudas): boolean {
+  return Object.values(specs).every((v) => v === null);
+}
+
 /**
- * Orquesta los dos proveedores: Tavily busca, Gemini extrae. Cualquier
- * fallo en cualquiera de los dos pasos degrada a `sin-resultado`/
- * `proveedor-error`, nunca a una excepción sin capturar.
+ * Un intento del par Tavily→Gemini. Extraído de `buscarEquipoEnLaWeb`
+ * para poder reintentarlo completo (no sólo el paso de Gemini, que ya
+ * tiene su propio `conReintento` para 503s transitorios) cuando la
+ * extracción vuelve completamente vacía — un segundo llamado a Tavily
+ * puede rankear un set de fuentes distinto (confirmado en pruebas
+ * reales: la misma consulta trajo `stereophile.com` como resultado #1
+ * en algunas corridas y la ficha oficial de Yamaha, sin specs
+ * extraíbles, en otra).
  */
-export async function buscarEquipoEnLaWeb(ai: GoogleGenAI, solicitud: SolicitudBusqueda): Promise<ResultadoProveedor> {
+async function intentarBusquedaYExtraccion(ai: GoogleGenAI, solicitud: SolicitudBusqueda): Promise<ResultadoProveedor> {
   let busqueda: ResultadoTavily | null;
   try {
     busqueda = await buscarEnTavily(solicitud.categoria, solicitud.marca, solicitud.modelo);
@@ -269,4 +287,24 @@ export async function buscarEquipoEnLaWeb(ai: GoogleGenAI, solicitud: SolicitudB
     console.error('proveedor-busqueda: fallo llamando a Gemini (extracción)', err);
     return { ok: false, codigo: 'proveedor-error' };
   }
+}
+
+/**
+ * Orquesta los dos proveedores: Tavily busca, Gemini extrae. Cualquier
+ * fallo en cualquiera de los dos pasos degrada a `sin-resultado`/
+ * `proveedor-error`, nunca a una excepción sin capturar.
+ *
+ * Reintenta la pasada completa UNA vez si la primera extrajo cero datos
+ * — la búsqueda de Tavily no es perfectamente determinística (misma
+ * consulta, distinto set de fuentes entre corridas), así que un segundo
+ * intento tiene chance real de encontrar una fuente con specs
+ * extraíbles. Sólo consume el crédito/llamada extra en ese caso, no en
+ * cada búsqueda.
+ */
+export async function buscarEquipoEnLaWeb(ai: GoogleGenAI, solicitud: SolicitudBusqueda): Promise<ResultadoProveedor> {
+  const primerIntento = await intentarBusquedaYExtraccion(ai, solicitud);
+  if (!primerIntento.ok || !extraccionCompletamenteVacia(primerIntento.specs)) return primerIntento;
+
+  const segundoIntento = await intentarBusquedaYExtraccion(ai, solicitud);
+  return segundoIntento.ok ? segundoIntento : primerIntento;
 }

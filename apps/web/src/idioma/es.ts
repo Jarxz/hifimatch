@@ -309,6 +309,7 @@ export const es = {
     buscarEstadoSinResultado: 'No se encontró información confiable para ese equipo.',
     buscarEstadoError: 'Ocurrió un error al buscar.',
     buscarSinCoincidenciasLocales: 'Sin coincidencias en el catálogo curado.',
+    buscarNingunoEsBuscarWeb: 'Ninguno de estos es mi equipo — buscar en la web',
     // Sin campos numéricos para parlante/amplificador a propósito: la
     // sensibilidad, la impedancia y la potencia las entrega el buscador
     // (catálogo o web), nunca el usuario a mano.

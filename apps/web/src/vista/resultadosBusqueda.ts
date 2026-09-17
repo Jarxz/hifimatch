@@ -38,11 +38,24 @@ function filaResultado(eq: EquipoCatalogo, categoria: CategoriaLocal, idioma: Id
  * se lea alfabéticamente por marca, mismo criterio que ya usa
  * `marcasUnicas` en selectores.ts. Un resultado de búsqueda con Fuse.js
  * (`ordenarPorRelevancia:true`) mantiene en cambio el orden que ya trae
- * — reordenar por marca destruiría el ranking por parecido. */
-export function modeloListaResultados(equipos: readonly EquipoCatalogo[], categoria: CategoriaLocal, idioma: Idioma, ordenarPorRelevancia: boolean): string {
+ * — reordenar por marca destruiría el ranking por parecido.
+ *
+ * `mostrarBuscarWeb` (default false, sólo con marca+modelo tipeados —
+ * nunca en "explorar todo", donde no hay nada que buscar en la web):
+ * agrega un botón para saltar el catálogo local y buscar en la web de
+ * todos modos. Bug real encontrado en producción: Fuse.js encuentra un
+ * candidato local parecido con bastante frecuencia (ej. "Yamaha
+ * A-S3200" → sugiere el "Yamaha A-S1200" ya catalogado, un modelo
+ * distinto) y, sin este botón, eso bloqueaba la búsqueda web por
+ * completo — el usuario quedaba con una sola sugerencia que no es su
+ * equipo, sin ningún camino hacia adelante. */
+export function modeloListaResultados(equipos: readonly EquipoCatalogo[], categoria: CategoriaLocal, idioma: Idioma, ordenarPorRelevancia: boolean, mostrarBuscarWeb = false): string {
   if (equipos.length === 0) return '';
   const lista = ordenarPorRelevancia ? equipos : [...equipos].sort((a, b) => a.marca.localeCompare(b.marca) || a.nombre.localeCompare(b.nombre));
-  return `<div class="resultados-lista">${lista.map((eq) => filaResultado(eq, categoria, idioma)).join('')}</div>`;
+  const filas = `<div class="resultados-lista">${lista.map((eq) => filaResultado(eq, categoria, idioma)).join('')}</div>`;
+  if (!mostrarBuscarWeb) return filas;
+  const t = textosDe(idioma).config;
+  return filas + `<button type="button" class="back buscar-ninguno-web">${escapeHtml(t.buscarNingunoEsBuscarWeb)}</button>`;
 }
 
 /** Un único párrafo de estado (buscando/sin resultado/error/etc.) —

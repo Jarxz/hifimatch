@@ -544,6 +544,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .resultado-item .ri-nombre{display:block; font-size:13.5px; color:var(--text)}
 .resultado-item .ri-chips{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:3px}
 .resultado-estado{font-size:12.5px; color:var(--faint); font-style:italic; padding:10px 2px; margin:0}
+.buscar-ninguno-web{display:block; margin-top:8px}
 
 /* Ficha manual — respaldo universal cuando no hay dato (sin conexión,
    región restringida, cupo agotado, sin resultado). Reusa `.cta-sec`/
