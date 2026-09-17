@@ -20,12 +20,19 @@ import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 import { validarContacto } from '../../../packages/contact/src/contacto.ts';
 import type { EntradaContacto } from '../../../packages/contact/src/contacto.ts';
+import { construirFuenteWeb } from '../../../packages/buscador/src/buscador.ts';
+import type { CategoriaBusqueda } from '../../../packages/buscador/src/buscador.ts';
+import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../packages/data/src/tipos-catalogo.ts';
 
 import { estado } from './estado.ts';
 import type { NivelUI } from './estado.ts';
 import { ir } from './vista/pantallas.ts';
 import type { Pantalla } from './vista/pantallas.ts';
-import { poblarSelectores, poblarModelos, vaciarModelos, infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
+import { infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
+import { buscarLocal } from './datos/buscadorLocal.ts';
+import type { CategoriaLocal } from './datos/buscadorLocal.ts';
+import { registrarEquipo, buscarEnRegistro } from './datos/registroEquipos.ts';
+import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual } from './vista/resultadosBusqueda.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { iniciarBootSplash } from './vista/bootSplash.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
@@ -251,17 +258,34 @@ function datoReverberacion(r: ReturnType<typeof evaluarReverberacion>): string {
   return amoblado === null || vacio === null ? '—' : `≈${num(amoblado, 1, idiomaActual)}–${num(vacio, 1, idiomaActual)} s`;
 }
 
-function buscarParlante(id: string) {
+/**
+ * Consulta PRIMERO el registro en memoria (equipos hallados por búsqueda
+ * web o ingresados a mano, ver datos/registroEquipos.ts) y recién si no
+ * hay nada ahí cae al catálogo curado — la pieza que evita reescribir el
+ * resto del frontend: `estado.spk/amp/streamer/dac` siguen siendo
+ * `string | null` con un id, `chipsParlante`/`infoHtmlParlante` y todo lo
+ * que ya consume estas 3 funciones no se entera de dónde salió el
+ * equipo. El cast es seguro: un id registrado bajo 'parlante:' siempre
+ * se construyó con `construirParlanteWeb` (mismo criterio en las otras
+ * dos), nunca se registra un tipo equivocado bajo esa categoría.
+ */
+function buscarParlante(id: string): ParlanteCat {
+  const registrado = buscarEnRegistro(id);
+  if (registrado) return registrado as ParlanteCat;
   const p = CATALOGO.parlantes.find((x) => x.id === id);
   if (!p) throw new Error(`parlante no encontrado: ${id}`);
   return p;
 }
-function buscarAmplificador(id: string) {
+function buscarAmplificador(id: string): AmplificadorCat {
+  const registrado = buscarEnRegistro(id);
+  if (registrado) return registrado as AmplificadorCat;
   const a = CATALOGO.amplificadores.find((x) => x.id === id);
   if (!a) throw new Error(`amplificador no encontrado: ${id}`);
   return a;
 }
-function buscarFuente(id: string) {
+function buscarFuente(id: string): FuenteCat {
+  const registrado = buscarEnRegistro(id);
+  if (registrado) return registrado as FuenteCat;
   const f = [...CATALOGO.streamers, ...CATALOGO.dacs].find((x) => x.id === id);
   if (!f) throw new Error(`fuente no encontrada: ${id}`);
   return f;
@@ -387,38 +411,215 @@ function infoHTML(kind: 'spk' | 'amp' | 'streamer' | 'dac', id: string): string 
 }
 
 /**
- * Streamer y DAC son selectores independientes y opcionales, igual que
- * parlante/amplificador — el usuario puede elegir uno, otro, los dos o
- * ninguno. Cada uno evalúa su propio puente/recorrido contra el
- * amplificador (ver pintarGanancia), así que no hace falta exclusión mutua.
+ * Elige (o limpia, con `valor === ''`) el equipo de una categoría.
+ * Streamer y DAC son independientes y opcionales, igual que parlante/
+ * amplificador — el usuario puede elegir uno, otro, los dos o ninguno;
+ * cada uno evalúa su propio puente/recorrido contra el amplificador (ver
+ * pintarGanancia), así que no hace falta exclusión mutua. Ya no depende
+ * de un `<select id="sel-{kind}">` — los 2 `<select>` en cascada de esta
+ * categoría se reemplazaron por el buscador marca+modelo (ver
+ * `iniciarBuscadorEquipos()` más abajo); esta función sigue siendo el
+ * único lugar que toca `estado[kind]` y repinta la tarjeta `.info`.
  */
 function pick(kind: 'spk' | 'amp' | 'streamer' | 'dac', valor: string): void {
-  const sel = document.getElementById('sel-' + kind) as HTMLSelectElement | null;
   const box = document.getElementById('info-' + kind);
-  if (!sel || !box) return;
+  if (!box) return;
 
   if (!valor) {
     estado[kind] = null;
-    sel.classList.add('empty');
     box.innerHTML = '';
   } else {
     estado[kind] = valor;
-    sel.classList.remove('empty');
     box.innerHTML = infoHTML(kind, valor);
   }
   refrescar();
 }
 
-/** Cambiar de marca (o volver al placeholder) siempre limpia el modelo
- * elegido — no tiene sentido dejar seleccionado un modelo de otra marca
- * mientras se repuebla el <select> de modelo. `pick(kind, '')` reusa
- * exactamente la misma limpieza de estado/tarjeta .info que ya usa el
- * <select> de modelo al volver a su placeholder. */
-function setMarca(kind: 'spk' | 'amp' | 'streamer' | 'dac', marca: string): void {
-  document.getElementById('sel-' + kind + '-marca')?.classList.toggle('empty', !marca);
-  if (marca) poblarModelos(kind, marca, idiomaActual);
-  else vaciarModelos(kind, idiomaActual);
-  pick(kind, '');
+// ── Buscador de equipos: marca + modelo → catálogo curado (Fuse.js) o
+// búsqueda web (packages/buscador) o ficha manual. Reemplaza los 2
+// <select> en cascada que existían antes — ver packages/buscador/src/
+// buscador.ts para el porqué de cada decisión de fondo (rangos físicos,
+// las 2 llamadas a Gemini, el geo-gate); acá sólo se orquesta la UI.
+const CATEGORIA_BUSQUEDA: Record<CategoriaLocal, CategoriaBusqueda> = {
+  spk: 'parlante',
+  amp: 'amplificador',
+  streamer: 'streamer',
+  dac: 'dac',
+};
+
+interface PanelBuscador {
+  kind: CategoriaLocal;
+  inputMarca: HTMLInputElement;
+  inputModelo: HTMLInputElement;
+  botonBuscar: HTMLButtonElement;
+  panel: HTMLElement;
+}
+
+function panelesBuscador(): PanelBuscador[] {
+  const kinds: CategoriaLocal[] = ['spk', 'amp', 'streamer', 'dac'];
+  const resultado: PanelBuscador[] = [];
+  for (const kind of kinds) {
+    const inputMarca = document.getElementById(`in-${kind}-marca`) as HTMLInputElement | null;
+    const inputModelo = document.getElementById(`in-${kind}-modelo`) as HTMLInputElement | null;
+    const botonBuscar = document.getElementById(`btn-${kind}-buscar`) as HTMLButtonElement | null;
+    const panel = document.getElementById(`panel-${kind}`);
+    if (inputMarca && inputModelo && botonBuscar && panel) resultado.push({ kind, inputMarca, inputModelo, botonBuscar, panel });
+  }
+  return resultado;
+}
+
+function ocultarPanelBuscador(p: PanelBuscador): void {
+  p.panel.innerHTML = '';
+  p.panel.classList.add('hidden');
+}
+
+function mostrarPanelBuscador(p: PanelBuscador, html: string): void {
+  p.panel.innerHTML = html;
+  p.panel.classList.remove('hidden');
+}
+
+/** Un equipo encontrado (local, web o manual) siempre termina acá: reusa
+ * `pick()` — misma limpieza de estado, mismo repintado de `.info`, mismo
+ * `refrescar()` que ya habilita "Analizar" — cero lógica nueva. Además
+ * refleja en los 2 campos de texto qué quedó elegido, para que el
+ * usuario vea confirmado lo que tipeó (o corrigió, si había un error). */
+function elegirEquipoEncontrado(p: PanelBuscador, id: string, marca: string, nombre: string): void {
+  pick(p.kind, id);
+  p.inputMarca.value = marca;
+  p.inputModelo.value = nombre.startsWith(marca) ? nombre.slice(marca.length).trim() : nombre;
+  ocultarPanelBuscador(p);
+}
+
+/** Sólo para resolver el click de un resultado ya mostrado (local o de
+ * una búsqueda anterior) — el id siempre existe en catálogo o registro
+ * en ese momento, pero el try/catch cubre el caso defensivo de que no. */
+function buscarEquipoPorId(kind: CategoriaLocal, id: string): { marca: string; nombre: string } | null {
+  try {
+    if (kind === 'spk') return buscarParlante(id);
+    if (kind === 'amp') return buscarAmplificador(id);
+    return buscarFuente(id);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Panel de "no se encontró" — deliberadamente sin campos numéricos para
+ * parlante/amplificador (ver el comentario de cabecera de
+ * `modeloPanelManual` en vista/resultadosBusqueda.ts): sensibilidad,
+ * impedancia y potencia las entrega el buscador, nunca el usuario a
+ * mano. La única acción ahí es "Avisar al sitio sobre este equipo".
+ * Streamer/DAC siguen con "usar sin datos de salida" — no le pide un
+ * número a nadie, el motor no exige ninguno para esa categoría.
+ */
+function mostrarPanelManual(p: PanelBuscador, textoEstado: string | null, marca: string, modelo: string): void {
+  const estadoHtml = textoEstado ? modeloEstadoBusqueda(textoEstado) : '';
+  mostrarPanelBuscador(p, estadoHtml + modeloPanelManual(p.kind, idiomaActual));
+  wireAccionesSinResultado(p, marca, modelo);
+}
+
+function wireAccionesSinResultado(p: PanelBuscador, marca: string, modelo: string): void {
+  p.panel.querySelector('.manual-solicitar-alta')?.addEventListener('click', () => {
+    abrirContactoPopup(`Solicitud de equipo — ${marca} ${modelo}`.trim());
+  });
+
+  // `kind` capturado en una const local — el estrechamiento de tipo de
+  // `p.kind` (propiedad de un objeto) no sobrevive dentro de una
+  // clausura para TypeScript, aunque en los hechos nunca cambie; una
+  // const local sí se estrecha de forma estable dentro del closure.
+  const kind = p.kind;
+  if (kind === 'streamer' || kind === 'dac') {
+    p.panel.querySelector('.manual-usar-sin-datos')?.addEventListener('click', () => {
+      const equipo = construirFuenteWeb(kind, marca, modelo, { salidaV: null, impedanciaSalidaOhm: null }, null);
+      registrarEquipo(equipo);
+      elegirEquipoEncontrado(p, equipo.id, equipo.marca, equipo.nombre);
+    });
+  }
+}
+
+/**
+ * Orquesta el flujo completo de una búsqueda: catálogo curado local
+ * primero (Fuse.js, $0, instantáneo) → si no hay nada Y hay marca+modelo
+ * tipeados, búsqueda web (`/api/buscar-equipo`) → si tampoco, ficha
+ * manual. Con los 2 campos vacíos, lista el catálogo completo de la
+ * categoría (explorar sin saber qué buscar) — lo único bueno que tenían
+ * los 2 `<select>` en cascada que esto reemplaza.
+ */
+async function ejecutarBusqueda(p: PanelBuscador): Promise<void> {
+  const marca = p.inputMarca.value.trim();
+  const modelo = p.inputModelo.value.trim();
+  const t = textosDe(idiomaActual).config;
+
+  const locales = buscarLocal(p.kind, marca, modelo);
+  const explorando = marca === '' && modelo === '';
+  if (explorando || locales.length > 0) {
+    mostrarPanelBuscador(p, modeloListaResultados(locales, p.kind, idiomaActual, !explorando));
+    return;
+  }
+
+  if (marca === '' || modelo === '') {
+    // La API exige los dos campos — con sólo uno tipeado no hay nada
+    // que buscar en la web, directo a la ficha manual.
+    mostrarPanelManual(p, t.buscarEstadoSinResultado, marca, modelo);
+    return;
+  }
+  if (location.protocol === 'file:') {
+    // Mismo guardia que ya usa enviarContacto: por file:// un fetch no
+    // falla de forma recuperable, la URL ni siquiera resuelve a un host.
+    mostrarPanelManual(p, t.buscarEstadoOffline, marca, modelo);
+    return;
+  }
+
+  mostrarPanelBuscador(p, modeloEstadoBusqueda(t.buscarEstadoBuscandoWeb));
+  p.botonBuscar.disabled = true;
+  try {
+    const res = await fetch('/api/buscar-equipo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categoria: CATEGORIA_BUSQUEDA[p.kind], marca, modelo }),
+    });
+    const datos = await res.json();
+    if (datos.ok) {
+      registrarEquipo(datos.equipo);
+      elegirEquipoEncontrado(p, datos.equipo.id, datos.equipo.marca, datos.equipo.nombre);
+    } else {
+      const textoPorCodigo: Record<string, string> = {
+        'region-restringida': t.buscarEstadoRegionRestringida,
+        'cupo-agotado': t.buscarEstadoCupoAgotado,
+        'sin-resultado': t.buscarEstadoSinResultado,
+        'datos-insuficientes': t.buscarEstadoSinResultado,
+      };
+      mostrarPanelManual(p, textoPorCodigo[datos.codigo] ?? t.buscarEstadoError, marca, modelo);
+    }
+  } catch {
+    mostrarPanelManual(p, t.buscarEstadoError, marca, modelo);
+  } finally {
+    p.botonBuscar.disabled = false;
+  }
+}
+
+function iniciarBuscadorEquipos(): void {
+  for (const p of panelesBuscador()) {
+    p.botonBuscar.addEventListener('click', () => void ejecutarBusqueda(p));
+    [p.inputMarca, p.inputModelo].forEach((input) => {
+      input.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          void ejecutarBusqueda(p);
+        }
+      });
+    });
+    // Delegado (el contenido de p.panel se reemplaza en cada búsqueda) —
+    // mismo patrón que #plan-hint/RECALCULAR: un listener puesto directo
+    // en un botón se perdería en el primer repintado.
+    p.panel.addEventListener('click', (ev) => {
+      const boton = (ev.target as HTMLElement).closest<HTMLElement>('.resultado-item');
+      const id = boton?.dataset.elegirId;
+      if (!id) return;
+      const equipo = buscarEquipoPorId(p.kind, id);
+      if (equipo) elegirEquipoEncontrado(p, id, equipo.marca, equipo.nombre);
+    });
+  }
 }
 
 /** Relleno dorado del slider hasta la posición del valor actual (--fill,
@@ -1190,12 +1391,20 @@ const CONTACTO_EMAIL_FALLBACK = 'thehmcontacto@gmail.com';
  * `packages/contact/src/contacto.ts`). */
 let contactoAbiertoEnMs = 0;
 
-function abrirContactoPopup(): void {
+/** `mensajePrefill` opcional — usado por el botón "Avisar al sitio sobre
+ * este equipo" del buscador (ver wireFormularioManual) para precargar el
+ * mensaje con la marca/modelo que no se pudo resolver. Sin argumento,
+ * mismo comportamiento de siempre (formulario vacío). */
+function abrirContactoPopup(mensajePrefill?: string): void {
   const dialog = document.getElementById('contacto-popup') as HTMLDialogElement | null;
   const form = document.getElementById('form-contacto') as HTMLFormElement | null;
   const estadoEl = document.getElementById('contacto-estado');
   if (!dialog || !form || !estadoEl) return;
   form.reset();
+  if (mensajePrefill) {
+    const mensajeEl = document.getElementById('ct-mensaje') as HTMLTextAreaElement | null;
+    if (mensajeEl) mensajeEl.value = mensajePrefill;
+  }
   estadoEl.classList.add('hidden');
   estadoEl.classList.remove('exito', 'error');
   contactoAbiertoEnMs = Date.now();
@@ -1494,16 +1703,6 @@ function wireEventos(): void {
   });
   document.getElementById('form-contacto')?.addEventListener('submit', enviarContacto);
 
-  document.getElementById('sel-spk-marca')?.addEventListener('change', (e) => setMarca('spk', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-amp-marca')?.addEventListener('change', (e) => setMarca('amp', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-streamer-marca')?.addEventListener('change', (e) => setMarca('streamer', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-dac-marca')?.addEventListener('change', (e) => setMarca('dac', (e.target as HTMLSelectElement).value));
-
-  document.getElementById('sel-spk')?.addEventListener('change', (e) => pick('spk', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-amp')?.addEventListener('change', (e) => pick('amp', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-streamer')?.addEventListener('change', (e) => pick('streamer', (e.target as HTMLSelectElement).value));
-  document.getElementById('sel-dac')?.addEventListener('change', (e) => pick('dac', (e.target as HTMLSelectElement).value));
-
   wireSlider('in-W', 'W');
   wireSlider('in-L', 'L');
   wireSlider('in-H', 'H');
@@ -1572,9 +1771,9 @@ function inicializarAnalytics(): void {
 function main(): void {
   inicializarAnalytics();
   inicializarSplash();
-  poblarSelectores(idiomaActual);
   aplicarCromoEstatico(idiomaActual);
   wireEventos();
+  iniciarBuscadorEquipos();
 
   const escala = document.getElementById('pw-scale');
   if (escala) construirEscala(escala);

@@ -1,0 +1,15 @@
+{
+  "name": "@cadena/buscador",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Búsqueda de equipos fuera del catálogo curado: validación de rangos físicos, construcción de fichas ParlanteCat/AmplificadorCat/FuenteCat 'no curadas' y orquestación con proveedor+caché inyectados. TypeScript puro, cero dependencias de runtime — consumido por api/buscar-equipo.ts (el proveedor real, Gemini + Upstash, se inyecta ahí) y testeado sin red.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^5.6.0"
+  }
+}

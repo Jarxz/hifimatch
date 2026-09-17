@@ -10,6 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import { infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './selectores.ts';
+import { construirParlanteWeb, construirAmplificadorWeb, construirFuenteWeb } from '../../../../packages/buscador/src/buscador.ts';
 
 function parlante(id: string) {
   const p = CATALOGO.parlantes.find((x) => x.id === id);
@@ -49,6 +50,19 @@ test('fuente (streamer/dac): infoHtmlFuente nunca lleva la nota genérica — no
   assert.ok(!html.includes('info-nota-generico'), html);
 });
 
+test('equipo web (id con prefijo "web:"): lleva la nota de "no curado", NUNCA la de "genérico" — son avisos distintos', () => {
+  const p = construirParlanteWeb('Focal', 'Aria 906', { sensibilidadDb: 90, impedanciaNominalOhm: 8, impedanciaMinOhm: null, potenciaRecMinW: null, potenciaRecMaxW: null }, 'https://focal.com');
+  const html = infoHtmlParlante(p, 'es');
+  assert.ok(html.includes('info-nota-generico'), html); // mismo tratamiento visual, clase compartida a propósito
+  assert.ok(html.includes('no forma parte del catálogo curado'), html);
+  assert.ok(!html.includes('Perfil genérico (arquetipo)'), html);
+});
+test('equipo web amplificador y fuente: mismo mecanismo de nota "no curado"', () => {
+  const a = construirAmplificadorWeb('X', 'Y', { potencia8OhmW: 80, potencia4OhmW: null, cargaMinOhm: null, sensEntradaMv: null, impedanciaEntradaOhm: null }, null);
+  const f = construirFuenteWeb('streamer', 'X', 'Y', { salidaV: null, impedanciaSalidaOhm: null }, null);
+  assert.ok(infoHtmlAmplificador(a, 'es').includes('no forma parte del catálogo curado'));
+  assert.ok(infoHtmlFuente(f, 'en').includes("not part of the site's curated catalog"));
+});
 test('los 3 parlantes y 3 amplificadores genéricos llevan la nota, en los dos idiomas', () => {
   const generosParlantes = CATALOGO.parlantes.filter((p) => p.marca === 'Genérico (Arquetipo)');
   const generosAmplis = CATALOGO.amplificadores.filter((a) => a.marca === 'Genérico (Arquetipo)');

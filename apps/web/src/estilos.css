@@ -495,6 +495,64 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .marca-modelo .sel-marca{flex:1 1 auto}
 }
 
+/* Buscador de equipos (marca + modelo tipeados + botón Buscar) —
+   reemplaza los 2 <select> en cascada de arriba dentro de `.marca-modelo`
+   (mismo contenedor flex, ahora con 3 hijos). Radio y hover calcados de
+   `.sel select` de ESTE sistema visual (3px, hover a --line2, no dorado)
+   — no los valores del rediseño premium descartado, para que el control
+   nuevo no desentone con el resto de la página. Clases nuevas, ninguna
+   regla de arriba se modificó. */
+.campo-texto{position:relative; min-width:0}
+.campo-texto input{width:100%; font:inherit; font-size:14px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:12px 14px; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
+.campo-texto input::placeholder{color:var(--faint)}
+.campo-texto input:hover{border-color:var(--line2)}
+.campo-texto input:focus-visible{outline:none; border-color:var(--line2)}
+.marca-modelo .campo-marca{flex:0 0 36%}
+.marca-modelo .campo-modelo{flex:1 1 auto}
+.buscar-btn{flex:0 0 auto; width:46px; display:flex; align-items:center; justify-content:center; background:var(--panel2); border:1px solid var(--line3); border-radius:8px; color:var(--dorado); cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
+.buscar-btn:hover{border-color:var(--line2)}
+.buscar-btn:disabled{cursor:not-allowed; opacity:.5}
+.buscar-btn svg{width:18px; height:18px}
+@media (max-width:480px){
+  .marca-modelo .campo-marca, .marca-modelo .campo-modelo{flex:1 1 auto}
+  .buscar-btn{width:100%}
+}
+/* Bug real, no sólo mobile: dentro de `.split` SIN `.split-full`
+   (Streamer/DAC, la mitad del ancho de Parlantes/Amplificador) marca+
+   modelo+botón lado a lado no entran — el placeholder quedaba cortado
+   ("Marc"/"M"). Mismo criterio de apilar que ya usa la regla de arriba
+   para pantallas angostas, aplicado acá por ANCHO DE COLUMNA en vez de
+   ancho de viewport. El `:not(.split-full)` es necesario: Parlantes/
+   Amplificador usan `class="split split-full"` — las DOS clases juntas
+   en el mismo elemento, así que un `.split` sin calificar los alcanzaba
+   también (bug encontrado al verificar con una captura real, no
+   asumido). */
+.split:not(.split-full) .marca-modelo{flex-direction:column}
+.split:not(.split-full) .campo-marca, .split:not(.split-full) .campo-modelo{flex:1 1 auto}
+.split:not(.split-full) .buscar-btn{width:100%}
+
+/* Panel de resultados/estado/ficha manual — vive debajo de `.marca-modelo`,
+   arriba de la tarjeta `.info` del equipo elegido; oculto (`.hidden`) hasta
+   la primera búsqueda. Mismo radio/fondo que `.info`/`.picker` de este
+   sistema visual (4px, --panel), no el 14px del rediseño descartado. */
+.resultados-busqueda{margin-top:10px}
+.resultados-lista{border:1px solid var(--line); border-radius:4px; background:var(--panel); overflow:hidden; max-height:280px; overflow-y:auto}
+.resultado-item{display:block; width:100%; text-align:left; background:transparent; border:0; border-bottom:1px solid var(--line); color:var(--text); font:inherit; padding:10px 14px; cursor:pointer; transition:background .15s}
+.resultado-item:last-child{border-bottom:0}
+.resultado-item:hover, .resultado-item:focus-visible{background:var(--panel3); outline:none}
+.resultado-item .ri-marca{display:block; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:2px}
+.resultado-item .ri-nombre{display:block; font-size:13.5px; color:var(--text)}
+.resultado-item .ri-chips{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:3px}
+.resultado-estado{font-size:12.5px; color:var(--faint); font-style:italic; padding:10px 2px; margin:0}
+
+/* Ficha manual — respaldo universal cuando no hay dato (sin conexión,
+   región restringida, cupo agotado, sin resultado). Reusa `.cta-sec`/
+   `.back` para los botones — cero componentes visuales nuevos, sólo
+   composición de los que ya existen en el sitio. */
+.manual-form{border:1px solid var(--line); border-radius:4px; background:var(--panel); padding:14px 16px; margin-top:8px}
+.manual-intro{font-size:12.5px; color:var(--dim); line-height:1.6; margin:0 0 10px}
+.manual-acciones{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:4px}
+
 .info{margin-top:12px; border:1px solid var(--line); border-radius:4px; padding:6px 15px; background:var(--panel)}
 .info-nota-generico{font-size:11.5px; font-style:italic; color:var(--warn); line-height:1.5; padding:8px 0; border-bottom:1px solid var(--line)}
 .info-type{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}

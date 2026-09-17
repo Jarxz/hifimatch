@@ -22,7 +22,8 @@ function extraerClaves(atributo: string): string[] {
 const CLAVES_TEXTO = extraerClaves('data-i18n');
 const CLAVES_HTML = extraerClaves('data-i18n-html');
 const CLAVES_ARIA = extraerClaves('data-i18n-aria');
-const TODAS = [...new Set([...CLAVES_TEXTO, ...CLAVES_HTML, ...CLAVES_ARIA])];
+const CLAVES_PLACEHOLDER = extraerClaves('data-i18n-placeholder');
+const TODAS = [...new Set([...CLAVES_TEXTO, ...CLAVES_HTML, ...CLAVES_ARIA, ...CLAVES_PLACEHOLDER])];
 
 test('index.html tiene al menos un data-i18n (guardia contra una regex rota o un archivo vacío)', () => {
   assert.ok(TODAS.length > 10, `sólo se encontraron ${TODAS.length} claves`);

@@ -290,18 +290,32 @@ export const es = {
     faltanDatos: 'Faltan datos',
     listoAnalizar: 'Listo para analizar',
     sinInconsistencias: 'Sin inconsistencias detectadas — listo para calcular.',
-    marcaPlaceholder: '— Marca —',
-    modeloPlaceholder: '— Modelo —',
-    modeloSinMarca: '— Elige una marca primero —',
-    fuentePlaceholder: '— Ninguno (opcional) —',
-    masParlantes: 'Más parlantes · próximamente',
-    masAmplificadores: 'Más amplificadores · próximamente',
-    masStreamers: 'Más streamers · próximamente',
-    masDacs: 'Más DACs · próximamente',
     verFicha: 'Ficha del producto · próximamente',
     verDescripcion: 'Ver descripción',
     notaGenerico:
       'Perfil genérico (arquetipo): una aproximación física de referencia, no un producto real ni una medición. Conviene elegirlo sólo cuando el equipo real no aparece en el catálogo.',
+    // Buscador de equipos (marca+modelo → Fuse.js local sobre el catálogo
+    // curado; si no hay coincidencia, búsqueda web con /api/buscar-equipo
+    // o ficha manual — ver apps/web/src/main.ts y packages/buscador).
+    notaNoCurado:
+      'Hallado por búsqueda automática o ingresado a mano — no forma parte del catálogo curado del sitio: nadie lo revisó, y los datos pueden tener errores.',
+    buscarMarcaPlaceholder: 'Marca',
+    buscarModeloPlaceholder: 'Modelo',
+    buscarBtnAria: 'Buscar',
+    buscarEstadoBuscandoWeb: 'Buscando en la web…',
+    buscarEstadoOffline: 'Sin conexión (archivo local): la búsqueda automática no está disponible.',
+    buscarEstadoRegionRestringida: 'La búsqueda automática no está disponible en tu región.',
+    buscarEstadoCupoAgotado: 'Se alcanzó el límite de búsquedas de hoy — vuelve mañana.',
+    buscarEstadoSinResultado: 'No se encontró información confiable para ese equipo.',
+    buscarEstadoError: 'Ocurrió un error al buscar.',
+    buscarSinCoincidenciasLocales: 'Sin coincidencias en el catálogo curado.',
+    // Sin campos numéricos para parlante/amplificador a propósito: la
+    // sensibilidad, la impedancia y la potencia las entrega el buscador
+    // (catálogo o web), nunca el usuario a mano.
+    buscarSinResultadoIntro: 'No se pudieron obtener las especificaciones de este equipo de forma automática. Puedes avisarle al sitio para que lo agregue al catálogo, o volver a intentar con otro nombre.',
+    buscarManualIntroFuente: 'Un streamer o DAC no necesita ningún dato numérico obligatorio — puedes usarlo así, sin voltaje ni impedancia de salida.',
+    buscarManualUsarSinDatos: 'Usar sin datos de salida',
+    buscarSolicitarAlta: 'Avisar al sitio sobre este equipo',
     personalizarSala: 'Personalizar sala',
     resumenSala: (p: { ancho: string; largo: string; alto: string; muro: string; piso: string }): string =>
       `${p.ancho} × ${p.largo} × ${p.alto} m · ${p.muro} + ${p.piso}`,

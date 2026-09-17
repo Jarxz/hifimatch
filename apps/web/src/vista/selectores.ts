@@ -1,104 +1,20 @@
-/** Puebla los selectores marca→modelo del catálogo y arma el HTML de la tarjeta .info de cada categoría. */
-import { CATALOGO, MARCA_GENERICA } from '../../../../packages/data/src/catalogo.ts';
+/**
+ * Arma el HTML de la tarjeta `.info` de cada categoría (parlante/
+ * amplificador/streamer/dac) — funciones puras, no tocan `document`.
+ *
+ * Hasta una ronda anterior este archivo también poblaba los 2 `<select>`
+ * en cascada marca→modelo; ese mecanismo se retiró por completo al
+ * reemplazar los selects por el buscador marca+modelo (Fuse.js local +
+ * búsqueda web, ver `packages/buscador` y `apps/web/src/main.ts`
+ * `iniciarBuscadorEquipos()`) — quedaba operando sobre elementos que ya
+ * no existen en `index.html`.
+ */
+import { MARCA_GENERICA } from '../../../../packages/data/src/catalogo.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../../packages/data/src/tipos-catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import { chipsParlante, chipsAmplificador, chipsFuente } from '../datos/etiquetas.ts';
 import { textosDe } from '../idioma/idioma.ts';
-
-type Kind = 'spk' | 'amp' | 'streamer' | 'dac';
-
-function catalogoDe(kind: Kind): readonly { id: string; marca: string; nombre: string }[] {
-  if (kind === 'spk') return CATALOGO.parlantes;
-  if (kind === 'amp') return CATALOGO.amplificadores;
-  if (kind === 'streamer') return CATALOGO.streamers;
-  return CATALOGO.dacs;
-}
-
-/** marca no se traduce — el orden alfabético (`localeCompare`) es estable
- * entre idiomas. No asume que el catálogo ya viene agrupado por marca:
- * junta únicas y ordena de forma explícita. */
-function marcasUnicas(items: readonly { marca: string }[]): string[] {
-  return [...new Set(items.map((it) => it.marca))].sort((a, b) => a.localeCompare(b));
-}
-
-function modelosDeMarca<T extends { marca: string }>(items: readonly T[], marca: string): readonly T[] {
-  return items.filter((it) => it.marca === marca);
-}
-
-function elSelect(id: string): HTMLSelectElement | null {
-  return document.getElementById(id) as HTMLSelectElement | null;
-}
-
-const SEL_MARCA: Record<Kind, string> = { spk: 'sel-spk-marca', amp: 'sel-amp-marca', streamer: 'sel-streamer-marca', dac: 'sel-dac-marca' };
-const SEL_MODELO: Record<Kind, string> = { spk: 'sel-spk', amp: 'sel-amp', streamer: 'sel-streamer', dac: 'sel-dac' };
-
-/**
- * Placeholder de la marca: los dos requeridos (parlante/ampli) usan
- * "— Marca —"; los dos opcionales (streamer/dac) reusan la misma clave de
- * "Ninguno (opcional)" que ya usaban como placeholder del modelo — elegir
- * ese primer valor sigue significando "sin fuente", ahora un paso antes.
- */
-const MARCA_CLAVE: Record<Kind, 'marcaPlaceholder' | 'fuentePlaceholder'> = {
-  spk: 'marcaPlaceholder',
-  amp: 'marcaPlaceholder',
-  streamer: 'fuentePlaceholder',
-  dac: 'fuentePlaceholder',
-};
-
-const MAS_CLAVE: Record<Kind, 'masParlantes' | 'masAmplificadores' | 'masStreamers' | 'masDacs'> = {
-  spk: 'masParlantes',
-  amp: 'masAmplificadores',
-  streamer: 'masStreamers',
-  dac: 'masDacs',
-};
-
-/**
- * Puebla los 4 selects de marca (una sola vez, al arrancar — la lista de
- * marcas no cambia con el idioma) y deja los 4 de modelo deshabilitados,
- * a la espera de que se elija una marca. El aviso "Más X · próximamente"
- * vive acá, al final de la lista de marcas — antes vivía duplicado al
- * final de cada lista de modelos.
- */
-export function poblarSelectores(idioma: Idioma): void {
-  const t = textosDe(idioma).config;
-  (['spk', 'amp', 'streamer', 'dac'] as const).forEach((kind) => {
-    const selMarca = elSelect(SEL_MARCA[kind]);
-    if (!selMarca) return;
-    const marcas = marcasUnicas(catalogoDe(kind));
-    const claveMarca = MARCA_CLAVE[kind];
-    const claveMas = MAS_CLAVE[kind];
-    selMarca.innerHTML =
-      `<option value="" data-i18n="config.${claveMarca}">${t[claveMarca]}</option>` +
-      marcas.map((m) => `<option value="${m}">${m}</option>`).join('') +
-      `<option value="" disabled data-i18n="config.${claveMas}">${t[claveMas]}</option>`;
-    vaciarModelos(kind, idioma);
-  });
-}
-
-/** Deja el select de modelo deshabilitado con un único option explicando
- * que hace falta elegir marca primero — se llama al arrancar y cada vez
- * que la marca vuelve al placeholder ("Ninguno"/sin elegir). */
-export function vaciarModelos(kind: Kind, idioma: Idioma): void {
-  const selModelo = elSelect(SEL_MODELO[kind]);
-  if (!selModelo) return;
-  const t = textosDe(idioma).config;
-  selModelo.innerHTML = `<option value="" data-i18n="config.modeloSinMarca">${t.modeloSinMarca}</option>`;
-  selModelo.disabled = true;
-  selModelo.classList.add('empty');
-}
-
-/** Puebla el select de modelo con los equipos de una marca — habilitado,
- * con el placeholder "— Modelo —" seleccionado (nunca preselecciona un
- * modelo real: cambiar de marca siempre vuelve a pedir elegir modelo). */
-export function poblarModelos(kind: Kind, marca: string, idioma: Idioma): void {
-  const selModelo = elSelect(SEL_MODELO[kind]);
-  if (!selModelo) return;
-  const t = textosDe(idioma).config;
-  const modelos = modelosDeMarca(catalogoDe(kind), marca);
-  selModelo.innerHTML = `<option value="" data-i18n="config.modeloPlaceholder">${t.modeloPlaceholder}</option>` + modelos.map((it) => `<option value="${it.id}">${it.nombre}</option>`).join('');
-  selModelo.disabled = false;
-  selModelo.classList.add('empty');
-}
+import { EQUIPO_WEB_PREFIJO } from '../../../../packages/buscador/src/buscador.ts';
 
 /**
  * El link a la ficha/web del producto es un placeholder a propósito: no hay
@@ -117,17 +33,28 @@ function infoHtml(tipo: string, chips: string[], descripcion: string, verDescrip
   );
 }
 
+/** El aviso de "no curado" (búsqueda web o ficha manual, ver
+ * packages/buscador/src/buscador.ts) usa el mismo mecanismo visual que
+ * ya usaba `notaGenerico` para los arquetipos — un aviso al principio de
+ * la tarjeta, nunca mezclado con datos citados de verdad. Se distingue
+ * por el prefijo reservado del id (`EQUIPO_WEB_PREFIJO`), no por la
+ * marca: acá la marca SÍ es la real (Focal, Wharfedale...), a diferencia
+ * de `MARCA_GENERICA`. */
+function notaDe(t: ReturnType<typeof textosDe>['config'], id: string, marca: string): string | null {
+  if (id.startsWith(EQUIPO_WEB_PREFIJO)) return t.notaNoCurado;
+  if (marca === MARCA_GENERICA) return t.notaGenerico;
+  return null;
+}
+
 export function infoHtmlParlante(p: ParlanteCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  const nota = p.marca === MARCA_GENERICA ? t.notaGenerico : null;
-  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma], t.verDescripcion, t.verFicha, nota);
+  return infoHtml(p.tipo[idioma], chipsParlante(p, idioma), p.descripcion[idioma], t.verDescripcion, t.verFicha, notaDe(t, p.id, p.marca));
 }
 export function infoHtmlAmplificador(a: AmplificadorCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  const nota = a.marca === MARCA_GENERICA ? t.notaGenerico : null;
-  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma], t.verDescripcion, t.verFicha, nota);
+  return infoHtml(a.tipo[idioma], chipsAmplificador(a, idioma), a.descripcion[idioma], t.verDescripcion, t.verFicha, notaDe(t, a.id, a.marca));
 }
 export function infoHtmlFuente(f: FuenteCat, idioma: Idioma): string {
   const t = textosDe(idioma).config;
-  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma], t.verDescripcion, t.verFicha, null);
+  return infoHtml(f.tipo[idioma], chipsFuente(f, idioma), f.descripcion[idioma], t.verDescripcion, t.verFicha, notaDe(t, f.id, f.marca));
 }

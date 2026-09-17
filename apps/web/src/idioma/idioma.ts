@@ -95,6 +95,9 @@ export function aplicarCromoEstatico(idioma: Idioma): void {
   document.querySelectorAll<HTMLElement>('[data-i18n-aria]').forEach((el) => {
     el.setAttribute('aria-label', leerRuta(t, el.dataset.i18nAria!));
   });
+  document.querySelectorAll<HTMLInputElement>('[data-i18n-placeholder]').forEach((el) => {
+    el.placeholder = leerRuta(t, el.dataset.i18nPlaceholder!);
+  });
   document.querySelectorAll<HTMLButtonElement>('[data-idioma]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.idioma === idioma));
   });
