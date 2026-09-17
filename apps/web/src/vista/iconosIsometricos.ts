@@ -72,17 +72,20 @@ interface CajaIso {
 }
 
 /** Ancho/profundidad/alto en unidades abstractas (no metros) — sólo la
- * PROPORCIÓN importa, calibrada mirando las mismas fotos de referencia
- * que ya informaron iconosCategoria.ts (CLAUDE.md tiene el detalle): un
- * parlante de estantería es más alto que ancho/profundo, un
- * amplificador/streamer es una fascia baja y ancha. */
+ * PROPORCIÓN importa. Calibrado contra fotos reales de referencia: un
+ * Bowers & Wilkins 606 S2 (estantería, foto del usuario) mide 300×165×
+ * 271 mm (alto×ancho×fondo) — mucho más angosto que profundo, no una caja
+ * cuadrada en planta como tenía la primera versión; un Gold Note IS-10
+ * (foto del usuario) es una fascia ancha y baja, más profunda que alta.
+ * El parlante de columna sigue la misma idea (angosto, profundo) pero
+ * más alargado en altura. */
 function cajaDe(categoria: CategoriaEquipo, texto: string): CajaIso {
   if (categoria === 'parlante') {
     const columna = contieneAlguna(texto, ['columna', 'floorstander', 'piso']);
-    return columna ? { w: 26, d: 30, h: 78 } : { w: 34, d: 34, h: 52 };
+    return columna ? { w: 22, d: 35, h: 95 } : { w: 30, d: 49, h: 55 };
   }
-  if (categoria === 'amplificador') return { w: 62, d: 38, h: 22 };
-  return { w: 58, d: 34, h: 12 }; // streamer/dac
+  if (categoria === 'amplificador') return { w: 70, d: 46, h: 16 };
+  return { w: 60, d: 40, h: 12 }; // streamer/dac
 }
 
 interface DetallesFrontales {
@@ -93,23 +96,40 @@ interface DetallesFrontales {
 /** Detalles sobre la cara frontal (y=0) — misma disciplina de palabra
  * clave que iconosCategoria.ts, recortada a lo que realmente cambia la
  * silueta en volumen: cantidad de vías (parlante), válvulas visibles
- * arriba (amplificador valvular) y pantalla (streamer/dac). */
+ * arriba (amplificador valvular) y pantalla (streamer/dac).
+ *
+ * Radios del parlante en función de `w` (ancho), no de `h`: el tamaño
+ * real de un driver está limitado por el ancho del gabinete, no por su
+ * alto — ver la foto de referencia del B&W 606 S2 (el woofer ocupa más
+ * de la mitad del ancho del frente). Altura de cada driver SIEMPRE
+ * tweeter arriba (z alto) y woofer(es) abajo (z bajo) — la primera
+ * versión de este archivo tenía el orden invertido, corregido acá tras
+ * mirar la misma foto. */
 function detallesDe(categoria: CategoriaEquipo, texto: string, caja: CajaIso): DetallesFrontales {
   const { w, h } = caja;
   if (categoria === 'parlante') {
     const cx = w / 2;
     const vias = contarVias(texto);
+    const tweeter = circuloFrontal(cx, h * 0.85, w * 0.11);
     if (vias >= 3) {
-      return { trazo: [circuloFrontal(cx, h * 0.82, h * 0.1), circuloFrontal(cx, h * 0.5, h * 0.075), circuloFrontal(cx, h * 0.2, h * 0.045)].join(' '), relleno: '' };
+      // tweeter arriba, medio al centro, woofer grande abajo.
+      return { trazo: [tweeter, circuloFrontal(cx, h * 0.53, w * 0.19), circuloFrontal(cx, h * 0.21, w * 0.27)].join(' '), relleno: '' };
     }
     if (vias >= 2.5) {
-      return { trazo: [circuloFrontal(cx, h * 0.78, h * 0.11), circuloFrontal(cx, h * 0.46, h * 0.11), circuloFrontal(cx, h * 0.18, h * 0.045)].join(' '), relleno: '' };
+      // tweeter arriba, dos woofers del mismo tamaño apilados debajo.
+      return { trazo: [tweeter, circuloFrontal(cx, h * 0.5, w * 0.24), circuloFrontal(cx, h * 0.19, w * 0.24)].join(' '), relleno: '' };
     }
-    // 2 vías — el caso más común del catálogo (ver iconosCategoria.ts).
-    return { trazo: [circuloFrontal(cx, h * 0.62, h * 0.16), circuloFrontal(cx, h * 0.2, h * 0.055)].join(' '), relleno: '' };
+    // 2 vías — tweeter arriba, un woofer grande abajo (referencia real:
+    // Bowers & Wilkins 606 S2, foto del usuario).
+    return { trazo: [tweeter, circuloFrontal(cx, h * 0.32, w * 0.32)].join(' '), relleno: '' };
   }
   if (categoria === 'amplificador') {
-    return { trazo: circuloFrontal(w * 0.82, h * 0.5, h * 0.26), relleno: '' };
+    // Pantalla a la izquierda + perilla a la derecha — referencia real:
+    // Gold Note IS-10 (foto del usuario), mismo layout que ya usaba
+    // iconosCategoria.ts (2D) para un integrado común, ahora en volumen.
+    const pantalla = rectFrontal(w * 0.13, h * 0.22, w * 0.42, h * 0.85);
+    const perilla = circuloFrontal(w * 0.8, h * 0.5, h * 0.42);
+    return { trazo: `${pantalla} ${perilla}`, relleno: '' };
   }
   // streamer/dac
   if (contieneAlguna(texto, ['pantalla', 'touchscreen', 'display a color'])) {
@@ -150,6 +170,31 @@ function circuloEnAltura(cx: number, cy: number, cz: number, r: number, pasos = 
   return puntos;
 }
 
+/** Perforaciones lineales en diagonal sobre la cara superior — rasgo
+ * decorativo genérico de un amplificador (referencia real: Gold Note
+ * IS-10, foto del usuario, disipador ranurado sobre la tapa), no una
+ * afirmación puntual sobre el equipo real que se está dibujando — mismo
+ * criterio que ya usa iconosCategoria.ts (2D) con las "patas" de un
+ * amplificador: se dibujan siempre, sin depender de ninguna palabra
+ * clave del catálogo. Cada línea va del borde frontal al trasero de la
+ * cara superior (z=h), con un corrimiento diagonal parejo entre una y
+ * la siguiente. */
+function perforacionesSuperiores(w: number, d: number, h: number): string {
+  const n = 7;
+  const xIni = w * 0.34;
+  const xFin = w * 0.94;
+  const corrimiento = w * 0.14;
+  const lineas: string[] = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const x = xIni + t * (xFin - xIni);
+    const p0 = proy(x, d * 0.1, h);
+    const p1 = proy(x - corrimiento, d * 0.9, h);
+    lineas.push(`M${fmt(p0[0])} ${fmt(p0[1])} L${fmt(p1[0])} ${fmt(p1[1])}`);
+  }
+  return lineas.join(' ');
+}
+
 /**
  * `tipoEs`/`descripcionEs`: mismo texto curado del catálogo (campo `es`
  * de `Localizado`) que ya consume `iconoEquipoSvg` — nunca datos del
@@ -160,22 +205,34 @@ export function iconoIsometricoSvg(categoria: CategoriaEquipo, tipoEs: string, d
   const texto = `${tipoEs} ${descripcionEs}`.toLowerCase();
   const { w, d, h } = cajaDe(categoria, texto);
 
+  // Bajo esta proyección (mismo criterio que sala.ts/plano.ts), el vértice
+  // más "arriba" en pantalla es SIEMPRE A2=(0,0,h) — el término -h resta
+  // igual a los 4 vértices superiores, y A2 es el único con x=0 e y=0, lo
+  // que minimiza (x+y)·sin30 y lo deja por encima de los otros tres. Las
+  // 3 caras visibles tienen que ser justo las que TOCAN ese vértice: la
+  // superior (z=h), la frontal (y=0) y la IZQUIERDA (x=0) — nunca la
+  // derecha (x=w, que no toca A2 en absoluto). Dibujar la cara derecha ahí
+  // fue el bug real reportado: un cuadrilátero geométricamente válido pero
+  // que no comparte vértice con las otras dos, así que el contorno nunca
+  // cierra en un volumen — la cara "frontal" quedaba visualmente detrás en
+  // vez de ser una de las tres caras que arman el vértice superior.
   const A = proy(0, 0, 0);
   const B = proy(w, 0, 0);
-  const C = proy(w, d, 0);
+  const Dc = proy(0, d, 0);
   const A2 = proy(0, 0, h);
   const B2 = proy(w, 0, h);
   const C2 = proy(w, d, h);
   const D2 = proy(0, d, h);
 
-  const caraLateral = pathDe([B, C, C2, B2]);
+  const caraLateral = pathDe([A, Dc, D2, A2]);
   const caraSuperior = pathDe([A2, B2, C2, D2]);
   const caraFrontal = pathDe([A, B, B2, A2]);
   const { trazo, relleno } = detallesDe(categoria, texto, { w, d, h });
   const esValvular = categoria === 'amplificador' && contieneAlguna(texto, ['válvula', 'valvula', 'tubo', 'set (', 'clase a pura']);
   const tubos = esValvular ? valvulasSuperiores(w, d, h) : '';
+  const perforaciones = categoria === 'amplificador' ? perforacionesSuperiores(w, d, h) : '';
 
-  const todos = [A, B, C, A2, B2, C2, D2];
+  const todos = [A, B, Dc, A2, B2, C2, D2];
   const xs = todos.map((p) => p[0]);
   const ys = todos.map((p) => p[1]);
   const minX = Math.min(...xs);
@@ -189,6 +246,7 @@ export function iconoIsometricoSvg(categoria: CategoriaEquipo, tipoEs: string, d
     `<svg viewBox="${vb}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">` +
     `<path d="${caraLateral}" opacity="0.4"></path>` +
     `<path d="${caraSuperior}" opacity="0.65"></path>` +
+    (perforaciones ? `<path d="${perforaciones}" opacity="0.5" stroke-width="1"></path>` : '') +
     (tubos ? `<path d="${tubos}" opacity="0.65" stroke-width="1.3"></path>` : '') +
     `<path d="${caraFrontal}"></path>` +
     (trazo ? `<path d="${trazo}" stroke-width="1.2"></path>` : '') +

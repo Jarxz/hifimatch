@@ -17,6 +17,13 @@ function esSvgValido(svg: string): void {
   assert.ok(svg.length > 20, 'el SVG generado no debería quedar vacío');
 }
 
+/** Todos los pares "x y" de un `d` de SVG (comandos M/L, sin el "Z" final) —
+ * suficiente para comparar qué vértices comparten dos paths, sin tener que
+ * exportar la geometría interna del módulo ni recalcularla a mano acá. */
+function coordenadasDe(d: string): Set<string> {
+  return new Set((d.match(/[ML](-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g) ?? []).map((m) => m.slice(1)));
+}
+
 test('iconoIsometricoSvg: dibuja 3 caras (superior/frontal/lateral) — la caja tiene volumen, no es una silueta plana', () => {
   const p = equipo(CATALOGO.parlantes, 'psb-alpha-p5');
   const svg = iconoIsometricoSvg('parlante', p.tipo.es, p.descripcion.es);
@@ -24,6 +31,51 @@ test('iconoIsometricoSvg: dibuja 3 caras (superior/frontal/lateral) — la caja 
   assert.equal((svg.match(/<path/g) ?? []).length >= 4, true, 'esperaba al menos 3 caras + 1 grupo de detalles frontales');
   assert.match(svg, /opacity="0.4"/, 'la cara lateral se atenúa para dar sensación de profundidad');
   assert.match(svg, /opacity="0.65"/, 'la cara superior se atenúa distinto de la lateral');
+});
+
+test('iconoIsometricoSvg: las 3 caras visibles tocan el vértice más alto del dibujo (regresión de un bug real: la cara lateral se dibujaba del lado x=w, que bajo esta proyección NO es el vértice más alto — dos caras cualquiera de un cubo siempre comparten UNA arista, así que esa comprobación no alcanza; hace falta el vértice específico que corona el contorno)', () => {
+  // Equipo sin válvulas a propósito: con válvulas se intercala un 4to
+  // <path> (los tubos) entre la cara superior y la frontal, y este test
+  // asume que los primeros 3 <path> son justo lateral/superior/frontal.
+  const p = equipo(CATALOGO.parlantes, 'psb-alpha-p5');
+  const svg = iconoIsometricoSvg('parlante', p.tipo.es, p.descripcion.es);
+  const [, ...resto] = svg.split('<path d="');
+  const [lateral, superior, frontal] = resto.map((s) => s.slice(0, s.indexOf('"')));
+  assert.ok(lateral && superior && frontal, 'esperaba encontrar las 3 primeras caras en el SVG');
+
+  const cLateral = coordenadasDe(lateral!);
+  const cSuperior = coordenadasDe(superior!);
+  const cFrontal = coordenadasDe(frontal!);
+
+  // El vértice más alto del dibujo completo (menor "y" — el sistema SVG
+  // crece hacia abajo) tiene que pertenecer a las 3 caras a la vez: es el
+  // único punto donde "arriba" (cara superior), "adelante" (cara frontal)
+  // y "al costado" (cara lateral) se encuentran. Con el lado equivocado
+  // (bug real, x=w en vez de x=0), la cara lateral no lo incluye — aunque
+  // siga compartiendo una arista distinta con cada una de las otras dos
+  // por separado, por eso una comprobación par-a-par no lo detectaba.
+  const todas = [...cLateral, ...cSuperior, ...cFrontal];
+  const vertice = (s: string): [number, number] => s.split(' ').map(Number) as [number, number];
+  const cima = todas.reduce((min, p) => (vertice(p)[1] < vertice(min)[1] ? p : min));
+
+  assert.ok(cLateral.has(cima), `la cara lateral no toca el vértice más alto (${cima})`);
+  assert.ok(cSuperior.has(cima), `la cara superior no toca el vértice más alto (${cima})`);
+  assert.ok(cFrontal.has(cima), `la cara frontal no toca el vértice más alto (${cima})`);
+});
+
+test('iconoIsometricoSvg: todo amplificador dibuja perforaciones diagonales sobre la cara superior (rasgo decorativo genérico, referencia Gold Note IS-10 — foto del usuario), con o sin válvulas', () => {
+  const solido = equipo(CATALOGO.amplificadores, 'bryston-4b3');
+  const valvular = equipo(CATALOGO.amplificadores, 'line-magnetic-lm-518ia');
+  for (const a of [solido, valvular]) {
+    const svg = iconoIsometricoSvg('amplificador', a.tipo.es, a.descripcion.es);
+    assert.match(svg, /opacity="0.5" stroke-width="1">/, `${a.nombre}: esperaba las líneas de perforación sobre la cara superior`);
+  }
+});
+
+test('iconoIsometricoSvg: un parlante o una fuente NUNCA dibujan perforaciones (rasgo exclusivo del amplificador)', () => {
+  const p = equipo(CATALOGO.parlantes, 'psb-alpha-p5');
+  const svgParlante = iconoIsometricoSvg('parlante', p.tipo.es, p.descripcion.es);
+  assert.doesNotMatch(svgParlante, /opacity="0.5" stroke-width="1">/);
 });
 
 test('iconoIsometricoSvg: parlante de 2 vías (PSB Alpha P5) dibuja 2 círculos frontales proyectados — 3 caras + 2 drivers = 5 subpaths en total', () => {
