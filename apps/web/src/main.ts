@@ -1347,7 +1347,7 @@ function abrirInfoPopup(clave: InfoClave): void {
 }
 
 /** "Guardar" queda diferido (necesita backend/auth) — el botón sólo
- * declara la limitación, mismo patrón que "Ficha del producto ·
+ * declara la limitación, mismo patrón que "Distribuidor
  * próximamente". */
 function abrirGuardarPopup(): void {
   const t = textosDe(idiomaActual).resultado;

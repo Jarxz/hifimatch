@@ -204,7 +204,7 @@ export const en: Textos = {
     faltanDatos: 'Missing data',
     listoAnalizar: 'Ready to analyze',
     sinInconsistencias: 'No inconsistencies detected — ready to compute.',
-    verFicha: 'Product page · coming soon',
+    verFicha: 'Distributor coming soon',
     verDescripcion: 'View description',
     notaGenerico:
       "Generic profile (archetype): a reference physical approximation, not a real product or a measurement. Best used only when the real equipment isn't in the catalog.",

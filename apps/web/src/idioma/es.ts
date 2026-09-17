@@ -290,7 +290,7 @@ export const es = {
     faltanDatos: 'Faltan datos',
     listoAnalizar: 'Listo para analizar',
     sinInconsistencias: 'Sin inconsistencias detectadas — listo para calcular.',
-    verFicha: 'Ficha del producto · próximamente',
+    verFicha: 'Distribuidor próximamente',
     verDescripcion: 'Ver descripción',
     notaGenerico:
       'Perfil genérico (arquetipo): una aproximación física de referencia, no un producto real ni una medición. Conviene elegirlo sólo cuando el equipo real no aparece en el catálogo.',
