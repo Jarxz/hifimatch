@@ -27,7 +27,12 @@ function envolverSvg(contenido: string): string {
   return `<svg viewBox="${VIEWBOX}" fill="none" stroke="currentColor" stroke-width="${TRAZO}" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${contenido}</svg>`;
 }
 
-function contieneAlguna(texto: string, palabras: readonly string[]): boolean {
+/** Exportadas para que vista/iconosIsometricos.ts (mismo criterio de
+ * detección por palabra clave, versión isométrica de este mismo ícono
+ * para "The Match Recomendado") las reuse — evita mantener dos listas de
+ * palabras clave para la misma pregunta ("¿cuántas vías?", "¿es
+ * valvular?"). */
+export function contieneAlguna(texto: string, palabras: readonly string[]): boolean {
   const t = texto.toLowerCase();
   return palabras.some((p) => t.includes(p));
 }
@@ -35,7 +40,7 @@ function contieneAlguna(texto: string, palabras: readonly string[]): boolean {
 /** "2 vías" → 2, "2,5 vías" → 2.5, "3 vías" → 3. Sin match (texto que no
  * declara vías, ej. un DAC/streamer) → 2, el caso más común del
  * catálogo — nunca null: siempre hay que dibujar algo. */
-function contarVias(texto: string): number {
+export function contarVias(texto: string): number {
   const m = texto.match(/(\d+(?:,\d+)?)\s*v[ií]as/i);
   if (!m || !m[1]) return 2;
   return Number(m[1].replace(',', '.'));

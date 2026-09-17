@@ -11,8 +11,8 @@ import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import type { MatchDelMes } from '../datos/matchDelMes.ts';
 import { chipsParlante, chipsAmplificador, chipsFuente } from '../datos/etiquetas.ts';
-import { iconoEquipoSvg } from './iconosCategoria.ts';
 import type { CategoriaEquipo } from './iconosCategoria.ts';
+import { iconoIsometricoSvg } from './iconosIsometricos.ts';
 import { textosDe } from '../idioma/idioma.ts';
 
 export interface ItemMatchDelMes {
@@ -77,7 +77,7 @@ export function modeloMatchDelMes(match: MatchDelMes, idioma: Idioma): ModeloMat
       nombre: parlanteCat.nombre,
       tipo: parlanteCat.tipo[idioma],
       chips: chipsParlante(parlanteCat, idioma),
-      iconoSvg: iconoEquipoSvg('parlante', parlanteCat.tipo.es, parlanteCat.descripcion.es),
+      iconoSvg: iconoIsometricoSvg('parlante', parlanteCat.tipo.es, parlanteCat.descripcion.es),
     },
     {
       categoria: 'amplificador',
@@ -86,7 +86,7 @@ export function modeloMatchDelMes(match: MatchDelMes, idioma: Idioma): ModeloMat
       nombre: ampCat.nombre,
       tipo: ampCat.tipo[idioma],
       chips: chipsAmplificador(ampCat, idioma),
-      iconoSvg: iconoEquipoSvg('amplificador', ampCat.tipo.es, ampCat.descripcion.es),
+      iconoSvg: iconoIsometricoSvg('amplificador', ampCat.tipo.es, ampCat.descripcion.es),
     },
   ];
   if (streamerCat) {
@@ -97,7 +97,7 @@ export function modeloMatchDelMes(match: MatchDelMes, idioma: Idioma): ModeloMat
       nombre: streamerCat.nombre,
       tipo: streamerCat.tipo[idioma],
       chips: chipsFuente(streamerCat, idioma),
-      iconoSvg: iconoEquipoSvg('streamer', streamerCat.tipo.es, streamerCat.descripcion.es),
+      iconoSvg: iconoIsometricoSvg('streamer', streamerCat.tipo.es, streamerCat.descripcion.es),
     });
   }
   if (dacCat) {
@@ -108,7 +108,7 @@ export function modeloMatchDelMes(match: MatchDelMes, idioma: Idioma): ModeloMat
       nombre: dacCat.nombre,
       tipo: dacCat.tipo[idioma],
       chips: chipsFuente(dacCat, idioma),
-      iconoSvg: iconoEquipoSvg('dac', dacCat.tipo.es, dacCat.descripcion.es),
+      iconoSvg: iconoIsometricoSvg('dac', dacCat.tipo.es, dacCat.descripcion.es),
     });
   }
 

@@ -172,9 +172,14 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .match-mes-head{padding-top:8px}
 .match-mes-titulo{font-weight:400; font-size:19px; margin:8px 0 4px; letter-spacing:.01em; color:var(--dorado)}
 .match-mes-intro{color:var(--faint); font-size:12px; line-height:1.6; margin:0}
-.match-mes-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:18px 0}
-.match-mes-item{display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px}
-.match-mes-icono{width:56px; height:56px; color:var(--faint)}
+/* --mm-items (inline, ver vista/pintar.ts): tantas columnas como piezas
+   trae ESTE match — nunca 4 fijas, para que 2 piezas (el caso más común,
+   sin streamer ni dac) llenen todo el ancho en vez de dejar la mitad
+   derecha vacía. Los quiebres responsivos de abajo siguen ganando por
+   orden de cascada, misma especificidad que la regla base. */
+.match-mes-grid{display:grid; grid-template-columns:repeat(var(--mm-items,2),1fr); gap:16px; margin:18px 0}
+.match-mes-item{display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px}
+.match-mes-icono{width:112px; height:112px; color:var(--faint)}
 .match-mes-icono svg{width:100%; height:100%}
 .match-mes-cat{font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-top:4px}
 .match-mes-nombre{font-size:12.5px; color:var(--text); line-height:1.3}

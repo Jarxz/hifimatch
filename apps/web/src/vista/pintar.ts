@@ -390,7 +390,12 @@ export function pintarMatchDelMes(modelo: ModeloMatchDelMes | null): void {
     `<h2 class="match-mes-titulo">${modelo.tituloSeccion}</h2>` +
     `<p class="match-mes-intro">${modelo.introHtml} · ${modelo.mesEtiqueta}</p>` +
     `</div>` +
-    `<div class="match-mes-grid">${itemsHtml}</div>` +
+    // --mm-items: la grilla usa exactamente tantas columnas como piezas
+    // trae el match (2 a 4) — con la grilla siempre a 4 columnas fijas,
+    // un match sin streamer ni dac (el caso más común, sólo parlante +
+    // amplificador) dejaba la mitad derecha de la caja vacía en vez de
+    // repartir el ancho real entre las piezas que sí hay.
+    `<div class="match-mes-grid" style="--mm-items:${modelo.items.length}">${itemsHtml}</div>` +
     `<div class="card veredicto-card veredicto-${modelo.veredictoClase} match-mes-veredicto">` +
     `<div class="vd-titulo">${modelo.veredictoTituloHtml}</div>` +
     `<div class="vd-subtexto">${modelo.veredictoSubtextoHtml}</div>` +
