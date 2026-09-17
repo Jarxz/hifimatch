@@ -20,6 +20,7 @@ import {
   IMPEDANCIA_SALIDA_ESTANDAR_OHM,
   DF_ESTANDAR_ESTADO_SOLIDO,
   DF_ESTANDAR_VALVULAR,
+  VERSION_FICHA,
 } from './buscador.ts';
 import type { SpecsCrudasParlante, SpecsCrudasAmplificador, SpecsCrudasFuente, EquipoWeb, ResultadoProveedor, SolicitudBusqueda } from './buscador.ts';
 
@@ -101,6 +102,11 @@ test('claveCache: "Wharfdale" (error de tipeo, sin acento) es una clave DISTINTA
   const a = claveCache('parlante', 'Wharfedale', 'Linton');
   const b = claveCache('parlante', 'Wharfdale', 'Linton');
   assert.notEqual(a, b);
+});
+test('claveCache: lleva la versión de ficha adelante — un cambio de formato deja inalcanzables las entradas viejas en vez de servirlas con la forma anterior (la caché real dura 180 días)', () => {
+  const clave = claveCache('streamer', 'Silent Angel', 'SL1 Plus');
+  assert.ok(clave.startsWith(`v${VERSION_FICHA}:`), clave);
+  assert.equal(clave, `v${VERSION_FICHA}:streamer:silent-angel:sl1-plus`);
 });
 test('claveCache: distinta categoría, misma marca/modelo, no colisiona', () => {
   const a = claveCache('parlante', 'KEF', 'LS50');

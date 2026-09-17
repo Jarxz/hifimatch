@@ -256,10 +256,34 @@ function slug(s: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * Versión del FORMATO de la ficha que construyen los `construir*Web` de
+ * más abajo — no del contenido de un equipo puntual. Viaja dentro de la
+ * clave de caché a propósito: la caché real dura 180 días
+ * (`TTL_CACHE_S` en api/buscar-equipo.ts), así que sin esto un equipo
+ * buscado ANTES de un cambio de formato sigue sirviéndose medio año con
+ * la forma vieja — `manejarBusqueda` devuelve el objeto cacheado tal cual
+ * y nunca vuelve a pasar por `construir*Web`. Pasó de verdad: los
+ * estándares de categoría para "Acople eléctrico" (sección 1b) no
+ * aparecían en equipos ya buscados, porque esas entradas se habían
+ * guardado con `factorAmortiguamiento: null` de la versión anterior.
+ *
+ * Subir este número cada vez que cambie la FORMA de la ficha (campos
+ * nuevos, estándares nuevos, saneo distinto). Las entradas viejas no se
+ * borran: quedan inalcanzables y expiran solas por TTL.
+ *
+ *   v1 → formato inicial.
+ *   v2 → estándares de categoría para acople eléctrico + descripción
+ *        técnica extraída (`descripcionEs`/`descripcionEn`).
+ */
+export const VERSION_FICHA = 2;
+
 /** Clave de caché estable ante may/min, acentos y espacios de más —
- * "Wharfdale" y "wharfdale " deben pegar en la misma entrada. */
+ * "Wharfdale" y "wharfdale " deben pegar en la misma entrada. Lleva
+ * `VERSION_FICHA` adelante para que un cambio de formato no quede
+ * servido por entradas viejas (ver el comentario de arriba). */
 export function claveCache(categoria: CategoriaBusqueda, marca: string, modelo: string): string {
-  return `${categoria}:${slug(marca)}:${slug(modelo)}`;
+  return `v${VERSION_FICHA}:${categoria}:${slug(marca)}:${slug(modelo)}`;
 }
 
 function idWeb(categoria: CategoriaBusqueda, marca: string, modelo: string): string {
