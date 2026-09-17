@@ -149,6 +149,22 @@ test('construirParlanteWeb: sanea caracteres de ruptura de HTML en marca/modelo 
   assert.ok(!p.nombre.includes('"'), p.nombre);
   assert.ok(!p.descripcion.es.includes('<img'), p.descripcion.es);
 });
+test('construirParlanteWeb: con descripcionEs/En extraída, la usa en vez del texto genérico', () => {
+  const p = construirParlanteWeb('KEF', 'Q150', parlanteOk(), 'https://kef.com');
+  // sin descripción extraída (undefined): cae al texto genérico
+  assert.ok(p.descripcion.es.includes('Datos obtenidos automáticamente'), p.descripcion.es);
+
+  const specsConDescripcion = { ...parlanteOk(), descripcionEs: 'Monitor de 2 vías con tweeter de domo.', descripcionEn: '2-way monitor with a dome tweeter.' };
+  const p2 = construirParlanteWeb('KEF', 'Q150', specsConDescripcion, 'https://kef.com');
+  assert.ok(p2.descripcion.es.startsWith('Monitor de 2 vías con tweeter de domo.'), p2.descripcion.es);
+  assert.ok(p2.descripcion.es.includes('No forma parte del catálogo curado'), p2.descripcion.es);
+  assert.ok(p2.descripcion.en.startsWith('2-way monitor with a dome tweeter.'), p2.descripcion.en);
+});
+test('construirParlanteWeb: sanea caracteres de ruptura de HTML en la descripción extraída (mismo riesgo que marca/modelo, esta vez viene del proveedor, no del usuario)', () => {
+  const specs = { ...parlanteOk(), descripcionEs: 'Texto <script>alert(1)</script> normal.', descripcionEn: null };
+  const p = construirParlanteWeb('X', 'Y', specs, 'https://x.com');
+  assert.ok(!p.descripcion.es.includes('<script>'), p.descripcion.es);
+});
 test('construirParlanteWeb: la cita cambia según haya o no URL, pero el resto de la ficha es idéntico', () => {
   const specs = parlanteOk();
   const conUrl = construirParlanteWeb('X', 'Y', specs, 'https://x.com');

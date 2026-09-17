@@ -103,6 +103,16 @@ async function buscarEnTavily(categoria: CategoriaBusqueda, marca: string, model
 }
 
 // ── 2. Extracción estructurada — Gemini, sin herramienta de búsqueda ────
+/** Campos de descripción, compartidos por los 3 esquemas — ver el
+ * comentario de cabecera de `promptExtraccion()` para la restricción de
+ * contenido (nunca un juicio de carácter tonal ni de calidad de sonido,
+ * misma doctrina que ya rige todo el motor). */
+const CAMPOS_DESCRIPCION = {
+  descripcionEs: { type: Type.STRING, nullable: true, description: 'Descripción técnica breve (1-2 frases) en español neutro, null si no se pudo redactar una' },
+  descripcionEn: { type: Type.STRING, nullable: true, description: 'Same short technical description in English, null if none could be written' },
+};
+const REQUERIDOS_DESCRIPCION = ['descripcionEs', 'descripcionEn'];
+
 function schemaParlante(): Schema {
   return {
     type: Type.OBJECT,
@@ -112,8 +122,9 @@ function schemaParlante(): Schema {
       impedanciaMinOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia mínima en ohms, null si no se publica' },
       potenciaRecMinW: { type: Type.NUMBER, nullable: true, description: 'Potencia de amplificador recomendada mínima en W, null si no se publica' },
       potenciaRecMaxW: { type: Type.NUMBER, nullable: true, description: 'Potencia de amplificador recomendada máxima en W, null si no se publica' },
+      ...CAMPOS_DESCRIPCION,
     },
-    required: ['sensibilidadDb', 'impedanciaNominalOhm', 'impedanciaMinOhm', 'potenciaRecMinW', 'potenciaRecMaxW'],
+    required: ['sensibilidadDb', 'impedanciaNominalOhm', 'impedanciaMinOhm', 'potenciaRecMinW', 'potenciaRecMaxW', ...REQUERIDOS_DESCRIPCION],
   };
 }
 
@@ -126,8 +137,9 @@ function schemaAmplificador(): Schema {
       cargaMinOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de carga mínima soportada en ohms, null si no se publica' },
       sensEntradaMv: { type: Type.NUMBER, nullable: true, description: 'Sensibilidad de entrada en mV, null si no se publica' },
       impedanciaEntradaOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de entrada en ohms, null si no se publica' },
+      ...CAMPOS_DESCRIPCION,
     },
-    required: ['potencia8OhmW', 'potencia4OhmW', 'cargaMinOhm', 'sensEntradaMv', 'impedanciaEntradaOhm'],
+    required: ['potencia8OhmW', 'potencia4OhmW', 'cargaMinOhm', 'sensEntradaMv', 'impedanciaEntradaOhm', ...REQUERIDOS_DESCRIPCION],
   };
 }
 
@@ -137,8 +149,9 @@ function schemaFuente(): Schema {
     properties: {
       salidaV: { type: Type.NUMBER, nullable: true, description: 'Tensión de salida analógica RMS en voltios, null si no tiene salida analógica o no se publica' },
       impedanciaSalidaOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de salida en ohms, null si no se publica' },
+      ...CAMPOS_DESCRIPCION,
     },
-    required: ['salidaV', 'impedanciaSalidaOhm'],
+    required: ['salidaV', 'impedanciaSalidaOhm', ...REQUERIDOS_DESCRIPCION],
   };
 }
 
@@ -148,11 +161,28 @@ function schemaDe(categoria: CategoriaBusqueda): Schema {
   return schemaFuente();
 }
 
+/**
+ * La restricción de la segunda parte del prompt no es estilo — es la
+ * MISMA doctrina que packages/engine nunca rompe (CLAUDE.md,
+ * "Prohibiciones absolutas del motor"), aplicada acá por primera vez a
+ * un texto que no escribe una persona sino un modelo de lenguaje: nunca
+ * un juicio de carácter tonal (cálido, analítico, brillante, musical),
+ * nunca una comparación de calidad de sonido, nunca una predicción de
+ * sinergia entre marcas. Sin esta instrucción explícita, un LLM
+ * describiendo un parlante tiende exactamente a ese vocabulario — es su
+ * registro por defecto para "describir audio".
+ */
 function promptExtraccion(categoria: CategoriaBusqueda, marca: string, modelo: string, resultadosBusqueda: string): string {
   return (
     `Los siguientes son resultados de una búsqueda web sobre un ${NOMBRE_CATEGORIA[categoria]}: marca "${marca}", modelo "${modelo}". ` +
     `Extrae únicamente los campos numéricos pedidos por el esquema, a partir de estos resultados. Si un dato no aparece ` +
     `explícitamente, o los resultados no corresponden a este equipo, usa null — NUNCA estimes ni inventes un número que no esté ahí.\n\n` +
+    `Además, redactá una descripción técnica breve (1-2 frases) en español neutro (sin "vos", sin "tú" tampoco) y su ` +
+    `traducción al inglés, describiendo qué ES el equipo — topología, construcción, conectividad, tipo de driver o de ` +
+    `conversor, lo que los resultados digan de forma factual. Está PROHIBIDO: cualquier juicio de carácter tonal ` +
+    `(cálido, analítico, brillante, musical, agresivo...), cualquier afirmación sobre cómo suena o qué tan bien suena, ` +
+    `cualquier comparación de calidad con otro producto o marca. Si los resultados no alcanzan para una descripción ` +
+    `técnica real (sin caer en esas afirmaciones), usa null en los dos campos de descripción en vez de forzar una.\n\n` +
     `---\n${resultadosBusqueda}\n---`
   );
 }
@@ -161,8 +191,14 @@ function numOrNull(v: unknown): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
+function stringOrNull(v: unknown): string | null {
+  return typeof v === 'string' && v.trim() !== '' ? v.trim() : null;
+}
+
 function parsearSpecs(categoria: CategoriaBusqueda, json: unknown): SpecsCrudas {
   const o = (json ?? {}) as Record<string, unknown>;
+  const descripcionEs = stringOrNull(o.descripcionEs);
+  const descripcionEn = stringOrNull(o.descripcionEn);
   if (categoria === 'parlante') {
     return {
       sensibilidadDb: numOrNull(o.sensibilidadDb),
@@ -170,6 +206,8 @@ function parsearSpecs(categoria: CategoriaBusqueda, json: unknown): SpecsCrudas 
       impedanciaMinOhm: numOrNull(o.impedanciaMinOhm),
       potenciaRecMinW: numOrNull(o.potenciaRecMinW),
       potenciaRecMaxW: numOrNull(o.potenciaRecMaxW),
+      descripcionEs,
+      descripcionEn,
     };
   }
   if (categoria === 'amplificador') {
@@ -179,11 +217,15 @@ function parsearSpecs(categoria: CategoriaBusqueda, json: unknown): SpecsCrudas 
       cargaMinOhm: numOrNull(o.cargaMinOhm),
       sensEntradaMv: numOrNull(o.sensEntradaMv),
       impedanciaEntradaOhm: numOrNull(o.impedanciaEntradaOhm),
+      descripcionEs,
+      descripcionEn,
     };
   }
   return {
     salidaV: numOrNull(o.salidaV),
     impedanciaSalidaOhm: numOrNull(o.impedanciaSalidaOhm),
+    descripcionEs,
+    descripcionEn,
   };
 }
 

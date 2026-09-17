@@ -67,11 +67,29 @@ function dentroDe(valor: number, min: number, max: number): boolean {
 }
 
 // ── 2. Formas crudas que el proveedor puede devolver ───────────────────
-// Sólo números — el `tipo`/`descripcion` bilingües se sintetizan acá
-// mismo (plantilla fija por categoría, ver más abajo) en vez de pedirle
-// prosa en dos idiomas al proveedor: menos tokens, cero riesgo de que la
-// traducción del proveedor sea de mala calidad o mezcle idiomas.
-export interface SpecsCrudasParlante {
+// `tipo` se sintetiza acá mismo (plantilla fija por categoría, ver más
+// abajo) — nunca varía, así que pedírselo al proveedor sería tokens
+// gastados en nada. `descripcion` SÍ viene del proveedor
+// (`descripcionEs`/`descripcionEn` abajo): a diferencia de `tipo`, el
+// contenido real (qué es el equipo, cuántas vías tiene un parlante, si
+// un DAC usa R2R o delta-sigma...) varía por producto y es justo lo que
+// le faltaba a la tarjeta de un equipo no-curado frente a uno curado —
+// ver `descripcionWeb()` más abajo. El proveedor la redacta en los dos
+// idiomas directo (una sola llamada de extracción, sin traducir aparte)
+// con la MISMA restricción que ya rige todo el motor (ver CLAUDE.md,
+// "Prohibiciones absolutas"): nunca un juicio de carácter tonal, nunca
+// una comparación de calidad de sonido — sólo descripción técnica
+// (topología, construcción, conectividad), igual que ya redactan a mano
+// las descripciones del catálogo curado.
+interface DescripcionExtraida {
+  // Opcionales: la ficha manual (construida a mano en apps/web/src/main.ts,
+  // "usar sin datos de salida" de streamer/dac) nunca tiene una — cae al
+  // texto genérico de descripcionWeb() sin tener que tocar ese call site.
+  descripcionEs?: string | null;
+  descripcionEn?: string | null;
+}
+
+export interface SpecsCrudasParlante extends DescripcionExtraida {
   sensibilidadDb: number | null;
   impedanciaNominalOhm: number | null;
   impedanciaMinOhm: number | null;
@@ -79,7 +97,7 @@ export interface SpecsCrudasParlante {
   potenciaRecMaxW: number | null;
 }
 
-export interface SpecsCrudasAmplificador {
+export interface SpecsCrudasAmplificador extends DescripcionExtraida {
   potencia8OhmW: number | null;
   potencia4OhmW: number | null;
   cargaMinOhm: number | null;
@@ -87,7 +105,7 @@ export interface SpecsCrudasAmplificador {
   impedanciaEntradaOhm: number | null;
 }
 
-export interface SpecsCrudasFuente {
+export interface SpecsCrudasFuente extends DescripcionExtraida {
   salidaV: number | null;
   impedanciaSalidaOhm: number | null;
 }
@@ -205,10 +223,27 @@ const TIPO_POR_CATEGORIA: Record<CategoriaBusqueda, Localizado> = {
   dac: { es: 'DAC (hallado por búsqueda web, no curado)', en: 'DAC (found via web search, uncurated)' },
 };
 
-function descripcionWeb(marca: string, modelo: string): Localizado {
+/** Igual saneo defensivo que `sanearMarcaModelo`, con más largo permitido
+ * (es prosa, no un campo corto) — la descripción también termina
+ * interpolada sin escapar en la tarjeta `.info` del cliente. */
+function sanearDescripcion(s: string): string {
+  return s.replace(/[<>]/g, '').trim().slice(0, 500);
+}
+
+/** El aviso de "no curado" siempre está, sea cual sea el resultado de la
+ * extracción — lo que cambia es si HAY o no una descripción técnica real
+ * antes del aviso. Sin ella (extracción vacía, o ficha manual sin
+ * proveedor), cae al texto genérico de siempre; con ella, la tarjeta de
+ * un equipo web queda tan informativa como la de uno curado, que
+ * describe a mano qué es el equipo (ver ParlanteCat.descripcion). */
+function descripcionWeb(marca: string, modelo: string, descripcionEs?: string | null, descripcionEn?: string | null): Localizado {
+  const avisoEs = 'No forma parte del catálogo curado del sitio: nadie lo revisó a mano, y puede contener errores de la extracción.';
+  const avisoEn = "Not part of the site's curated catalog: no one reviewed it by hand, and it may contain extraction errors.";
+  const tecnicaEs = descripcionEs ? sanearDescripcion(descripcionEs) : null;
+  const tecnicaEn = descripcionEn ? sanearDescripcion(descripcionEn) : null;
   return {
-    es: `Datos obtenidos automáticamente de la web para ${marca} ${modelo}. No forman parte del catálogo curado del sitio: nadie los revisó a mano, y pueden contener errores de la extracción.`,
-    en: `Data obtained automatically from the web for ${marca} ${modelo}. Not part of the site's curated catalog: no one reviewed it by hand, and it may contain extraction errors.`,
+    es: tecnicaEs ? `${tecnicaEs} ${avisoEs}` : `Datos obtenidos automáticamente de la web para ${marca} ${modelo}. ${avisoEs}`,
+    en: tecnicaEn ? `${tecnicaEn} ${avisoEn}` : `Data obtained automatically from the web for ${marca} ${modelo}. ${avisoEn}`,
   };
 }
 
@@ -226,7 +261,7 @@ export function construirParlanteWeb(marcaCruda: string, modeloCrudo: string, sp
     marca,
     nombre: `${marca} ${modelo}`.trim(),
     tipo: TIPO_POR_CATEGORIA.parlante,
-    descripcion: descripcionWeb(marca, modelo),
+    descripcion: descripcionWeb(marca, modelo, specs.descripcionEs, specs.descripcionEn),
     sensibilidadDb: { valor: specs.sensibilidadDb, fuente: fuenteCita(fuenteUrl), confianza: CONFIANZA_WEB },
     sensibilidadConvencion: null, // nunca se asume una convención que el proveedor no declaró explícito
     impedanciaNominalOhm: specs.impedanciaNominalOhm,
@@ -253,7 +288,7 @@ export function construirAmplificadorWeb(marcaCruda: string, modeloCrudo: string
     marca,
     nombre: `${marca} ${modelo}`.trim(),
     tipo: TIPO_POR_CATEGORIA.amplificador,
-    descripcion: descripcionWeb(marca, modelo),
+    descripcion: descripcionWeb(marca, modelo, specs.descripcionEs, specs.descripcionEn),
     potencia8OhmW: { valor: specs.potencia8OhmW, fuente: cita, confianza: CONFIANZA_WEB },
     potencia4OhmW: specs.potencia4OhmW !== null ? { valor: specs.potencia4OhmW, fuente: cita, confianza: CONFIANZA_WEB } : null,
     cargaMinOhm: specs.cargaMinOhm,
@@ -273,7 +308,7 @@ export function construirFuenteWeb(categoria: 'streamer' | 'dac', marcaCruda: st
     marca,
     nombre: `${marca} ${modelo}`.trim(),
     tipo: TIPO_POR_CATEGORIA[categoria],
-    descripcion: descripcionWeb(marca, modelo),
+    descripcion: descripcionWeb(marca, modelo, specs.descripcionEs, specs.descripcionEn),
     salidaV: specs.salidaV,
     impedanciaSalidaOhm: specs.impedanciaSalidaOhm,
     fuente: fuenteCita(fuenteUrl),
