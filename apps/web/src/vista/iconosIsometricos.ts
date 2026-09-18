@@ -10,16 +10,35 @@
  * Misma fórmula de proyección isométrica de 30° que ya usa
  * `vista/plano.ts` (el plano de reflexiones) y el fondo ambiente de la
  * portada (`main.ts`, `pintarFondoAmbiente`): sx=(x−y)·cos30,
- * sy=(x+y)·sin30−z. Reusar la misma fórmula no es casualidad — es el
- * mismo lenguaje visual del sitio (cubos de alambre isométricos) llevado
- * a una escala más chica, mismo criterio que ya se aplicó una vez para
- * el fondo de la portada.
+ * sy=(x+y)·sin30−z.
+ *
+ * ── Qué vértice es el "eje" de las 3 caras visibles (bug real, corregido) ──
+ * Dos versiones anteriores de este archivo eligieron mal ese vértice, cada
+ * una de forma distinta, y las dos se vieron "abiertas" (caras que no
+ * cierran en un volumen). Diagnóstico real, verificado con un cubo
+ * perfecto y coloreando cada cara por separado: bajo esta proyección
+ * ortográfica, la diagonal principal del cubo A=(0,0,0)↔C2=(w,d,h) queda
+ * exactamente ALINEADA con la dirección de vista — para un cubo, A y C2
+ * proyectan al MISMO punto de pantalla. Eso significa que las 3 caras que
+ * hay que dibujar son las que tocan C2 (el vértice "cerca de cámara" en
+ * este encuadre), nunca las que tocan A: TOP (z=h), la cara x=w y la cara
+ * y=d. Elegir A2=(0,0,h) —el punto más ARRIBA en pantalla, que se probó
+ * primero por parecer intuitivamente el "pico"— no es lo mismo que "cerca
+ * de cámara": produce un cuadrilátero geométricamente válido para cada
+ * cara por separado, pero el conjunto de 3 no cierra un volumen limpio
+ * (la cara superior queda con una muesca cóncava hacia el centro). Se
+ * comparó A2 vs. C2 lado a lado, con cada cara de un color, antes de
+ * decidir — C2 da un cubo cerrado sin muescas ni cruces.
+ *
+ * Consecuencia: la cara con los detalles (drivers/perilla/pantalla) es la
+ * de y=d (no y=0 como en las dos versiones anteriores) — por eso
+ * `circuloFrontal`/`rectFrontal` reciben `yFrente` como parámetro en vez
+ * de asumir 0.
  *
  * Wireframe honesto (fill:none salvo el LED chico de una fuente sin
  * pantalla, igual criterio que iconosCategoria.ts): ninguna cara se
  * "rellena" para fingir opacidad, sólo se atenúa con opacity para dar
- * sensación de profundidad — mismo principio que el plano de reflexiones
- * ("wireframe honesto, sin ocultamiento de superficies").
+ * sensación de profundidad.
  */
 import { contarVias, contieneAlguna } from './iconosCategoria.ts';
 import type { CategoriaEquipo } from './iconosCategoria.ts';
@@ -47,22 +66,22 @@ function pathDe(puntos: readonly Punto[]): string {
 }
 
 /** Círculo real proyectado punto a punto sobre la cara frontal (plano
- * y=0, ejes locales x/z) — nunca una elipse dibujada a mano: bajo esta
- * proyección un círculo en esa cara SÍ sale una elipse (hay corte en x),
- * y calcularla punto a punto es el mismo criterio de "geometría real,
+ * y=`yFrente`, ejes locales x/z) — nunca una elipse dibujada a mano: bajo
+ * esta proyección un círculo en esa cara SÍ sale una elipse (hay corte en
+ * x), y calcularla punto a punto es el mismo criterio de "geometría real,
  * nunca aproximada a ojo" que ya rige el resto del sitio (ver
  * `vista/plano.ts`, `packages/engine/src/sala.ts`). */
-function circuloFrontal(cx: number, cz: number, r: number, pasos = 24): string {
+function circuloFrontal(cx: number, cz: number, r: number, yFrente: number, pasos = 24): string {
   const puntos: Punto[] = [];
   for (let i = 0; i < pasos; i++) {
     const a = (i / pasos) * Math.PI * 2;
-    puntos.push(proy(cx + r * Math.cos(a), 0, cz + r * Math.sin(a)));
+    puntos.push(proy(cx + r * Math.cos(a), yFrente, cz + r * Math.sin(a)));
   }
   return pathDe(puntos);
 }
 
-function rectFrontal(x0: number, z0: number, x1: number, z1: number): string {
-  return pathDe([proy(x0, 0, z0), proy(x1, 0, z0), proy(x1, 0, z1), proy(x0, 0, z1)]);
+function rectFrontal(x0: number, z0: number, x1: number, z1: number, yFrente: number): string {
+  return pathDe([proy(x0, yFrente, z0), proy(x1, yFrente, z0), proy(x1, yFrente, z1), proy(x0, yFrente, z1)]);
 }
 
 interface CajaIso {
@@ -93,60 +112,59 @@ interface DetallesFrontales {
   relleno: string; // sólo el LED de una fuente sin pantalla, mismo criterio que iconosCategoria.ts
 }
 
-/** Detalles sobre la cara frontal (y=0) — misma disciplina de palabra
- * clave que iconosCategoria.ts, recortada a lo que realmente cambia la
- * silueta en volumen: cantidad de vías (parlante), válvulas visibles
- * arriba (amplificador valvular) y pantalla (streamer/dac).
+/** Detalles sobre la cara frontal (y=`caja.d`) — misma disciplina de
+ * palabra clave que iconosCategoria.ts, recortada a lo que realmente
+ * cambia la silueta en volumen: cantidad de vías (parlante), válvulas
+ * visibles arriba (amplificador valvular) y pantalla (streamer/dac).
  *
  * Radios del parlante en función de `w` (ancho), no de `h`: el tamaño
  * real de un driver está limitado por el ancho del gabinete, no por su
  * alto — ver la foto de referencia del B&W 606 S2 (el woofer ocupa más
- * de la mitad del ancho del frente). Altura de cada driver SIEMPRE
- * tweeter arriba (z alto) y woofer(es) abajo (z bajo) — la primera
- * versión de este archivo tenía el orden invertido, corregido acá tras
- * mirar la misma foto. */
+ * de la mitad del ancho del frente). Tweeter siempre arriba (z alto),
+ * woofer(es) siempre abajo (z bajo) — mismo orden que un parlante real. */
 function detallesDe(categoria: CategoriaEquipo, texto: string, caja: CajaIso): DetallesFrontales {
-  const { w, h } = caja;
+  const { w, h, d } = caja;
+  const circ = (cx: number, cz: number, r: number): string => circuloFrontal(cx, cz, r, d);
   if (categoria === 'parlante') {
     const cx = w / 2;
     const vias = contarVias(texto);
-    const tweeter = circuloFrontal(cx, h * 0.85, w * 0.11);
+    const tweeter = circ(cx, h * 0.85, w * 0.11);
     if (vias >= 3) {
       // tweeter arriba, medio al centro, woofer grande abajo.
-      return { trazo: [tweeter, circuloFrontal(cx, h * 0.53, w * 0.19), circuloFrontal(cx, h * 0.21, w * 0.27)].join(' '), relleno: '' };
+      return { trazo: [tweeter, circ(cx, h * 0.53, w * 0.19), circ(cx, h * 0.21, w * 0.27)].join(' '), relleno: '' };
     }
     if (vias >= 2.5) {
       // tweeter arriba, dos woofers del mismo tamaño apilados debajo.
-      return { trazo: [tweeter, circuloFrontal(cx, h * 0.5, w * 0.24), circuloFrontal(cx, h * 0.19, w * 0.24)].join(' '), relleno: '' };
+      return { trazo: [tweeter, circ(cx, h * 0.5, w * 0.24), circ(cx, h * 0.19, w * 0.24)].join(' '), relleno: '' };
     }
     // 2 vías — tweeter arriba, un woofer grande abajo (referencia real:
     // Bowers & Wilkins 606 S2, foto del usuario).
-    return { trazo: [tweeter, circuloFrontal(cx, h * 0.32, w * 0.32)].join(' '), relleno: '' };
+    return { trazo: [tweeter, circ(cx, h * 0.32, w * 0.32)].join(' '), relleno: '' };
   }
   if (categoria === 'amplificador') {
     // Pantalla a la izquierda + perilla a la derecha — referencia real:
     // Gold Note IS-10 (foto del usuario), mismo layout que ya usaba
     // iconosCategoria.ts (2D) para un integrado común, ahora en volumen.
-    const pantalla = rectFrontal(w * 0.13, h * 0.22, w * 0.42, h * 0.85);
-    const perilla = circuloFrontal(w * 0.8, h * 0.5, h * 0.42);
+    const pantalla = rectFrontal(w * 0.13, h * 0.22, w * 0.42, h * 0.85, d);
+    const perilla = circ(w * 0.8, h * 0.5, h * 0.42);
     return { trazo: `${pantalla} ${perilla}`, relleno: '' };
   }
   // streamer/dac
   if (contieneAlguna(texto, ['pantalla', 'touchscreen', 'display a color'])) {
-    return { trazo: rectFrontal(w * 0.08, h * 0.2, w * 0.55, h * 0.8), relleno: '' };
+    return { trazo: rectFrontal(w * 0.08, h * 0.2, w * 0.55, h * 0.8, d), relleno: '' };
   }
-  return { trazo: '', relleno: circuloFrontal(w * 0.14, h * 0.5, h * 0.16) };
+  return { trazo: '', relleno: circ(w * 0.14, h * 0.5, h * 0.16) };
 }
 
-/** Válvulas asomando por la cara superior (y no la frontal: es donde
- * realmente están en un integrado a válvulas real) — sólo cuando el
- * texto las declara. Se dibujan como 3 tubos verticales cortos, cada uno
- * anclado a un punto de la cara superior ya proyectada. */
+/** Válvulas asomando por la cara superior, cerca del borde frontal (y
+ * grande, no el borde trasero oculto) — sólo cuando el texto las
+ * declara. Se dibujan como 3 tubos verticales cortos, cada uno anclado a
+ * un punto de la cara superior ya proyectada. */
 function valvulasSuperiores(w: number, d: number, h: number): string {
   const alturaTubo = h * 0.5;
   const radioTubo = h * 0.09;
   const xs = [w * 0.28, w * 0.5, w * 0.72];
-  const yBase = d * 0.35;
+  const yBase = d * 0.68;
   return xs
     .map((x) => {
       const base = proy(x, yBase, h);
@@ -159,7 +177,7 @@ function valvulasSuperiores(w: number, d: number, h: number): string {
 
 /** Círculo horizontal (paralelo al piso, a altura `cz`) proyectado punto a
  * punto — el "gorro" de vidrio en la punta de cada válvula. Distinto de
- * `circuloFrontal`: ese vive en la cara y=0 (vertical), este en un plano
+ * `circuloFrontal`: ese vive en una cara vertical, este en un plano
  * z=cte (horizontal), por eso ninguno de los dos reemplaza al otro. */
 function circuloEnAltura(cx: number, cy: number, cz: number, r: number, pasos = 10): Punto[] {
   const puntos: Punto[] = [];
@@ -176,20 +194,20 @@ function circuloEnAltura(cx: number, cy: number, cz: number, r: number, pasos = 
  * afirmación puntual sobre el equipo real que se está dibujando — mismo
  * criterio que ya usa iconosCategoria.ts (2D) con las "patas" de un
  * amplificador: se dibujan siempre, sin depender de ninguna palabra
- * clave del catálogo. Cada línea va del borde frontal al trasero de la
- * cara superior (z=h), con un corrimiento diagonal parejo entre una y
- * la siguiente. */
+ * clave del catálogo. Cada línea cruza la mitad frontal de la cara
+ * superior (la visible, cerca del borde y=d), con un corrimiento
+ * diagonal parejo entre una y la siguiente. */
 function perforacionesSuperiores(w: number, d: number, h: number): string {
   const n = 7;
-  const xIni = w * 0.34;
-  const xFin = w * 0.94;
-  const corrimiento = w * 0.14;
+  const xIni = w * 0.3;
+  const xFin = w * 0.92;
+  const corrimiento = w * 0.12;
   const lineas: string[] = [];
   for (let i = 0; i < n; i++) {
     const t = i / (n - 1);
     const x = xIni + t * (xFin - xIni);
-    const p0 = proy(x, d * 0.1, h);
-    const p1 = proy(x - corrimiento, d * 0.9, h);
+    const p0 = proy(x, d * 0.55, h);
+    const p1 = proy(x - corrimiento, d * 0.95, h);
     lineas.push(`M${fmt(p0[0])} ${fmt(p0[1])} L${fmt(p1[0])} ${fmt(p1[1])}`);
   }
   return lineas.join(' ');
@@ -205,34 +223,27 @@ export function iconoIsometricoSvg(categoria: CategoriaEquipo, tipoEs: string, d
   const texto = `${tipoEs} ${descripcionEs}`.toLowerCase();
   const { w, d, h } = cajaDe(categoria, texto);
 
-  // Bajo esta proyección (mismo criterio que sala.ts/plano.ts), el vértice
-  // más "arriba" en pantalla es SIEMPRE A2=(0,0,h) — el término -h resta
-  // igual a los 4 vértices superiores, y A2 es el único con x=0 e y=0, lo
-  // que minimiza (x+y)·sin30 y lo deja por encima de los otros tres. Las
-  // 3 caras visibles tienen que ser justo las que TOCAN ese vértice: la
-  // superior (z=h), la frontal (y=0) y la IZQUIERDA (x=0) — nunca la
-  // derecha (x=w, que no toca A2 en absoluto). Dibujar la cara derecha ahí
-  // fue el bug real reportado: un cuadrilátero geométricamente válido pero
-  // que no comparte vértice con las otras dos, así que el contorno nunca
-  // cierra en un volumen — la cara "frontal" quedaba visualmente detrás en
-  // vez de ser una de las tres caras que arman el vértice superior.
-  const A = proy(0, 0, 0);
+  // Ver el comentario de cabecera: las 3 caras visibles tocan C2=(w,d,h),
+  // nunca A=(0,0,0) — B/C (piso) y B2/C2/D2 (techo) son los vértices que
+  // arman esas 3 caras. `A`/`Dc` (piso, lado x=0) no se usan: ese lado
+  // queda oculto detrás del volumen.
   const B = proy(w, 0, 0);
+  const C = proy(w, d, 0);
   const Dc = proy(0, d, 0);
   const A2 = proy(0, 0, h);
   const B2 = proy(w, 0, h);
   const C2 = proy(w, d, h);
   const D2 = proy(0, d, h);
 
-  const caraLateral = pathDe([A, Dc, D2, A2]);
-  const caraSuperior = pathDe([A2, B2, C2, D2]);
-  const caraFrontal = pathDe([A, B, B2, A2]);
+  const caraLateral = pathDe([B, C, C2, B2]); // x=w — sin detalles, sólo atenuada
+  const caraSuperior = pathDe([A2, B2, C2, D2]); // z=h
+  const caraFrontal = pathDe([Dc, C, C2, D2]); // y=d — acá van drivers/perilla/pantalla
   const { trazo, relleno } = detallesDe(categoria, texto, { w, d, h });
   const esValvular = categoria === 'amplificador' && contieneAlguna(texto, ['válvula', 'valvula', 'tubo', 'set (', 'clase a pura']);
   const tubos = esValvular ? valvulasSuperiores(w, d, h) : '';
   const perforaciones = categoria === 'amplificador' ? perforacionesSuperiores(w, d, h) : '';
 
-  const todos = [A, B, Dc, A2, B2, C2, D2];
+  const todos = [B, C, Dc, A2, B2, C2, D2];
   const xs = todos.map((p) => p[0]);
   const ys = todos.map((p) => p[1]);
   const minX = Math.min(...xs);

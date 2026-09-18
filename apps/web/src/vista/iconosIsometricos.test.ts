@@ -17,11 +17,48 @@ function esSvgValido(svg: string): void {
   assert.ok(svg.length > 20, 'el SVG generado no debería quedar vacío');
 }
 
-/** Todos los pares "x y" de un `d` de SVG (comandos M/L, sin el "Z" final) —
- * suficiente para comparar qué vértices comparten dos paths, sin tener que
+type Pt = readonly [number, number];
+
+/** Vértices en orden de un `d` de SVG (comandos M/L, sin el "Z" final) —
+ * alcanza para reconstruir los segmentos de cada cara, sin tener que
  * exportar la geometría interna del módulo ni recalcularla a mano acá. */
-function coordenadasDe(d: string): Set<string> {
-  return new Set((d.match(/[ML](-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g) ?? []).map((m) => m.slice(1)));
+function verticesDe(d: string): Pt[] {
+  return (d.match(/[ML](-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g) ?? []).map((m) => {
+    const [x, y] = m.slice(1).trim().split(' ').map(Number);
+    return [x!, y!] as Pt;
+  });
+}
+
+/** Segmentos (cerrados, "Z" incluida) de un path a partir de sus vértices
+ * en orden. */
+function segmentosDe(vertices: readonly Pt[]): Array<[Pt, Pt]> {
+  return vertices.map((p, i) => [p, vertices[(i + 1) % vertices.length]!] as [Pt, Pt]);
+}
+
+function orientacion(p: Pt, q: Pt, r: Pt): number {
+  const val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
+  if (Math.abs(val) < 1e-6) return 0;
+  return val > 0 ? 1 : 2;
+}
+
+function mismoPunto(a: Pt, b: Pt): boolean {
+  return Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6;
+}
+
+/** true si los segmentos p1-q1 y p2-q2 se cruzan en un punto que NO es un
+ * extremo compartido — dos caras de una misma caja SIEMPRE comparten al
+ * menos una arista completa (eso es válido y esperado); lo que nunca
+ * debería pasar es que el borde de una cara atraviese por el MEDIO el
+ * borde de otra, que es exactamente el aspecto "abierto"/con líneas
+ * cruzadas que reportó el usuario cuando el vértice elegido como eje de
+ * las 3 caras era el equivocado. */
+function segmentosCruzanEnElMedio(p1: Pt, q1: Pt, p2: Pt, q2: Pt): boolean {
+  for (const a of [p1, q1]) for (const b of [p2, q2]) if (mismoPunto(a, b)) return false; // extremo compartido: válido, no es un cruce real
+  const o1 = orientacion(p1, q1, p2);
+  const o2 = orientacion(p1, q1, q2);
+  const o3 = orientacion(p2, q2, p1);
+  const o4 = orientacion(p2, q2, q1);
+  return o1 !== o2 && o1 !== 0 && o2 !== 0 && o3 !== o4 && o3 !== 0 && o4 !== 0;
 }
 
 test('iconoIsometricoSvg: dibuja 3 caras (superior/frontal/lateral) — la caja tiene volumen, no es una silueta plana', () => {
@@ -33,7 +70,7 @@ test('iconoIsometricoSvg: dibuja 3 caras (superior/frontal/lateral) — la caja 
   assert.match(svg, /opacity="0.65"/, 'la cara superior se atenúa distinto de la lateral');
 });
 
-test('iconoIsometricoSvg: las 3 caras visibles tocan el vértice más alto del dibujo (regresión de un bug real: la cara lateral se dibujaba del lado x=w, que bajo esta proyección NO es el vértice más alto — dos caras cualquiera de un cubo siempre comparten UNA arista, así que esa comprobación no alcanza; hace falta el vértice específico que corona el contorno)', () => {
+test('iconoIsometricoSvg: ningún borde de una cara cruza por el medio el borde de otra — el volumen queda cerrado, sin líneas abiertas ni cruzadas (regresión de un bug real, reportado dos veces por el usuario con capturas: dos elecciones de vértice distintas para "el eje" de las 3 caras se veían con el volumen abierto). Compartir una arista COMPLETA entre 2 caras es válido y esperado — sólo un cruce a mitad de camino es el defecto real; por eso un chequeo de "¿comparten algún vértice?" no alcanzaba: la versión con bug también compartía un vértice entre las 3 caras, sólo que en el lugar equivocado', () => {
   // Equipo sin válvulas a propósito: con válvulas se intercala un 4to
   // <path> (los tubos) entre la cara superior y la frontal, y este test
   // asume que los primeros 3 <path> son justo lateral/superior/frontal.
@@ -43,24 +80,16 @@ test('iconoIsometricoSvg: las 3 caras visibles tocan el vértice más alto del d
   const [lateral, superior, frontal] = resto.map((s) => s.slice(0, s.indexOf('"')));
   assert.ok(lateral && superior && frontal, 'esperaba encontrar las 3 primeras caras en el SVG');
 
-  const cLateral = coordenadasDe(lateral!);
-  const cSuperior = coordenadasDe(superior!);
-  const cFrontal = coordenadasDe(frontal!);
-
-  // El vértice más alto del dibujo completo (menor "y" — el sistema SVG
-  // crece hacia abajo) tiene que pertenecer a las 3 caras a la vez: es el
-  // único punto donde "arriba" (cara superior), "adelante" (cara frontal)
-  // y "al costado" (cara lateral) se encuentran. Con el lado equivocado
-  // (bug real, x=w en vez de x=0), la cara lateral no lo incluye — aunque
-  // siga compartiendo una arista distinta con cada una de las otras dos
-  // por separado, por eso una comprobación par-a-par no lo detectaba.
-  const todas = [...cLateral, ...cSuperior, ...cFrontal];
-  const vertice = (s: string): [number, number] => s.split(' ').map(Number) as [number, number];
-  const cima = todas.reduce((min, p) => (vertice(p)[1] < vertice(min)[1] ? p : min));
-
-  assert.ok(cLateral.has(cima), `la cara lateral no toca el vértice más alto (${cima})`);
-  assert.ok(cSuperior.has(cima), `la cara superior no toca el vértice más alto (${cima})`);
-  assert.ok(cFrontal.has(cima), `la cara frontal no toca el vértice más alto (${cima})`);
+  const caras = [verticesDe(lateral!), verticesDe(superior!), verticesDe(frontal!)];
+  for (let i = 0; i < caras.length; i++) {
+    for (let j = i + 1; j < caras.length; j++) {
+      for (const [p1, q1] of segmentosDe(caras[i]!)) {
+        for (const [p2, q2] of segmentosDe(caras[j]!)) {
+          assert.ok(!segmentosCruzanEnElMedio(p1, q1, p2, q2), `un borde de la cara ${i} cruza por el medio un borde de la cara ${j}: [${p1}]-[${q1}] vs [${p2}]-[${q2}]`);
+        }
+      }
+    }
+  }
 });
 
 test('iconoIsometricoSvg: todo amplificador dibuja perforaciones diagonales sobre la cara superior (rasgo decorativo genérico, referencia Gold Note IS-10 — foto del usuario), con o sin válvulas', () => {
