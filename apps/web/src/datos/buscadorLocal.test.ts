@@ -1,7 +1,27 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buscarLocal } from './buscadorLocal.ts';
+import { buscarLocal, marcasDe, equiposDeMarca } from './buscadorLocal.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
+
+test('marcasDe: marcas únicas, alfabéticas, sin duplicados — para el <select> del modo "Catálogo"', () => {
+  const marcas = marcasDe('spk');
+  assert.equal(new Set(marcas).size, marcas.length, 'no debe haber duplicados');
+  const copia = [...marcas].sort((a, b) => a.localeCompare(b));
+  assert.deepEqual(marcas, copia, 'debe venir ya ordenada alfabéticamente');
+  assert.ok(marcas.includes('KEF'), JSON.stringify(marcas));
+});
+
+test('equiposDeMarca: sólo equipos de esa marca exacta, ordenados por nombre', () => {
+  const equipos = equiposDeMarca('spk', 'KEF');
+  assert.ok(equipos.length > 0);
+  assert.ok(equipos.every((e) => e.marca === 'KEF'));
+  const nombres = equipos.map((e) => e.nombre);
+  assert.deepEqual(nombres, [...nombres].sort((a, b) => a.localeCompare(b)));
+});
+
+test('equiposDeMarca: marca inexistente devuelve vacío, nunca todo el catálogo', () => {
+  assert.deepEqual(equiposDeMarca('spk', 'MarcaQueNoExiste'), []);
+});
 
 test('buscarLocal: "KEF" + "LS50" encuentra el KEF LS50 Meta real del catálogo', () => {
   const r = buscarLocal('spk', 'KEF', 'LS50');

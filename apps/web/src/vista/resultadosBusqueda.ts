@@ -34,6 +34,24 @@ function filaResultado(eq: EquipoCatalogo, categoria: CategoriaLocal, idioma: Id
   );
 }
 
+/** Opciones del `<select>` de marca del modo "Catálogo" — un placeholder
+ * (value="") seguido de una `<option>` por marca real. Puro: `main.ts`
+ * es quien decide cuándo regenerarlo (al arrancar y al cambiar de
+ * idioma, para relocalizar sólo el placeholder — las marcas mismas no
+ * se traducen, ver `tipos-catalogo.ts`). */
+export function opcionesMarcaHtml(marcas: readonly string[], placeholder: string): string {
+  return `<option value="">${escapeHtml(placeholder)}</option>` + marcas.map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+}
+
+/** Opciones del `<select>` de modelo del modo "Catálogo" — mismo patrón
+ * que `opcionesMarcaHtml`, con `value` = id real del catálogo (lo que
+ * `pick()` necesita) y texto visible = nombre del equipo. Una lista
+ * vacía sigue siendo válida: es el estado "sin marca elegida todavía"
+ * (`main.ts` le pasa el placeholder "Elige una marca primero" ahí). */
+export function opcionesModeloHtml(equipos: readonly EquipoCatalogo[], placeholder: string): string {
+  return `<option value="">${escapeHtml(placeholder)}</option>` + equipos.map((e) => `<option value="${escapeHtml(e.id)}">${escapeHtml(e.nombre)}</option>`).join('');
+}
+
 /** localeCompare para que "explorar todo" (sin marca/modelo tipeados)
  * se lea alfabéticamente por marca, mismo criterio que ya usa
  * `marcasUnicas` en selectores.ts. Un resultado de búsqueda con Fuse.js

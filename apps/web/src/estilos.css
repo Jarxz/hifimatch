@@ -465,12 +465,15 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .picker-rol{font-size:15px; font-weight:600; color:var(--text)}
 /* Selector de modo de búsqueda (Catálogo / Búsqueda web) — reemplaza el
    badge decorativo "REF: CATÁLOGO #0N" (era sólo el número de orden del
-   bloque, sin función real). Ahora declara ANTES de buscar de dónde va a
-   salir el dato, en vez de resolverlo en silencio con el fallback
-   automático a la web — mismo componente `.segs` de siempre, sólo más
-   angosto para caber en la fila de `.picker-head` junto al ícono. */
-.modo-busqueda{flex:0 0 auto; align-self:flex-start; margin-left:auto}
-.modo-busqueda button{font-size:10.5px; padding:6px 10px}
+   bloque, sin función real). Ahora declara ANTES de elegir el equipo de
+   dónde va a salir el dato: catálogo curado (2 `<select>`) o búsqueda
+   web (marca+modelo tipeados). Mismo tipo y tamaño visual que los badges
+   "requerido"/"opcional" (`.req`/`.req-obligatorio` más arriba) — dos
+   píldoras chicas, no el componente `.segs` de botones grandes. */
+.modo-busqueda{flex:0 0 auto; align-self:flex-start; margin-left:auto; display:flex; gap:6px}
+.modo-busqueda-btn{font:inherit; letter-spacing:.1em; font-size:10px; text-transform:uppercase; color:var(--dim); background:var(--panel2); border:1px solid var(--line3); border-radius:20px; padding:3px 9px; cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1), color .2s cubic-bezier(.22,.61,.36,1)}
+.modo-busqueda-btn:hover{color:var(--text); border-color:var(--line2)}
+.modo-busqueda-btn[aria-pressed="true"]{color:var(--dorado); border-color:color-mix(in srgb, var(--dorado) 40%, var(--line3))}
 /* Cada selector de equipo pasa a tener su propia caja ("instrumento"),
    mismo tratamiento --panel3/--line3 que el resto del rediseño — antes
    era texto suelto sin marco propio. */
@@ -542,6 +545,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .split:not(.split-full) .marca-modelo{flex-direction:column}
 .split:not(.split-full) .campo-marca, .split:not(.split-full) .campo-modelo{flex:1 1 auto}
 .split:not(.split-full) .buscar-btn{width:100%}
+.split:not(.split-full) .sel-marca, .split:not(.split-full) .sel-modelo{flex:1 1 auto}
 
 /* Panel de resultados/estado/ficha manual — vive debajo de `.marca-modelo`,
    arriba de la tarjeta `.info` del equipo elegido; oculto (`.hidden`) hasta

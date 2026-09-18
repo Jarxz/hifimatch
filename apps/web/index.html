@@ -296,12 +296,16 @@
             <div class="rowlabel"><span><span class="rowlabel-num">01 ·</span> <span data-i18n="config.parlantesRol">Transductor principal</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
             <div class="picker-rol" data-i18n="config.parlantes">Parlantes</div>
           </div>
-          <div class="segs modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
             <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
             <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
           </div>
         </div>
-        <div class="marca-modelo">
+        <div class="marca-modelo" id="mm-cat-spk">
+          <div class="sel sel-marca"><select id="sel-spk-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-spk-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-spk">
           <div class="campo-texto campo-marca"><input type="text" id="in-spk-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
           <div class="campo-texto campo-modelo"><input type="text" id="in-spk-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
           <button type="button" class="buscar-btn" id="btn-spk-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
@@ -316,12 +320,16 @@
             <div class="rowlabel"><span><span class="rowlabel-num">02 ·</span> <span data-i18n="config.amplificadorRol">Etapa de amplificación</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
             <div class="picker-rol" data-i18n="config.amplificador">Amplificador</div>
           </div>
-          <div class="segs modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
             <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
             <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
           </div>
         </div>
-        <div class="marca-modelo">
+        <div class="marca-modelo" id="mm-cat-amp">
+          <div class="sel sel-marca"><select id="sel-amp-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-amp-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-amp">
           <div class="campo-texto campo-marca"><input type="text" id="in-amp-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
           <div class="campo-texto campo-modelo"><input type="text" id="in-amp-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
           <button type="button" class="buscar-btn" id="btn-amp-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
@@ -339,12 +347,16 @@
             <div class="rowlabel"><span><span class="rowlabel-num">03 ·</span> <span data-i18n="config.streamerRol">Fuente de streaming</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
             <div class="picker-rol" data-i18n="config.streamer">Streamer</div>
           </div>
-          <div class="segs modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
             <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
             <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
           </div>
         </div>
-        <div class="marca-modelo">
+        <div class="marca-modelo" id="mm-cat-streamer">
+          <div class="sel sel-marca"><select id="sel-streamer-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-streamer-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-streamer">
           <div class="campo-texto campo-marca"><input type="text" id="in-streamer-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
           <div class="campo-texto campo-modelo"><input type="text" id="in-streamer-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
           <button type="button" class="buscar-btn" id="btn-streamer-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
@@ -359,12 +371,16 @@
             <div class="rowlabel"><span><span class="rowlabel-num">04 ·</span> <span data-i18n="config.dacRol">Conversor digital-analógico</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
             <div class="picker-rol" data-i18n="config.dac">DAC</div>
           </div>
-          <div class="segs modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
             <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
             <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
           </div>
         </div>
-        <div class="marca-modelo">
+        <div class="marca-modelo" id="mm-cat-dac">
+          <div class="sel sel-marca"><select id="sel-dac-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-dac-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-dac">
           <div class="campo-texto campo-marca"><input type="text" id="in-dac-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
           <div class="campo-texto campo-modelo"><input type="text" id="in-dac-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
           <button type="button" class="buscar-btn" id="btn-dac-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>

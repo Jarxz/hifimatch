@@ -311,6 +311,13 @@ export const es = {
     modoCatalogo: 'Catálogo',
     modoWeb: 'Búsqueda web',
     modoBusquedaAria: 'Modo de búsqueda',
+    // Modo "Catálogo": ya no se tipea — se elige marca y modelo de dos
+    // <select> poblados con el catálogo real (equiposDeMarca/marcasDe,
+    // datos/buscadorLocal.ts). El de modelo arranca deshabilitado con
+    // "Elige una marca primero" hasta que hay marca.
+    catalogoMarcaPlaceholder: 'Marca',
+    catalogoModeloPlaceholder: 'Modelo',
+    catalogoElegirMarcaPrimero: 'Elige una marca primero',
     buscarMarcaPlaceholder: 'Marca',
     buscarModeloPlaceholder: 'Modelo',
     buscarBtnAria: 'Buscar',

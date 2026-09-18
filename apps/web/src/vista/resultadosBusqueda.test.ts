@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales } from './resultadosBusqueda.ts';
+import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales, opcionesMarcaHtml, opcionesModeloHtml } from './resultadosBusqueda.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 
 test('modeloListaResultados: lista vacía devuelve string vacío, nunca un contenedor sin filas', () => {
@@ -71,6 +71,31 @@ test('modeloListaResultados: mostrarBuscarWeb=true en inglés, sin mezclar idiom
   const html = modeloListaResultados([kef], 'spk', 'en', true, true);
   assert.ok(html.includes('None of these'), html);
   assert.ok(!html.includes('Ninguno'), html);
+});
+
+test('opcionesMarcaHtml: placeholder primero, después una <option> por marca', () => {
+  const html = opcionesMarcaHtml(['Focal', 'KEF'], 'Marca');
+  assert.equal(html, '<option value="">Marca</option><option value="Focal">Focal</option><option value="KEF">KEF</option>');
+});
+
+test('opcionesMarcaHtml: lista vacía sigue devolviendo el placeholder, nunca un <select> sin opciones', () => {
+  assert.equal(opcionesMarcaHtml([], 'Marca'), '<option value="">Marca</option>');
+});
+
+test('opcionesMarcaHtml: escapa marcas con caracteres HTML', () => {
+  const html = opcionesMarcaHtml(['<script>x</script>'], 'Marca');
+  assert.ok(!html.includes('<script>'), html);
+  assert.ok(html.includes('&lt;script&gt;'), html);
+});
+
+test('opcionesModeloHtml: value = id real del catálogo, texto visible = nombre', () => {
+  const kef = CATALOGO.parlantes.find((p) => p.id === 'kef-ls50-meta')!;
+  const html = opcionesModeloHtml([kef], 'Modelo');
+  assert.equal(html, `<option value="">Modelo</option><option value="kef-ls50-meta">${kef.nombre}</option>`);
+});
+
+test('opcionesModeloHtml: lista vacía con placeholder "elige una marca primero" — mismo helper para los 2 estados', () => {
+  assert.equal(opcionesModeloHtml([], 'Elige una marca primero'), '<option value="">Elige una marca primero</option>');
 });
 
 test('modeloSinCoincidenciasLocales: declara que no hay coincidencias en el catálogo curado, con un solo botón para pasar a la web', () => {

@@ -83,6 +83,26 @@ function indiceDe(categoria: CategoriaLocal): Fuse<EquipoCatalogo> {
   return indice;
 }
 
+/** Marcas únicas de una categoría, alfabéticas — para el `<select>` de
+ * marca del modo "Catálogo" (`main.ts`, `iniciarSelectoresCatalogo`):
+ * a diferencia de `buscarLocal` (difuso, para texto tipeado), acá se
+ * listan las opciones reales tal cual existen en el catálogo, sin
+ * normalizar acentos ni mayúsculas — son justo las que el usuario ve. */
+export function marcasDe(categoria: CategoriaLocal): string[] {
+  const marcas = new Set(catalogoDe(categoria).map((e) => e.marca));
+  return [...marcas].sort((a, b) => a.localeCompare(b));
+}
+
+/** Equipos de una marca, ordenados por nombre — para poblar el `<select>`
+ * de modelo una vez elegida la marca. Comparación exacta (`===`), no
+ * normalizada: `marca` sale de las opciones ya generadas por
+ * `marcasDe`, nunca de texto tipeado a mano. */
+export function equiposDeMarca(categoria: CategoriaLocal, marca: string): EquipoCatalogo[] {
+  return catalogoDe(categoria)
+    .filter((e) => e.marca === marca)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre));
+}
+
 /**
  * Busca en el catálogo curado de una categoría. Si `marca` y `modelo`
  * están AMBOS vacíos, devuelve el catálogo completo de esa categoría

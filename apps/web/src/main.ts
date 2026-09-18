@@ -29,10 +29,10 @@ import type { NivelUI } from './estado.ts';
 import { ir } from './vista/pantallas.ts';
 import type { Pantalla } from './vista/pantallas.ts';
 import { infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
-import { buscarLocal } from './datos/buscadorLocal.ts';
+import { buscarLocal, marcasDe, equiposDeMarca } from './datos/buscadorLocal.ts';
 import type { CategoriaLocal } from './datos/buscadorLocal.ts';
 import { registrarEquipo, buscarEnRegistro } from './datos/registroEquipos.ts';
-import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales } from './vista/resultadosBusqueda.ts';
+import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales, opcionesMarcaHtml, opcionesModeloHtml } from './vista/resultadosBusqueda.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { iniciarBootSplash } from './vista/bootSplash.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
@@ -467,10 +467,80 @@ type ModoBusqueda = 'catalogo' | 'web';
  * falta). */
 const modoBusqueda: Record<CategoriaLocal, ModoBusqueda> = { spk: 'catalogo', amp: 'catalogo', streamer: 'catalogo', dac: 'catalogo' };
 
+/**
+ * Cambia de modo Y limpia lo que hubiera elegido/tipeado del modo
+ * anterior — evita que quede un equipo elegido por un modo que ya no
+ * está activo (ej. elegido en Catálogo, después se pasa a Búsqueda web
+ * y el usuario cree que sigue "sin elegir" cuando en realidad el motor
+ * todavía tiene ese equipo cargado).
+ */
 function setModoBusqueda(kind: CategoriaLocal, modo: ModoBusqueda): void {
   modoBusqueda[kind] = modo;
   document.querySelectorAll<HTMLButtonElement>(`.modo-busqueda-btn[data-kind="${kind}"]`).forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.modo === modo));
+  });
+  document.getElementById(`mm-cat-${kind}`)?.classList.toggle('hidden', modo !== 'catalogo');
+  document.getElementById(`mm-web-${kind}`)?.classList.toggle('hidden', modo !== 'web');
+
+  pick(kind, '');
+  const selMarca = document.getElementById(`sel-${kind}-marca`) as HTMLSelectElement | null;
+  const selModelo = document.getElementById(`sel-${kind}-modelo`) as HTMLSelectElement | null;
+  if (selMarca) selMarca.value = '';
+  if (selModelo) {
+    selModelo.innerHTML = opcionesModeloHtml([], textosDe(idiomaActual).config.catalogoElegirMarcaPrimero);
+    selModelo.disabled = true;
+  }
+  const p = panelesBuscador().find((x) => x.kind === kind);
+  if (p) {
+    p.inputMarca.value = '';
+    p.inputModelo.value = '';
+    ocultarPanelBuscador(p);
+  }
+}
+
+/**
+ * Puebla los 2 `<select>` de catálogo por categoría (marca → modelo) —
+ * modo "Catálogo" del selector nuevo en `.picker-head`. A diferencia del
+ * buscador de texto (Fuse.js/búsqueda web), acá sólo se puede elegir lo
+ * que el catálogo YA tiene: elegir un modelo llama a `pick()` directo,
+ * sin paso de "buscar" intermedio — la propia selección ya identifica
+ * un único equipo real, sin ambigüedad que resolver.
+ */
+function iniciarSelectoresCatalogo(): void {
+  const kinds: CategoriaLocal[] = ['spk', 'amp', 'streamer', 'dac'];
+  for (const kind of kinds) {
+    const selMarca = document.getElementById(`sel-${kind}-marca`) as HTMLSelectElement | null;
+    const selModelo = document.getElementById(`sel-${kind}-modelo`) as HTMLSelectElement | null;
+    if (!selMarca || !selModelo) continue;
+    selMarca.innerHTML = opcionesMarcaHtml(marcasDe(kind), textosDe(idiomaActual).config.catalogoMarcaPlaceholder);
+    selMarca.addEventListener('change', () => {
+      pick(kind, ''); // una marca nueva invalida el modelo ya elegido
+      const marca = selMarca.value;
+      if (!marca) {
+        selModelo.innerHTML = opcionesModeloHtml([], textosDe(idiomaActual).config.catalogoElegirMarcaPrimero);
+        selModelo.disabled = true;
+        return;
+      }
+      selModelo.innerHTML = opcionesModeloHtml(equiposDeMarca(kind, marca), textosDe(idiomaActual).config.catalogoModeloPlaceholder);
+      selModelo.disabled = false;
+    });
+    selModelo.addEventListener('change', () => {
+      pick(kind, selModelo.value);
+    });
+  }
+}
+
+/** Relocaliza los placeholders de los `<select>` de catálogo al cambiar
+ * de idioma — las marcas/modelos NO se traducen (nombres propios, ver
+ * `tipos-catalogo.ts`), así que sólo hace falta retocar la primera
+ * `<option>` de cada uno, nunca reconstruir la lista entera. */
+function actualizarPlaceholdersCatalogo(): void {
+  const t = textosDe(idiomaActual).config;
+  (['spk', 'amp', 'streamer', 'dac'] as const).forEach((kind) => {
+    const selMarca = document.getElementById(`sel-${kind}-marca`) as HTMLSelectElement | null;
+    const selModelo = document.getElementById(`sel-${kind}-modelo`) as HTMLSelectElement | null;
+    if (selMarca?.options[0]) selMarca.options[0].textContent = t.catalogoMarcaPlaceholder;
+    if (selModelo?.options[0]) selModelo.options[0].textContent = selModelo.disabled ? t.catalogoElegirMarcaPrimero : t.catalogoModeloPlaceholder;
   });
 }
 
@@ -1339,6 +1409,7 @@ function cambiarIdioma(idioma: Idioma): void {
   actualizarAlfas();
   actualizarBadgesNivelGenero();
   actualizarResumenSala();
+  actualizarPlaceholdersCatalogo();
   repintarMatchDelMes();
 
   (['spk', 'amp', 'streamer', 'dac'] as const).forEach((kind) => {
@@ -1851,6 +1922,7 @@ function main(): void {
   aplicarCromoEstatico(idiomaActual);
   wireEventos();
   iniciarBuscadorEquipos();
+  iniciarSelectoresCatalogo();
 
   const escala = document.getElementById('pw-scale');
   if (escala) construirEscala(escala);
