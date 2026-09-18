@@ -1059,6 +1059,13 @@ dialog.info-popup[open]::backdrop{opacity:1}
 .info-popup-head h3{font-weight:400; font-size:18px; margin:0; letter-spacing:.01em}
 .info-popup p{color:var(--dim); font-size:14px; line-height:1.7; margin:0}
 .info-popup p b{color:var(--text); font-weight:500}
+/* Código QR de "Ver en AR" desde una computadora — el SVG ya trae su
+   propio fondo blanco y "zona de silencio" (ver ar/qr.ts), sólo hace
+   falta acotar el ancho y centrarlo dentro del popup. border-radius
+   chico en vez de 0: mismo criterio de esquinas suaves del resto del
+   sitio, sin recortar los módulos del QR (el margen ya interno alcanza). */
+.ar-qr-wrap{max-width:200px; margin:16px auto 0}
+.ar-qr-wrap svg{display:block; width:100%; height:auto; border-radius:4px}
 .infoclose{background:transparent; border:0; color:var(--faint); font-size:20px; line-height:1; cursor:pointer; padding:0 2px; flex:0 0 auto}
 .infoclose:hover{color:var(--text)}
 

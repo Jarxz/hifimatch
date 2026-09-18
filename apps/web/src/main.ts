@@ -84,7 +84,8 @@ import { num, numConSigno } from './formato/numeros.ts';
 import { idiomaInicial, guardarIdioma, aplicarCromoEstatico, textosDe } from './idioma/idioma.ts';
 import { codificarEstadoAr } from './ar/estadoUrl.ts';
 import type { EstadoAr } from './ar/estadoUrl.ts';
-import { tieneNavigatorXr, esUserAgentIOS, QUICK_LOOK_HABILITADO } from './ar/soporte.ts';
+import { tieneNavigatorXr, esUserAgentIOS, esDispositivoDeEscritorio, QUICK_LOOK_HABILITADO } from './ar/soporte.ts';
+import { generarQrSvg } from './ar/qr.ts';
 
 const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alto', ref: 'referencia' };
 
@@ -1372,14 +1373,18 @@ function tieneChanceDeQuickLook(): boolean {
  * autoritativo de cada uno (`isSessionSupported`/generar el USDZ) corre
  * recién adentro — acá sólo se descarta lo obviamente imposible, para
  * no navegar a una página que va a terminar en el mismo fallback de
- * todos modos si esta comprobación barata ya alcanza. */
+ * todos modos si esta comprobación barata ya alcanza.
+ *
+ * Sin soporte en ESTE dispositivo y es una computadora (pedido explícito
+ * del usuario): en vez de sólo declarar la limitación, se genera un
+ * código QR (ar/qr.ts) con la URL REAL de `ar.html?<estado>` — el mismo
+ * destino exacto que este botón hubiera abierto acá mismo con soporte —
+ * para continuar desde un teléfono sin tener que anotar la URL a mano.
+ * Nunca por file:// (ahí `location.origin` no resuelve a un host real
+ * que un teléfono pueda alcanzar) ni en un dispositivo que YA es un
+ * teléfono sin soporte (ahí un QR no ayuda, es el mismo aparato). */
 function irAVerEnAr(): void {
   if (!ultimoPlano) return;
-  if (location.protocol === 'file:' || (!tieneNavigatorXr(navigator) && !tieneChanceDeQuickLook())) {
-    const t = textosDe(idiomaActual).ar;
-    abrirPopup(t.noSoportadoTitulo, t.noSoportadoCuerpo);
-    return;
-  }
   const estadoAr: EstadoAr = {
     sala: ultimoPlano.sala,
     parlanteIzq: ultimoPlano.disposicion.parlanteIzq,
@@ -1390,7 +1395,22 @@ function irAVerEnAr(): void {
     muroIzquierdoVacio: ultimoPlano.murosVista.izquierdo === 'vacio',
     muroDerechoVacio: ultimoPlano.murosVista.derecho === 'vacio',
   };
-  location.href = 'ar.html?' + codificarEstadoAr(estadoAr);
+  const rutaAr = 'ar.html?' + codificarEstadoAr(estadoAr);
+
+  if (location.protocol !== 'file:' && (tieneNavigatorXr(navigator) || tieneChanceDeQuickLook())) {
+    location.href = rutaAr;
+    return;
+  }
+
+  const t = textosDe(idiomaActual).ar;
+  if (location.protocol !== 'file:' && esDispositivoDeEscritorio(navigator.userAgent)) {
+    const urlCompleta = `${location.origin}/${rutaAr}`;
+    const cuerpoHtml = `<p>${t.arQrCuerpo}</p><div class="ar-qr-wrap">${generarQrSvg(urlCompleta)}</div>`;
+    abrirPopup(t.arQrTitulo, cuerpoHtml);
+    return;
+  }
+
+  abrirPopup(t.noSoportadoTitulo, t.noSoportadoCuerpo);
 }
 
 /** Destino del enlace `mailto:` de respaldo cuando el sitio corre por
@@ -1641,15 +1661,21 @@ function actualizarResumenSala(): void {
   }
 }
 
-/** Habilita/deshabilita las pestañas "Documento" y "AR" de .head-nav según
- * si ya existe un análisis real (`ultimoPlano`, misma variable que ya usa
- * irAVerEnAr() para su propio guardia) — evita mostrar un informe vacío o
- * intentar una sesión de AR sin geometría que anclar. "Resultado" no se
- * deshabilita: su estado sin analizar ("Veredicto del análisis", guiones)
- * ya es un placeholder honesto, no un resultado a medias. */
+/** Habilita/deshabilita las pestañas "Resultado", "Documento" y "AR" de
+ * .head-nav según si ya existe un análisis real (`ultimoPlano`, misma
+ * variable que ya usa irAVerEnAr() para su propio guardia) — evita
+ * mostrar un informe vacío, intentar una sesión de AR sin geometría que
+ * anclar, o entrar a un "Resultado" que sólo tiene guiones. Pedido
+ * explícito del usuario: antes "Resultado" quedaba afuera de este
+ * guardia a propósito (su estado sin analizar ya era un placeholder
+ * honesto, no a medias) — ahora se suma al mismo mecanismo. Los botones
+ * "← Volver al análisis" de Guía/Documento (`btn-info-volver-2`/
+ * `btn-doc-volver-2`) no usan `data-nav-ir`, así que no se ven afectados
+ * — sólo son alcanzables desde pantallas que ya exigen un análisis
+ * previo (esas dos también están detrás de este mismo guardia). */
 function actualizarNavHabilitada(): void {
   const disponible = ultimoPlano !== null;
-  document.querySelectorAll<HTMLButtonElement>('[data-nav-ir="documento"]').forEach((b) => {
+  document.querySelectorAll<HTMLButtonElement>('[data-nav-ir="results"], [data-nav-ir="documento"]').forEach((b) => {
     b.disabled = !disponible;
   });
   const btnAr = document.getElementById('btn-nav-ar') as HTMLButtonElement | null;

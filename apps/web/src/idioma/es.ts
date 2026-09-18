@@ -502,6 +502,14 @@ export const es = {
     noSoportadoTitulo: 'AR no disponible en este navegador',
     noSoportadoCuerpo:
       'Esta función usa WebXR con detección de superficies (hit-test), soportado hoy sólo por Chrome en Android con ARCore. No está disponible en iPhone/Safari, en computadoras de escritorio, ni en otros navegadores de Android.',
+    // Pedido explícito del usuario: desde una computadora, en vez de sólo
+    // declarar que no hay soporte, se ofrece un código QR real (con el
+    // estado de la sala ya codificado en la URL, ver ar/estadoUrl.ts) para
+    // continuar en un teléfono — mismo destino exacto que "Entrar en AR"
+    // hubiera abierto en el propio dispositivo si tuviera soporte.
+    arQrTitulo: 'Ver en tu teléfono',
+    arQrCuerpo:
+      'Esta computadora no tiene cámara con soporte de AR. Se puede escanear este código con un teléfono Android (Chrome, con ARCore) para abrir la misma simulación ahí, con la sala ya cargada.',
     estadoInvalido: 'No se pudieron leer los datos de la sala. Conviene volver al análisis e intentarlo de nuevo desde el botón «Ver en AR».',
     volverAlAnalisis: '← Volver al análisis',
     // Quick Look (iPhone): sin calibración ni medición real — Apple no

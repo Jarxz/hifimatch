@@ -395,6 +395,9 @@ export const en: Textos = {
     noSoportadoTitulo: 'AR not available in this browser',
     noSoportadoCuerpo:
       'This feature uses WebXR with surface detection (hit-test), supported today only by Chrome on Android with ARCore. It is not available on iPhone/Safari, on desktop computers, or in other Android browsers.',
+    arQrTitulo: 'View on your phone',
+    arQrCuerpo:
+      'This computer has no camera with AR support. Scan this code with an Android phone (Chrome, with ARCore) to open the same simulation there, with the room already loaded.',
     estadoInvalido: 'The room data could not be read. Go back to the analysis and try again from the "View in AR" button.',
     volverAlAnalisis: '← Back to analysis',
     quickLookAviso:

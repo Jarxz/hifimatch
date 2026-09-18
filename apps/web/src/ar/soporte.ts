@@ -46,6 +46,22 @@ export function esUserAgentIOS(userAgent: string): boolean {
 }
 
 /**
+ * ¿Es una computadora de escritorio/laptop (no un teléfono ni una
+ * tablet)? Heurística estándar (ausencia de los tokens de dispositivo
+ * móvil más comunes en el user agent) — no hay una señal mejor sin pedir
+ * permisos adicionales; Client Hints (`sec-ch-ua-mobile`) es un header
+ * que llega al servidor, no una propiedad simple de leer del lado del
+ * cliente. Puro, mismo criterio de testabilidad que `esUserAgentIOS`.
+ * Uso real: "Ver en AR" sin soporte + esto en `true` → tiene sentido
+ * ofrecer un código QR para escanear con el teléfono (main.ts); sin
+ * soporte + esto en `false` (ej. un Android viejo sin ARCore) → un QR no
+ * ayudaría, ese dispositivo YA es el teléfono.
+ */
+export function esDispositivoDeEscritorio(userAgent: string): boolean {
+  return !/Mobi|Android|iPhone|iPad|iPod/i.test(userAgent);
+}
+
+/**
  * Interruptor de la función de Quick Look en iPhone — deshabilitada
  * después de probarla en hardware real: el usuario reportó que no
  * funcionaba bien, sin más detalle todavía sobre qué falló
