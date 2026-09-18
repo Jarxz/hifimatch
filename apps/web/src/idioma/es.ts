@@ -19,6 +19,7 @@ import type { CodigoReverberacion } from '../../../../packages/engine/src/reverb
 import type { NombreReflexion, CodigoAnguloEscucha } from '../../../../packages/engine/src/colocacion.ts';
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 import type { CodigoContacto } from '../../../../packages/contact/src/contacto.ts';
+import type { CodigoMensaje } from '../../../../packages/mensajes/src/mensajes.ts';
 
 /** Códigos que puede devolver `/api/contact.ts` — superset de
  * `CodigoContacto` (que sólo cubre lo que valida `validarContacto`, del
@@ -26,6 +27,11 @@ import type { CodigoContacto } from '../../../../packages/contact/src/contacto.t
  * propio borde HTTP (método no-POST, o un fallo real de `manejarContacto`
  * al llamar a Resend). */
 type CodigoRespuestaContacto = CodigoContacto | 'metodo-invalido' | 'error-servidor';
+
+/** Mismo criterio que `CodigoRespuestaContacto`, para `/api/mensajes.ts`
+ * — suma `limite-alcanzado` (cooldown o cupo diario superado), que
+ * Contacto no tiene porque nunca limitó el envío por volumen. */
+type CodigoRespuestaMensajes = CodigoMensaje | 'limite-alcanzado' | 'metodo-invalido' | 'error-servidor';
 
 /** Componentes con nombre de pantalla propio en `motor.componentes.nombre`
  * (los que no tienen un `nombreCorto` directo en su propia tarjeta, ver
@@ -78,6 +84,7 @@ export const es = {
     resultado: 'Resultado',
     guia: 'Guía',
     documento: 'Documento',
+    mensajes: 'Mensajes',
     ar: 'AR',
     arAria: 'Ver en realidad aumentada — Chrome/Android con un análisis ya calculado',
     deshabilitadaAria: 'Disponible después de analizar un sistema',
@@ -104,6 +111,38 @@ export const es = {
     } satisfies Record<CodigoRespuestaContacto, string>,
     fallbackMailtoHtml: (p: { mailto: string }): string =>
       `Esta página está abierta como archivo local, así que no se puede enviar directo desde aquí. <a href="${p.mailto}">Abre tu cliente de correo</a> con el mensaje ya cargado.`,
+  },
+
+  // Muro de mensajes públicos (packages/mensajes, api/mensajes.ts) —
+  // forma calcada de `contacto` (mismos nombres de campo donde el
+  // concepto se superpone), con las claves propias del listado público.
+  // Nombre y mensaje se muestran a cualquier visitante; el email nunca
+  // se muestra (viaja al servidor, se guarda, no más que eso).
+  mensajes: {
+    titulo: 'Mensajes',
+    intro: 'Deja un mensaje público para otros visitantes del sitio — se publica de inmediato, sin revisión previa.',
+    campoNombre: 'Nombre (opcional)',
+    campoEmail: 'Tu email (no se muestra — sólo para responder si hiciera falta)',
+    campoMensaje: 'Mensaje',
+    enviar: 'Publicar',
+    enviando: 'Publicando…',
+    exito: 'Mensaje publicado. Gracias.',
+    error: {
+      'honeypot': 'No se pudo publicar el mensaje. Vuelve a intentarlo.',
+      'muy-rapido': 'Vuelve a intentarlo en un momento.',
+      'email-invalido': 'Revisa el formato del email.',
+      'mensaje-vacio': 'El mensaje no puede quedar vacío.',
+      'mensaje-largo': 'El mensaje es demasiado largo — conviene acortarlo.',
+      'limite-alcanzado': 'Se alcanzó el límite de mensajes de hoy. Vuelve a intentarlo mañana.',
+      'metodo-invalido': 'No se pudo publicar el mensaje. Vuelve a intentarlo.',
+      'error-servidor': 'No se pudo publicar el mensaje. Vuelve a intentarlo en un momento.',
+    } satisfies Record<CodigoRespuestaMensajes, string>,
+    listaTitulo: 'Mensajes recientes',
+    cargando: 'Cargando mensajes…',
+    vacio: 'Todavía no hay mensajes — el primero puede ser el tuyo.',
+    errorCarga: 'No se pudieron cargar los mensajes. Vuelve a intentarlo en un momento.',
+    anonimo: 'Anónimo',
+    fileProtocolAviso: 'Esta página está abierta como archivo local, así que no se pueden ver ni publicar mensajes desde aquí. Conviene abrir el sitio en línea para usar esta sección.',
   },
 
   splash: {

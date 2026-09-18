@@ -28,6 +28,7 @@ export const en: Textos = {
     resultado: 'Result',
     guia: 'Guide',
     documento: 'Document',
+    mensajes: 'Messages',
     ar: 'AR',
     arAria: 'View in augmented reality — Chrome/Android with an analysis already computed',
     deshabilitadaAria: 'Available after analyzing a system',
@@ -54,6 +55,33 @@ export const en: Textos = {
     },
     fallbackMailtoHtml: (p) =>
       `This page is open as a local file, so it can't send directly from here. <a href="${p.mailto}">Open your email client</a> with the message already loaded.`,
+  },
+
+  mensajes: {
+    titulo: 'Messages',
+    intro: 'Leave a public message for other visitors of the site — it publishes right away, with no review beforehand.',
+    campoNombre: 'Name (optional)',
+    campoEmail: "Your email (never shown — only so we can reply if needed)",
+    campoMensaje: 'Message',
+    enviar: 'Post',
+    enviando: 'Posting…',
+    exito: 'Message posted. Thanks.',
+    error: {
+      'honeypot': "Couldn't post the message. Try again.",
+      'muy-rapido': 'Try again in a moment.',
+      'email-invalido': 'Check the email format.',
+      'mensaje-vacio': "The message can't be empty.",
+      'mensaje-largo': 'The message is too long — try shortening it.',
+      'limite-alcanzado': "Today's message limit was reached. Try again tomorrow.",
+      'metodo-invalido': "Couldn't post the message. Try again.",
+      'error-servidor': "Couldn't post the message. Try again in a moment.",
+    },
+    listaTitulo: 'Recent messages',
+    cargando: 'Loading messages…',
+    vacio: 'No messages yet — yours could be the first.',
+    errorCarga: "Couldn't load the messages. Try again in a moment.",
+    anonimo: 'Anonymous',
+    fileProtocolAviso: "This page is open as a local file, so messages can't be viewed or posted from here. Open the site online to use this section.",
   },
 
   splash: {

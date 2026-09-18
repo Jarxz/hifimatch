@@ -20,6 +20,8 @@ import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 import { validarContacto } from '../../../packages/contact/src/contacto.ts';
 import type { EntradaContacto } from '../../../packages/contact/src/contacto.ts';
+import { validarMensaje } from '../../../packages/mensajes/src/mensajes.ts';
+import type { EntradaMensaje, MensajePublico } from '../../../packages/mensajes/src/mensajes.ts';
 import { construirFuenteWeb } from '../../../packages/buscador/src/buscador.ts';
 import type { CategoriaBusqueda } from '../../../packages/buscador/src/buscador.ts';
 import type { ParlanteCat, AmplificadorCat, FuenteCat } from '../../../packages/data/src/tipos-catalogo.ts';
@@ -33,6 +35,7 @@ import { buscarLocal, marcasDe, equiposDeMarca } from './datos/buscadorLocal.ts'
 import type { CategoriaLocal } from './datos/buscadorLocal.ts';
 import { registrarEquipo, buscarEnRegistro } from './datos/registroEquipos.ts';
 import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales, opcionesMarcaHtml, opcionesModeloHtml } from './vista/resultadosBusqueda.ts';
+import { listaMensajesHtml, estadoCargandoMensajesHtml, estadoErrorMensajesHtml, estadoFileProtocolMensajesHtml } from './vista/mensajes.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { iniciarBootSplash } from './vista/bootSplash.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
@@ -1618,6 +1621,111 @@ async function enviarContacto(e: SubmitEvent): Promise<void> {
   }
 }
 
+// ── Muro de mensajes públicos (packages/mensajes, api/mensajes.ts) ──
+// Mismo esqueleto que Contacto (validación client-side instantánea +
+// borde real server-side), con dos diferencias: acá SÍ hay una lista
+// pública para leer (no sólo un formulario), y no existe un respaldo
+// tipo `mailto:` para `file://` — no hay forma de "publicar en una
+// lista pública" ni de "leerla" sin red real, así que ese caso sólo
+// declara la limitación.
+
+/** `Date.now()` al entrar a la pantalla de Mensajes — alimenta el mismo
+ * chequeo de "muy rápido" que ya usa Contacto, ver `validarMensaje`. */
+let mensajesAbiertosEnMs = 0;
+
+function leerEntradaMensaje(form: HTMLFormElement): EntradaMensaje {
+  const datos = new FormData(form);
+  return {
+    nombre: String(datos.get('nombre') ?? '').trim(),
+    email: String(datos.get('email') ?? '').trim(),
+    mensaje: String(datos.get('mensaje') ?? ''),
+    honeypot: String(datos.get('sitio_web') ?? ''),
+    cargadoEnMs: mensajesAbiertosEnMs,
+    enviadoEnMs: Date.now(),
+  };
+}
+
+function mostrarEstadoMensajes(texto: string, clase: 'exito' | 'error' | null): void {
+  const estadoEl = document.getElementById('mensajes-estado');
+  if (!estadoEl) return;
+  estadoEl.textContent = texto;
+  estadoEl.classList.remove('hidden', 'exito', 'error');
+  if (clase) estadoEl.classList.add(clase);
+}
+
+/** Trae la lista pública y la pinta — se llama cada vez que se navega a
+ * "Mensajes" (nunca se cachea entre visitas, el dataset es chico) y de
+ * nuevo justo después de publicar, para que el propio mensaje aparezca
+ * sin recargar. Por `file://` no hay red real que alcanzar (ni para
+ * leer ni para publicar) — se declara la limitación en vez de intentar
+ * un `fetch` que nunca puede funcionar. */
+async function cargarYRenderizarMensajes(): Promise<void> {
+  const lista = document.getElementById('mensajes-lista');
+  if (!lista) return;
+
+  if (location.protocol === 'file:') {
+    lista.innerHTML = estadoFileProtocolMensajesHtml(idiomaActual);
+    return;
+  }
+
+  lista.innerHTML = estadoCargandoMensajesHtml(idiomaActual);
+  try {
+    const resp = await fetch('/api/mensajes');
+    const json = (await resp.json()) as { ok: boolean; mensajes?: MensajePublico[] };
+    if (json.ok && json.mensajes) {
+      lista.innerHTML = listaMensajesHtml(json.mensajes, idiomaActual);
+    } else {
+      lista.innerHTML = estadoErrorMensajesHtml(idiomaActual);
+    }
+  } catch {
+    lista.innerHTML = estadoErrorMensajesHtml(idiomaActual);
+  }
+}
+
+async function enviarMensaje(e: SubmitEvent): Promise<void> {
+  e.preventDefault();
+  const form = e.currentTarget as HTMLFormElement;
+  const boton = document.getElementById('mensajes-enviar') as HTMLButtonElement | null;
+  const t = textosDe(idiomaActual).mensajes;
+  const entrada = leerEntradaMensaje(form);
+
+  // Validación client-side: feedback instantáneo, no es el borde de
+  // seguridad real — eso vuelve a correr server-side en /api/mensajes.ts.
+  const validacion = validarMensaje(entrada);
+  if (!validacion.ok) {
+    mostrarEstadoMensajes(t.error[validacion.codigo], 'error');
+    return;
+  }
+
+  if (location.protocol === 'file:') {
+    mostrarEstadoMensajes(t.fileProtocolAviso, null);
+    return;
+  }
+
+  if (boton) boton.disabled = true;
+  mostrarEstadoMensajes(t.enviando, null);
+
+  try {
+    const resp = await fetch('/api/mensajes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entrada),
+    });
+    const json = (await resp.json()) as { ok: boolean; codigo?: keyof typeof t.error };
+    if (json.ok) {
+      mostrarEstadoMensajes(t.exito, 'exito');
+      form.reset();
+      void cargarYRenderizarMensajes();
+    } else {
+      mostrarEstadoMensajes(t.error[json.codigo ?? 'error-servidor'], 'error');
+    }
+  } catch {
+    mostrarEstadoMensajes(t.error['error-servidor'], 'error');
+  } finally {
+    if (boton) boton.disabled = false;
+  }
+}
+
 /** Fórmula de proyección isométrica 30° — misma que usa `vista/plano.ts`
  * para el plano de reflexiones real (`sx=(x−y)·cos30, sy=(x+y)·sin30−z`).
  * Reimplementada localmente (no importada) a propósito: acá es puramente
@@ -1871,12 +1979,24 @@ function wireEventos(): void {
   document.getElementById('btn-contacto-resultado')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-info')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-documento')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-mensajes')?.addEventListener('click', () => abrirContactoPopup());
   const contactoPopup = document.getElementById('contacto-popup') as HTMLDialogElement | null;
   document.getElementById('contacto-cerrar')?.addEventListener('click', () => contactoPopup?.close());
   contactoPopup?.addEventListener('click', (e) => {
     if (e.target === contactoPopup) contactoPopup.close();
   });
   document.getElementById('form-contacto')?.addEventListener('submit', enviarContacto);
+
+  // Muro de mensajes públicos: cargar la lista fresca cada vez que se
+  // navega a la pantalla (además del cambio de pantalla en sí, que ya
+  // manejan los `data-nav-ir` genéricos de más abajo) y publicar.
+  document.querySelectorAll<HTMLButtonElement>('[data-nav-ir="mensajes"]').forEach((b) => {
+    b.addEventListener('click', () => {
+      mensajesAbiertosEnMs = Date.now();
+      void cargarYRenderizarMensajes();
+    });
+  });
+  document.getElementById('form-mensajes')?.addEventListener('submit', enviarMensaje);
 
   wireSlider('in-W', 'W');
   wireSlider('in-L', 'L');

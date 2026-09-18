@@ -1,0 +1,15 @@
+{
+  "name": "@cadena/mensajes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Validación pura y orquestación del muro de mensajes públicos de The Hifi Match. TypeScript puro, cero dependencias de runtime — consumida tanto por apps/web (feedback instantáneo en el cliente) como por api/mensajes.ts (el borde de seguridad real, incluido el filtro de privacidad que nunca deja salir el email).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^5.6.0"
+  }
+}
