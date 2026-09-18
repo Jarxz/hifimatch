@@ -11,7 +11,8 @@ import { idiomaInicial, aplicarCromoEstatico, textosDe } from '../idioma/idioma.
 import { num } from '../formato/numeros.ts';
 import { decodificarEstadoAr } from './estadoUrl.ts';
 import type { EstadoAr } from './estadoUrl.ts';
-import { tieneNavigatorXr, soportaArInmersiva, esUserAgentIOS, QUICK_LOOK_HABILITADO } from './soporte.ts';
+import { soportaArInmersiva, esUserAgentIOS, esDispositivoDeEscritorio, QUICK_LOOK_HABILITADO } from './soporte.ts';
+import { generarQrSvg } from './qr.ts';
 import { iniciarSesionAr, murosVistaDesdeEstado } from './sesion.ts';
 import type { EstadoCalibracion, InfoMedicion } from './sesion.ts';
 import { ANCLAJE_CANONICO } from './anclaje.ts';
@@ -27,7 +28,7 @@ aplicarCromoEstatico(idioma);
 // página, sin tocar la función compartida.
 document.title = textosDe(idioma).ar.titulo;
 
-const TODOS_LOS_PANELES = ['ar-cargando', 'ar-no-soportado', 'ar-estado-invalido', 'ar-pasos', 'ar-error-sesion', 'ar-calibrando', 'ar-anclado', 'ar-quicklook'] as const;
+const TODOS_LOS_PANELES = ['ar-cargando', 'ar-no-soportado', 'ar-desktop-qr', 'ar-estado-invalido', 'ar-pasos', 'ar-error-sesion', 'ar-calibrando', 'ar-anclado', 'ar-quicklook'] as const;
 
 function mostrarSolo(idVisible: (typeof TODOS_LOS_PANELES)[number]): void {
   for (const id of TODOS_LOS_PANELES) {
@@ -123,6 +124,26 @@ async function mostrarQuickLook(estado: EstadoAr): Promise<void> {
   }
 }
 
+/**
+ * Sin soporte real de WebXR en ESTE dispositivo y es una computadora: en
+ * vez de sólo declarar la limitación, se genera un código QR (ar/qr.ts)
+ * con la URL ACTUAL (`location.href` — esta misma página ya tiene el
+ * estado de la sala codificado en la query string, ver ar/estadoUrl.ts)
+ * para continuar desde un teléfono sin tener que anotarla a mano.
+ *
+ * Esta función (y el chequeo autoritativo `soportaArInmersiva` que la
+ * dispara) vive acá — nunca en `main.ts`/`index.html` — a propósito:
+ * `ar.html` es la única página que ya carga `three.js` y puede contener
+ * el string `"immersive-ar"` sin romper el canario de
+ * `verificar-build.mjs`, que exige que el bundle principal (el que tiene
+ * que abrir liviano por `file://`) se quede libre de ambos.
+ */
+function mostrarCodigoQr(): void {
+  mostrarSolo('ar-desktop-qr');
+  const contenedor = document.getElementById('ar-qr-contenedor');
+  if (contenedor) contenedor.innerHTML = generarQrSvg(location.href);
+}
+
 async function arrancar(): Promise<void> {
   const estado = decodificarEstadoAr(location.search.replace(/^\?/, ''));
   if (!estado) {
@@ -130,18 +151,20 @@ async function arrancar(): Promise<void> {
     return;
   }
 
-  if (!tieneNavigatorXr(navigator)) {
-    if (soportaQuickLook()) {
-      await mostrarQuickLook(estado);
-      return;
-    }
-    mostrarSolo('ar-no-soportado');
-    return;
-  }
+  // Un solo chequeo (soportaArInmersiva ya cubre "no hay navigator.xr"
+  // Y "hay navigator.xr pero la sesión no se soporta" — Chrome de
+  // escritorio expone navigator.xr como objeto siempre, aunque no haya
+  // ARCore real detrás, así que distinguir los dos casos por separado
+  // como antes era además incorrecto, no sólo redundante) con la misma
+  // cascada de respaldo en los dos casos que antes estaba duplicada.
   const soportado = await soportaArInmersiva(navigator);
   if (!soportado) {
     if (soportaQuickLook()) {
       await mostrarQuickLook(estado);
+      return;
+    }
+    if (esDispositivoDeEscritorio(navigator.userAgent)) {
+      mostrarCodigoQr();
       return;
     }
     mostrarSolo('ar-no-soportado');

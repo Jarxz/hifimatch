@@ -84,8 +84,6 @@ import { num, numConSigno } from './formato/numeros.ts';
 import { idiomaInicial, guardarIdioma, aplicarCromoEstatico, textosDe } from './idioma/idioma.ts';
 import { codificarEstadoAr } from './ar/estadoUrl.ts';
 import type { EstadoAr } from './ar/estadoUrl.ts';
-import { tieneNavigatorXr, esUserAgentIOS, esDispositivoDeEscritorio, QUICK_LOOK_HABILITADO } from './ar/soporte.ts';
-import { generarQrSvg } from './ar/qr.ts';
 
 const NIVEL_MOTOR: Record<NivelUI, NivelEscucha> = { mod: 'moderado', alto: 'alto', ref: 'referencia' };
 
@@ -1463,34 +1461,34 @@ function abrirGuardarPopup(): void {
   abrirPopup(t.guardarPopupTitulo, t.guardarPopupCuerpo);
 }
 
-/** ¿El link `<a rel="ar">` de Quick Look tiene alguna chance de andar?
- * Sólo la mitad barata (UA de iOS + `relList.supports('ar')`) — el
- * chequeo real (generar el USDZ) corre recién dentro de ar.html, mismo
- * criterio que ya aplica `soportaArInmersiva()` para WebXR. */
-function tieneChanceDeQuickLook(): boolean {
-  if (!QUICK_LOOK_HABILITADO) return false; // ver soporte.ts — deshabilitado tras probarlo en hardware real
-  const linkSoportaAr = document.createElement('a').relList?.supports?.('ar') ?? false;
-  return esUserAgentIOS(navigator.userAgent) && linkSoportaAr;
-}
-
-/** "Ver en AR" navega a ar.html (página separada, servida por red —
- * ver vite.ar.config.ts) sólo si hay una chance real de que funcione:
- * nunca por file:// (mismo guardia que ya usa enviarContacto), y sólo
- * si hay `navigator.xr` (WebXR, Android) **o** una chance de Quick Look
- * (iPhone) — ar.html decide cuál de los dos flujos mostrar. El chequeo
- * autoritativo de cada uno (`isSessionSupported`/generar el USDZ) corre
- * recién adentro — acá sólo se descarta lo obviamente imposible, para
- * no navegar a una página que va a terminar en el mismo fallback de
- * todos modos si esta comprobación barata ya alcanza.
+/**
+ * "Ver en AR" navega a ar.html (página separada, servida por red — ver
+ * vite.ar.config.ts) siempre que haya red real (nunca por file://, mismo
+ * guardia que ya usa enviarContacto). `ar.html` es quien decide qué
+ * mostrar — WebXR real, Quick Look, el código QR de respaldo para
+ * escritorio, o "no disponible" — porque es la única página que puede
+ * correr el chequeo AUTORITATIVO (`soportaArInmersiva`,
+ * `isSessionSupported('immersive-ar')`) sin infringir la regla de
+ * `verificar-build.mjs`: ese chequeo (y `three.js`, que ar.html ya carga
+ * aparte) no puede vivir en este archivo — `main.ts` se bundlea dentro
+ * de `index.html`, que tiene que abrir por `file://` liviano, y el
+ * propio build falla si el string "immersive-ar" se cuela ahí.
  *
- * Sin soporte en ESTE dispositivo y es una computadora (pedido explícito
- * del usuario): en vez de sólo declarar la limitación, se genera un
- * código QR (ar/qr.ts) con la URL REAL de `ar.html?<estado>` — el mismo
- * destino exacto que este botón hubiera abierto acá mismo con soporte —
- * para continuar desde un teléfono sin tener que anotar la URL a mano.
- * Nunca por file:// (ahí `location.origin` no resuelve a un host real
- * que un teléfono pueda alcanzar) ni en un dispositivo que YA es un
- * teléfono sin soporte (ahí un QR no ayuda, es el mismo aparato). */
+ * Bug real encontrado en producción, reportado por el usuario ("en el
+ * PC no genera el código QR"): la versión anterior de esta función SÍ
+ * intentaba decidir acá mismo, con `tieneNavigatorXr` (sólo mira si
+ * `navigator.xr` existe) en vez del chequeo autoritativo — y Chrome de
+ * escritorio (Windows/Mac/Linux) SIEMPRE expone `navigator.xr` como
+ * objeto, tenga o no una fuente XR real conectada (mismo hallazgo que ya
+ * se había documentado para Chrome headless al verificar esta función
+ * por primera vez). Con eso, cualquier PC con Chrome normal navegaba
+ * derecho a `ar.html` sin pasar nunca por el código QR. Intentar
+ * corregirlo con el chequeo autoritativo ACÁ (`await soportaArInmersiva`)
+ * generaba el bug inverso: el string `"immersive-ar"` termina igual
+ * dentro de `dist/index.html` sin importar si llega por import o
+ * inline, así que el canario de `verificar-build.mjs` lo detecta y
+ * rompe el build — la única forma correcta es no decidir acá.
+ */
 function irAVerEnAr(): void {
   if (!ultimoPlano) return;
   const estadoAr: EstadoAr = {
@@ -1505,20 +1503,12 @@ function irAVerEnAr(): void {
   };
   const rutaAr = 'ar.html?' + codificarEstadoAr(estadoAr);
 
-  if (location.protocol !== 'file:' && (tieneNavigatorXr(navigator) || tieneChanceDeQuickLook())) {
-    location.href = rutaAr;
+  if (location.protocol === 'file:') {
+    const t = textosDe(idiomaActual).ar;
+    abrirPopup(t.noSoportadoTitulo, t.noSoportadoCuerpo);
     return;
   }
-
-  const t = textosDe(idiomaActual).ar;
-  if (location.protocol !== 'file:' && esDispositivoDeEscritorio(navigator.userAgent)) {
-    const urlCompleta = `${location.origin}/${rutaAr}`;
-    const cuerpoHtml = `<p>${t.arQrCuerpo}</p><div class="ar-qr-wrap">${generarQrSvg(urlCompleta)}</div>`;
-    abrirPopup(t.arQrTitulo, cuerpoHtml);
-    return;
-  }
-
-  abrirPopup(t.noSoportadoTitulo, t.noSoportadoCuerpo);
+  location.href = rutaAr;
 }
 
 /** Destino del enlace `mailto:` de respaldo cuando el sitio corre por
