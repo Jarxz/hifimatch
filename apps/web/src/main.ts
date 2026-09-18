@@ -32,7 +32,7 @@ import { infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/
 import { buscarLocal } from './datos/buscadorLocal.ts';
 import type { CategoriaLocal } from './datos/buscadorLocal.ts';
 import { registrarEquipo, buscarEnRegistro } from './datos/registroEquipos.ts';
-import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual } from './vista/resultadosBusqueda.ts';
+import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales } from './vista/resultadosBusqueda.ts';
 import { construirEscala } from './vista/medidor.ts';
 import { iniciarBootSplash } from './vista/bootSplash.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
@@ -456,6 +456,24 @@ interface PanelBuscador {
   panel: HTMLElement;
 }
 
+type ModoBusqueda = 'catalogo' | 'web';
+
+/** Preferencia de origen del dato por categoría — puramente de UI, no
+ * vive en `estado.ts` porque no es algo que el motor evalúe (a
+ * diferencia de género/nivel de escucha): sólo decide si `ejecutarBusqueda`
+ * puede llamar a la web sola o si el usuario tiene que pedirlo. Default
+ * "catalogo" en las 4 — mismo criterio conservador que ya regía el
+ * fallback automático (nunca gastar cupo de Gemini/Tavily sin que haga
+ * falta). */
+const modoBusqueda: Record<CategoriaLocal, ModoBusqueda> = { spk: 'catalogo', amp: 'catalogo', streamer: 'catalogo', dac: 'catalogo' };
+
+function setModoBusqueda(kind: CategoriaLocal, modo: ModoBusqueda): void {
+  modoBusqueda[kind] = modo;
+  document.querySelectorAll<HTMLButtonElement>(`.modo-busqueda-btn[data-kind="${kind}"]`).forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.modo === modo));
+  });
+}
+
 function panelesBuscador(): PanelBuscador[] {
   const kinds: CategoriaLocal[] = ['spk', 'amp', 'streamer', 'dac'];
   const resultado: PanelBuscador[] = [];
@@ -552,17 +570,29 @@ function wireAccionesSinResultado(p: PanelBuscador, marca: string, modelo: strin
  * esto, un candidato local parecido pero equivocado (ej. "Yamaha
  * A-S1200" al buscar "Yamaha A-S3200") bloqueaba la búsqueda web sin
  * dar ningún camino hacia adelante — bug real reportado por el usuario.
+ *
+ * El selector "Catálogo"/"Búsqueda web" de `.picker-head` (`modoBusqueda`)
+ * cuenta como un `forzarWeb` implícito cuando está en "web": el usuario
+ * ya declaró que quiere ir directo a la web para esta categoría. En modo
+ * "Catálogo", si Fuse.js no encuentra nada, esto YA NO cae solo a la web
+ * (como hacía antes de este selector) — muestra un panel dedicado con un
+ * único click para pasar a la web sólo si el usuario lo pide.
  */
 async function ejecutarBusqueda(p: PanelBuscador, forzarWeb = false): Promise<void> {
   const marca = p.inputMarca.value.trim();
   const modelo = p.inputModelo.value.trim();
   const t = textosDe(idiomaActual).config;
+  const irDirectoAWeb = forzarWeb || modoBusqueda[p.kind] === 'web';
 
-  if (!forzarWeb) {
+  if (!irDirectoAWeb) {
     const locales = buscarLocal(p.kind, marca, modelo);
     const explorando = marca === '' && modelo === '';
     if (explorando || locales.length > 0) {
       mostrarPanelBuscador(p, modeloListaResultados(locales, p.kind, idiomaActual, !explorando, !explorando));
+      return;
+    }
+    if (!explorando) {
+      mostrarPanelBuscador(p, modeloSinCoincidenciasLocales(idiomaActual));
       return;
     }
   }
@@ -609,6 +639,13 @@ async function ejecutarBusqueda(p: PanelBuscador, forzarWeb = false): Promise<vo
 }
 
 function iniciarBuscadorEquipos(): void {
+  document.querySelectorAll<HTMLButtonElement>('.modo-busqueda-btn').forEach((b) => {
+    b.addEventListener('click', () => {
+      const kind = b.dataset.kind as CategoriaLocal;
+      const modo = b.dataset.modo as ModoBusqueda;
+      setModoBusqueda(kind, modo);
+    });
+  });
   for (const p of panelesBuscador()) {
     p.botonBuscar.addEventListener('click', () => void ejecutarBusqueda(p));
     [p.inputMarca, p.inputModelo].forEach((input) => {

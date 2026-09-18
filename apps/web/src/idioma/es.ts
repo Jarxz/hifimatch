@@ -304,6 +304,13 @@ export const es = {
     // o ficha manual — ver apps/web/src/main.ts y packages/buscador).
     notaNoCurado:
       'Hallado por búsqueda automática o ingresado a mano — no forma parte del catálogo curado del sitio: nadie lo revisó, y los datos pueden tener errores.',
+    // Selector de modo (reemplaza el badge decorativo "REF: CATÁLOGO
+    // #0N" de la ronda anterior): declara de dónde va a salir el dato
+    // ANTES de buscar, en vez de resolverlo en silencio con un fallback
+    // automático a la web — mismo criterio de transparencia de siempre.
+    modoCatalogo: 'Catálogo',
+    modoWeb: 'Búsqueda web',
+    modoBusquedaAria: 'Modo de búsqueda',
     buscarMarcaPlaceholder: 'Marca',
     buscarModeloPlaceholder: 'Modelo',
     buscarBtnAria: 'Buscar',

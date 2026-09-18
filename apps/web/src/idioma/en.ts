@@ -211,6 +211,9 @@ export const en: Textos = {
       "Generic profile (archetype): a reference physical approximation, not a real product or a measurement. Best used only when the real equipment isn't in the catalog.",
     notaNoCurado:
       "Found via automated search or entered by hand — not part of the site's curated catalog: no one reviewed it, and the data may contain errors.",
+    modoCatalogo: 'Catalog',
+    modoWeb: 'Web search',
+    modoBusquedaAria: 'Search mode',
     buscarMarcaPlaceholder: 'Brand',
     buscarModeloPlaceholder: 'Model',
     buscarBtnAria: 'Search',

@@ -66,6 +66,22 @@ export function modeloEstadoBusqueda(texto: string): string {
 }
 
 /**
+ * Sólo en modo "Catálogo" (ver el selector nuevo en `.picker-head`,
+ * `main.ts`): Fuse.js no encontró nada y, a diferencia del modo
+ * "Búsqueda web", acá NUNCA se llama a la web en automático — el
+ * usuario declaró explícitamente que quiere quedarse en el catálogo
+ * curado. Reusa la misma clase `.buscar-ninguno-web` y el mismo texto
+ * que ya usa `modeloListaResultados` cuando Fuse SÍ encuentra un
+ * candidato pero no es el correcto, así el mismo listener delegado de
+ * `main.ts` cubre los dos casos sin código nuevo — un solo click pasa a
+ * "Búsqueda web" para esta consulta.
+ */
+export function modeloSinCoincidenciasLocales(idioma: Idioma): string {
+  const t = textosDe(idioma).config;
+  return modeloEstadoBusqueda(t.buscarSinCoincidenciasLocales) + `<button type="button" class="back buscar-ninguno-web">${escapeHtml(t.buscarNingunoEsBuscarWeb)}</button>`;
+}
+
+/**
  * Panel de "no se encontró" — el respaldo universal de todo camino que
  * no llega a un dato (sin conexión, región restringida, cupo agotado,
  * sin resultado, error). Deliberadamente SIN campos numéricos: la

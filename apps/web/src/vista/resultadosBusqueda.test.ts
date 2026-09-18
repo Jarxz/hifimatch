@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual } from './resultadosBusqueda.ts';
+import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales } from './resultadosBusqueda.ts';
 import { CATALOGO } from '../../../../packages/data/src/catalogo.ts';
 
 test('modeloListaResultados: lista vacía devuelve string vacío, nunca un contenedor sin filas', () => {
@@ -71,6 +71,19 @@ test('modeloListaResultados: mostrarBuscarWeb=true en inglés, sin mezclar idiom
   const html = modeloListaResultados([kef], 'spk', 'en', true, true);
   assert.ok(html.includes('None of these'), html);
   assert.ok(!html.includes('Ninguno'), html);
+});
+
+test('modeloSinCoincidenciasLocales: declara que no hay coincidencias en el catálogo curado, con un solo botón para pasar a la web', () => {
+  const html = modeloSinCoincidenciasLocales('es');
+  assert.ok(html.includes('Sin coincidencias en el catálogo curado'), html);
+  assert.ok(html.includes('buscar-ninguno-web'), 'reusa la misma clase que el listener delegado de main.ts ya maneja');
+  assert.ok(html.includes('Ninguno de estos'), html);
+});
+
+test('modeloSinCoincidenciasLocales en inglés: sin mezclar idiomas', () => {
+  const html = modeloSinCoincidenciasLocales('en');
+  assert.ok(html.includes('No matches in the curated catalog'), html);
+  assert.ok(!html.includes('coincidencias'), html);
 });
 
 test('modeloEstadoBusqueda: envuelve el texto ya redactado sin modificarlo', () => {

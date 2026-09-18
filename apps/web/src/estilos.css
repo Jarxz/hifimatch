@@ -463,12 +463,14 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    referencia de Stitch, acá con la terminología técnica real del
    catálogo/motor en vez de un nombre de producto de mentira. */
 .picker-rol{font-size:15px; font-weight:600; color:var(--text)}
-/* Insignia "referencia de catálogo" — mismo patrón visual que la maqueta,
-   pero sin atribuirlo a un laboratorio externo real: es sólo el número de
-   orden del bloque (01-04), no una cita de medición de terceros. */
-.picker-ref{flex:0 0 auto; align-self:flex-start; display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); background:var(--panel2); border:1px solid var(--line3); border-radius:20px; padding:4px 10px; margin-left:auto}
-.picker-ref-dot{width:5px; height:5px; border-radius:50%; background:var(--ok); flex:0 0 auto; animation:st-pulse 2.4s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){ .picker-ref-dot{animation:none} }
+/* Selector de modo de búsqueda (Catálogo / Búsqueda web) — reemplaza el
+   badge decorativo "REF: CATÁLOGO #0N" (era sólo el número de orden del
+   bloque, sin función real). Ahora declara ANTES de buscar de dónde va a
+   salir el dato, en vez de resolverlo en silencio con el fallback
+   automático a la web — mismo componente `.segs` de siempre, sólo más
+   angosto para caber en la fila de `.picker-head` junto al ícono. */
+.modo-busqueda{flex:0 0 auto; align-self:flex-start; margin-left:auto}
+.modo-busqueda button{font-size:10.5px; padding:6px 10px}
 /* Cada selector de equipo pasa a tener su propia caja ("instrumento"),
    mismo tratamiento --panel3/--line3 que el resto del rediseño — antes
    era texto suelto sin marco propio. */
