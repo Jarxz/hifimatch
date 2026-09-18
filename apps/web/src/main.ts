@@ -1678,6 +1678,7 @@ function inicializarSplash(): void {
   }
   pintarFondoAmbiente();
   iniciarContadorProof();
+  iniciarNovedadesPopup();
   const tBoot = textosDe(idiomaActual).splash;
   iniciarBootSplash(tBoot.bootProcesando, tBoot.bootListo);
 
@@ -1690,6 +1691,42 @@ function inicializarSplash(): void {
 
 function repintarMatchDelMes(): void {
   pintarMatchDelMes(matchDelMesCache ? modeloMatchDelMes(matchDelMesCache, idiomaActual) : null);
+}
+
+const CLAVE_NOVEDADES_CERRADO = 'cadena.novedadesCerrado';
+
+/** localStorage puede tirar (Safari sobre file://, modo privado en algunos
+ * navegadores) — mismo try/catch que ya usa idioma.ts para
+ * leerIdiomaGuardado/guardarIdioma: si no persiste, el popup simplemente
+ * vuelve a aparecer en la próxima carga, nunca rompe el arranque. */
+function novedadesYaCerradas(): boolean {
+  try {
+    return localStorage.getItem(CLAVE_NOVEDADES_CERRADO) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function marcarNovedadesCerradas(): void {
+  try {
+    localStorage.setItem(CLAVE_NOVEDADES_CERRADO, '1');
+  } catch {
+    // no persiste, pero no debe romper nada.
+  }
+}
+
+/** Popup pequeño de "nuevas funciones" en la portada (splash.novedades*) —
+ * aparece una vez, se cierra con la "×" y no vuelve a molestar en cargas
+ * futuras del mismo navegador. */
+function iniciarNovedadesPopup(): void {
+  const popup = document.getElementById('novedades-popup');
+  const cerrar = document.getElementById('novedades-cerrar');
+  if (!popup || !cerrar) return;
+  if (!novedadesYaCerradas()) popup.classList.remove('hidden');
+  cerrar.addEventListener('click', () => {
+    popup.classList.add('hidden');
+    marcarNovedadesCerradas();
+  });
 }
 
 /** Cuenta rápido de 0 al valor final de cada `.proof-num` — el sufijo ("+",

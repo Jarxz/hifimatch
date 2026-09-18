@@ -133,6 +133,16 @@ export const es = {
     proofBusquedaOnlineDetalle: 'y por búsqueda online',
     proofAr: 'Simulación con AR',
     proofArDetalle: 'Realidad aumentada de reflexiones en tu sala',
+    // Popup pequeño de "nuevas funciones" en la portada — anuncia las 2
+    // piezas más recientes (búsqueda online de equipos, simulación AR de
+    // reflexiones), las mismas 2 ya declaradas en las cifras de "proof"
+    // de arriba. Se cierra con un click en la "×" y no vuelve a aparecer
+    // (localStorage, misma discreción que cualquier otra conveniencia de
+    // UI del sitio — nunca un dato que el motor necesite).
+    novedadesTitulo: 'Nuevas funciones',
+    novedadesBusqueda: 'Búsqueda online de equipos',
+    novedadesAr: 'Simulación con AR de reflexiones',
+    novedadesCerrarAria: 'Cerrar',
     // Marca de versión, no texto de producto traducible — mismo valor en
     // es/en a propósito. V{n}.{mes}.{año}: n cuenta las actualizaciones
     // desplegadas dentro del mismo mes (vuelve a 1 al cambiar de mes),
