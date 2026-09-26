@@ -4618,6 +4618,63 @@ perceptible), sin overflow horizontal en 1400/768/390px, grilla
 4→2→1 columnas según el ancho. **Pendiente**: aprobación del usuario
 antes de commit/push/deploy.
 
+**Portada editorial — Fase 1 del rediseño según la propuesta de Codex
+(rama `portada-editorial`).** El usuario desarrolla con Codex una
+maqueta de web nueva (`the-hifi-match-maqueta-completa`; sus criterios
+y el reparto de trabajo entre agentes viven en
+`docs/handoff-claude-codex.md`) y pidió **tomar su estructura y sus
+conceptos y adaptar la web existente**, no reemplazarla por el archivo
+de Codex. Referencia de estructura: la maqueta con imagen principal
+("portada acústica"). Primera fase: **sólo la portada**; Configurar en
+3 pasos, Resultado con pestañas, Explorar sala, Guía por temas y "Mis
+sistemas" quedan para fases siguientes. Guardarraíl comprobado con
+Chrome headless: Guía, Mensajes y Documento (1440 y 390 px) dan una
+captura **byte a byte idéntica** a la de `master`; Configurar sólo
+difiere por la animación del punto de estado (el propio `master`
+difiere de sí mismo igual).
+
+Qué cambió en `#s-splash` (todo scopeado a `#s-splash`/`pc-*`; no se
+tocaron los tokens globales ni las otras pantallas): hero con titular
+"Tu sistema. En equilibrio.", CTA `#btn-entrar` (mismo id y mismo
+`ir('config')`, pero ya no envuelve todo el hero en un `<button>`),
+imagen principal a la derecha, carril de 4 conceptos, las cifras reales
+(`.proof-num[data-count-to]`, que lee `paginas-estaticas.test.ts`),
+banda marfil "El conjunto importa" con el recorrido Equipos / Sala /
+Resultado, sección "Dos capas" con una tercera columna ("Datos con
+fuente y confianza") y "The Match Recomendado" restilado. Cada concepto
+del carril y cada columna enlaza a su tarjeta de la Guía:
+`ir(pantalla, despues?)` (`vista/pantallas.ts`) ganó un callback
+opcional y `abrirTarjetaGuia()` (`main.ts`) abre la tarjeta por su clave
+`info.<clave>.titulo`. El wordmark "THE HIFI MATCH" conserva su
+tipografía (pedido explícito): el del encabezado y una versión chica y
+animada sobre el titular. El popup de novedades pasó de `position:fixed`
+a vivir dentro del flujo del hero (fijo tapaba el primer concepto en
+1440×900).
+
+**Se quitó, a pedido del usuario: la intro de arranque** ("Cargando
+catálogo…", `vista/bootSplash.ts` y sus claves `splash.boot*`), junto
+con el fondo de cubos de alambre (`.ambient`, `pintarFondoAmbiente`) y
+la barra de telemetría; los párrafos anteriores de este documento que
+los describen son historia, no el estado vigente.
+
+**La imagen principal es un marcador que el usuario va a reemplazar.**
+`apps/web/src/assets/hero-portada.webp` (130 KB, convertida con Chrome
+headless desde un PNG de 1,4 MB generado con IA por Codex): basta pisar
+ese archivo, mismo nombre. Es decorativa (`alt=""`) y lleva un pie de
+figura visible — "Ilustración conceptual: los trazados no son una
+medición de tu sala" — porque el sitio no afirma física sin mecanismo.
+Ojo: la guía gráfica THM pide evitar imágenes generadas por IA; el
+usuario lo sabe y eligió dejarla por ahora. `vite-plugin-singlefile` la
+inlinea en base64 (`index.html` ≈ 878 KB), y `img-src 'self' data:` del
+CSP ya la permite.
+
+Aprendizaje: al borrar CSS "de la portada" se llevó por delante
+`.cta-sec`, que el panel de búsqueda de Configurar todavía usa
+(`vista/resultadosBusqueda.ts`); lo cazó un `grep` de los selectores
+eliminados contra el HTML y los `.ts`, no un test. Antes de borrar una
+regla CSS, buscar su uso en `index.html` y en las plantillas de
+`vista/*.ts`.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

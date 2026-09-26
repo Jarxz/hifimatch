@@ -8,8 +8,7 @@
  * desde ahí) para no mantener dos listas separadas de la misma pregunta.
  *
  * Misma fórmula de proyección isométrica de 30° que ya usa
- * `vista/plano.ts` (el plano de reflexiones) y el fondo ambiente de la
- * portada (`main.ts`, `pintarFondoAmbiente`): sx=(x−y)·cos30,
+ * `vista/plano.ts` (el plano de reflexiones): sx=(x−y)·cos30,
  * sy=(x+y)·sin30−z.
  *
  * ── Qué vértice es el "eje" de las 3 caras visibles (bug real, corregido) ──

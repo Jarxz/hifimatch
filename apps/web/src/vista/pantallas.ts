@@ -1,7 +1,9 @@
 /** Las pantallas del sitio y el cambio entre ellas — el `go()` del prototipo. */
 export type Pantalla = 'splash' | 'config' | 'results' | 'info' | 'documento' | 'mensajes';
 
-export function ir(pantalla: Pantalla): void {
+/** `despues` corre ya con la pantalla activa (p. ej. abrir una tarjeta y
+ * llevarla a la vista), después del `scrollTo(0, 0)` propio del cambio. */
+export function ir(pantalla: Pantalla, despues?: () => void): void {
   const cambiar = (): void => {
     document.querySelectorAll<HTMLElement>('.screen').forEach((s) => s.classList.remove('active'));
     document.getElementById('s-' + pantalla)?.classList.add('active');
@@ -14,6 +16,7 @@ export function ir(pantalla: Pantalla): void {
       else b.removeAttribute('aria-current');
     });
     window.scrollTo(0, 0);
+    despues?.();
   };
   if (typeof document.startViewTransition === 'function') {
     const transicion = document.startViewTransition(cambiar);

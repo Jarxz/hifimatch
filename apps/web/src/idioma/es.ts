@@ -146,15 +146,8 @@ export const es = {
   },
 
   splash: {
-    entrarAria: 'Entrar al análisis de compatibilidad',
     subtitulo: 'análisis de compatibilidad hi-fi · basado en física',
     remate: 'tú escuchas y decides',
-    // Párrafo de precisión bajo el remate — describe el motor real (qué
-    // evalúa), sin adjetivos de "laboratorio" ni certificaciones que el
-    // sitio no tiene.
-    leadParrafo:
-      'Evalúa el acople eléctrico, la reserva de potencia y la acústica de la sala entre los equipos que elijas, con reglas físicas propias: cada una declara su fórmula, su umbral y de dónde sale el dato.',
-    cta: 'Analizar un sistema',
     ctaSecundaria: 'Explorar la guía',
     proofReglas: 'reglas físicas, cada una con fórmula y umbral declarado',
     // Chips de marca bajo el conteo de equipos — 4 marcas reales del
@@ -196,29 +189,12 @@ export const es = {
     // ModeloMatchDelMes en vista/matchDelMes.ts), así que el titular nunca
     // necesita matizar por severidad.
     recomendadoPositivoTitulo: 'Potencia y acople eléctrico verificados',
-    // Intro de arranque (ver vista/bootSplash.ts) — puramente decorativa,
-    // nombra mecanismos reales del motor (catálogo, Rayleigh, Sabine/
-    // Eyring, la separación de capas), nunca una certificación o auditoría
-    // que este sitio no tiene.
-    bootPaso1: 'Cargando catálogo (170+ equipos)…',
-    bootPaso2: 'Aplicando reglas físicas (modos de Rayleigh, Sabine/Eyring)…',
-    bootPaso3: 'Separando ley física de criterio editorial…',
-    bootProcesando: 'Procesando…',
-    bootListo: 'Listo',
-    bootSaltar: 'Saltar intro',
-    bootSistema: 'Motor CADENA v2.4',
-    bootInicializacion: 'Inicialización determinista',
-    bootBadgeTop: 'Sin servidor',
-    bootDiagnostico: 'Diagnóstico del sistema',
-    bootPieIzq: 'Arquitectura determinista, sin intervención humana en el resultado',
-    bootPieDer: 'Basado en física, specs medidos',
-    // Barra de telemetría + sección "Dos capas" de la portada (rediseño a
+    // Sección "Dos capas" de la portada (rediseño a
     // partir del sistema de Google Stitch, corregido: reusa capaFisica/
     // capaCriterioEditorial de motor.veredicto en vez de duplicar el
     // rótulo, y cita criterios editoriales REALES del motor — nunca los
     // inventados del mockup original (AES20, "instrumental Audio
     // Precision/Klippel", un reparto de presupuesto 85/15 que no existe).
-    telemetriaEstado: 'Motor en vivo, sin servidor',
     capasEyebrow: 'Regla estructural del proyecto',
     capasTitulo: 'Dos capas de información. Cero confusión.',
     capasIntro:
@@ -234,6 +210,44 @@ export const es = {
       'Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.',
     capasCriterioEj3:
       'Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.',
+    // Portada editorial (estructura de la propuesta de Codex, adaptada al sitio
+    // real). Los titulares van en minúscula: la mayúscula la pone el CSS.
+    pcTitulo1: 'Tu sistema.',
+    pcTitulo2: 'En',
+    pcTitulo3: 'equilibrio.',
+    pcLead: 'Entiende la relación entre tus equipos, tu sala y tu forma de escuchar.',
+    pcCta: 'Configurar mi sistema',
+    pcImagenNota: 'Ilustración conceptual: los trazados no son una medición de tu sala.',
+    pcCarril1Titulo: 'Acople eléctrico',
+    pcCarril1Sub: 'amplificador ↔ parlantes',
+    pcCarril2Titulo: 'Reserva de potencia',
+    pcCarril2Sub: 'tu nivel de escucha',
+    pcCarril3Titulo: 'Acústica de sala',
+    pcCarril3Sub: 'el espacio también suena',
+    pcCarril4Titulo: 'Información visible',
+    pcCarril4Sub: 'fórmula / fuente / alcance',
+    pcNotaTitulo: 'Cálculo en tu navegador',
+    pcNotaTexto: 'sin servidor y sin intervención humana en el resultado.',
+    pcBanda1Eyebrow: '01 — del equipo a la experiencia',
+    pcBanda1Titulo: 'El conjunto importa.',
+    pcBanda1Texto: 'Empieza con tus parlantes y amplificador. Añade tu sala. Explora qué cambia al modificar la disposición.',
+    pcBanda1Cta: 'Construye tu cadena',
+    pcPaso1Etiqueta: '01 / Elige',
+    pcPaso1Nombre: 'Equipos',
+    pcPaso2Etiqueta: '02 / Sitúa',
+    pcPaso2Nombre: 'Sala',
+    pcPaso3Etiqueta: '03 / Entiende',
+    pcPaso3Nombre: 'Resultado',
+    pcSeccion2Eyebrow: '02 — una lectura honesta del sistema',
+    pcFisicaTitulo: 'La física, explicada.',
+    pcCriterioTitulo: 'Los criterios, a la vista.',
+    pcDatosEtiqueta: 'Fuente y confianza',
+    pcDatosTitulo: 'Datos con fuente y confianza.',
+    pcDatosDesc:
+      'Cada especificación lleva su fuente y su nivel de confianza. Si un dato falta, el análisis lo declara como «sin datos»: nunca se rellena en silencio ni cuenta como aprobado.',
+    pcDatosNota:
+      'Un equipo fuera del catálogo se puede buscar en la web: entra siempre con confianza baja y su fuente a la vista.',
+    pcMasGuia: 'Más en la guía',
   },
 
   info: {

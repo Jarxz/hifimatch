@@ -53,73 +53,8 @@
 
 <h1 class="sr-only">The Hifi Match — análisis de compatibilidad hi-fi basado en física</h1>
 
-<!-- SPLASH -->
+<!-- SPLASH · portada editorial -->
 <section class="screen active" id="s-splash">
-  <div class="boot-splash" id="boot-splash" role="status" aria-live="polite">
-    <div class="boot-ambient" aria-hidden="true">
-      <svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" fill="none">
-        <line class="boot-grid" x1="100" y1="300" x2="900" y2="300" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 5"></line>
-        <line class="boot-grid" x1="500" y1="50" x2="500" y2="550" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 5"></line>
-        <circle class="boot-wave" cx="500" cy="300" r="130" stroke="var(--faint)" stroke-width="0.75" stroke-dasharray="3 6"></circle>
-        <circle class="boot-wave boot-wave-2" cx="500" cy="300" r="230" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 8"></circle>
-        <path class="boot-trace" d="M60 380 C 180 420, 260 200, 360 220 C 460 240, 500 460, 620 400 C 720 350, 780 180, 940 260" stroke="var(--dorado)" stroke-width="1"></path>
-        <path class="boot-trace boot-trace-2" d="M60 240 C 200 260, 300 380, 460 340 C 560 315, 640 420, 780 380 C 850 360, 900 300, 940 320" stroke="var(--ok)" stroke-width="0.75"></path>
-        <circle class="boot-nodo" cx="360" cy="220" r="3"></circle>
-        <circle class="boot-nodo boot-nodo-2" cx="620" cy="400" r="3"></circle>
-      </svg>
-    </div>
-    <div class="boot-topbar">
-      <span class="boot-sys">
-        <span class="boot-sys-dot"></span>
-        <span data-i18n="splash.bootSistema">Motor CADENA v2.4</span>
-        <span class="boot-sys-sep">|</span>
-        <span data-i18n="splash.bootInicializacion">Inicialización determinista</span>
-      </span>
-      <span class="boot-topbar-right">
-        <span class="boot-badge-top" data-i18n="splash.bootBadgeTop">Sin servidor</span>
-        <button type="button" class="boot-saltar" id="btn-boot-saltar">
-          <span data-i18n="splash.bootSaltar">Saltar intro</span>
-          <span aria-hidden="true">▶▶</span>
-        </button>
-      </span>
-    </div>
-    <div class="boot-inner">
-      <div class="boot-emblema" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-          <path d="M2 12h2M6 8v8M10 5v14M14 9v6M18 4v16M22 12h-2" stroke-linecap="square"></path>
-        </svg>
-      </div>
-      <div class="boot-mark">
-        <span class="boot-mark-linea">THE <b>HIFI MATCH</b> <span class="boot-syslab">SYS.LAB</span></span>
-        <span class="boot-tagline" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</span>
-      </div>
-      <div class="boot-panel">
-        <div class="boot-panel-head">
-          <span data-i18n="splash.bootDiagnostico">Diagnóstico del sistema</span>
-          <span class="boot-pct" id="boot-pct">0%</span>
-        </div>
-        <div class="boot-bar"><div class="boot-bar-fill" id="boot-bar-fill"></div></div>
-        <div class="boot-pasos">
-          <div class="boot-paso" id="boot-paso-1">
-            <span class="boot-paso-texto" data-i18n="splash.bootPaso1">Cargando catálogo (170+ equipos)…</span>
-            <span class="boot-paso-estado" id="boot-estado-1"></span>
-          </div>
-          <div class="boot-paso" id="boot-paso-2">
-            <span class="boot-paso-texto" data-i18n="splash.bootPaso2">Aplicando reglas físicas (modos de Rayleigh, Sabine/Eyring)…</span>
-            <span class="boot-paso-estado" id="boot-estado-2"></span>
-          </div>
-          <div class="boot-paso" id="boot-paso-3">
-            <span class="boot-paso-texto" data-i18n="splash.bootPaso3">Separando ley física de criterio editorial…</span>
-            <span class="boot-paso-estado" id="boot-estado-3"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="boot-footbar">
-      <span data-i18n="splash.bootPieIzq">Arquitectura determinista, sin intervención humana en el resultado</span>
-      <span data-i18n="splash.bootPieDer">Basado en física, specs medidos</span>
-    </div>
-  </div>
   <div class="wrap">
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -140,38 +75,16 @@
         </span>
       </div>
     </div>
-    <div class="ambient"><svg data-ambient width="100%" height="100%" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" stroke="var(--dorado)" stroke-width="1" fill="none"></svg></div>
     <div class="idioma-splash">
       <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
         <button type="button" data-idioma="es" aria-pressed="true">ES</button>
         <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
-    <div class="foot-links-splash">
-      <button type="button" class="back" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
-      <a href="./about.html" class="back" data-i18n="comun.acercaDe">Acerca de</a>
-      <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
-    </div>
-    <div class="version-splash" data-i18n="splash.version">V20.08.26</div>
-    <div class="novedades-popup hidden" id="novedades-popup">
-      <button type="button" class="novedades-cerrar" id="novedades-cerrar" data-i18n-aria="splash.novedadesCerrarAria" aria-label="Close">×</button>
-      <div class="novedades-titulo" data-i18n="splash.novedadesTitulo">New features</div>
-      <ul class="novedades-lista">
-        <li data-i18n="splash.novedadesBusqueda">Online equipment search</li>
-        <li data-i18n="splash.novedadesAr">AR reflection simulation</li>
-      </ul>
-    </div>
-    <div class="splash-telemetry">
-      <span class="st-badge"><span class="st-dot"></span><span data-i18n="splash.telemetriaEstado">Motor en vivo, sin servidor</span></span>
-      <span class="st-layers">
-        <span class="st-layer st-layer-fisica"><i></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
-        <span class="st-sep">/</span>
-        <span class="st-layer st-layer-criterio"><i></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
-      </span>
-    </div>
-    <div class="splash">
-      <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
-        <div class="subm" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</div>
+
+    <div class="pc-hero">
+      <div class="pc-hero-texto">
+        <div class="pc-eyebrow" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</div>
         <div class="mark" aria-hidden="true">
           <b class="the">THE</b>
           <span class="hm-wrap">
@@ -179,19 +92,58 @@
             <span class="hm-fill"><span class="mword">HIFI</span><b class="mword">MATCH</b></span>
           </span>
         </div>
-        <div class="ticks" id="splash-ticks" aria-hidden="true"></div>
-        <div class="remate" data-i18n="splash.remate">tú escuchas y decides</div>
-        <p class="lead-parrafo" data-i18n="splash.leadParrafo">Evalúa el acople eléctrico, la reserva de potencia y la acústica de la sala entre los equipos que elijas, con reglas físicas propias: cada una declara su fórmula, su umbral y de dónde sale el dato.</p>
-        <div class="cta"><span data-i18n="splash.cta">Analizar un sistema</span> <span aria-hidden="true">→</span></div>
-      </button>
-      <!-- Botón secundario fuera de .enter a propósito: .enter ya es un
-           <button> que envuelve todo el hero (navega a Configurar) — un
-           elemento interactivo (botón/link) no puede anidarse dentro de
-           otro sin romper la semántica ni el manejo real del click. Este
-           navega a la Guía en vez de Configurar, así que necesita su
-           propio <button> al lado, no adentro. -->
-      <button type="button" class="cta-sec" data-nav-ir="info"><span data-i18n="splash.ctaSecundaria">Explorar la guía</span></button>
-      <div class="proof">
+        <h2 class="pc-titulo">
+          <span data-i18n="splash.pcTitulo1">Tu sistema.</span>
+          <span data-i18n="splash.pcTitulo2">En</span>
+          <span class="pc-titulo-dim" data-i18n="splash.pcTitulo3">equilibrio.</span>
+        </h2>
+        <p class="pc-lead" data-i18n="splash.pcLead">Entiende la relación entre tus equipos, tu sala y tu forma de escuchar.</p>
+        <div class="pc-acciones">
+          <button type="button" class="pc-cta" id="btn-entrar">
+            <span data-i18n="splash.pcCta">Configurar mi sistema</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+          <button type="button" class="pc-enlace" data-nav-ir="info" data-i18n="splash.ctaSecundaria">Explorar la guía</button>
+        </div>
+        <div class="pc-remate" data-i18n="splash.remate">tú escuchas y decides</div>
+        <div class="novedades-popup hidden" id="novedades-popup">
+          <button type="button" class="novedades-cerrar" id="novedades-cerrar" data-i18n-aria="splash.novedadesCerrarAria" aria-label="Close">×</button>
+          <div class="novedades-titulo" data-i18n="splash.novedadesTitulo">New features</div>
+          <ul class="novedades-lista">
+            <li data-i18n="splash.novedadesBusqueda">Online equipment search</li>
+            <li data-i18n="splash.novedadesAr">AR reflection simulation</li>
+          </ul>
+        </div>
+      </div>
+      <!-- Imagen principal: marcador de la propuesta de Codex. Para cambiarla
+           basta reemplazar apps/web/src/assets/hero-portada.webp (mismo
+           nombre) — decorativa (alt vacío), el pie de figura declara qué es. -->
+      <figure class="pc-hero-imagen">
+        <img src="./src/assets/hero-portada.webp" width="1672" height="941" alt="">
+        <figcaption data-i18n="splash.pcImagenNota">Ilustración conceptual: los trazados no son una medición de tu sala.</figcaption>
+      </figure>
+    </div>
+
+    <div class="pc-inner">
+      <div class="pc-carril">
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="carga">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril1Titulo">Acople eléctrico</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril1Sub">amplificador ↔ parlantes</span>
+        </button>
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="potencia">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril2Titulo">Reserva de potencia</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril2Sub">tu nivel de escucha</span>
+        </button>
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="modos">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril3Titulo">Acústica de sala</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril3Sub">el espacio también suena</span>
+        </button>
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="confianza">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril4Titulo">Información visible</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril4Sub">fórmula / fuente / alcance</span>
+        </button>
+      </div>
+      <div class="pc-stats">
         <div class="proof-item">
           <div class="proof-num" data-count-to="9">0</div>
           <div class="proof-label" data-i18n="splash.proofReglas">reglas físicas, cada una con fórmula y umbral declarado</div>
@@ -213,31 +165,79 @@
           <div class="proof-detalle" data-i18n="splash.proofArDetalle">Realidad aumentada de reflexiones en tu sala</div>
         </div>
       </div>
-    </div>
-    <div class="dos-capas">
-      <div class="dos-capas-head">
-        <span class="dc-eyebrow" data-i18n="splash.capasEyebrow">Regla estructural del proyecto</span>
-        <h2 class="dc-titulo" data-i18n="splash.capasTitulo">Dos capas de información. Cero confusión.</h2>
-        <p class="dc-intro" data-i18n="splash.capasIntro">Todo lo que este sitio afirma pertenece a una de dos capas, y la capa se declara siempre — nunca mezcladas.</p>
-      </div>
-      <div class="dc-grid">
-        <div class="dc-col dc-col-fisica">
-          <div class="dc-col-head"><i class="dc-dot dc-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></div>
-          <p data-i18n="splash.capasFisicaDesc">Fórmula, umbral y fuente declarados. Cada dato viene de la ficha del fabricante o de una medición independiente ya publicada (Stereophile, Audio Science Review, Hi-Fi News), con su nivel de confianza junto al número.</p>
-          <p class="dc-nota" data-i18n="splash.capasFisicaNota">Se calcula en tu navegador — sin servidor, sin intervención humana en el resultado.</p>
-        </div>
-        <div class="dc-col dc-col-criterio">
-          <div class="dc-col-head"><i class="dc-dot dc-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></div>
-          <p data-i18n="splash.capasCriterioDesc">Decisiones de diseño del propio sitio, rotuladas como tales, nunca mezcladas con un veredicto físico.</p>
-          <ul class="dc-lista">
-            <li data-i18n="splash.capasCriterioEj1">SPL de pico objetivo por nivel de escucha: 90 dB (moderado) · 100 dB (alto) · 105 dB (referencia).</li>
-            <li data-i18n="splash.capasCriterioEj2">Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.</li>
-            <li data-i18n="splash.capasCriterioEj3">Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.</li>
-          </ul>
-        </div>
+      <div class="pc-nota">
+        <span><strong data-i18n="splash.pcNotaTitulo">Cálculo en tu navegador</strong> · <span data-i18n="splash.pcNotaTexto">sin servidor y sin intervención humana en el resultado.</span></span>
+        <a href="./about.html" data-i18n="comun.acercaDe">Acerca de</a>
       </div>
     </div>
-    <div class="match-mes hidden" id="splash-match-mes"></div>
+
+    <section class="pc-banda">
+      <div class="pc-inner pc-banda-grid">
+        <div>
+          <div class="pc-num" data-i18n="splash.pcBanda1Eyebrow">01 — del equipo a la experiencia</div>
+          <h2 class="pc-h2" data-i18n="splash.pcBanda1Titulo">El conjunto importa.</h2>
+          <p data-i18n="splash.pcBanda1Texto">Empieza con tus parlantes y amplificador. Añade tu sala. Explora qué cambia al modificar la disposición.</p>
+          <button type="button" class="pc-enlace pc-enlace-oscuro" data-nav-ir="config"><span data-i18n="splash.pcBanda1Cta">Construye tu cadena</span> <span aria-hidden="true">↗</span></button>
+        </div>
+        <ol class="pc-pasos">
+          <li><span data-i18n="splash.pcPaso1Etiqueta">01 / Elige</span><b data-i18n="splash.pcPaso1Nombre">Equipos</b></li>
+          <li><span data-i18n="splash.pcPaso2Etiqueta">02 / Sitúa</span><b data-i18n="splash.pcPaso2Nombre">Sala</b></li>
+          <li><span data-i18n="splash.pcPaso3Etiqueta">03 / Entiende</span><b data-i18n="splash.pcPaso3Nombre">Resultado</b></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="pc-honesta">
+      <div class="pc-inner">
+        <div class="pc-num" data-i18n="splash.pcSeccion2Eyebrow">02 — una lectura honesta del sistema</div>
+        <h2 class="pc-h2" data-i18n="splash.capasTitulo">Dos capas de información. Cero confusión.</h2>
+        <p class="pc-intro" data-i18n="splash.capasIntro">Todo lo que este sitio afirma pertenece a una de dos capas, y la capa se declara siempre — nunca mezcladas.</p>
+        <div class="pc-cols">
+          <div class="pc-col">
+            <div class="dc-col-head"><i class="dc-dot dc-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></div>
+            <h3 class="pc-col-titulo" data-i18n="splash.pcFisicaTitulo">La física, explicada.</h3>
+            <p data-i18n="splash.capasFisicaDesc">Fórmula, umbral y fuente declarados. Cada dato viene de la ficha del fabricante o de una medición independiente ya publicada (Stereophile, Audio Science Review, Hi-Fi News), con su nivel de confianza junto al número.</p>
+            <p class="pc-nota-cursiva" data-i18n="splash.capasFisicaNota">Se calcula en tu navegador — sin servidor, sin intervención humana en el resultado.</p>
+            <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="capas"><span data-i18n="splash.pcMasGuia">Más en la guía</span> <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="pc-col">
+            <div class="dc-col-head"><i class="dc-dot dc-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></div>
+            <h3 class="pc-col-titulo" data-i18n="splash.pcCriterioTitulo">Los criterios, a la vista.</h3>
+            <p data-i18n="splash.capasCriterioDesc">Decisiones de diseño del propio sitio, rotuladas como tales, nunca mezcladas con un veredicto físico.</p>
+            <ul class="dc-lista">
+              <li data-i18n="splash.capasCriterioEj1">SPL de pico objetivo por nivel de escucha: 90 dB (moderado) · 100 dB (alto) · 105 dB (referencia).</li>
+              <li data-i18n="splash.capasCriterioEj2">Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.</li>
+              <li data-i18n="splash.capasCriterioEj3">Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.</li>
+            </ul>
+            <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="veredicto"><span data-i18n="splash.pcMasGuia">Más en la guía</span> <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="pc-col">
+            <div class="dc-col-head"><i class="dc-dot dc-dot-datos"></i><span data-i18n="splash.pcDatosEtiqueta">Fuente y confianza</span></div>
+            <h3 class="pc-col-titulo" data-i18n="splash.pcDatosTitulo">Datos con fuente y confianza.</h3>
+            <p data-i18n="splash.pcDatosDesc">Cada especificación lleva su fuente y su nivel de confianza.</p>
+            <p class="pc-nota-cursiva" data-i18n="splash.pcDatosNota">Un equipo fuera del catálogo se puede buscar en la web: entra siempre con confianza baja y su fuente a la vista.</p>
+            <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="confianza"><span data-i18n="splash.pcMasGuia">Más en la guía</span> <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pc-match">
+      <div class="pc-inner">
+        <div class="match-mes hidden" id="splash-match-mes"></div>
+      </div>
+    </section>
+
+    <footer class="pc-pie">
+      <div class="pc-inner pc-pie-fila">
+    <div class="version-splash" data-i18n="splash.version">V20.08.26</div>
+    <div class="foot-links-splash">
+      <button type="button" class="back" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
+      <a href="./about.html" class="back" data-i18n="comun.acercaDe">Acerca de</a>
+      <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
+    </div>
+      </div>
+    </footer>
   </div>
 </section>
 
