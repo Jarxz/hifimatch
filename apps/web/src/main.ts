@@ -33,6 +33,8 @@ import type { Pantalla } from './vista/pantallas.ts';
 import { iniciarPasos } from './vista/pasos.ts';
 import type { ControlPasos } from './vista/pasos.ts';
 import { filasResumenConfig, requeridosCompletos } from './vista/resumenConfig.ts';
+import { LIMITES_DIMENSION_M, validarDimension } from './vista/dimensiones.ts';
+import type { DimensionSala } from './vista/dimensiones.ts';
 import type { DatosResumenConfig } from './vista/resumenConfig.ts';
 import { infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { buscarLocal, marcasDe, equiposDeMarca } from './datos/buscadorLocal.ts';
@@ -392,43 +394,48 @@ function actualizarPasosUi(): void {
     nivel,
     genero,
   };
-  controlPasos.actualizar(requeridosCompletos(datos), filasResumenConfig(datos, idiomaActual));
+  const hechos = (datos.spk !== null ? 1 : 0) + (datos.amp !== null ? 1 : 0);
+  controlPasos.actualizar({
+    listo: requeridosCompletos(datos),
+    salaValida: dimensionesEnError.size === 0,
+    contador: t.pcContador({ hechos: String(hechos), total: '2' }),
+    filas: filasResumenConfig(datos, idiomaActual),
+  });
+}
+
+/** Tarjetas de equipo de Configurar: nombre, tipo y acciones según lo elegido.
+ * Las etiquetas fijas ("Por seleccionar", "Seleccionar equipo +") las pone
+ * data-i18n; acá se pisan cuando hay un equipo, y refrescar() corre después
+ * de cada cambio de idioma para que no se pierdan. */
+function actualizarSlots(): void {
+  const t = textosDe(idiomaActual).config;
+  for (const kind of ['spk', 'amp', 'streamer', 'dac'] as const) {
+    const id = estado[kind];
+    const nombreEl = document.getElementById(`slot-nombre-${kind}`);
+    const tipoEl = document.getElementById(`slot-tipo-${kind}`);
+    const abrir = document.getElementById(`btn-abrir-${kind}`);
+    const quitar = document.getElementById(`btn-quitar-${kind}`);
+    const equipo = id ? (kind === 'spk' ? buscarParlante(id) : kind === 'amp' ? buscarAmplificador(id) : buscarFuente(id)) : null;
+    if (nombreEl) nombreEl.textContent = equipo ? equipo.nombre : t.pcSinSeleccionar;
+    if (tipoEl) tipoEl.textContent = equipo ? equipo.tipo[idiomaActual] : t.pcSlotVacio;
+    if (abrir) abrir.textContent = equipo ? t.pcCambiarEquipo : t.pcSeleccionarEquipo;
+    if (quitar) quitar.hidden = !equipo;
+    document.getElementById(`slot-${kind}`)?.classList.toggle('pc-slot-lleno', equipo !== null);
+  }
+  if (estado.streamer || estado.dac) {
+    const opcionales = document.getElementById('pc-opcionales') as HTMLDetailsElement | null;
+    if (opcionales) opcionales.open = true;
+  }
 }
 
 function refrescar(): void {
-  const t = textosDe(idiomaActual).config;
   const { disposicion } = disposicionActual();
   const vDist = document.getElementById('v-dist');
   const vVol = document.getElementById('v-vol');
   if (vDist) vDist.textContent = num(disposicion.distanciaEscuchaM, 1, idiomaActual) + ' m';
   if (vVol) vVol.textContent = num(disposicion.volumenM3, 0, idiomaActual) + ' m³';
 
-  const ok = estado.spk !== null && estado.amp !== null;
-  const btn = document.getElementById('btn-an') as HTMLButtonElement | null;
-  if (btn) btn.disabled = !ok;
-
-  const miss = document.getElementById('miss');
-  if (miss) {
-    const faltantes = [!estado.spk ? t.faltaParlantes : null, !estado.amp ? t.faltaAmplificador : null].filter(
-      (x): x is string => x !== null
-    );
-    miss.textContent = ok ? t.sinInconsistencias : t.faltaElegir({ que: faltantes.join(t.faltaY) });
-    miss.classList.toggle('miss-ok', ok);
-  }
-
-  // Contador real de requeridos elegidos (parlante + amplificador) — mismo
-  // booleano `ok` de arriba, sólo expresado como "X de 2" para la caja de
-  // estado del encabezado y la insignia de la barra inferior.
-  const hechos = (estado.spk !== null ? 1 : 0) + (estado.amp !== null ? 1 : 0);
-  const estadoValorEl = document.getElementById('cfg-estado-valor');
-  if (estadoValorEl) estadoValorEl.textContent = t.estadoAnalisisValor({ hechos: String(hechos), total: '2' });
-  const estadoDotEl = document.getElementById('cfg-estado-dot');
-  if (estadoDotEl) estadoDotEl.classList.toggle('cfg-estado-dot-listo', ok);
-  const footBadge = document.getElementById('foot-bar-badge');
-  if (footBadge) {
-    footBadge.textContent = ok ? t.listoAnalizar : t.faltanDatos;
-    footBadge.classList.toggle('foot-bar-badge-listo', ok);
-  }
+  actualizarSlots();
   actualizarPasosUi();
 }
 
@@ -459,6 +466,8 @@ function pick(kind: 'spk' | 'amp' | 'streamer' | 'dac', valor: string): void {
   } else {
     estado[kind] = valor;
     box.innerHTML = infoHTML(kind, valor);
+    const dialogo = document.getElementById(`dlg-equipo-${kind}`) as HTMLDialogElement | null;
+    if (dialogo?.open) dialogo.close();
   }
   refrescar();
 }
@@ -771,25 +780,41 @@ function iniciarBuscadorEquipos(): void {
   }
 }
 
-/** Relleno dorado del slider hasta la posición del valor actual (--fill,
- * leído por el degradé de input[type=range] en estilos.css) — nativamente
- * un <input type=range> no expone su propio % recorrido a CSS, así que se
- * calcula acá en cada 'input' y una vez al cargar, para que arranque en la
- * posición correcta con el default (no en el 50% del fallback del degradé). */
-function actualizarFillSlider(input: HTMLInputElement): void {
-  const min = parseFloat(input.min);
-  const max = parseFloat(input.max);
-  const pct = ((parseFloat(input.value) - min) / (max - min)) * 100;
-  input.style.setProperty('--fill', `${pct}%`);
+/** Dimensiones que hoy están fuera de sus límites: mientras haya alguna, el
+ * estado conserva el último valor válido (los cálculos nunca ven un número
+ * fuera de rango) y Configurar no deja pasar a la revisión. */
+const dimensionesEnError = new Set<DimensionSala>();
+
+function actualizarErrorDimensiones(): void {
+  const el = document.getElementById('pc-dim-error');
+  if (!el) return;
+  const t = textosDe(idiomaActual).config;
+  const f = (n: number): string => num(n, Number.isInteger(n) ? 0 : 1, idiomaActual);
+  const { W, L, H } = LIMITES_DIMENSION_M;
+  el.textContent = t.pcDimError({
+    anchoMin: f(W.min), anchoMax: f(W.max),
+    largoMin: f(L.min), largoMax: f(L.max),
+    altoMin: f(H.min), altoMax: f(H.max),
+  });
+  el.hidden = dimensionesEnError.size === 0;
 }
 
-function wireSlider(id: string, dim: 'W' | 'L' | 'H'): void {
+function wireCampoDim(id: string, dim: DimensionSala): void {
   const input = document.getElementById(id) as HTMLInputElement | null;
   if (!input) return;
-  actualizarFillSlider(input);
+  input.value = String(estado[dim]);
   input.addEventListener('input', () => {
-    setDim(dim, parseFloat(input.value));
-    actualizarFillSlider(input);
+    const valor = input.valueAsNumber;
+    const ok = validarDimension(dim, valor) === 'ok';
+    if (ok) {
+      dimensionesEnError.delete(dim);
+      setDim(dim, valor);
+    } else {
+      dimensionesEnError.add(dim);
+    }
+    input.setAttribute('aria-invalid', String(!ok));
+    actualizarErrorDimensiones();
+    actualizarPasosUi();
   });
 }
 
@@ -1763,6 +1788,14 @@ function inicializarSplash(): void {
   // de nada que el usuario elija todavía.
   matchDelMesCache = elegirMatchDelMes(new Date());
   repintarMatchDelMes();
+  if (matchDelMesCache) {
+    for (const id of ['btn-cargar-ejemplo', 'btn-probar-ejemplo']) {
+      const el = document.getElementById(id);
+      if (el) el.hidden = false;
+    }
+    const guia = document.getElementById('btn-guia-hero');
+    if (guia) guia.hidden = true;
+  }
 }
 
 function repintarMatchDelMes(): void {
@@ -1841,35 +1874,28 @@ function iniciarContadorProof(): void {
   setTimeout(() => numeros.forEach(contar), 1100);
 }
 
-/** Resumen de una línea que muestra `<details class="room-toggle">` cuando
- * está colapsado ("Personalizar sala"): dimensiones + muro frontal + piso —
- * suficiente para confirmar que hay un default razonable sin tener que
- * abrirlo. Se llama en cada cambio de dimensión/material y de idioma
- * (los nombres de material están traducidos). */
+/** Franja de datos del paso "Sala y escucha": volumen, RT60 estimado (rango
+ * amoblado/vacío, sin veredicto) y — desde actualizarTextosDimension — el
+ * primer modo axial. Todo sale del motor, con los materiales elegidos. */
 function actualizarResumenSala(): void {
-  const t = textosDe(idiomaActual).config;
-  const el = document.getElementById('room-summary-desc');
-  if (el) {
-    el.textContent = t.resumenSala({
-      ancho: num(estado.W, 1, idiomaActual),
-      largo: num(estado.L, 1, idiomaActual),
-      alto: num(estado.H, 2, idiomaActual),
-      muro: t.materiales[estado.muroFrontal],
-      piso: t.materiales[estado.piso],
-    });
+  const vol = document.getElementById('v-vol-franja');
+  if (vol) vol.textContent = num(estado.W * estado.L * estado.H, 0, idiomaActual) + ' m³';
+  const rt = document.getElementById('v-rt60');
+  if (rt) {
+    const res = evaluarReverberacion(
+      { anchoM: estado.W, largoM: estado.L, altoM: estado.H },
+      {
+        muroFrontal: estado.muroFrontal,
+        muroPosterior: estado.muroPosterior,
+        muroIzquierdo: estado.muroIzquierdo,
+        muroDerecho: estado.muroDerecho,
+        piso: estado.piso,
+        techo: estado.techo,
+      }
+    );
+    rt.textContent = datoReverberacion(res);
   }
-  const vol = document.getElementById('room-summary-vol');
-  if (vol) vol.textContent = t.volumenBadge({ m3: num(estado.W * estado.L * estado.H, 2, idiomaActual) });
-  // Relación W:L respecto de H — H suele ser la dimensión más chica de una
-  // sala doméstica, así que se normaliza a ella (mismo criterio que la
-  // referencia visual: "1 : x.xx : y.yy" con el 1 en la más chica).
-  const ratio = document.getElementById('v-ratio');
-  if (ratio) {
-    ratio.textContent = t.relacion({
-      w: num(estado.W / estado.H, 2, idiomaActual),
-      l: num(estado.L / estado.H, 2, idiomaActual),
-    });
-  }
+  actualizarErrorDimensiones();
 }
 
 /** Habilita/deshabilita las pestañas "Resultado", "Documento" y "AR" de
@@ -1902,8 +1928,43 @@ function abrirTarjetaGuia(clave: string): void {
   tarjeta.scrollIntoView({ block: 'start' });
 }
 
+/** Carga en la cadena el sistema que el propio motor eligió este mes ("The
+ * Match Recomendado", equipos reales, ver datos/matchDelMes.ts). No inventa
+ * nada: sólo usa los ids ya calculados. */
+function cargarEjemplo(): void {
+  const m = matchDelMesCache;
+  if (!m) return;
+  pick('spk', m.parlanteId);
+  pick('amp', m.amplificadorId);
+  pick('streamer', m.streamerId ?? '');
+  pick('dac', m.dacId ?? '');
+  controlPasos?.ir(0);
+}
+
 function wireEventos(): void {
   document.getElementById('btn-entrar')?.addEventListener('click', () => ir('config'));
+  document.getElementById('btn-cargar-ejemplo')?.addEventListener('click', () => cargarEjemplo());
+  document.getElementById('btn-probar-ejemplo')?.addEventListener('click', () => {
+    cargarEjemplo();
+    ir('config');
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-abrir-equipo]').forEach((b) => {
+    b.addEventListener('click', () => {
+      (document.getElementById(`dlg-equipo-${b.dataset.abrirEquipo}`) as HTMLDialogElement | null)?.showModal();
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-quitar-equipo]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const kind = b.dataset.quitarEquipo as CategoriaLocal;
+      setModoBusqueda(kind, modoBusqueda[kind]);
+    });
+  });
+  document.querySelectorAll<HTMLDialogElement>('dialog.equipo-dialogo').forEach((d) => {
+    d.addEventListener('click', (ev) => {
+      if (ev.target === d) d.close();
+    });
+    d.querySelector('[data-cerrar-dialogo]')?.addEventListener('click', () => d.close());
+  });
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
 
@@ -1980,9 +2041,9 @@ function wireEventos(): void {
   });
   document.getElementById('form-mensajes')?.addEventListener('submit', enviarMensaje);
 
-  wireSlider('in-W', 'W');
-  wireSlider('in-L', 'L');
-  wireSlider('in-H', 'H');
+  wireCampoDim('in-W', 'W');
+  wireCampoDim('in-L', 'L');
+  wireCampoDim('in-H', 'H');
 
   document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-lvl]').forEach((b) => {
     b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));

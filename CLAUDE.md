@@ -4712,6 +4712,58 @@ marfil de la portada; los dos se pisaban el CSS. Ahora es `.pc-stepper`.
 Los prefijos `pc-*` son compartidos por portada y Configurar: antes de
 reusar un nombre, `grep` en `index.html` y `estilos.css`.
 
+**Fase 2b — Configurar como la maqueta, no sólo con su stepper (misma
+rama).** El usuario revisó la Fase 2 y pidió seguir la estructura de la
+maqueta de Codex también dentro de cada paso ("debes seguir esta
+estructura de diseño para configurar y las otras ventanas"): la Fase 2
+sólo había copiado el stepper y las tarjetas seguían siendo los selectores
+densos de siempre. Sigue siendo presentación sobre la misma lógica
+(`estado`, `pick()`, `setDim()`, `setNivel()`, `ejecutarBusqueda()` no
+cambian de dueño; se conservan los ids de selectores y paneles).
+
+- **Paso 1 · Equipos.** Parlantes y amplificador son dos tarjetas `pc-slot`
+  (etiqueta mono, marca "Requerido", ícono, nombre grande o "Por
+  seleccionar", chips, acciones "Seleccionar equipo +" / "Cambiar equipo ↗" /
+  "Quitar"). Streamer y DAC, en `<details>` "Añadir fuente y conversor ·
+  opcional" (abre solo si hay uno elegido). **El selector marca→modelo, el
+  toggle Catálogo/Búsqueda web, el panel de resultados y la ficha manual
+  viven ahora dentro de un `<dialog id="dlg-equipo-<kind>">` por
+  categoría** — el mismo DOM de antes, movido; `pick()` cierra el cuadro al
+  elegir. El contador "N de 2 equipos seleccionados" reemplaza a la caja
+  "Estado de la selección" y a la barra inferior (`.foot-bar`, borrada).
+- **Paso 2 · Sala y escucha.** Tres **campos numéricos** en vez de sliders,
+  con **los mismos límites que los sliders** (ancho 2,5–7 m · largo 3–9 m ·
+  alto 2,2–3,5 m — no se inventaron umbrales): `vista/dimensiones.ts` (PURO)
+  los declara, `validarDimension()` devuelve un código, y una prueba compara
+  esos números con los `min`/`max` de `#in-W/#in-L/#in-H` en `index.html`.
+  Un valor fuera de rango **no llega al motor** (el estado conserva el último
+  válido), muestra un error en línea y bloquea "Revisar sistema". Franja de
+  datos en vivo: volumen, primer modo axial de la dimensión mayor y RT60
+  **estimado como rango** (≈X–Y s, sin veredicto — CLAUDE.md ya exige que el
+  RT60 no sea un semáforo). Materiales, nivel y género son los controles de
+  siempre, en un `<details>`.
+- **Paso 3 · Revisión.** "Antes de comenzar." + las filas de
+  `filasResumenConfig` (equipos, sala, escucha) + "Explorar resultado ↗"
+  (= `#btn-an`). El resumen lateral suma "Cómo leer los datos ↗" (abre la
+  tarjeta `confianza` de la Guía).
+- **"Cargar ejemplo" / "Probar un ejemplo"** (Configurar y hero de la
+  portada) cargan el sistema de "The Match Recomendado" — equipos reales
+  elegidos por el motor, no una lista a mano — con `pick()` (`cargarEjemplo()`
+  en `main.ts`). Se ocultan si no hay match.
+- **Se borró lo que quedó sin uso**, comprobado con `grep` contra
+  `index.html` y `vista/*.ts` (lección de la Fase 1): ~170 líneas de CSS del
+  Configurar antiguo (`.cfg-*`, `.room-*`, `.foot-bar*`, `.picker`, `.rowlabel*`,
+  `.split*`, `input[type=range]`, `.miss`…) y 24 claves `config.*` de
+  `es.ts`/`en.ts` (`parlantesRol`, `bloqueA/B`, `personalizarSala`…).
+
+Verificado con Chrome headless sobre `dist/index.html` por `file://` (1440 y
+390 px, ES y EN): elegir equipos por el cuadro, gating de los pasos, campo
+inválido (error + botón bloqueado), franja en vivo, Analizar → veredicto,
+Quitar, "Probar un ejemplo", cero errores de consola y cero pedidos externos.
+**Con el mismo análisis, Resultado, Guía, Documento y Mensajes (1440 y 390 px)
+dan capturas byte a byte idénticas a `master`** — comparadas contra un
+worktree de `master` construido aparte.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

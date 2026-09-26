@@ -103,7 +103,8 @@
             <span data-i18n="splash.pcCta">Configurar mi sistema</span>
             <span aria-hidden="true">↗</span>
           </button>
-          <button type="button" class="pc-enlace" data-nav-ir="info" data-i18n="splash.ctaSecundaria">Explorar la guía</button>
+          <button type="button" class="pc-enlace" id="btn-probar-ejemplo" hidden data-i18n="splash.pcProbarEjemplo">Probar un ejemplo</button>
+          <button type="button" class="pc-enlace" id="btn-guia-hero" data-nav-ir="info" data-i18n="splash.ctaSecundaria">Explorar la guía</button>
         </div>
         <div class="pc-remate" data-i18n="splash.remate">tú escuchas y decides</div>
         <div class="novedades-popup hidden" id="novedades-popup">
@@ -277,11 +278,7 @@
         <h2 class="lead" data-i18n="config.pcLead">Da forma a tu escucha.</h2>
         <p class="lead-note" data-i18n="config.pcLeadNote">Tres pasos para relacionar tus equipos, tu espacio y tus preferencias. El análisis se calcula en tu navegador.</p>
       </div>
-      <div class="cfg-estado-box">
-        <span class="cfg-estado-label" data-i18n="config.estadoAnalisisLabel">Estado de la selección</span>
-        <span class="cfg-estado-valor" id="cfg-estado-valor">— de 2 requeridos</span>
-        <i class="cfg-estado-dot" id="cfg-estado-dot"></i>
-      </div>
+      <button type="button" class="pc-btn-linea" id="btn-cargar-ejemplo" hidden data-i18n="config.pcCargarEjemplo">Cargar ejemplo</button>
     </div>
 
     <nav class="pc-stepper" data-i18n-aria="config.pcPasosAria" aria-label="Pasos de la configuración">
@@ -292,156 +289,85 @@
 
     <div class="pc-cfg-cuerpo">
     <div class="pc-cfg-principal">
-    <div class="cfg-grid">
-    <div class="cfg-col cfg-col-equipo">
-    <div class="cfg-block-label">
-      <span class="cfg-block-label-izq"><svg class="cfg-block-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"></path></svg><span data-i18n="config.bloqueA">Cadena de señal</span></span>
-      <span class="cfg-block-label-der" data-i18n="config.bloqueAMeta">6 reglas físicas aplicables</span>
-    </div>
-    <div class="split">
-      <div class="picker">
-        <div class="picker-head">
+
+    <section class="pc-paso" id="pc-paso-0" tabindex="-1">
+      <div class="pc-slots">
+      <div class="pc-slot" id="slot-spk" data-kind="spk">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.parlantes">Parlantes</span><span class="pc-etiqueta" data-i18n="config.requerido">requerido</span></div>
+        <div class="pc-slot-cuerpo">
           <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2"></rect><circle cx="12" cy="8" r="1.8"></circle><circle cx="12" cy="15" r="3.2"></circle></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">01 ·</span> <span data-i18n="config.parlantesRol">Transductor principal</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
-            <div class="picker-rol" data-i18n="config.parlantes">Parlantes</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-spk" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-spk" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-spk">
-          <div class="sel sel-marca"><select id="sel-spk-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-spk-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-spk">
-          <div class="campo-texto campo-marca"><input type="text" id="in-spk-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-spk-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-spk-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-spk"></div>
         <div id="info-spk"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-spk" data-abrir-equipo="spk" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-spk" data-quitar-equipo="spk" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-      <div class="picker">
-        <div class="picker-head">
+      <div class="pc-slot" id="slot-amp" data-kind="amp">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.amplificador">Amplificador</span><span class="pc-etiqueta" data-i18n="config.requerido">requerido</span></div>
+        <div class="pc-slot-cuerpo">
           <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="1.8"></rect><circle cx="8" cy="12.5" r="2.2"></circle><line x1="13" y1="10.5" x2="19" y2="10.5"></line><line x1="13" y1="14.5" x2="17" y2="14.5"></line></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">02 ·</span> <span data-i18n="config.amplificadorRol">Etapa de amplificación</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
-            <div class="picker-rol" data-i18n="config.amplificador">Amplificador</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-amp" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-amp" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-amp">
-          <div class="sel sel-marca"><select id="sel-amp-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-amp-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-amp">
-          <div class="campo-texto campo-marca"><input type="text" id="in-amp-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-amp-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-amp-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-amp"></div>
         <div id="info-amp"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-amp" data-abrir-equipo="amp" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-amp" data-quitar-equipo="amp" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-    </div>
-
-    <details class="pc-opcionales" id="pc-opcionales">
-      <summary data-i18n="config.pcOpcionales">Añadir fuente y conversor · opcional</summary>
-    <div class="split">
-      <div class="picker">
-        <div class="picker-head">
+      </div>
+      <details class="pc-opcionales" id="pc-opcionales">
+        <summary data-i18n="config.pcOpcionales">Añadir fuente y conversor · opcional</summary>
+        <div class="pc-slots">
+      <div class="pc-slot" id="slot-streamer" data-kind="streamer">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.streamer">Streamer</span><span class="pc-etiqueta" data-i18n="config.opcionalFuente">opcional</span></div>
+        <div class="pc-slot-cuerpo">
           <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="9" width="19" height="8" rx="1.8"></rect><path d="M8 9a4 4 0 0 1 8 0"></path><circle cx="12" cy="13" r="1" fill="currentColor" stroke="none"></circle></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">03 ·</span> <span data-i18n="config.streamerRol">Fuente de streaming</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
-            <div class="picker-rol" data-i18n="config.streamer">Streamer</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-streamer" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-streamer" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-streamer">
-          <div class="sel sel-marca"><select id="sel-streamer-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-streamer-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-streamer">
-          <div class="campo-texto campo-marca"><input type="text" id="in-streamer-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-streamer-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-streamer-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-streamer"></div>
         <div id="info-streamer"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-streamer" data-abrir-equipo="streamer" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-streamer" data-quitar-equipo="streamer" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-      <div class="picker">
-        <div class="picker-head">
+      <div class="pc-slot" id="slot-dac" data-kind="dac">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.dac">DAC</span><span class="pc-etiqueta" data-i18n="config.opcionalFuente">opcional</span></div>
+        <div class="pc-slot-cuerpo">
           <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="1.8"></rect><path d="M6 14h2v-3h2v5h2v-7h2v9h2v-4h2"></path></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">04 ·</span> <span data-i18n="config.dacRol">Conversor digital-analógico</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
-            <div class="picker-rol" data-i18n="config.dac">DAC</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-dac" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-dac" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-dac">
-          <div class="sel sel-marca"><select id="sel-dac-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-dac-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-dac">
-          <div class="campo-texto campo-marca"><input type="text" id="in-dac-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-dac-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-dac-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-dac"></div>
         <div id="info-dac"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-dac" data-abrir-equipo="dac" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-dac" data-quitar-equipo="dac" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-    </div>
-    </details>
+        </div>
+        <p class="pc-nota-suave" data-i18n="config.pcOpcionalesNota">Se incluyen en el análisis y en el documento: cada uno evalúa su propio puente de impedancias y recorrido de volumen contra el amplificador.</p>
+      </details>
+      <div class="pc-pie">
+        <span class="pc-contador" id="pc-contador">0 de 2 equipos seleccionados</span>
+        <button type="button" class="pc-cta" id="pc-a-sala" data-paso-ir="1" disabled><span data-i18n="config.pcDefinirSala">Definir mi sala</span><span aria-hidden="true">→</span></button>
+      </div>
+    </section>
 
-    </div>
-    <div class="cfg-col cfg-col-sala">
-    <div class="cfg-block-label">
-      <span class="cfg-block-label-izq"><svg class="cfg-block-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 12 3l9 7"></path><path d="M5 9v11h14V9"></path><path d="M9 20v-6h6v6"></path></svg><span data-i18n="config.bloqueB">Sala de escucha</span></span>
-      <span class="cfg-block-label-der">SABINE / EYRING</span>
-    </div>
-    <details class="room-toggle" id="room-toggle" open>
-      <summary class="room-summary">
-        <svg class="room-summary-icono" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"></line><circle cx="9" cy="6" r="2" fill="var(--bg)"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="16" cy="12" r="2" fill="var(--bg)"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="11" cy="18" r="2" fill="var(--bg)"></circle></svg>
-        <span class="room-summary-title" data-i18n="config.personalizarSala">Personalizar sala</span>
-        <span class="room-summary-desc" id="room-summary-desc">—</span>
-        <span class="room-summary-vol" id="room-summary-vol">— m³</span>
-        <span class="req" data-i18n="config.opcionalFuente">opcional</span>
-      </summary>
-      <div class="room">
-      <div class="cfg-dims-head">
-        <h3 data-i18n="config.dimensionesTitulo">Dimensiones de la sala</h3>
-        <span class="cfg-dims-ratio" id="v-ratio">—</span>
+    <section class="pc-paso" id="pc-paso-1" hidden tabindex="-1">
+      <h3 class="pc-titulo-paso" data-i18n="config.pcSalaTitulo">El espacio también es parte del sistema.</h3>
+      <div class="pc-campos3">
+        <div class="pc-campo"><label for="in-W" data-i18n="config.pcAnchoEtiqueta">Ancho / metros</label><input type="number" id="in-W" inputmode="decimal" min="2.5" max="7" step="0.1" value="3.2" required></div>
+        <div class="pc-campo"><label for="in-L" data-i18n="config.pcLargoEtiqueta">Largo / metros</label><input type="number" id="in-L" inputmode="decimal" min="3" max="9" step="0.1" value="3.2" required></div>
+        <div class="pc-campo"><label for="in-H" data-i18n="config.pcAltoEtiqueta">Alto / metros</label><input type="number" id="in-H" inputmode="decimal" min="2.2" max="3.5" step="0.05" value="2.4" required></div>
       </div>
-      <div class="dims">
-        <div class="dim">
-          <div class="dl"><span data-i18n="config.ancho">Ancho (frente)</span> <b id="v-W">3,2 m</b></div>
-          <input type="range" id="in-W" min="2.5" max="7" step="0.1" value="3.2">
-        </div>
-        <div class="dim">
-          <div class="dl"><span data-i18n="config.largo">Largo (fondo)</span> <b id="v-L">3,2 m</b></div>
-          <input type="range" id="in-L" min="3" max="9" step="0.1" value="3.2">
-        </div>
-        <div class="dim">
-          <div class="dl"><span data-i18n="config.alto">Alto</span> <b id="v-H">2,4 m</b></div>
-          <input type="range" id="in-H" min="2.2" max="3.5" step="0.05" value="2.4">
-        </div>
+      <p class="pc-error" id="pc-dim-error" role="alert" hidden></p>
+      <div class="pc-franja">
+        <div><strong id="v-vol-franja">—</strong><span data-i18n="config.pcFranjaVolumen">Volumen</span></div>
+        <div><strong id="v-modo-axial">—</strong><span data-i18n="config.pcFranjaModo">Primer modo / eje mayor</span></div>
+        <div><strong id="v-rt60">—</strong><span data-i18n="config.pcFranjaRt60">RT60 estimado</span></div>
       </div>
-      <div class="cfg-modo-axial">
-        <span data-i18n="config.modoAxial">Modo axial de la dimensión mayor</span>
-        <b id="v-modo-axial">—</b>
-      </div>
-
-      <h3 data-i18n="config.materialesTitulo">Materiales de la sala</h3>
+      <details class="pc-opcionales" id="pc-materiales">
+        <summary data-i18n="config.pcMateriales">Materiales del recinto</summary>
       <div class="materiales-grid">
         <div class="rline">
           <div class="rl-row"><span class="rl" data-i18n="config.muroFrontal">Muro frontal</span><span class="alfa-valor" id="alfa-murofrontal">α 0.10</span></div>
@@ -506,6 +432,8 @@
           </select></div>
         </div>
       </div>
+      </details>
+      <div class="pc-subtitulo" data-i18n="config.pcNivelEditorial">Nivel de escucha · criterio editorial</div>
       <div class="cfg-segbloque-fila">
         <div class="cfg-segbloque">
           <span class="cfg-segbloque-label" data-i18n="config.nivelEscucha">Nivel de escucha</span>
@@ -528,27 +456,29 @@
         <span class="rl" data-i18n="config.distanciaResultante">Distancia de escucha resultante</span>
         <div class="derived">≈ <b id="v-dist">—</b> · <span data-i18n="config.volumenPrefix">volumen</span> <b id="v-vol">—</b></div>
       </div>
+      <div class="pc-pie">
+        <button type="button" class="pc-enlace" data-paso-ir="0" data-i18n="config.pcVolverEquipos">← Equipos</button>
+        <button type="button" class="pc-cta" id="pc-a-revision" data-paso-ir="2"><span data-i18n="config.pcRevisarSistema">Revisar sistema</span><span aria-hidden="true">→</span></button>
       </div>
-    </details>
-    </div>
-    </div>
-
-    <section class="pc-revision" id="pc-revision" hidden tabindex="-1">
-      <h3 data-i18n="config.pcRevisionTitulo">Revisa antes de analizar</h3>
-      <p data-i18n="config.pcRevisionNota">Puedes volver a cualquier paso sin perder tu selección.</p>
-      <dl id="pc-revision-filas"></dl>
     </section>
-    <p class="pc-aviso" id="pc-aviso" data-i18n="config.pcRequeridosFaltan">Elige parlantes y amplificador para continuar.</p>
-    <div class="pc-controles">
-      <button type="button" class="pc-enlace" id="pc-anterior" data-i18n="config.pcAnterior">Anterior</button>
-      <button type="button" class="pc-cta" id="pc-continuar"><span data-i18n="config.pcContinuar">Continuar</span><span aria-hidden="true">→</span></button>
-    </div>
+
+    <section class="pc-paso pc-revision" id="pc-paso-2" hidden tabindex="-1">
+      <h3 class="pc-titulo-paso" data-i18n="config.pcRevisionTitulo">Antes de comenzar.</h3>
+      <dl id="pc-revision-filas"></dl>
+      <p class="pc-nota-suave" data-i18n="config.pcRevisionNota">Puedes volver a cualquier paso sin perder tu selección. El análisis se calcula en tu navegador; cada dato conserva su fuente y su nivel de confianza.</p>
+      <div class="pc-pie">
+        <button type="button" class="pc-enlace" data-paso-ir="1" data-i18n="config.pcVolverSala">← Sala y escucha</button>
+        <button type="button" class="pc-cta analizar" id="btn-an" disabled><span data-i18n="config.pcExplorarResultado">Explorar resultado</span><span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+
     </div>
     <aside class="pc-cadena" aria-live="polite">
       <div class="pc-eyebrow" data-i18n="config.pcCadenaEyebrow">Tu cadena de escucha</div>
       <h3 class="pc-cadena-titulo" data-i18n="config.pcCadenaTitulo">Mi sistema de escucha</h3>
       <dl id="pc-cadena-filas"></dl>
       <p class="pc-cadena-nota" data-i18n="config.pcCadenaNota">Los datos de cada equipo traen su fuente y su nivel de confianza.</p>
+      <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="confianza"><span data-i18n="config.pcComoLeer">Cómo leer los datos</span> <span aria-hidden="true">↗</span></button>
     </aside>
     </div>
 
@@ -558,21 +488,6 @@
       <span class="pillsoon" data-i18n="config.cables">Cables</span>
     </div>
 
-    <div class="foot-bar">
-      <div class="foot-bar-info">
-        <div class="foot-bar-icono" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 15l3-4 3 3 5-7"></path></svg>
-        </div>
-        <div class="foot-bar-texto">
-          <div class="foot-bar-titulo">
-            <span data-i18n="config.matrizTitulo">Matriz de la cadena</span>
-            <span class="foot-bar-badge" id="foot-bar-badge">—</span>
-          </div>
-          <div class="miss" id="miss">Falta elegir parlantes y amplificador</div>
-        </div>
-      </div>
-      <button class="analizar" id="btn-an" disabled><span data-i18n="config.analizar">Analizar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></button>
-    </div>
     <footer class="site-foot">
       <div class="site-foot-marca">
         <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -589,6 +504,98 @@
       </div>
     </footer>
   </div>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-spk" aria-labelledby="dlg-equipo-spk-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.parlantes">Parlantes</span></div>
+        <h3 id="dlg-equipo-spk-titulo" data-i18n="config.pcDialogoSpk">Selecciona parlantes</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="spk" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-spk">
+          <div class="sel sel-marca"><select id="sel-spk-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-spk-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-spk">
+          <div class="campo-texto campo-marca"><input type="text" id="in-spk-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-spk-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-spk-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-spk"></div>
+  </dialog>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-amp" aria-labelledby="dlg-equipo-amp-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.amplificador">Amplificador</span></div>
+        <h3 id="dlg-equipo-amp-titulo" data-i18n="config.pcDialogoAmp">Selecciona amplificador</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="amp" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-amp">
+          <div class="sel sel-marca"><select id="sel-amp-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-amp-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-amp">
+          <div class="campo-texto campo-marca"><input type="text" id="in-amp-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-amp-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-amp-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-amp"></div>
+  </dialog>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-streamer" aria-labelledby="dlg-equipo-streamer-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.streamer">Streamer</span></div>
+        <h3 id="dlg-equipo-streamer-titulo" data-i18n="config.pcDialogoStreamer">Selecciona streamer</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="streamer" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-streamer">
+          <div class="sel sel-marca"><select id="sel-streamer-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-streamer-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-streamer">
+          <div class="campo-texto campo-marca"><input type="text" id="in-streamer-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-streamer-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-streamer-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-streamer"></div>
+  </dialog>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-dac" aria-labelledby="dlg-equipo-dac-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.dac">DAC</span></div>
+        <h3 id="dlg-equipo-dac-titulo" data-i18n="config.pcDialogoDac">Selecciona DAC</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="dac" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-dac">
+          <div class="sel sel-marca"><select id="sel-dac-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-dac-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-dac">
+          <div class="campo-texto campo-marca"><input type="text" id="in-dac-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-dac-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-dac-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-dac"></div>
+  </dialog>
 </section>
 
 <!-- RESULTS -->

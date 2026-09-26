@@ -247,6 +247,7 @@ export const es = {
       'Cada especificación lleva su fuente y su nivel de confianza. Si un dato falta, el análisis lo declara como «sin datos»: nunca se rellena en silencio ni cuenta como aprobado.',
     pcDatosNota:
       'Un equipo fuera del catálogo se puede buscar en la web: entra siempre con confianza baja y su fuente a la vista.',
+    pcProbarEjemplo: 'Probar un ejemplo',
     pcMasGuia: 'Más en la guía',
   },
 
@@ -331,27 +332,8 @@ export const es = {
     amplificador: 'Amplificador',
     streamer: 'Streamer',
     dac: 'DAC',
-    // Subtítulo real bajo cada categoría (terminología técnica exacta del
-    // rol que cumple, no un dato inventado) — mismo lugar que ocupa el
-    // título grande de la referencia de Stitch ("Parlantes Pasivos",
-    // "Amplificador Integrado"...) bajo la etiqueta numerada.
-    parlantesRol: 'Transductor principal',
-    amplificadorRol: 'Etapa de amplificación',
-    streamerRol: 'Fuente de streaming',
-    dacRol: 'Conversor digital-analógico',
     requerido: 'requerido',
     opcionalFuente: 'opcional',
-    // Etiquetas de los dos bloques del rediseño (ver estilos.css .cfg-grid)
-    // — puramente organizativas, agrupan visualmente lo que ya existía.
-    bloqueA: 'Cadena de señal',
-    bloqueB: 'Sala de escucha',
-    estadoAnalisisLabel: 'Estado de la selección',
-    estadoAnalisisValor: (p: { hechos: string; total: string }): string => `${p.hechos} de ${p.total} requeridos`,
-    bloqueAMeta: '6 reglas físicas aplicables',
-    matrizTitulo: 'Matriz de la cadena',
-    faltanDatos: 'Faltan datos',
-    listoAnalizar: 'Listo para analizar',
-    sinInconsistencias: 'Sin inconsistencias detectadas — listo para calcular.',
     verFicha: 'Distribuidor próximamente',
     verDescripcion: 'Ver descripción',
     notaGenerico:
@@ -393,25 +375,9 @@ export const es = {
     buscarManualIntroFuente: 'Un streamer o DAC no necesita ningún dato numérico obligatorio — puedes usarlo así, sin voltaje ni impedancia de salida.',
     buscarManualUsarSinDatos: 'Usar sin datos de salida',
     buscarSolicitarAlta: 'Avisar al sitio sobre este equipo',
-    personalizarSala: 'Personalizar sala',
-    resumenSala: (p: { ancho: string; largo: string; alto: string; muro: string; piso: string }): string =>
-      `${p.ancho} × ${p.largo} × ${p.alto} m · ${p.muro} + ${p.piso}`,
-    // Volumen (m³) junto al título "Personalizar sala" — mismo dato que
-    // el badge de volumen de la referencia, acá real (W×L×H).
-    volumenBadge: (p: { m3: string }): string => `${p.m3} m³`,
-    dimensionesTitulo: 'Dimensiones de la sala',
-    // Relación ancho/largo respecto del alto (siempre el más chico en la
-    // sala por defecto) — sólo aritmética sobre las 3 medidas ya
-    // ingresadas, no una regla nueva del motor.
-    relacion: (p: { w: string; l: string }): string => `Relación (alto=1) 1 : ${p.w} : ${p.l}`,
-    // Lectura en vivo (packages/engine/src/unidades.ts, frecuenciaModoAxialHz)
-    // — el modo axial de orden 1 de la dimensión más larga, se recalcula al
-    // mover cualquier slider.
-    modoAxial: 'Modo axial de la dimensión mayor',
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',
     alto: 'Alto',
-    materialesTitulo: 'Materiales de la sala',
     muroFrontal: 'Muro frontal',
     muroPosterior: 'Muro posterior',
     muroIzquierdo: 'Muro izquierdo',
@@ -449,10 +415,6 @@ export const es = {
     proximamente: 'Próximamente',
     subwoofer: 'Subwoofer',
     cables: 'Cables',
-    faltaElegir: (p: { que: string }): string => `Falta elegir ${p.que}`,
-    faltaParlantes: 'parlantes',
-    faltaAmplificador: 'amplificador',
-    faltaY: ' y ',
     analizar: 'Analizar',
     // Configurar en 3 pasos (estructura de la propuesta de Codex, adaptada a la
     // pantalla real). Los titulares van en minúscula: la mayúscula la pone el CSS.
@@ -463,8 +425,6 @@ export const es = {
     pcPaso1: 'Equipos',
     pcPaso2: 'Sala y escucha',
     pcPaso3: 'Revisión',
-    pcAnterior: 'Anterior',
-    pcContinuar: 'Continuar',
     pcOpcionales: 'Añadir fuente y conversor · opcional',
     pcCadenaEyebrow: 'Tu cadena de escucha',
     pcCadenaTitulo: 'Mi sistema de escucha',
@@ -472,9 +432,40 @@ export const es = {
     pcFilaSala: 'Sala',
     pcFilaEscucha: 'Escucha',
     pcCadenaNota: 'Los datos de cada equipo traen su fuente y su nivel de confianza.',
-    pcRevisionTitulo: 'Revisa antes de analizar',
-    pcRevisionNota: 'Puedes volver a cualquier paso sin perder tu selección.',
-    pcRequeridosFaltan: 'Elige parlantes y amplificador para continuar.',
+    pcRevisionTitulo: 'Antes de comenzar.',
+    pcRevisionNota:
+      'Puedes volver a cualquier paso sin perder tu selección. El análisis se calcula en tu navegador; cada dato conserva su fuente y su nivel de confianza.',
+    pcCargarEjemplo: 'Cargar ejemplo',
+    pcSeleccionarEquipo: 'Seleccionar equipo +',
+    pcCambiarEquipo: 'Cambiar equipo ↗',
+    pcQuitar: 'Quitar',
+    pcSlotVacio: 'Encuentra un perfil para tu sistema.',
+    pcCatalogo: 'Catálogo',
+    pcDialogoSpk: 'Selecciona parlantes',
+    pcDialogoAmp: 'Selecciona amplificador',
+    pcDialogoStreamer: 'Selecciona streamer',
+    pcDialogoDac: 'Selecciona DAC',
+    pcCerrar: 'Cerrar',
+    pcOpcionalesNota:
+      'Se incluyen en el análisis y en el documento: cada uno evalúa su propio puente de impedancias y recorrido de volumen contra el amplificador.',
+    pcContador: (p: { hechos: string; total: string }): string => `${p.hechos} de ${p.total} equipos seleccionados`,
+    pcDefinirSala: 'Definir mi sala',
+    pcSalaTitulo: 'El espacio también es parte del sistema.',
+    pcAnchoEtiqueta: 'Ancho / metros',
+    pcLargoEtiqueta: 'Largo / metros',
+    pcAltoEtiqueta: 'Alto / metros',
+    pcDimError: (p: { anchoMin: string; anchoMax: string; largoMin: string; largoMax: string; altoMin: string; altoMax: string }): string =>
+      `Revisa las dimensiones: ancho de ${p.anchoMin} a ${p.anchoMax} m, largo de ${p.largoMin} a ${p.largoMax} m y alto de ${p.altoMin} a ${p.altoMax} m.`,
+    pcFranjaVolumen: 'Volumen',
+    pcFranjaModo: 'Primer modo / eje mayor',
+    pcFranjaRt60: 'RT60 estimado',
+    pcMateriales: 'Materiales del recinto',
+    pcNivelEditorial: 'Nivel de escucha · criterio editorial',
+    pcRevisarSistema: 'Revisar sistema',
+    pcVolverEquipos: '← Equipos',
+    pcVolverSala: '← Sala y escucha',
+    pcExplorarResultado: 'Explorar resultado',
+    pcComoLeer: 'Cómo leer los datos',
   },
 
   resultado: {
