@@ -327,9 +327,6 @@ export const es = {
   config: {
     hs: 'Configurar',
     volver: '← Volver',
-    lead: 'Define la cadena',
-    leadNote:
-      'Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.',
     parlantes: 'Parlantes',
     amplificador: 'Amplificador',
     streamer: 'Streamer',
@@ -348,9 +345,6 @@ export const es = {
     // — puramente organizativas, agrupan visualmente lo que ya existía.
     bloqueA: 'Cadena de señal',
     bloqueB: 'Sala de escucha',
-    eyebrowFase: 'Fase 01',
-    eyebrowMatriz: 'Matriz de configuración',
-    eyebrowEstado: 'Cálculo en el navegador, sin servidor',
     estadoAnalisisLabel: 'Estado de la selección',
     estadoAnalisisValor: (p: { hechos: string; total: string }): string => `${p.hechos} de ${p.total} requeridos`,
     bloqueAMeta: '6 reglas físicas aplicables',
@@ -460,6 +454,27 @@ export const es = {
     faltaAmplificador: 'amplificador',
     faltaY: ' y ',
     analizar: 'Analizar',
+    // Configurar en 3 pasos (estructura de la propuesta de Codex, adaptada a la
+    // pantalla real). Los titulares van en minúscula: la mayúscula la pone el CSS.
+    pcEyebrow: 'Configuración / tu sistema',
+    pcLead: 'Da forma a tu escucha.',
+    pcLeadNote: 'Tres pasos para relacionar tus equipos, tu espacio y tus preferencias. El análisis se calcula en tu navegador.',
+    pcPasosAria: 'Pasos de la configuración',
+    pcPaso1: 'Equipos',
+    pcPaso2: 'Sala y escucha',
+    pcPaso3: 'Revisión',
+    pcAnterior: 'Anterior',
+    pcContinuar: 'Continuar',
+    pcOpcionales: 'Añadir fuente y conversor · opcional',
+    pcCadenaEyebrow: 'Tu cadena de escucha',
+    pcCadenaTitulo: 'Mi sistema de escucha',
+    pcSinSeleccionar: 'Por seleccionar',
+    pcFilaSala: 'Sala',
+    pcFilaEscucha: 'Escucha',
+    pcCadenaNota: 'Los datos de cada equipo traen su fuente y su nivel de confianza.',
+    pcRevisionTitulo: 'Revisa antes de analizar',
+    pcRevisionNota: 'Puedes volver a cualquier paso sin perder tu selección.',
+    pcRequeridosFaltan: 'Elige parlantes y amplificador para continuar.',
   },
 
   resultado: {

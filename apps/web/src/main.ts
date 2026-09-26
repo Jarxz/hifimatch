@@ -30,6 +30,10 @@ import { estado } from './estado.ts';
 import type { NivelUI } from './estado.ts';
 import { ir } from './vista/pantallas.ts';
 import type { Pantalla } from './vista/pantallas.ts';
+import { iniciarPasos } from './vista/pasos.ts';
+import type { ControlPasos } from './vista/pasos.ts';
+import { filasResumenConfig, requeridosCompletos } from './vista/resumenConfig.ts';
+import type { DatosResumenConfig } from './vista/resumenConfig.ts';
 import { infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { buscarLocal, marcasDe, equiposDeMarca } from './datos/buscadorLocal.ts';
 import type { CategoriaLocal } from './datos/buscadorLocal.ts';
@@ -369,6 +373,28 @@ function actualizarBadgesNivelGenero(): void {
   }
 }
 
+/** Configurar en 3 pasos (vista/pasos.ts): se crea en main() una vez que el
+ * DOM existe; hasta entonces, `actualizarPasosUi()` no hace nada. */
+let controlPasos: ControlPasos | null = null;
+
+function actualizarPasosUi(): void {
+  if (!controlPasos) return;
+  const t = textosDe(idiomaActual).config;
+  const nombreFuente = (id: string | null): string | null => (id ? buscarFuente(id).nombre : null);
+  const nivel = { mod: t.nivelModerado, alto: t.nivelAlto, ref: t.nivelReferencia }[estado.lvl];
+  const genero = { rockpop: t.generoRockPop, jazzvocal: t.generoJazzVocal, clasica: t.generoClasica }[estado.genero];
+  const datos: DatosResumenConfig = {
+    spk: estado.spk ? buscarParlante(estado.spk).nombre : null,
+    amp: estado.amp ? buscarAmplificador(estado.amp).nombre : null,
+    streamer: nombreFuente(estado.streamer),
+    dac: nombreFuente(estado.dac),
+    dimensiones: `${num(estado.W, 1, idiomaActual)} × ${num(estado.L, 1, idiomaActual)} × ${num(estado.H, 2, idiomaActual)} m`,
+    nivel,
+    genero,
+  };
+  controlPasos.actualizar(requeridosCompletos(datos), filasResumenConfig(datos, idiomaActual));
+}
+
 function refrescar(): void {
   const t = textosDe(idiomaActual).config;
   const { disposicion } = disposicionActual();
@@ -403,6 +429,7 @@ function refrescar(): void {
     footBadge.textContent = ok ? t.listoAnalizar : t.faltanDatos;
     footBadge.classList.toggle('foot-bar-badge-listo', ok);
   }
+  actualizarPasosUi();
 }
 
 function infoHTML(kind: 'spk' | 'amp' | 'streamer' | 'dac', id: string): string {
@@ -778,6 +805,7 @@ function setNivel(lvl: NivelUI): void {
   document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-lvl]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.lvl === lvl));
   });
+  actualizarPasosUi();
 }
 
 // Los 6 selectores de material son <select> nativos (menú desplegable, ver
@@ -816,6 +844,7 @@ function setGenero(genero: Genero): void {
   document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-genero]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.genero === genero));
   });
+  actualizarPasosUi();
 }
 
 /** A diferencia de los demás `set*`, esto vive en la pantalla de resultado
@@ -2032,6 +2061,7 @@ function main(): void {
   actualizarBadgesNivelGenero();
   actualizarResumenSala();
   actualizarNavHabilitada();
+  controlPasos = iniciarPasos();
   refrescar();
 
   // Hook de devtools, ya no el único camino a "Documento" (tiene su propia

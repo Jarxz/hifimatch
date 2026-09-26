@@ -233,9 +233,6 @@ export const en: Textos = {
   config: {
     hs: 'Configure',
     volver: '← Back',
-    lead: 'Define the chain',
-    leadNote:
-      'Pick an amplifier and a pair of speakers, and give the room its dimensions. The analysis calculates the power the system needs in that space and proposes a layout.',
     parlantes: 'Speakers',
     amplificador: 'Amplifier',
     streamer: 'Streamer',
@@ -248,9 +245,6 @@ export const en: Textos = {
     opcionalFuente: 'optional',
     bloqueA: 'Signal chain',
     bloqueB: 'Listening room',
-    eyebrowFase: 'Phase 01',
-    eyebrowMatriz: 'Configuration matrix',
-    eyebrowEstado: 'Computed in the browser, no server',
     estadoAnalisisLabel: 'Selection status',
     estadoAnalisisValor: (p: { hechos: string; total: string }): string => `${p.hechos} of ${p.total} required`,
     bloqueAMeta: '6 applicable physical rules',
@@ -335,6 +329,27 @@ export const en: Textos = {
     faltaAmplificador: 'an amplifier',
     faltaY: ' and ',
     analizar: 'Analyze',
+    // Setup in 3 steps (Codex's proposed structure, adapted to the real screen).
+    // Headlines stay lowercase: CSS applies the uppercase.
+    pcEyebrow: 'Setup / your system',
+    pcLead: 'Shape the way you listen.',
+    pcLeadNote: 'Three steps to relate your equipment, your space and your preferences. The analysis runs in your browser.',
+    pcPasosAria: 'Setup steps',
+    pcPaso1: 'Equipment',
+    pcPaso2: 'Room and listening',
+    pcPaso3: 'Review',
+    pcAnterior: 'Back',
+    pcContinuar: 'Continue',
+    pcOpcionales: 'Add source and converter · optional',
+    pcCadenaEyebrow: 'Your listening chain',
+    pcCadenaTitulo: 'My listening system',
+    pcSinSeleccionar: 'To be selected',
+    pcFilaSala: 'Room',
+    pcFilaEscucha: 'Listening',
+    pcCadenaNota: "Each piece of equipment's data carries its source and confidence level.",
+    pcRevisionTitulo: 'Review before analyzing',
+    pcRevisionNota: 'You can go back to any step without losing your selection.',
+    pcRequeridosFaltan: 'Pick speakers and an amplifier to continue.',
   },
 
   resultado: {

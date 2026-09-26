@@ -4675,6 +4675,43 @@ eliminados contra el HTML y los `.ts`, no un test. Antes de borrar una
 regla CSS, buscar su uso en `index.html` y en las plantillas de
 `vista/*.ts`.
 
+**Fase 2 — Configurar en 3 pasos (misma rama `portada-editorial`).**
+Estructura de la propuesta de Codex: Equipos / Sala y escucha /
+Revisión, con un resumen lateral "Tu cadena de escucha" y streamer +
+DAC plegados en un `<details>` "Añadir fuente y conversor · opcional".
+**Es sólo presentación**: los selectores, la búsqueda web, la ficha
+manual, los sliders y los materiales son los de siempre (mismos ids),
+y `estado`/`pick`/`setDim`/`setNivel` siguen siendo la única fuente de
+verdad. Piezas nuevas: `vista/resumenConfig.ts` (PURO, con test: arma
+las filas del resumen desde nombres ya resueltos; parlante y amplificador
+siempre, streamer/DAC sólo si se eligieron) y `vista/pasos.ts` (DOM:
+qué bloque se ve, qué botones se habilitan). `main.ts` sólo suma
+`actualizarPasosUi()`, que corre al final de `refrescar()` y en
+`setNivel`/`setGenero`, así el resumen y el idioma nunca quedan
+desactualizados.
+
+Reglas del asistente: **no se sale del primer paso sin parlante y
+amplificador** ("Continuar" y los pasos 2 y 3 quedan deshabilitados, con
+un aviso), y **"Analizar" sólo aparece en la revisión** (`#btn-an` sigue
+con el mismo id y el mismo handler; la barra inferior conserva el estado
+"Faltan datos / Listo para analizar"). El bloque `<details
+class="room-toggle">` ya no es un extra plegable: su `<summary>` se oculta
+y queda siempre abierto en el paso 2. Se quitaron las claves
+`config.lead`/`leadNote`/`eyebrow*` (reemplazadas por `config.pc*`).
+
+Verificado con Chrome headless sobre `dist/index.html` por `file://`: el
+recorrido completo a 1440 y 390 px (elegir equipos → los 3 pasos →
+Analizar → veredicto), inglés, y cero errores de consola o pedidos
+externos. **Con el mismo análisis, Resultado, Guía, Mensajes y Documento
+dan capturas byte a byte idénticas a `master`** — la fase no toca el
+motor ni esas pantallas.
+
+Colisión de nombres cazada en la verificación: el stepper de Configurar
+se llamó primero `.pc-pasos`, igual que la lista de pasos de la banda
+marfil de la portada; los dos se pisaban el CSS. Ahora es `.pc-stepper`.
+Los prefijos `pc-*` son compartidos por portada y Configurar: antes de
+reusar un nombre, `grep` en `index.html` y `estilos.css`.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

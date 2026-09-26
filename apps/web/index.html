@@ -271,27 +271,27 @@
       </div>
     </div>
 
-    <div class="cfg-lead-box">
-      <div class="cfg-lead-row">
-        <div class="cfg-lead-texto">
-          <div class="cfg-eyebrow">
-            <span data-i18n="config.eyebrowFase">Fase 01</span>
-            <span>/</span>
-            <span data-i18n="config.eyebrowMatriz">Matriz de configuración</span>
-            <span>/</span>
-            <span><span class="cfg-eyebrow-dot"></span><b data-i18n="config.eyebrowEstado">Cálculo en el navegador, sin servidor</b></span>
-          </div>
-          <h2 class="lead" data-i18n="config.lead">Define la cadena</h2>
-          <p class="lead-note" data-i18n="config.leadNote">Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
-        </div>
-        <div class="cfg-estado-box">
-          <span class="cfg-estado-label" data-i18n="config.estadoAnalisisLabel">Estado de la selección</span>
-          <span class="cfg-estado-valor" id="cfg-estado-valor">— de 2 requeridos</span>
-          <i class="cfg-estado-dot" id="cfg-estado-dot"></i>
-        </div>
+    <div class="pc-cfg-cabecera">
+      <div class="pc-cfg-textos">
+        <div class="pc-eyebrow" data-i18n="config.pcEyebrow">Configuración / tu sistema</div>
+        <h2 class="lead" data-i18n="config.pcLead">Da forma a tu escucha.</h2>
+        <p class="lead-note" data-i18n="config.pcLeadNote">Tres pasos para relacionar tus equipos, tu espacio y tus preferencias. El análisis se calcula en tu navegador.</p>
+      </div>
+      <div class="cfg-estado-box">
+        <span class="cfg-estado-label" data-i18n="config.estadoAnalisisLabel">Estado de la selección</span>
+        <span class="cfg-estado-valor" id="cfg-estado-valor">— de 2 requeridos</span>
+        <i class="cfg-estado-dot" id="cfg-estado-dot"></i>
       </div>
     </div>
 
+    <nav class="pc-stepper" data-i18n-aria="config.pcPasosAria" aria-label="Pasos de la configuración">
+      <button type="button" data-paso="0" aria-current="step"><span>01</span><b data-i18n="config.pcPaso1">Equipos</b></button>
+      <button type="button" data-paso="1"><span>02</span><b data-i18n="config.pcPaso2">Sala y escucha</b></button>
+      <button type="button" data-paso="2"><span>03</span><b data-i18n="config.pcPaso3">Revisión</b></button>
+    </nav>
+
+    <div class="pc-cfg-cuerpo">
+    <div class="pc-cfg-principal">
     <div class="cfg-grid">
     <div class="cfg-col cfg-col-equipo">
     <div class="cfg-block-label">
@@ -349,6 +349,8 @@
       </div>
     </div>
 
+    <details class="pc-opcionales" id="pc-opcionales">
+      <summary data-i18n="config.pcOpcionales">Añadir fuente y conversor · opcional</summary>
     <div class="split">
       <div class="picker">
         <div class="picker-head">
@@ -399,6 +401,7 @@
         <div id="info-dac"></div>
       </div>
     </div>
+    </details>
 
     </div>
     <div class="cfg-col cfg-col-sala">
@@ -528,6 +531,25 @@
       </div>
     </details>
     </div>
+    </div>
+
+    <section class="pc-revision" id="pc-revision" hidden tabindex="-1">
+      <h3 data-i18n="config.pcRevisionTitulo">Revisa antes de analizar</h3>
+      <p data-i18n="config.pcRevisionNota">Puedes volver a cualquier paso sin perder tu selección.</p>
+      <dl id="pc-revision-filas"></dl>
+    </section>
+    <p class="pc-aviso" id="pc-aviso" data-i18n="config.pcRequeridosFaltan">Elige parlantes y amplificador para continuar.</p>
+    <div class="pc-controles">
+      <button type="button" class="pc-enlace" id="pc-anterior" data-i18n="config.pcAnterior">Anterior</button>
+      <button type="button" class="pc-cta" id="pc-continuar"><span data-i18n="config.pcContinuar">Continuar</span><span aria-hidden="true">→</span></button>
+    </div>
+    </div>
+    <aside class="pc-cadena" aria-live="polite">
+      <div class="pc-eyebrow" data-i18n="config.pcCadenaEyebrow">Tu cadena de escucha</div>
+      <h3 class="pc-cadena-titulo" data-i18n="config.pcCadenaTitulo">Mi sistema de escucha</h3>
+      <dl id="pc-cadena-filas"></dl>
+      <p class="pc-cadena-nota" data-i18n="config.pcCadenaNota">Los datos de cada equipo traen su fuente y su nivel de confianza.</p>
+    </aside>
     </div>
 
     <div class="soon">
