@@ -495,6 +495,85 @@ export const es = {
     evidenciaTitulo: 'Ver evidencia técnica completa',
     fichaTitulo: 'La cadena y los datos de sala',
     fichaSubtitulo: 'Supuestos, fuentes y nivel de confianza · guardar e informe',
+    // Banda de resumen, cifras y pestañas de Resultado (Fase 3, estructura de
+    // la maqueta de Codex). Todo texto de UI; las cifras las calcula el motor.
+    pcEyebrow: 'Resultado / tu análisis',
+    pcTitulo: 'Tu sistema. En perspectiva.',
+    pcEditar: 'Editar configuración',
+    pcGuardar: 'Guardar sistema',
+    pcSumAria: 'Resumen del sistema analizado',
+    pcSumCadena: 'Cadena',
+    pcSumEspacio: 'Espacio',
+    pcSumEscucha: 'Escucha',
+    pcSumConfianza: 'Confianza más baja',
+    pcConfianza: { alta: 'Alta', media: 'Media', baja: 'Baja' },
+    pcMetricasAria: 'Cifras principales del análisis',
+    pcMetricaNivelEtiqueta: 'Nivel máximo disponible',
+    pcMetricaNivelTexto: (p: { distancia: string }): string =>
+      `Pico de los dos parlantes a ${p.distancia} m, con la potencia declarada del amplificador.`,
+    pcMetricaMargenEtiqueta: 'Margen sobre el pico',
+    pcMetricaMargenTexto: (p: { pico: string }): string =>
+      `Respecto al pico de ${p.pico} dB que pide el nivel de escucha elegido.`,
+    pcMetricaModoEtiqueta: 'Primer modo axial',
+    pcMetricaModoTexto: 'De la dimensión mayor, en una sala rectangular rígida. Se verifica midiendo.',
+    pcRango: (p: { min: string; max: string }): string =>
+      `Rango de ${p.min} a ${p.max} dB: la sensibilidad citada no declara su convención de medición.`,
+    pcTabsAria: 'Detalle del análisis',
+    pcTabLectura: 'Lectura general',
+    pcTabFisica: 'Física y fórmulas',
+    pcTabDatos: 'Datos y fuentes',
+    pcFisicaIntro: 'Cada regla con su fórmula, su umbral y su fuente. Ábrela para ver el cálculo completo.',
+    pcDatosTitulo: 'Todo dato tiene un origen.',
+    pcDatosNota:
+      'Cada número que entra al cálculo muestra de dónde viene y qué confianza tiene. «Sin cita propia» significa que el catálogo lo respalda con las referencias del equipo, sin un nivel de confianza por campo.',
+    pcExplorarSala: 'Explorar mi sala',
+    pcAbrirDocumento: 'Abrir documento ↗',
+    pcModificadoAviso:
+      'Estás viendo el análisis modificado: los parlantes o el punto de escucha están en otra posición que la disposición de referencia.',
+    pcVerOriginal: 'Ver el original',
+    pcSalaEyebrow: 'Disposición / modelo geométrico',
+    pcSalaTitulo: 'El espacio también suena.',
+    pcSalaLead:
+      'Explora posiciones y distancia de escucha. El dibujo ayuda a visualizar la geometría; no sustituye una simulación acústica ni una medición en tu sala.',
+    pcVolverResultado: '← Resultado',
+    pcVolverResultadoEnlace: 'Volver al resultado ↗',
+    pcVerDocumento: 'Ver documento',
+    datos: {
+      colDato: 'Dato',
+      colValor: 'Valor',
+      colOrigen: 'Origen',
+      colEstado: 'Estado',
+      grupoSala: 'Sala y escucha',
+      sensibilidad: 'Sensibilidad',
+      impedancia: 'Impedancia nominal / mínima',
+      impedanciaExtra: 'Impedancia de pico / fase en graves',
+      potencia8: 'Potencia a 8 Ω',
+      potencia4: 'Potencia a 4 Ω',
+      cargaMinima: 'Carga mínima soportada',
+      factorAmortiguamiento: 'Factor de amortiguamiento',
+      salida: 'Salida analógica / impedancia de salida',
+      dimensiones: 'Dimensiones',
+      materiales: 'Materiales de las superficies',
+      picoObjetivo: 'Objetivo de pico',
+      noPublicado: 'No publicado',
+      convencion2v83: '2,83 V / 1 m',
+      convencion1w: '1 W / 1 m',
+      convencionSinDeclarar: 'convención sin declarar',
+      referenciasEquipo: 'Referencias del equipo',
+      sinReferencias: '—',
+      estadoAlta: 'Confianza alta',
+      estadoMedia: 'Confianza media',
+      estadoBaja: 'Confianza baja',
+      estadoSinCita: 'Sin cita propia',
+      estadoSinDato: 'Sin dato',
+      origenUsuario: 'Configuración del usuario',
+      estadoSinMedicion: 'Sin medición independiente',
+      valorMateriales: 'Según los materiales elegidos',
+      origenMateriales: 'Coeficientes típicos de la literatura de acústica arquitectónica (criterio del sitio)',
+      estadoEstimacion: 'Estimación, no medición',
+      origenNivel: (p: { nivel: string }): string => `Nivel de escucha elegido: ${p.nivel}`,
+      estadoCriterio: 'Criterio editorial',
+    },
     notaSinDatos: (p: { items: string }): string =>
       `<b>Datos que el fabricante no publica:</b> ${p.items}. No es un problema de tu sistema — es información que el catálogo todavía no tiene.`,
     plano: {
@@ -536,8 +615,8 @@ export const es = {
     footer: {
       html:
         '<b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. ' +
-        'El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se ' +
-        'verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>' +
+        'El cálculo de potencia suma los dos parlantes como fuentes descorrelacionadas (+3&nbsp;dB a igual ' +
+        'distancia) y no suma ganancia de sala al nivel de banda ancha; se verifica midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>' +
         'Si se agrega una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 ' +
         'de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para ' +
         'verificarse escuchando.<br>' +

@@ -49,8 +49,8 @@ test('leerRuta tira si la clave resuelve a un objeto o función, no a un string'
 
 test('data-i18n-html sólo se usa donde el texto realmente lleva HTML (footer + guía de conceptos)', () => {
   assert.deepEqual(CLAVES_HTML, [
-    'resultado.plano.hintArrastreHtml',
     'resultado.footer.html',
+    'resultado.plano.hintArrastreHtml',
     'info.capas.cuerpoHtml',
     'info.confianza.cuerpoHtml',
     'info.generico.cuerpoHtml',

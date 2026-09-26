@@ -1,5 +1,5 @@
 /** Las pantallas del sitio y el cambio entre ellas — el `go()` del prototipo. */
-export type Pantalla = 'splash' | 'config' | 'results' | 'info' | 'documento' | 'mensajes';
+export type Pantalla = 'splash' | 'config' | 'results' | 'sala' | 'info' | 'documento' | 'mensajes';
 
 /** `despues` corre ya con la pantalla activa (p. ej. abrir una tarjeta y
  * llevarla a la vista), después del `scrollTo(0, 0)` propio del cambio. */
@@ -12,7 +12,9 @@ export function ir(pantalla: Pantalla, despues?: () => void): void {
     // navegación (la pestaña misma, "Analizar", los botones "Volver" que
     // quedan) deje la barra sincronizada sin duplicar la lógica.
     document.querySelectorAll<HTMLButtonElement>('.head-nav-btn[data-nav-ir]').forEach((b) => {
-      if (b.dataset.navIr === pantalla) b.setAttribute('aria-current', 'page');
+      // "Explorar mi sala" es parte del resultado: la barra sigue marcando "Resultado".
+      const destacada = pantalla === 'sala' ? 'results' : pantalla;
+      if (b.dataset.navIr === destacada) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
     });
     window.scrollTo(0, 0);

@@ -4764,6 +4764,72 @@ Quitar, "Probar un ejemplo", cero errores de consola y cero pedidos externos.
 dan capturas byte a byte idénticas a `master`** — comparadas contra un
 worktree de `master` construido aparte.
 
+**Fase 3 — Resultado con banda marfil y tres pestañas, y "Explorar mi sala"
+como pantalla propia (misma rama).** Misma instrucción ("seguir esta
+estructura de diseño para configurar y las otras ventanas"). **No se tocó el
+motor**: el veredicto, las cifras y las tarjetas de evidencia salen de las
+mismas reglas de siempre.
+
+- **Banda marfil** (`.res-banda`): a la izquierda el **veredicto real**
+  (capa criterio-editorial, rotulada — `#veredicto-card`/`#vd-titulo` conservan
+  sus ids y `pintarVeredicto` sigue siendo quien los pinta; ahora usa
+  `classList`, no `className`, porque el contenedor ya no es una `.card`); a la
+  derecha la tabla Cadena / Espacio / Escucha / **Confianza más baja**
+  (`peorConfianza` de la potencia y de las fuentes elegidas); debajo **tres
+  cifras que el motor ya calculó**: nivel máximo disponible
+  (`resPot.splDisponibleDb`), margen sobre el pico (`margenDb`) y primer modo
+  axial (el más bajo de `resModos.modos`). Cuando la sensibilidad citada no
+  declara su convención y la impedancia es <8 Ω (`sensibilidadRangoAplica`), la
+  cifra lleva **el rango declarado** debajo, no un solo número. No se muestra
+  una "potencia requerida en W" como la maqueta: el motor no la calcula y no se
+  inventa. Modelo puro: `vista/resumenResultado.ts` (+ test).
+- **Tres pestañas** (`role=tablist`, tabindex itinerante y flechas,
+  `vista/pestanas.ts`): **Lectura general** (los tres estados + "Qué conviene
+  hacer" + la nota de datos sin publicar), **Física y fórmulas** (los tres
+  `grupo-evidencia` de siempre, contenido intacto) y **Datos y fuentes**.
+  Los paneles ocultos siguen recibiendo el pintado (mismos ids), igual que un
+  `<details>` colapsado. Un "Analizar" nuevo vuelve a "Lectura general".
+- **Datos y fuentes** (`vista/datosYFuentes.ts`, PURO, +8 tests contra el
+  catálogo real): una fila por número que entra al cálculo, con origen y
+  estado. **Sólo la sensibilidad, las potencias y la salida de streamer/DAC
+  traen fuente y confianza por campo en el catálogo**; el resto (impedancias,
+  carga mínima…) se muestra con las referencias del equipo y el estado "Sin
+  cita propia" — no se le asigna una confianza inventada. Un dato que el
+  fabricante no publica es "No publicado / Sin dato", nunca un valor por
+  defecto. Todo se pinta con `textContent`: el origen de un equipo hallado en la
+  web es una URL ajena y no se interpola como HTML. Formato numérico adaptativo
+  (0,05 Ω no se redondea a "0 Ω").
+- **Explorar mi sala** (`#s-sala`, `Pantalla` gana `'sala'`): la tarjeta del plano
+  (pestañas Original/Modificado, vistas, candado, Recalcular, Ver en AR) se movió
+  **con todos sus ids**, así `arrastre.ts`, `pintarPlano` y los snapshots no
+  cambiaron; verificado que arrastrar un parlante y "Recalcular" siguen
+  funcionando en la pantalla nueva. La barra marca "Resultado" mientras se está
+  en "Sala". Como las pestañas Original/Modificado ahora viven en otra
+  pantalla, la banda de Resultado muestra un **aviso "Estás viendo el análisis
+  modificado"** con el botón "Ver el original" — sin él, al volver no se sabría
+  qué análisis muestran las cifras.
+- **Corregido de paso:** el pie de Resultado seguía diciendo que la potencia
+  "asume suma de par (+6 dB) y ganancia de sala (+3 dB)", desmentido por la
+  corrección de `potencia.ts` (suma descorrelacionada, +3 dB a igual distancia,
+  sin ganancia de sala en banda ancha). **La tarjeta de Potencia de la Guía
+  (`info.potencia.cuerpoHtml`) todavía dice lo viejo** y no se tocó porque esa
+  pantalla debía quedar idéntica a `master` en esta fase: pendiente.
+
+Aprendizajes: (1) el color de severidad del borde izquierdo de `.estado-item` y
+`.grupo-evidencia` lo pone `:has(...)` con más especificidad que un selector
+`#s-results .x`; al restilarlos sólo se cambian los bordes que no son el
+izquierdo, o se pierde el color. (2) `idioma.test.ts` fija el **orden** de las
+claves `data-i18n-html` según su posición en `index.html`: mover una pantalla lo
+altera. (3) `pt-nota-recalculo` era una referencia null-safe a un elemento que
+ya no existía desde que se retiró el puntaje: se reemplazó por el aviso nuevo.
+
+Verificado con Chrome headless por `file://` (1440 y 390 px, ES y EN): las tres
+pestañas y su teclado, la tabla, "Explorar mi sala" y vuelta, arrastre +
+Recalcular + aviso + "Ver el original", un "Analizar" nuevo, cero errores de
+consola y cero pedidos externos. **Guía, Documento y Mensajes dan capturas byte a
+byte idénticas a `master`** (Documento idéntico confirma que las cifras del
+motor no cambiaron); Resultado difiere a propósito.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

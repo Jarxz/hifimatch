@@ -16,6 +16,7 @@ import { evaluarFiltroPeine, evaluarAsimetria, evaluarAnguloEscucha } from '../.
 import type { Genero } from '../../../packages/engine/src/genero.ts';
 import { CREST_FACTOR_DB } from '../../../packages/engine/src/genero.ts';
 import { calcularVeredicto } from '../../../packages/engine/src/veredicto.ts';
+import { peorConfianza } from '../../../packages/engine/src/tipos.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 import { validarContacto } from '../../../packages/contact/src/contacto.ts';
@@ -32,6 +33,10 @@ import { ir } from './vista/pantallas.ts';
 import type { Pantalla } from './vista/pantallas.ts';
 import { iniciarPasos } from './vista/pasos.ts';
 import type { ControlPasos } from './vista/pasos.ts';
+import { iniciarPestanas } from './vista/pestanas.ts';
+import type { ControlPestanas } from './vista/pestanas.ts';
+import { modeloBandaResultado, primerModoAxialHz } from './vista/resumenResultado.ts';
+import { modeloDatosYFuentes } from './vista/datosYFuentes.ts';
 import { filasResumenConfig, requeridosCompletos } from './vista/resumenConfig.ts';
 import { LIMITES_DIMENSION_M, validarDimension } from './vista/dimensiones.ts';
 import type { DimensionSala } from './vista/dimensiones.ts';
@@ -81,6 +86,8 @@ import {
   pintarVeredicto,
   pintarRecomendacionesTop,
   pintarNotaSinDatos,
+  pintarBandaResultado,
+  pintarDatosYFuentes,
   pintarDocumento,
   pintarMatchDelMes,
 } from './vista/pintar.ts';
@@ -378,6 +385,7 @@ function actualizarBadgesNivelGenero(): void {
 /** Configurar en 3 pasos (vista/pasos.ts): se crea en main() una vez que el
  * DOM existe; hasta entonces, `actualizarPasosUi()` no hace nada. */
 let controlPasos: ControlPasos | null = null;
+let controlPestanasRes: ControlPestanas | null = null;
 
 function actualizarPasosUi(): void {
   if (!controlPasos) return;
@@ -1089,6 +1097,55 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   pintarRecomendacionesTop(modeloRecomendacionesTop(snap.componentesResumen, idiomaActual));
   pintarNotaSinDatos(modeloNotaSinDatos(snap.componentesResumen, idiomaActual));
 
+  // Banda de resumen y pestaña "Datos y fuentes": sólo re-muestran números y
+  // citas ya calculados/declarados (ver vista/resumenResultado.ts y
+  // vista/datosYFuentes.ts); la confianza más baja es la de los datos que
+  // alimentaron las reglas (potencia ya la trae degradada por convención).
+  const confianzaMasBaja = peorConfianza(
+    snap.resPot.confianza,
+    ...[a.streamer, a.dac].filter((f): f is NonNullable<typeof f> => f !== null).map((f) => f.confianza)
+  );
+  pintarBandaResultado(
+    modeloBandaResultado(
+      {
+        spkNombre: a.spk.nombre,
+        ampNombre: a.amp.nombre,
+        streamerNombre: a.streamer?.nombre ?? null,
+        dacNombre: a.dac?.nombre ?? null,
+        anchoM: a.sala.anchoM,
+        largoM: a.sala.largoM,
+        altoM: a.sala.altoM,
+        nivelTexto: a.nivelTexto,
+        picoObjetivoDb: a.picoObjetivo,
+        distanciaEscuchaM: snap.disposicion.distanciaEscuchaM,
+        splDisponibleDb: snap.resPot.splDisponibleDb,
+        splDisponibleRangoDb: snap.resPot.splDisponibleRangoDb,
+        margenDb: snap.resPot.margenDb,
+        margenRangoDb: snap.resPot.margenRangoDb,
+        primerModoHz: primerModoAxialHz(a.resModos.modos),
+        confianzaMasBaja,
+      },
+      idiomaActual
+    )
+  );
+  pintarDatosYFuentes(
+    modeloDatosYFuentes(
+      {
+        spk: a.spk,
+        amp: a.amp,
+        streamer: a.streamer,
+        dac: a.dac,
+        anchoM: a.sala.anchoM,
+        largoM: a.sala.largoM,
+        altoM: a.sala.altoM,
+        nivelTexto: a.nivelTexto,
+        picoObjetivoDb: a.picoObjetivo,
+      },
+      idiomaActual
+    ),
+    idiomaActual
+  );
+
   const referenciaSimetricaM = snap.candadoAbierto ? calcularDisposicionManual(a.sala, snap.disposicion.parlanteIzq, snap.disposicion.parlanteDer).puntoDulce : null;
   ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista, referenciaSimetricaM };
   actualizarNavHabilitada();
@@ -1273,9 +1330,11 @@ function activarPestana(pestana: 'original' | 'modificado'): void {
   document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.pestana === pestana));
   });
-  // Sólo "Modificado" recalculó potencia con una disposición distinta —
-  // "Análisis original" nunca cambia, así que la aclaración no aplica ahí.
-  document.getElementById('pt-nota-recalculo')?.classList.toggle('hidden', pestana !== 'modificado');
+  // Sólo "Modificado" recalculó con una disposición distinta — "Análisis
+  // original" nunca cambia. El aviso vive en la banda de Resultado (las
+  // pestañas están en "Explorar mi sala", otra pantalla): sin él, al volver
+  // a Resultado no se sabría qué análisis muestran las cifras.
+  document.getElementById('res-modificado-aviso')?.classList.toggle('hidden', pestana !== 'modificado');
 }
 
 /** "Recalcular": congela la posición actual del arrastre (parlantes y,
@@ -1437,9 +1496,12 @@ function renderizarResultado(): void {
   const pestanaModEl = document.querySelector('[data-pestana="modificado"]');
   pestanaModEl?.setAttribute('aria-pressed', 'false');
   pestanaModEl?.classList.add('hidden');
-  document.getElementById('pt-nota-recalculo')?.classList.add('hidden');
+  document.getElementById('res-modificado-aviso')?.classList.add('hidden');
 
   pintarSnapshot(ultimoAnalisis, analisisOriginal);
+  // Un análisis nuevo abre en "Lectura general", no en la pestaña que
+  // hubiera quedado abierta del análisis anterior.
+  controlPestanasRes?.activar(0);
 }
 
 function analizar(): void {
@@ -1967,6 +2029,9 @@ function wireEventos(): void {
   });
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
   document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
+  document.getElementById('btn-guardar-res')?.addEventListener('click', () => abrirGuardarPopup());
+  document.getElementById('btn-ver-original')?.addEventListener('click', () => activarPestana('original'));
+  controlPestanasRes = iniciarPestanas(document.getElementById('res-tabs'));
 
   // Navegación de las 6 secciones (.head-nav, ver estilos.css) — un solo
   // listener delegado por tipo de botón, en vez de uno por pantalla:
@@ -1977,7 +2042,7 @@ function wireEventos(): void {
   // vista/pantallas.ts — corre para cualquier navegación, no sólo la
   // disparada desde acá.
   document
-    .querySelectorAll<HTMLButtonElement>('.head-nav-btn[data-nav-ir], .pc-enlace[data-nav-ir], .pc-carril-item[data-nav-ir]')
+    .querySelectorAll<HTMLButtonElement>('.head-nav-btn[data-nav-ir], .pc-enlace[data-nav-ir], .pc-carril-item[data-nav-ir], .pc-cta[data-nav-ir], .pc-btn-linea[data-nav-ir], .res-btn[data-nav-ir]')
     .forEach((boton) => {
       const clave = boton.dataset.infoAbrir;
       boton.addEventListener('click', () => {
@@ -2020,6 +2085,7 @@ function wireEventos(): void {
   document.getElementById('btn-contacto-config')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-config-foot')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-resultado')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-sala')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-info')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-documento')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-mensajes')?.addEventListener('click', () => abrirContactoPopup());

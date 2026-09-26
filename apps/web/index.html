@@ -629,321 +629,425 @@
       </div>
     </div>
 
-    <div class="card veredicto-card" id="veredicto-card">
-      <div class="ct">
-        <span class="layer" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
-        <button type="button" class="infobtn" data-info="veredicto" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-      </div>
-      <h2 class="vd-titulo" id="vd-titulo">Veredicto del análisis</h2>
-      <p class="vd-subtexto" id="vd-subtexto">—</p>
-      <div class="estados-grid">
-        <div class="estado-item" id="est-potencia">
-          <div class="est-nombre" id="est-potencia-nombre">—</div>
-          <div class="est-estado" id="est-potencia-estado">—</div>
-          <div class="est-detalle" id="est-potencia-detalle">—</div>
+    <div class="res-banda">
+      <div class="res-inner">
+        <div class="res-cab">
+          <div class="res-cab-textos">
+            <p class="pc-eyebrow" data-i18n="resultado.pcEyebrow">Resultado / tu análisis</p>
+            <h2 class="res-titulo" data-i18n="resultado.pcTitulo">Tu sistema. En perspectiva.</h2>
+            <p class="res-aviso hidden" id="res-modificado-aviso"><span data-i18n="resultado.pcModificadoAviso">—</span> <button type="button" id="btn-ver-original" data-i18n="resultado.pcVerOriginal">Ver el original</button></p>
+          </div>
+          <div class="res-cab-acciones">
+            <button type="button" class="res-btn res-btn-linea" data-nav-ir="config" data-i18n="resultado.pcEditar">Editar configuración</button>
+            <button type="button" class="res-btn res-btn-solido" id="btn-guardar-res" data-i18n="resultado.pcGuardar">Guardar sistema</button>
+          </div>
         </div>
-        <div class="estado-item" id="est-acople">
-          <div class="est-nombre" id="est-acople-nombre">—</div>
-          <div class="est-estado" id="est-acople-estado">—</div>
-          <div class="est-detalle" id="est-acople-detalle">—</div>
-        </div>
-        <div class="estado-item" id="est-sala">
-          <div class="est-nombre" id="est-sala-nombre">—</div>
-          <div class="est-estado" id="est-sala-estado">—</div>
-          <div class="est-detalle" id="est-sala-detalle">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 data-i18n="resultado.recomendacionesTitulo">Qué conviene hacer</h3>
-      <ul class="rf-recomendaciones" id="top-recomendaciones"></ul>
-    </div>
-
-    <details class="grupo-evidencia" id="grupo-potencia">
-      <summary>
-        <span class="grupo-nombre" data-i18n="motor.veredicto.nombrePotencia">Potencia</span>
-        <span class="grupo-estado" id="grupo-potencia-estado">—</span>
-        <span class="grupo-linea" id="grupo-potencia-linea">—</span>
-      </summary>
-      <div class="filas">
-        <details class="regla-fila" id="fila-potencia">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</span>
-            <span class="verdict" id="pw-verdict">—</span>
-            <span class="fila-dato" id="pw-dato">—</span>
-            <button type="button" class="infobtn" data-info="potencia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="pw-simple">—</p>
-            <p id="pw-text">—</p>
-            <div class="meter">
-              <div class="scale" id="pw-scale"></div>
-              <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
+        <div class="res-cuerpo">
+          <div class="res-veredicto" id="veredicto-card">
+            <div class="ct">
+              <span class="layer" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
+              <button type="button" class="infobtn" data-info="veredicto" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
             </div>
-            <div class="calc" id="pw-calc"></div>
-            <div class="flag hidden" id="pw-flag"></div>
-            <p class="src" id="pw-crest"></p>
-            <div class="src" id="pw-src"></div>
+            <h3 class="vd-titulo" id="vd-titulo">Veredicto del análisis</h3>
+            <p class="vd-subtexto" id="vd-subtexto">—</p>
           </div>
-        </details>
+          <dl class="res-sum" id="res-sum" role="group" data-i18n-aria="resultado.pcSumAria"></dl>
+        </div>
+        <div class="res-metricas" id="res-metricas" role="group" data-i18n-aria="resultado.pcMetricasAria"></div>
       </div>
-    </details>
+    </div>
 
-    <details class="grupo-evidencia" id="grupo-acople">
-      <summary>
-        <span class="grupo-nombre" data-i18n="motor.veredicto.nombreAcople">Acople eléctrico</span>
-        <span class="grupo-estado" id="grupo-acople-estado">—</span>
-        <span class="grupo-linea" id="grupo-acople-linea">—</span>
-      </summary>
-      <div class="filas">
-        <details class="regla-fila" id="card-carga">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.carga.titulo">La carga que ve el amplificador</span>
-            <span class="verdict" id="z-verdict">—</span>
-            <span class="fila-dato" id="z-dato">—</span>
-            <button type="button" class="infobtn" data-info="carga" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="z-simple">—</p>
-            <p id="z-text">—</p>
-            <div class="calc hidden" id="z-calc"></div>
-            <div class="flag hidden" id="z-flag"></div>
-            <div class="src" id="z-src"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila" id="card-amortiguamiento">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</span>
-            <span class="verdict" id="am-verdict">—</span>
-            <span class="fila-dato" id="am-dato">—</span>
-            <button type="button" class="infobtn" data-info="amortiguamiento" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="am-simple">—</p>
-            <div id="am-text">—</div>
-            <div class="calc hidden" id="am-calc"></div>
-            <div class="flag hidden" id="am-flag"></div>
-            <div class="src" id="am-src"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-puente-streamer">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</span>
-            <span class="verdict" id="pz-verdict-streamer">—</span>
-            <span class="fila-dato" id="pz-dato-streamer">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
-            <p class="simple" id="pz-simple-streamer">—</p>
-            <p id="pz-text-streamer">—</p>
-            <div class="calc" id="pz-calc-streamer"></div>
-            <div class="flag hidden" id="pz-flag-streamer"></div>
-            <div class="src" id="pz-src-streamer"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-recorrido-streamer">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</span>
-            <span class="verdict" id="pv-verdict-streamer">—</span>
-            <span class="fila-dato" id="pv-dato-streamer">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
-            <p class="simple" id="pv-simple-streamer">—</p>
-            <p id="pv-text-streamer">—</p>
-            <div class="calc" id="pv-calc-streamer"></div>
-            <div class="flag hidden" id="pv-flag-streamer"></div>
-            <div class="src" id="pv-src-streamer"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-puente-dac">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</span>
-            <span class="verdict" id="pz-verdict-dac">—</span>
-            <span class="fila-dato" id="pz-dato-dac">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
-            <p class="simple" id="pz-simple-dac">—</p>
-            <p id="pz-text-dac">—</p>
-            <div class="calc" id="pz-calc-dac"></div>
-            <div class="flag hidden" id="pz-flag-dac"></div>
-            <div class="src" id="pz-src-dac"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-recorrido-dac">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</span>
-            <span class="verdict" id="pv-verdict-dac">—</span>
-            <span class="fila-dato" id="pv-dato-dac">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
-            <p class="simple" id="pv-simple-dac">—</p>
-            <p id="pv-text-dac">—</p>
-            <div class="calc" id="pv-calc-dac"></div>
-            <div class="flag hidden" id="pv-flag-dac"></div>
-            <div class="src" id="pv-src-dac"></div>
-          </div>
-        </details>
+    <div class="res-inner res-detalle">
+      <div class="res-tabs" role="tablist" id="res-tabs" data-i18n-aria="resultado.pcTabsAria">
+        <button type="button" role="tab" id="tab-res-lectura" aria-selected="true" aria-controls="panel-res-lectura" data-i18n="resultado.pcTabLectura">Lectura general</button>
+        <button type="button" role="tab" id="tab-res-fisica" aria-selected="false" tabindex="-1" aria-controls="panel-res-fisica" data-i18n="resultado.pcTabFisica">Física y fórmulas</button>
+        <button type="button" role="tab" id="tab-res-datos" aria-selected="false" tabindex="-1" aria-controls="panel-res-datos" data-i18n="resultado.pcTabDatos">Datos y fuentes</button>
       </div>
-    </details>
 
-    <details class="grupo-evidencia" id="grupo-sala">
-      <summary>
-        <span class="grupo-nombre" data-i18n="motor.veredicto.nombreSala">Sala</span>
-        <span class="grupo-estado" id="grupo-sala-estado">—</span>
-        <span class="grupo-linea" id="grupo-sala-linea">—</span>
-      </summary>
-      <div class="filas">
-        <details class="regla-fila" id="fila-modos">
-          <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.modos.titulo">Modos de sala (graves)</span>
-            <span class="verdict" id="mo-verdict">—</span>
-            <span class="fila-dato" id="mo-dato">—</span>
-            <button type="button" class="infobtn" data-info="modos" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="mo-simple">—</p>
-            <p id="mo-text">—</p>
-            <div class="flag hidden" id="mo-flag"></div>
-            <div class="curvas hidden" id="mo-curvas"></div>
-            <div class="src" id="mo-src"></div>
+      <div class="res-panel" role="tabpanel" id="panel-res-lectura" aria-labelledby="tab-res-lectura">
+        <div class="estados-grid">
+          <div class="estado-item" id="est-potencia">
+            <div class="est-nombre" id="est-potencia-nombre">—</div>
+            <div class="est-estado" id="est-potencia-estado">—</div>
+            <div class="est-detalle" id="est-potencia-detalle">—</div>
           </div>
-        </details>
+          <div class="estado-item" id="est-acople">
+            <div class="est-nombre" id="est-acople-nombre">—</div>
+            <div class="est-estado" id="est-acople-estado">—</div>
+            <div class="est-detalle" id="est-acople-detalle">—</div>
+          </div>
+          <div class="estado-item" id="est-sala">
+            <div class="est-nombre" id="est-sala-nombre">—</div>
+            <div class="est-estado" id="est-sala-estado">—</div>
+            <div class="est-detalle" id="est-sala-detalle">—</div>
+          </div>
+        </div>
+        <div class="res-bloque">
+          <h3 data-i18n="resultado.recomendacionesTitulo">Qué conviene hacer</h3>
+          <ul class="rf-recomendaciones" id="top-recomendaciones"></ul>
+        </div>
+        <p class="src nota-sindatos hidden" id="nota-sindatos"></p>
+      </div>
 
-        <details class="regla-fila" id="fila-filtropeine">
+      <div class="res-panel" role="tabpanel" id="panel-res-fisica" aria-labelledby="tab-res-fisica" hidden>
+        <p class="res-intro" data-i18n="resultado.pcFisicaIntro">Cada regla con su fórmula, su umbral y su fuente. Ábrela para ver el cálculo completo.</p>
+        <details class="grupo-evidencia" id="grupo-potencia">
           <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.filtroPeine.titulo">Filtro peine por reflexión</span>
-            <span class="verdict" id="fp-verdict">—</span>
-            <span class="fila-dato" id="fp-dato">—</span>
-            <button type="button" class="infobtn" data-info="filtroPeine" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+            <span class="grupo-nombre" data-i18n="motor.veredicto.nombrePotencia">Potencia</span>
+            <span class="grupo-estado" id="grupo-potencia-estado">—</span>
+            <span class="grupo-linea" id="grupo-potencia-linea">—</span>
           </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="fp-simple">—</p>
-            <p id="fp-text">—</p>
-            <div class="calc" id="fp-calc"></div>
-            <details class="detalle" id="fp-todas-wrap">
-              <summary data-i18n="resultado.plano.verLasDiez">Ver las diez</summary>
-              <div class="calc" id="fp-calc-todas"></div>
+          <div class="filas">
+            <details class="regla-fila" id="fila-potencia">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</span>
+                <span class="verdict" id="pw-verdict">—</span>
+                <span class="fila-dato" id="pw-dato">—</span>
+                <button type="button" class="infobtn" data-info="potencia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="pw-simple">—</p>
+                <p id="pw-text">—</p>
+                <div class="meter">
+                  <div class="scale" id="pw-scale"></div>
+                  <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
+                </div>
+                <div class="calc" id="pw-calc"></div>
+                <div class="flag hidden" id="pw-flag"></div>
+                <p class="src" id="pw-crest"></p>
+                <div class="src" id="pw-src"></div>
+              </div>
             </details>
-            <div class="flag hidden" id="fp-flag"></div>
-            <div class="src" id="fp-src"></div>
           </div>
         </details>
 
-        <details class="regla-fila" id="fila-triangulo">
+        <details class="grupo-evidencia" id="grupo-acople">
           <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.triangulo.titulo">Triángulo de escucha</span>
-            <span class="verdict" id="te-verdict">—</span>
-            <span class="fila-dato" id="te-dato">—</span>
-            <button type="button" class="infobtn" data-info="triangulo" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+            <span class="grupo-nombre" data-i18n="motor.veredicto.nombreAcople">Acople eléctrico</span>
+            <span class="grupo-estado" id="grupo-acople-estado">—</span>
+            <span class="grupo-linea" id="grupo-acople-linea">—</span>
           </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="te-simple">—</p>
-            <p id="te-text">—</p>
-            <div class="calc" id="te-calc"></div>
-            <div class="flag hidden" id="te-flag"></div>
-            <div class="src" id="te-src"></div>
+          <div class="filas">
+            <details class="regla-fila" id="card-carga">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.carga.titulo">La carga que ve el amplificador</span>
+                <span class="verdict" id="z-verdict">—</span>
+                <span class="fila-dato" id="z-dato">—</span>
+                <button type="button" class="infobtn" data-info="carga" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="z-simple">—</p>
+                <p id="z-text">—</p>
+                <div class="calc hidden" id="z-calc"></div>
+                <div class="flag hidden" id="z-flag"></div>
+                <div class="src" id="z-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila" id="card-amortiguamiento">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</span>
+                <span class="verdict" id="am-verdict">—</span>
+                <span class="fila-dato" id="am-dato">—</span>
+                <button type="button" class="infobtn" data-info="amortiguamiento" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="am-simple">—</p>
+                <div id="am-text">—</div>
+                <div class="calc hidden" id="am-calc"></div>
+                <div class="flag hidden" id="am-flag"></div>
+                <div class="src" id="am-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-puente-streamer">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</span>
+                <span class="verdict" id="pz-verdict-streamer">—</span>
+                <span class="fila-dato" id="pz-dato-streamer">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
+                <p class="simple" id="pz-simple-streamer">—</p>
+                <p id="pz-text-streamer">—</p>
+                <div class="calc" id="pz-calc-streamer"></div>
+                <div class="flag hidden" id="pz-flag-streamer"></div>
+                <div class="src" id="pz-src-streamer"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-recorrido-streamer">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</span>
+                <span class="verdict" id="pv-verdict-streamer">—</span>
+                <span class="fila-dato" id="pv-dato-streamer">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
+                <p class="simple" id="pv-simple-streamer">—</p>
+                <p id="pv-text-streamer">—</p>
+                <div class="calc" id="pv-calc-streamer"></div>
+                <div class="flag hidden" id="pv-flag-streamer"></div>
+                <div class="src" id="pv-src-streamer"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-puente-dac">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</span>
+                <span class="verdict" id="pz-verdict-dac">—</span>
+                <span class="fila-dato" id="pz-dato-dac">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
+                <p class="simple" id="pz-simple-dac">—</p>
+                <p id="pz-text-dac">—</p>
+                <div class="calc" id="pz-calc-dac"></div>
+                <div class="flag hidden" id="pz-flag-dac"></div>
+                <div class="src" id="pz-src-dac"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-recorrido-dac">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</span>
+                <span class="verdict" id="pv-verdict-dac">—</span>
+                <span class="fila-dato" id="pv-dato-dac">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
+                <p class="simple" id="pv-simple-dac">—</p>
+                <p id="pv-text-dac">—</p>
+                <div class="calc" id="pv-calc-dac"></div>
+                <div class="flag hidden" id="pv-flag-dac"></div>
+                <div class="src" id="pv-src-dac"></div>
+              </div>
+            </details>
           </div>
         </details>
 
-        <details class="regla-fila regla-dim" id="fila-reverberacion">
+        <details class="grupo-evidencia" id="grupo-sala">
           <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</span>
-            <span class="verdict" id="rt-verdict">—</span>
-            <span class="fila-dato" id="rt-dato">—</span>
-            <button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+            <span class="grupo-nombre" data-i18n="motor.veredicto.nombreSala">Sala</span>
+            <span class="grupo-estado" id="grupo-sala-estado">—</span>
+            <span class="grupo-linea" id="grupo-sala-linea">—</span>
           </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="rt-simple">—</p>
-            <p id="rt-text">—</p>
-            <div class="calc" id="rt-calc"></div>
-            <div class="src" id="rt-src"></div>
+          <div class="filas">
+            <details class="regla-fila" id="fila-modos">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.modos.titulo">Modos de sala (graves)</span>
+                <span class="verdict" id="mo-verdict">—</span>
+                <span class="fila-dato" id="mo-dato">—</span>
+                <button type="button" class="infobtn" data-info="modos" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="mo-simple">—</p>
+                <p id="mo-text">—</p>
+                <div class="flag hidden" id="mo-flag"></div>
+                <div class="curvas hidden" id="mo-curvas"></div>
+                <div class="src" id="mo-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila" id="fila-filtropeine">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.filtroPeine.titulo">Filtro peine por reflexión</span>
+                <span class="verdict" id="fp-verdict">—</span>
+                <span class="fila-dato" id="fp-dato">—</span>
+                <button type="button" class="infobtn" data-info="filtroPeine" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="fp-simple">—</p>
+                <p id="fp-text">—</p>
+                <div class="calc" id="fp-calc"></div>
+                <details class="detalle" id="fp-todas-wrap">
+                  <summary data-i18n="resultado.plano.verLasDiez">Ver las diez</summary>
+                  <div class="calc" id="fp-calc-todas"></div>
+                </details>
+                <div class="flag hidden" id="fp-flag"></div>
+                <div class="src" id="fp-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila" id="fila-triangulo">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.triangulo.titulo">Triángulo de escucha</span>
+                <span class="verdict" id="te-verdict">—</span>
+                <span class="fila-dato" id="te-dato">—</span>
+                <button type="button" class="infobtn" data-info="triangulo" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="te-simple">—</p>
+                <p id="te-text">—</p>
+                <div class="calc" id="te-calc"></div>
+                <div class="flag hidden" id="te-flag"></div>
+                <div class="src" id="te-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila regla-dim" id="fila-reverberacion">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</span>
+                <span class="verdict" id="rt-verdict">—</span>
+                <span class="fila-dato" id="rt-dato">—</span>
+                <button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="rt-simple">—</p>
+                <p id="rt-text">—</p>
+                <div class="calc" id="rt-calc"></div>
+                <div class="src" id="rt-src"></div>
+              </div>
+            </details>
           </div>
         </details>
       </div>
-    </details>
 
-    <div class="card">
-      <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" style="color:var(--dim)" data-i18n="resultado.disposicionReferencia">Disposición de referencia</span><button type="button" class="infobtn" data-info="plano" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-      <h3 data-i18n="resultado.plano.titulo">Plano, escucha y reflexiones</h3>
-      <p data-i18n="resultado.plano.texto">Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
-      <div class="rline plan-toprow" style="margin-top:14px">
-        <div class="segs" role="group" id="tabs-analisis">
-          <button type="button" data-pestana="original" aria-pressed="true" data-i18n="resultado.plano.pestanaOriginal">Análisis original</button>
-          <button type="button" data-pestana="modificado" class="hidden" aria-pressed="false" data-i18n="resultado.plano.pestanaModificado">Modificado</button>
+      <div class="res-panel" role="tabpanel" id="panel-res-datos" aria-labelledby="tab-res-datos" hidden>
+        <h3 class="res-h3" data-i18n="resultado.pcDatosTitulo">Todo dato tiene un origen.</h3>
+        <p class="res-intro" data-i18n="resultado.pcDatosNota">—</p>
+        <div class="res-tabla-wrap">
+          <table class="res-tabla" id="res-tabla">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="resultado.datos.colDato">Dato</th>
+                <th scope="col" data-i18n="resultado.datos.colValor">Valor</th>
+                <th scope="col" data-i18n="resultado.datos.colOrigen">Origen</th>
+                <th scope="col" data-i18n="resultado.datos.colEstado">Estado</th>
+              </tr>
+            </thead>
+          </table>
         </div>
-        <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
-          <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
-          <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
-          <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
-          <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
+        <div class="ficha-final">
+          <h2 data-i18n="resultado.fichaTitulo">La cadena y los datos de sala</h2>
+          <p class="ficha-subtitulo" data-i18n="resultado.fichaSubtitulo">Supuestos, fuentes y nivel de confianza · guardar e informe</p>
+          <div class="ficha-grid">
+            <div class="blk"><h3 data-i18n="resultado.cadena">La cadena</h3><div id="chain"></div></div>
+            <div class="blk">
+              <h3 data-i18n="resultado.sala">Sala</h3>
+              <div class="rr"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="r-wl">—</b></div>
+              <div class="rr"><span data-i18n="resultado.alto">Alto</span><b id="r-h">—</b></div>
+              <div class="rr"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="r-dist">—</b></div>
+              <div class="rr"><span data-i18n="resultado.nivel">Nivel</span><b id="r-lvl">—</b></div>
+              <div class="rr"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="r-peak">—</b></div>
+            </div>
+          </div>
         </div>
-        <button type="button" id="btn-candado" class="back candado-btn" aria-pressed="false" data-i18n-aria="resultado.plano.candadoAria" aria-label="Candado del punto de escucha">
-          <svg class="candado-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path id="candado-shackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          <span id="btn-candado-texto">Candado cerrado</span>
-        </button>
-        <button type="button" id="btn-ver-ar" class="back" data-i18n="resultado.plano.verEnArBoton">Ver en AR</button>
       </div>
-      <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.</p>
-      <p id="plan-hint-asiento" class="plan-hint hidden" data-i18n="resultado.plano.hintAsiento">Candado abierto: el punto de escucha también se puede arrastrar, de forma independiente de los parlantes.</p>
-      <p id="candado-comparador-aviso" class="src candado-comparador-aviso hidden" data-i18n="resultado.plano.candadoComparadorAviso">Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.</p>
-      <div class="plan-wrap" id="plan"></div>
-      <div class="legend">
-        <span><i style="border-top:1px dashed var(--dim)"></i> <span data-i18n="resultado.plano.leyendaTriangulo">triángulo de escucha</span></span>
-        <span><i style="border-top:1px dashed var(--warn)"></i> <span data-i18n="resultado.plano.leyendaReflexion">1ª reflexión</span></span>
-        <span><i style="border-top:2px solid var(--text)"></i> <span data-i18n="resultado.plano.leyendaParlante">parlante / escucha</span></span>
+
+      <div class="res-cta">
+        <button type="button" class="pc-cta" data-nav-ir="sala"><span data-i18n="resultado.pcExplorarSala">Explorar mi sala</span><span aria-hidden="true">↗</span></button>
+        <button type="button" class="pc-enlace" data-nav-ir="documento" data-i18n="resultado.pcAbrirDocumento">Abrir documento ↗</button>
       </div>
-      <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
-      <h4 data-i18n="resultado.plano.ubicacionTitulo">Ubicación de referencia de los parlantes</h4>
-      <p id="plan-ubicacion">—</p>
+
+      <footer class="note" data-i18n-html="resultado.footer.html">
+        <b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>
+        Si se agrega una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para verificarse escuchando.<br>
+        Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide en media-espacio y sobreestima, se usa la medición anecoica independiente.
+      </footer>
+    </div>
+  </div>
+</section>
+
+<!-- SALA · explorar mi sala (el plano, sacado de Resultado) -->
+<section class="screen" id="s-sala">
+  <div class="wrap">
+    <div class="head">
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
+      <div class="hright">
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
+        <button class="back" id="btn-contacto-sala" data-i18n="contacto.boton">Contacto</button>
+      </div>
+    </div>
+    <div class="idioma-splash">
+      <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+        <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" aria-pressed="false">EN</button>
+      </div>
     </div>
 
-    <div class="ficha-final">
-      <h2 data-i18n="resultado.fichaTitulo">La cadena y los datos de sala</h2>
-      <p class="ficha-subtitulo" data-i18n="resultado.fichaSubtitulo">Supuestos, fuentes y nivel de confianza · guardar e informe</p>
-      <div class="ficha-grid">
-        <div class="blk"><h3 data-i18n="resultado.cadena">La cadena</h3><div id="chain"></div></div>
-        <div class="blk">
-          <h3 data-i18n="resultado.sala">Sala</h3>
-          <div class="rr"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="r-wl">—</b></div>
-          <div class="rr"><span data-i18n="resultado.alto">Alto</span><b id="r-h">—</b></div>
-          <div class="rr"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="r-dist">—</b></div>
-          <div class="rr"><span data-i18n="resultado.nivel">Nivel</span><b id="r-lvl">—</b></div>
-          <div class="rr"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="r-peak">—</b></div>
+    <div class="res-inner sala-cab">
+      <p class="pc-eyebrow" data-i18n="resultado.pcSalaEyebrow">Disposición / modelo geométrico</p>
+      <div class="res-cab">
+        <div class="res-cab-textos">
+          <h2 class="res-titulo res-titulo-oscuro" data-i18n="resultado.pcSalaTitulo">El espacio también suena.</h2>
+          <p class="sala-lead" data-i18n="resultado.pcSalaLead">—</p>
+        </div>
+        <div class="res-cab-acciones">
+          <button type="button" class="pc-btn-linea" data-nav-ir="results" data-i18n="resultado.pcVolverResultado">← Resultado</button>
         </div>
       </div>
     </div>
 
-    <p class="src nota-sindatos hidden" id="nota-sindatos"></p>
+    <div class="res-inner">
+      <div class="card">
+        <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" style="color:var(--dim)" data-i18n="resultado.disposicionReferencia">Disposición de referencia</span><button type="button" class="infobtn" data-info="plano" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
+        <h3 data-i18n="resultado.plano.titulo">Plano, escucha y reflexiones</h3>
+        <p data-i18n="resultado.plano.texto">Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
+        <div class="rline plan-toprow" style="margin-top:14px">
+          <div class="segs" role="group" id="tabs-analisis">
+            <button type="button" data-pestana="original" aria-pressed="true" data-i18n="resultado.plano.pestanaOriginal">Análisis original</button>
+            <button type="button" data-pestana="modificado" class="hidden" aria-pressed="false" data-i18n="resultado.plano.pestanaModificado">Modificado</button>
+          </div>
+          <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
+            <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
+            <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
+            <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
+            <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
+          </div>
+          <button type="button" id="btn-candado" class="back candado-btn" aria-pressed="false" data-i18n-aria="resultado.plano.candadoAria" aria-label="Candado del punto de escucha">
+            <svg class="candado-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path id="candado-shackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span id="btn-candado-texto">Candado cerrado</span>
+          </button>
+          <button type="button" id="btn-ver-ar" class="back" data-i18n="resultado.plano.verEnArBoton">Ver en AR</button>
+        </div>
+        <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.</p>
+        <p id="plan-hint-asiento" class="plan-hint hidden" data-i18n="resultado.plano.hintAsiento">Candado abierto: el punto de escucha también se puede arrastrar, de forma independiente de los parlantes.</p>
+        <p id="candado-comparador-aviso" class="src candado-comparador-aviso hidden" data-i18n="resultado.plano.candadoComparadorAviso">Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.</p>
+        <div class="plan-wrap" id="plan"></div>
+        <div class="legend">
+          <span><i style="border-top:1px dashed var(--dim)"></i> <span data-i18n="resultado.plano.leyendaTriangulo">triángulo de escucha</span></span>
+          <span><i style="border-top:1px dashed var(--warn)"></i> <span data-i18n="resultado.plano.leyendaReflexion">1ª reflexión</span></span>
+          <span><i style="border-top:2px solid var(--text)"></i> <span data-i18n="resultado.plano.leyendaParlante">parlante / escucha</span></span>
+        </div>
+        <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
+        <h4 data-i18n="resultado.plano.ubicacionTitulo">Ubicación de referencia de los parlantes</h4>
+        <p id="plan-ubicacion">—</p>
+      </div>
 
-    <footer class="note" data-i18n-html="resultado.footer.html">
-      <b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>
-      Si se agrega una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para verificarse escuchando.<br>
-      Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide en media-espacio y sobreestima, se usa la medición anecoica independiente.
-    </footer>
+      <div class="res-cta">
+        <button type="button" class="pc-enlace" data-nav-ir="results" data-i18n="resultado.pcVolverResultadoEnlace">Volver al resultado ↗</button>
+        <button type="button" class="pc-cta" data-nav-ir="documento"><span data-i18n="resultado.pcVerDocumento">Ver documento</span><span aria-hidden="true">↗</span></button>
+      </div>
+    </div>
   </div>
 </section>
 
