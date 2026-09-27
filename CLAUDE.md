@@ -4886,6 +4886,19 @@ ganancia de sala sólo informativa y rango cuando la convención de sensibilidad
 está declarada. El resto de los textos de la Guía se revisó contra el motor y no
 tenía afirmaciones vigentes desactualizadas.
 
+**Franjas marfil (misma rama, pedido del usuario).** La banda marfil de Resultado
+se repite en otras tres zonas: la **revisión de Configurar** (paso 3, a todo el
+ancho y pegada bajo el stepper), el **cuerpo de la Guía** (lista de temas + tema
+activo) y el **encabezado de Explorar mi sala**. El titular del veredicto de
+Resultado **se queda con su color de severidad** (decisión explícita). Técnica:
+la clase `.pc-claro` **invierte los tokens** (`--paper` pasa a ser el texto
+oscuro; `--pc-line/--pc-dim/--pc-faint` se oscurecen), así todo lo que ya se
+pintaba con esos tokens queda legible sobre marfil y el botón principal (fondo
+`--paper`, texto `--pc-bg`) se vuelve negro sin tocarlo. Configurar no tiene una
+sección propia para el paso 3, así que `pasos.ts` fija `data-paso` en `#s-config`
+y el CSS pinta la franja sólo con `data-paso="2"` (sombra de `100vmax` + `clip-path`
+horizontal para salirse del contenedor sin desbordar el scroll).
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

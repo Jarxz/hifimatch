@@ -62,6 +62,8 @@ export function iniciarPasos(): ControlPasos | null {
 
   function mostrar(n: number, enfocar: boolean): void {
     paso = permitido(Math.max(0, Math.min(2, n)));
+    // El CSS lo lee para pintar la revisión como franja marfil (sólo paso 3).
+    pantalla!.dataset.paso = String(paso);
     pasos.forEach((el, i) => {
       el.hidden = i !== paso;
     });

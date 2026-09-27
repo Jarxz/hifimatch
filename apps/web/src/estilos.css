@@ -1371,3 +1371,37 @@ dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}
   .info-temas{position:static; flex-direction:row; margin-bottom:28px; padding:0 0 2px; overflow-x:auto; border-right:0; border-bottom:1px solid var(--pc-line)}
   .info-temas [role=tab]{flex:0 0 auto; margin-right:24px; padding:12px 0; white-space:nowrap; font-size:14px}
 }
+
+/* FRANJAS MARFIL — la banda marfil de Resultado se repite en otras zonas de las
+   pantallas nuevas: la revisión de Configurar (paso 3), el cuerpo de la Guía y
+   el encabezado de Explorar mi sala. En vez de reescribir cada componente, la
+   franja INVIERTE los tokens de color (--paper pasa a ser el color de texto
+   oscuro, las líneas y grises se oscurecen): todo lo que ya se pintaba con
+   var(--paper)/var(--pc-*) queda legible sobre marfil sin tocarlo, y el botón
+   principal (fondo --paper, texto --pc-bg) se invierte solo a negro sobre marfil. */
+.pc-claro, #s-config[data-paso="2"] .pc-cfg-cuerpo{--paper:#111310; --pc-bg:#efede7; --pc-line:rgba(17,19,16,.2); --pc-dim:#4c504a; --pc-faint:#6b6f68; --dim:#4c504a; --faint:#6b6f68; --label:#5c605a; background:#efede7; color:#111310}
+.pc-claro .pc-cta:hover, #s-config[data-paso="2"] .pc-cta:hover, #s-config[data-paso="2"] .analizar:not(:disabled):hover{background:#2a2d28; color:#efede7}
+.pc-claro .pc-enlace:focus-visible, .pc-claro .pc-btn-linea:focus-visible, .pc-claro summary:focus-visible, .pc-claro [role=tab]:focus-visible, #s-config[data-paso="2"] .pc-enlace:focus-visible, #s-config[data-paso="2"] .pc-cta:focus-visible{outline-color:#2b5a9c}
+
+/* Configurar, paso 3: la franja ocupa todo el ancho (sombra + recorte
+   horizontal) y queda pegada bajo el stepper. */
+#s-config[data-paso="2"] .pc-stepper{margin-bottom:0}
+#s-config[data-paso="2"] .pc-cfg-cuerpo{padding:48px 0 52px; margin-bottom:34px; box-shadow:0 0 0 100vmax #efede7; clip-path:inset(0 -100vmax)}
+#s-config[data-paso="2"] .pc-cadena{border-left-color:rgba(17,19,16,.2)}
+
+/* Guía: el cuerpo (lista de temas + tema activo) es la franja */
+.info-banda{padding:56px 0 64px}
+.info-banda .info-cuerpo{padding-top:0}
+.info-banda .info-temas [role=tab][aria-selected=true]{font-weight:600}
+
+/* Explorar mi sala: el encabezado es la franja */
+.sala-banda{padding:44px 0 40px; margin-bottom:34px}
+.sala-banda .sala-cab{padding-top:0; padding-bottom:0}
+.sala-banda .pc-eyebrow{color:#4c504a}
+.sala-banda .pc-btn-linea:hover{border-color:#111310}
+
+@media (max-width:850px){
+  .info-banda{padding:36px 0 44px}
+  .sala-banda{padding:34px 0 30px}
+  #s-config[data-paso="2"] .pc-cfg-cuerpo{padding:34px 0 38px}
+}
