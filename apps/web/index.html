@@ -1094,25 +1094,54 @@
       </div>
     </div>
 
-    <h2 class="lead" data-i18n="info.titulo">Cómo leer este análisis</h2>
-    <p class="lead-note" data-i18n="info.intro">—</p>
+    <div class="pc-inner info-cab">
+      <p class="pc-eyebrow" data-i18n="info.pcEyebrow">Guía / Escucha informada</p>
+      <h2 class="info-titulo" data-i18n="info.pcTitulo">Entiende lo que ves.</h2>
+      <p class="info-lead" data-i18n="info.intro">—</p>
+    </div>
 
-    <details class="card info-item"><summary><h3 data-i18n="info.capas.titulo">Dos tipos de afirmación: física y criterio editorial</h3></summary><p data-i18n-html="info.capas.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.confianza.titulo">Fuente y confianza de cada dato</h3></summary><p data-i18n-html="info.confianza.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.generico.titulo">Perfiles genéricos (arquetipos): cuando el equipo real no está en el catálogo</h3></summary><p data-i18n-html="info.generico.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.potencia.titulo">Potencia frente a los picos de la sala</h3></summary><p data-i18n-html="info.potencia.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.carga.titulo">La carga que ve el amplificador</h3></summary><p data-i18n-html="info.carga.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</h3></summary><p data-i18n-html="info.amortiguamiento.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.ganancia.titulo">Puente de impedancias y recorrido de volumen</h3></summary><p data-i18n-html="info.ganancia.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.modos.titulo">Modos de sala (resonancias de graves)</h3></summary><p data-i18n-html="info.modos.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.filtroPeine.titulo">Filtro peine por reflexión</h3></summary><p data-i18n-html="info.filtroPeine.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.triangulo.titulo">Triángulo de escucha</h3></summary><p data-i18n-html="info.triangulo.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3></summary><p data-i18n-html="info.reverberacion.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.plano.titulo">Vista isométrica y reflexiones tempranas</h3></summary><p data-i18n-html="info.plano.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.veredicto.titulo">El veredicto y los tres estados</h3></summary><p data-i18n-html="info.veredicto.cuerpoHtml">—</p></details>
+    <div class="pc-inner info-cuerpo">
+      <div class="info-temas" role="tablist" aria-orientation="vertical" id="info-temas" data-i18n-aria="info.pcTemasAria">
+        <button type="button" role="tab" id="tema-leer" aria-selected="true" aria-controls="panel-tema-leer" data-i18n="info.temas.leer.nombre">—</button>
+        <button type="button" role="tab" id="tema-equipos" aria-selected="false" tabindex="-1" aria-controls="panel-tema-equipos" data-i18n="info.temas.equipos.nombre">—</button>
+        <button type="button" role="tab" id="tema-sala" aria-selected="false" tabindex="-1" aria-controls="panel-tema-sala" data-i18n="info.temas.sala.nombre">—</button>
+        <button type="button" role="tab" id="tema-fuentes" aria-selected="false" tabindex="-1" aria-controls="panel-tema-fuentes" data-i18n="info.temas.fuentes.nombre">—</button>
+      </div>
+      <div class="info-paneles">
+        <div class="info-panel" role="tabpanel" id="panel-tema-leer" aria-labelledby="tema-leer">
+          <h3 class="info-tema-titulo" data-i18n="info.temas.leer.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.leer.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.veredicto.titulo">El veredicto y los tres estados</h3></summary><p data-i18n-html="info.veredicto.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.potencia.titulo">Potencia frente a los picos de la sala</h3></summary><p data-i18n-html="info.potencia.cuerpoHtml">—</p></details>
+        </div>
+        <div class="info-panel" role="tabpanel" id="panel-tema-equipos" aria-labelledby="tema-equipos" hidden>
+          <h3 class="info-tema-titulo" data-i18n="info.temas.equipos.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.equipos.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.carga.titulo">La carga que ve el amplificador</h3></summary><p data-i18n-html="info.carga.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</h3></summary><p data-i18n-html="info.amortiguamiento.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.ganancia.titulo">Puente de impedancias y recorrido de volumen</h3></summary><p data-i18n-html="info.ganancia.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.generico.titulo">Perfiles genéricos (arquetipos): cuando el equipo real no está en el catálogo</h3></summary><p data-i18n-html="info.generico.cuerpoHtml">—</p></details>
+        </div>
+        <div class="info-panel" role="tabpanel" id="panel-tema-sala" aria-labelledby="tema-sala" hidden>
+          <h3 class="info-tema-titulo" data-i18n="info.temas.sala.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.sala.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.modos.titulo">Modos de sala (resonancias de graves)</h3></summary><p data-i18n-html="info.modos.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.filtroPeine.titulo">Filtro peine por reflexión</h3></summary><p data-i18n-html="info.filtroPeine.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.triangulo.titulo">Triángulo de escucha</h3></summary><p data-i18n-html="info.triangulo.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3></summary><p data-i18n-html="info.reverberacion.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.plano.titulo">Vista isométrica y reflexiones tempranas</h3></summary><p data-i18n-html="info.plano.cuerpoHtml">—</p></details>
+        </div>
+        <div class="info-panel" role="tabpanel" id="panel-tema-fuentes" aria-labelledby="tema-fuentes" hidden>
+          <h3 class="info-tema-titulo" data-i18n="info.temas.fuentes.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.fuentes.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.confianza.titulo">Fuente y confianza de cada dato</h3></summary><p data-i18n-html="info.confianza.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.capas.titulo">Dos tipos de afirmación: física y criterio editorial</h3></summary><p data-i18n-html="info.capas.cuerpoHtml">—</p></details>
+        </div>
+      </div>
+    </div>
 
-    <div style="display:flex; justify-content:center; margin:30px 0 10px">
-      <button class="back" id="btn-info-volver-2" data-i18n="info.volver">← Volver al análisis</button>
+    <div class="pc-inner info-pie">
+      <button class="pc-enlace" id="btn-info-volver-2" data-i18n="info.volver">← Volver al análisis</button>
     </div>
   </div>
 </section>

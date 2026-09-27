@@ -1,14 +1,18 @@
 /** Pestañas de Resultado (Lectura general / Física y fórmulas / Datos y
- * fuentes). Sólo presentación: muestra un panel y oculta los otros, sin tocar
- * lo que hay dentro — los ids de las tarjetas siguen siendo los de siempre, así
- * que pintar.ts escribe igual con el panel oculto (mismo caso que un <details>
- * colapsado). Patrón ARIA de pestañas: tabindex itinerante y flechas. */
+ * fuentes) y temas de la Guía (lista vertical). Sólo presentación: muestra un
+ * panel y oculta los otros, sin tocar lo que hay dentro — los ids de las
+ * tarjetas siguen siendo los de siempre, así que pintar.ts escribe igual con el
+ * panel oculto (mismo caso que un <details> colapsado). Patrón ARIA de
+ * pestañas: tabindex itinerante y flechas (izquierda/derecha, o arriba/abajo
+ * en la lista vertical). */
 export interface ControlPestanas {
   /** Activa la pestaña por índice (0-based). */
   activar(indice: number): void;
 }
 
-export function iniciarPestanas(lista: HTMLElement | null): ControlPestanas | null {
+export type OrientacionPestanas = 'horizontal' | 'vertical';
+
+export function iniciarPestanas(lista: HTMLElement | null, orientacion: OrientacionPestanas = 'horizontal'): ControlPestanas | null {
   if (!lista) return null;
   const tabs = [...lista.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
   if (tabs.length === 0) return null;
@@ -31,9 +35,11 @@ export function iniciarPestanas(lista: HTMLElement | null): ControlPestanas | nu
     t.addEventListener('click', () => activar(i, false));
     t.addEventListener('keydown', (ev) => {
       const ultimo = tabs.length - 1;
+      const siguiente = orientacion === 'vertical' ? 'ArrowDown' : 'ArrowRight';
+      const anterior = orientacion === 'vertical' ? 'ArrowUp' : 'ArrowLeft';
       const destino =
-        ev.key === 'ArrowRight' ? (i === ultimo ? 0 : i + 1)
-        : ev.key === 'ArrowLeft' ? (i === 0 ? ultimo : i - 1)
+        ev.key === siguiente ? (i === ultimo ? 0 : i + 1)
+        : ev.key === anterior ? (i === 0 ? ultimo : i - 1)
         : ev.key === 'Home' ? 0
         : ev.key === 'End' ? ultimo
         : null;

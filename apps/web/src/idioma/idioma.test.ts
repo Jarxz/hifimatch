@@ -51,19 +51,21 @@ test('data-i18n-html sólo se usa donde el texto realmente lleva HTML (footer + 
   assert.deepEqual(CLAVES_HTML, [
     'resultado.footer.html',
     'resultado.plano.hintArrastreHtml',
-    'info.capas.cuerpoHtml',
-    'info.confianza.cuerpoHtml',
-    'info.generico.cuerpoHtml',
+    // Guía por temas: el orden es el de index.html (Leer el resultado → Equipos y
+    // señal → Sala y disposición → Fuentes y confianza).
+    'info.veredicto.cuerpoHtml',
     'info.potencia.cuerpoHtml',
     'info.carga.cuerpoHtml',
     'info.amortiguamiento.cuerpoHtml',
     'info.ganancia.cuerpoHtml',
+    'info.generico.cuerpoHtml',
     'info.modos.cuerpoHtml',
     'info.filtroPeine.cuerpoHtml',
     'info.triangulo.cuerpoHtml',
     'info.reverberacion.cuerpoHtml',
     'info.plano.cuerpoHtml',
-    'info.veredicto.cuerpoHtml',
+    'info.confianza.cuerpoHtml',
+    'info.capas.cuerpoHtml',
     'documento.disclaimerHtml',
   ]);
 });

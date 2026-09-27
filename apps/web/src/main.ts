@@ -388,6 +388,7 @@ function actualizarBadgesNivelGenero(): void {
  * DOM existe; hasta entonces, `actualizarPasosUi()` no hace nada. */
 let controlPasos: ControlPasos | null = null;
 let controlPestanasRes: ControlPestanas | null = null;
+let controlTemasGuia: ControlPestanas | null = null;
 
 function actualizarPasosUi(): void {
   if (!controlPasos) return;
@@ -1991,6 +1992,11 @@ function actualizarNavHabilitada(): void {
 function abrirTarjetaGuia(clave: string): void {
   const tarjeta = document.querySelector(`#s-info [data-i18n="info.${clave}.titulo"]`)?.closest('details');
   if (!tarjeta) return;
+  // La tarjeta vive en el panel de un tema: hay que activar ese tema antes de
+  // abrirla, o queda dentro de un panel oculto y no hay nada que mostrar.
+  const panel = tarjeta.closest('[role="tabpanel"]');
+  const paneles = [...document.querySelectorAll('#s-info [role="tabpanel"]')];
+  if (panel) controlTemasGuia?.activar(paneles.indexOf(panel));
   tarjeta.open = true;
   tarjeta.scrollIntoView({ block: 'start' });
 }
@@ -2037,6 +2043,7 @@ function wireEventos(): void {
   document.getElementById('btn-guardar-res')?.addEventListener('click', () => abrirGuardarPopup());
   document.getElementById('btn-ver-original')?.addEventListener('click', () => activarPestana('original'));
   controlPestanasRes = iniciarPestanas(document.getElementById('res-tabs'));
+  controlTemasGuia = iniciarPestanas(document.getElementById('info-temas'), 'vertical');
 
   // Navegación de las 6 secciones (.head-nav, ver estilos.css) — un solo
   // listener delegado por tipo de botón, en vez de uno por pantalla:

@@ -4860,6 +4860,32 @@ consola y cero pedidos externos. **Guía, Documento y Mensajes dan capturas byte
 byte idénticas a `master`** (Documento idéntico confirma que las cifras del
 motor no cambiaron); Resultado difiere a propósito.
 
+**Fase 4 — Guía por temas (misma rama).** La Guía pasa de 13 tarjetas sueltas
+en una columna a la estructura de la maqueta: título "Entiende lo que ves.", una
+**lista lateral de cuatro temas** y, a la derecha, el tema activo con su título,
+su introducción y sus conceptos como acordeones (el primero abierto). **Los 13
+conceptos y sus textos son los de siempre** (mismas claves `info.<clave>`, mismos
+`<h3>` que `paginas-estaticas.test.ts` compara contra `es.ts`, mismo contenido en
+los botones "i" de cada tarjeta): sólo se reparten así — *Leer el resultado*
+(veredicto, potencia), *Equipos y señal* (carga, amortiguamiento, ganancia,
+perfiles genéricos), *Sala y disposición* (modos, filtro peine, triángulo,
+reverberación, plano) y *Fuentes y confianza* (confianza, capas). `vista/pestanas.ts`
+gana orientación vertical (flechas arriba/abajo). **Los enlaces profundos
+siguen funcionando:** `abrirTarjetaGuia(clave)` (los conceptos de la portada)
+activa primero el tema que contiene la tarjeta y recién después la abre —
+verificado con `carga`, `potencia`, `capas` y `confianza`. Se retiró la clave
+`info.titulo` ("Cómo leer este análisis"), reemplazada por el título nuevo, y las
+reglas `.info-item` de la piel anterior.
+
+**Corregido de paso:** la tarjeta de Potencia de la Guía (`info.potencia`) seguía
+explicando "+6 dB por par de parlantes y +3 dB por sala pequeña", anterior a la
+corrección de `potencia.ts`. Ahora describe lo que el motor hace: sensibilidad
+normalizada a 1 W/1 m, potencia a la carga real (8 Ω o 4 Ω), distancia de cada
+parlante, suma descorrelacionada de los dos canales (+3 dB a igual distancia),
+ganancia de sala sólo informativa y rango cuando la convención de sensibilidad no
+está declarada. El resto de los textos de la Guía se revisó contra el motor y no
+tenía afirmaciones vigentes desactualizadas.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

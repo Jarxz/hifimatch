@@ -255,7 +255,35 @@ export const es = {
     hs: 'Guía del análisis',
     boton: 'Info',
     volver: '← Volver al análisis',
-    titulo: 'Cómo leer este análisis',
+    pcEyebrow: 'Guía / Escucha informada',
+    pcTitulo: 'Entiende lo que ves.',
+    pcTemasAria: 'Temas de la guía',
+    temas: {
+      leer: {
+        nombre: 'Leer el resultado',
+        titulo: 'Leer el resultado, con criterio.',
+        intro:
+          'Cada conclusión necesita contexto. El sitio distingue lo que calcula, lo que decide como criterio propio y lo que todavía falta: así se agrupan las reglas en un veredicto y qué significa la reserva de potencia.',
+      },
+      equipos: {
+        nombre: 'Equipos y señal',
+        titulo: 'Los equipos, más allá de la ficha.',
+        intro:
+          'Potencia, carga, impedancia de salida y ganancia describen partes distintas de la cadena. Compararlas exige saber cómo se midió cada dato y qué ocurre entre una etapa y la siguiente.',
+      },
+      sala: {
+        nombre: 'Sala y disposición',
+        titulo: 'El espacio participa en la escucha.',
+        intro:
+          'La geometría ofrece un punto de partida. Los materiales, las aberturas y la ubicación determinan cuánto se parece la sala real al modelo, por eso cada predicción se verifica midiendo.',
+      },
+      fuentes: {
+        nombre: 'Fuentes y confianza',
+        titulo: 'El origen es parte del dato.',
+        intro:
+          'Un análisis transparente muestra qué se conoce, de dónde viene y qué límites tiene. Aquí se explica cómo se rotula cada afirmación y qué ocurre cuando falta un dato.',
+      },
+    },
     intro:
       'Esta página explica qué significa cada tarjeta del resultado y de dónde sale cada número — para que el análisis se pueda leer con criterio propio, no sólo confiando en el veredicto final.',
     capas: {
@@ -276,7 +304,7 @@ export const es = {
     potencia: {
       titulo: 'Potencia frente a los picos de la sala',
       cuerpoHtml:
-        'La pregunta que responde esta tarjeta: ¿el amplificador entrega el nivel de pico (SPL) que la sala pide, a la distancia real de escucha? Se calcula desde la sensibilidad del parlante, la potencia del amplificador y la distancia, sumando un refuerzo típico por par de parlantes (+6 dB) y por sala pequeña (+3 dB) — dos supuestos declarados, no datos del equipo, que se verifican midiendo. El resultado es un <b>margen en dB</b> sobre el pico objetivo del nivel de escucha elegido (moderado/alto/referencia). La frase simple de la tarjeta reexpresa ese margen como <b>% de la capacidad del amplificador</b> que exige ese pico — más intuitivo que un número en dB: si el margen es de +6 dB, el amplificador está usando apenas una fracción de lo que tiene; si el margen es negativo, exigiría más del 100% de su capacidad, es decir, recortaría la señal (clipping) en los picos.',
+        'La pregunta que responde esta tarjeta: ¿el amplificador entrega el nivel de pico (SPL) que la sala pide, a la distancia real de escucha? Se calcula desde la sensibilidad del parlante (normalizada a 1 W/1 m cuando la ficha la cita a 2,83 V), la potencia del amplificador a la carga real (8 Ω o 4 Ω, según el parlante) y la distancia de cada parlante al punto de escucha. Los dos canales se suman como fuentes descorrelacionadas (+3 dB a igual distancia) y la ganancia de sala <b>no</b> se suma al nivel de banda ancha: aparece aparte, como información, bajo la frecuencia del modo axial de la dimensión mayor. Cuando la ficha no declara con qué convención se midió la sensibilidad y la impedancia es menor de 8 Ω, la tarjeta muestra un rango en vez de un solo número. Son supuestos declarados, no datos del equipo, y se verifican midiendo. El resultado es un <b>margen en dB</b> sobre el pico objetivo del nivel de escucha elegido (moderado/alto/referencia). La frase simple de la tarjeta reexpresa ese margen como <b>% de la capacidad del amplificador</b> que exige ese pico — más intuitivo que un número en dB: si el margen es de +6 dB, el amplificador está usando apenas una fracción de lo que tiene; si el margen es negativo, exigiría más del 100% de su capacidad, es decir, recortaría la señal (clipping) en los picos.',
     },
     carga: {
       titulo: 'La carga que ve el amplificador',

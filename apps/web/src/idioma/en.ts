@@ -161,7 +161,35 @@ export const en: Textos = {
     hs: 'Analysis guide',
     boton: 'Info',
     volver: '← Back to the analysis',
-    titulo: 'How to read this analysis',
+    pcEyebrow: 'Guide / Informed listening',
+    pcTitulo: 'Understand what you see.',
+    pcTemasAria: 'Guide topics',
+    temas: {
+      leer: {
+        nombre: 'Reading the result',
+        titulo: 'Reading the result, with judgment.',
+        intro:
+          'Every conclusion needs context. The site tells apart what it calculates, what it decides as its own criterion and what is still missing: how the rules are grouped into one verdict and what power headroom means.',
+      },
+      equipos: {
+        nombre: 'Equipment and signal',
+        titulo: 'Equipment, beyond the spec sheet.',
+        intro:
+          'Power, load, output impedance and gain describe different parts of the chain. Comparing them requires knowing how each figure was measured and what happens between one stage and the next.',
+      },
+      sala: {
+        nombre: 'Room and layout',
+        titulo: 'The room takes part in the listening.',
+        intro:
+          'Geometry offers a starting point. Materials, openings and placement determine how closely the real room resembles the model, which is why every prediction is verified by measuring.',
+      },
+      fuentes: {
+        nombre: 'Sources and confidence',
+        titulo: 'The origin is part of the data.',
+        intro:
+          'A transparent analysis shows what is known, where it comes from and what its limits are. This explains how each claim is labeled and what happens when a figure is missing.',
+      },
+    },
     intro:
       "This page explains what each result card means and where each number comes from — so the analysis can be read with your own judgment, not just by trusting the final verdict.",
     capas: {
@@ -182,7 +210,7 @@ export const en: Textos = {
     potencia: {
       titulo: 'Power versus the room\'s peaks',
       cuerpoHtml:
-        "The question this card answers: does the amplifier deliver the peak level (SPL) the room asks for, at the real listening distance? It's calculated from speaker sensitivity, amplifier power, and distance, adding a typical boost for a stereo pair (+6 dB) and for a small room (+3 dB) — two declared assumptions, not equipment data, verified by measuring. The result is a <b>margin in dB</b> over the target peak of the chosen listening level (moderate/loud/reference). The card's short line re-expresses that margin as the <b>% of the amplifier's capacity</b> that peak demands — more intuitive than a dB figure: at +6 dB margin, the amplifier is only using a fraction of what it has; a negative margin would demand over 100% of its capacity, meaning it would clip on peaks.",
+        "The question this card answers: does the amplifier deliver the peak level (SPL) the room asks for, at the real listening distance? It's calculated from the speaker's sensitivity (normalized to 1 W/1 m when the spec sheet cites it at 2.83 V), the amplifier's power at the real load (8 Ω or 4 Ω, depending on the speaker) and each speaker's distance to the listening spot. The two channels are summed as uncorrelated sources (+3 dB at equal distance) and room gain is <b>not</b> added to the broadband level: it appears separately, as information, below the frequency of the largest dimension's axial mode. When the spec sheet does not declare which convention the sensitivity was measured with and the impedance is below 8 Ω, the card shows a range instead of a single number. These are declared assumptions, not equipment data, verified by measuring. The result is a <b>margin in dB</b> over the target peak of the chosen listening level (moderate/loud/reference). The card's short line re-expresses that margin as the <b>% of the amplifier's capacity</b> that peak demands — more intuitive than a dB figure: at +6 dB margin, the amplifier is only using a fraction of what it has; a negative margin would demand over 100% of its capacity, meaning it would clip on peaks.",
     },
     carga: {
       titulo: 'The load the amplifier sees',
