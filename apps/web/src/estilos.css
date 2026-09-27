@@ -157,18 +157,46 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .site-foot-links{display:flex; flex-wrap:wrap; gap:22px}
 .site-foot-bar{display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; padding:14px 0 4px; border-top:1px solid var(--line3); font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint)}
 
-/* HEAD — barra fija de 2 filas en las 5 pantallas de la app de una sola
+/* HEAD — barra fija de 2 filas en las 8 pantallas de la app de una sola
    página (fila 1: wordmark + estado/acciones; fila 2: navegación completa
-   a las 6 secciones, siempre visible — ver .head-nav). AR (ar.html) es una
-   página aparte con su propio chrome de pantalla completa, sin este
-   header; su pestaña en .head-nav navega ahí, no *desde* ahí. */
+   a las 7 secciones internas, siempre visible — ver .head-nav). AR
+   (ar.html) es una página aparte con su propio chrome de pantalla
+   completa, sin este header; su pestaña en .head-nav navega ahí, no
+   *desde* ahí.
+   Los estilos de .head/.head-status/.head-nav-btn/.idioma-splash se
+   scopean con `.screen X` (toda pantalla lleva class="screen"), no con
+   una lista de 8 ids repetida en 8 reglas distintas — ese id-list
+   literal es el riesgo real de olvidarse de sumar una pantalla nueva a
+   alguna de las 8 (`estilos.css` ya venía repitiéndolo idéntico así
+   antes de este cambio); una pantalla nueva ahora hereda el header sin
+   tocar esta hoja. Una excepción deliberada, escrita como negación en
+   vez de lista positiva (`.screen:not(:where(#s-splash)) .head
+   .hright`, la fila derecha de la portada no lleva los botones extra
+   —"Guardar"/"Cambiar sistema"— que exigen el padding compensado en
+   las demás) — el `:where()` adentro del `:not()` no es cosmético:
+   `:not(#id)` cuenta la especificidad de un ID aunque lo esté negando,
+   así que `:not(:where(#id))` es la única forma de excluir una pantalla
+   sin dispararle la especificidad a la regla entera; `:where()` vale
+   siempre cero.
+   `.wrap` NO comparte ninguna regla de `padding-top` entre pantallas —
+   se investigó sumarla a este mismo patrón `.screen`, pero cada una de
+   las 8 ya tenía su propio `#s-X .wrap{padding:88px…}` dedicado (el
+   plano/banda propios de cada pantalla necesitan su propio ancho
+   además del padding). La única lista de 7 ids que sí existía para esto
+   quedaba, en la práctica, muerta en las 7 — perdía contra el override
+   propio de cada pantalla sin excepción — y se borró en vez de
+   consolidarla: preservar código que ya no decide nada sólo agrega
+   confusión (encontrado al medir `padding-top` calculado con Chrome
+   headless antes/después de este cambio, comparando pantalla por
+   pantalla — el primer intento de consolidarla con `.screen:not(...)`
+   sí tenía el bug de especificidad de arriba, pero resultó ser
+   irrelevante: ninguna pantalla dependía de esa regla para empezar). */
 /* Una sola fila en desktop (logo — nav — badges/ES/EN), no dos apiladas —
    mismo esqueleto que la referencia de Stitch (header de 80px, logo y nav
    comparten la fila). Debajo de 1024px se vuelve a las 2 filas ya afinadas
    en muchas rondas anteriores (ver el media query de abajo, que ahora
    declara su propio grid-template-areas en vez de heredar éste). */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:grid; grid-template-columns:auto auto 1fr; grid-template-areas:"hm nav hright"; align-items:center; column-gap:28px; padding:14px 22px; border-bottom:1px solid var(--line)}
-#s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap, #s-sistemas .wrap{padding-top:78px}
 .head .hm{grid-area:hm; font-weight:300; letter-spacing:.05em; font-size:19px; padding-left:.05em}
 .head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}
@@ -225,7 +253,6 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .idioma-splash{top:9px}
   .segs.idioma button{padding:5px 7px; font-size:9px}
   .head-nav-btn{font-size:9.5px; padding:5px 8px 7px}
-  #s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap, #s-sistemas .wrap{padding-top:96px}
 }
 
 /* CONFIG */
@@ -861,24 +888,27 @@ html:has(#ar-canvas), html:has(#ar-canvas) body{height:100%; overflow:hidden}
 .ar-hud .back{margin-top:8px}
 
 /* PORTADA EDITORIAL — estructura de la propuesta de Codex (maqueta "portada
-   acústica") adaptada a la portada real. Todo scopeado a #s-splash o a clases
-   pc-*: las otras 5 pantallas conservan su identidad hasta su propia fase.
-   Marfil/negro y tracking negativo son de esta portada, no tokens globales. */
+   acústica") adaptada a la portada real. Nació scopeada sólo a #s-splash;
+   las fases siguientes (Configurar 2b, Resultado/Sala 3, Guía 4, Documento/
+   Mensajes 5-6, Mis sistemas 7) le fueron sumando las 7 pantallas restantes
+   conforme les llegaba el turno — hoy las 8 comparten los mismos tokens
+   `--paper`/`--pc-bg`/`--pc-line`/`--pc-dim`/`--pc-faint` vía `.screen` (ver
+   más abajo), no sólo la portada. Marfil/negro y tracking negativo. */
 @keyframes st-pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
 @keyframes proof-in{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
 
-#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas{--paper:#efede7; --ink:#111310; --pc-bg:#050606; --pc-line:rgba(239,237,231,.16); --pc-dim:#a9ada6; --pc-faint:#7f847d; background:var(--pc-bg); font-weight:300}
+.screen{--paper:#efede7; --ink:#111310; --pc-bg:#050606; --pc-line:rgba(239,237,231,.16); --pc-dim:#a9ada6; --pc-faint:#7f847d; background:var(--pc-bg); font-weight:300}
 #s-splash .wrap{max-width:none; padding:88px 0 0}
-#s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head, #s-sistemas .head{background:rgba(5,6,6,.96); border-bottom-color:var(--pc-line)}
-#s-splash .head-status, #s-config .head-status, #s-results .head-status, #s-sala .head-status, #s-info .head-status, #s-documento .head-status, #s-mensajes .head-status, #s-sistemas .head-status{display:none}
-#s-splash .head-nav-btn, #s-config .head-nav-btn, #s-results .head-nav-btn, #s-sala .head-nav-btn, #s-info .head-nav-btn, #s-documento .head-nav-btn, #s-mensajes .head-nav-btn, #s-sistemas .head-nav-btn{color:var(--pc-dim); font-size:10px; letter-spacing:.09em; border-bottom-width:1px}
-#s-splash .head-nav-btn:hover, #s-config .head-nav-btn:hover, #s-results .head-nav-btn:hover, #s-sala .head-nav-btn:hover, #s-info .head-nav-btn:hover, #s-documento .head-nav-btn:hover, #s-mensajes .head-nav-btn:hover, #s-sistemas .head-nav-btn:hover{color:var(--paper)}
-#s-splash .head-nav-btn[aria-current="page"], #s-config .head-nav-btn[aria-current="page"], #s-results .head-nav-btn[aria-current="page"], #s-sala .head-nav-btn[aria-current="page"], #s-info .head-nav-btn[aria-current="page"], #s-documento .head-nav-btn[aria-current="page"], #s-mensajes .head-nav-btn[aria-current="page"], #s-sistemas .head-nav-btn[aria-current="page"]{color:var(--paper); border-bottom-color:var(--paper); text-shadow:none}
+.screen .head{background:rgba(5,6,6,.96); border-bottom-color:var(--pc-line)}
+.screen .head-status{display:none}
+.screen .head-nav-btn{color:var(--pc-dim); font-size:10px; letter-spacing:.09em; border-bottom-width:1px}
+.screen .head-nav-btn:hover{color:var(--paper)}
+.screen .head-nav-btn[aria-current="page"]{color:var(--paper); border-bottom-color:var(--paper); text-shadow:none}
 @media (min-width:1025px){
-  #s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head, #s-sistemas .head{max-width:none; left:0; transform:none; grid-template-columns:1fr auto 1fr; column-gap:36px; padding:0 max(44px, calc((100vw - 1380px) / 2 + 44px)); height:88px}
-  #s-splash .head .hright, #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright, #s-sistemas .head .hright{justify-self:end}
-  #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright, #s-sistemas .head .hright{padding-right:96px}
-  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash, #s-sistemas .idioma-splash{top:28px; right:max(44px, calc((100vw - 1380px) / 2 + 44px))}
+  .screen .head{max-width:none; left:0; transform:none; grid-template-columns:1fr auto 1fr; column-gap:36px; padding:0 max(44px, calc((100vw - 1380px) / 2 + 44px)); height:88px}
+  .screen .head .hright{justify-self:end}
+  .screen:not(:where(#s-splash)) .head .hright{padding-right:96px}
+  .screen .idioma-splash{top:28px; right:max(44px, calc((100vw - 1380px) / 2 + 44px))}
 }
 @media (max-width:1024px){ #s-splash .wrap{padding-top:96px} }
 
@@ -968,7 +998,7 @@ html:has(#ar-canvas), html:has(#ar-canvas) body{height:100%; overflow:hidden}
 #s-splash .novedades-popup{position:relative; top:auto; bottom:auto; left:auto; max-width:330px; margin-top:26px; border-radius:0; box-shadow:none; border-color:var(--pc-line); background:var(--pc-bg)}
 
 @media (max-width:1024px){
-  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash, #s-sistemas .idioma-splash{top:9px}
+  .screen .idioma-splash{top:9px}
 }
 /* Tablet: texto e imagen en dos columnas sin solaparse (el titular no pisa a los parlantes). */
 @media (min-width:851px) and (max-width:1024px){
@@ -1274,10 +1304,16 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
    estado (verde / dorado / rojo), no en fondos, bordes ni textos. Los tokens
    --panel* se redefinen en estos ámbitos, así todo lo que ya los usa (selects,
    listas de resultados, chips, ficha manual…) se adapta sin tocarlo uno a uno. */
-#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
-/* Resultado y Sala: los grises de texto suben hacia el marfil (más blanco y
-   negro, menos gris); la jerarquía se conserva con tamaño, mayúsculas y peso. */
-#s-results, #s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas{--dim:#cdd0c9; --faint:#a3a79f; --label:#b8bbb4; --pc-dim:#c4c7c0; --pc-faint:#9a9e97}
+.screen, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
+/* Resultado, Sala, Guía, Documento, Mensajes y Mis sistemas: los grises de
+   texto suben hacia el marfil (más blanco y negro, menos gris); la
+   jerarquía se conserva con tamaño, mayúsculas y peso. Portada y Configurar
+   quedan fuera a propósito — conservan la jerarquía de grises más suave con
+   la que nacieron. Clase en index.html (`screen-alto-contraste`), no una
+   lista de ids: mismo motivo que `.screen` más arriba — una pantalla
+   nueva de este grupo (si alguna vez se agrega otra) sólo necesita la
+   clase en su `<section>`, no volver a tocar esta hoja. */
+.screen-alto-contraste{--dim:#cdd0c9; --faint:#a3a79f; --label:#b8bbb4; --pc-dim:#c4c7c0; --pc-faint:#9a9e97}
 
 /* Estados de Lectura general y grupos de evidencia */
 #s-results .estado-item, #s-results .grupo-evidencia{background:transparent; border:1px solid var(--pc-line); border-radius:0}

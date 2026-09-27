@@ -5047,6 +5047,60 @@ selector de idioma, un único `<h1>` cada una, cero `<script>` fuera del
 JSON-LD de contacto, cero errores de consola, 390px sin desborde horizontal.
 711 tests totales (antes 707 tras la Fase 7).
 
+**Fase 9 — Encabezado y tokens globales: consolidar los selectores por id
+repetidos en `.screen`/`.screen-alto-contraste`, con un bug de especificidad
+real encontrado y corregido en el camino (misma rama).** Última fase del plan
+de adaptación a la maqueta. No hay ninguna pieza visual nueva de la maqueta
+que portar acá — el encabezado de las 8 pantallas ya era idéntico entre sí
+(confirmado comparando los 7 botones de nav de cada `.head`, mismo orden en
+las 8) y los tokens marfil/negro (`--paper`/`--pc-bg`/`--pc-line`/`--pc-dim`/
+`--pc-faint`/`--panel*`) ya estaban en todas desde que a cada una le llegó su
+turno en las fases 2b-7. Lo que sí quedaba fragilizado: esos tokens se
+scopeaban con una lista literal de 8 ids (`#s-splash, #s-config, #s-results,
+#s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas`), repetida idéntica
+en 8 reglas distintas de `estilos.css` — el mismo riesgo que ya obligó a
+tocar esta hoja dos veces en fases anteriores (al sumar `#s-sistemas` y
+`#s-mensajes`), y que iba a repetirse cada vez que se agregue una pantalla
+nueva.
+
+Reemplazada por `.screen` (toda pantalla ya lleva esa clase) en las 8 reglas
+de header/idioma que de verdad aplicaban a las 8 por igual. La única regla
+que agrupaba 6 de las 8 (Resultado/Sala/Guía/Documento/Mensajes/Mis sistemas
+— los grises de texto suben hacia el marfil, Portada/Configurar se quedan con
+la jerarquía más suave con la que nacieron) pasó a una clase nueva,
+`.screen-alto-contraste`, puesta a mano en esas 6 `<section>` de `index.html`
+— ninguna lista de ids que mantener sincronizada.
+
+**El bug real: `:not(#id)` no tiene especificidad cero — cuenta la del ID que
+niega.** El primer intento escribió la excepción de Portada como
+`.screen:not(#s-splash) .wrap` — sin darse cuenta de que eso le sube la
+especificidad a la regla ENTERA por encima de un selector con ID normal,
+justo lo contrario de lo que un selector de excepción "genérico" debería
+hacer. Encontrado midiendo `padding-top` calculado con Chrome headless antes/
+después en las 8 pantallas: Resultado pasó de 88px a 78px, porque la nueva
+regla genérica (con la especificidad inflada por el `:not(#id)`) empezó a
+ganarle a la regla concreta de esa pantalla en vez de perder como antes.
+Corregido envolviendo el id en `:where()` (`:not(:where(#s-splash))`), que sí
+tiene especificidad cero siempre.
+
+**Segundo hallazgo, más de fondo: esa regla genérica de `.wrap` ya era código
+muerto antes de tocar nada.** Verificado que las 8 pantallas tienen, cada
+una, su propia regla `#s-X .wrap{padding:88px…}` dedicada (una por pantalla,
+ya existente de fases anteriores — el plano/la banda/el layout propio de cada
+una necesita su propio ancho, no sólo el padding) — la lista de 7 ids que
+fijaba `padding-top:78px` nunca ganaba en ninguna pantalla real, con o sin el
+bug de especificidad de arriba. Se borró en vez de arreglarla: mantener una
+regla que no decide nada en ningún caso real sólo agrega una fuente más de
+confusión para quien la lea después.
+
+Verificado con Chrome headless, comparando el `padding-top`/color/fondo
+calculado de `.head`/`.head-nav-btn`/`.wrap`/`.idioma-splash` en las 8
+pantallas a 1440 y 390 px contra los valores ya declarados en `estilos.css`
+antes de esta ronda (todos coinciden exacto, incluida la distinción Portada/
+Configurar vs. el resto para el color de `.head-nav-btn`) — cero diferencia
+visual, capturas de pantalla iguales. 711 tests (sin cambio: esta fase no
+tocó ninguna lógica testeable, sólo selectores CSS).
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
