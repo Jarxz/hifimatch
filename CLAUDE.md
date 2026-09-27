@@ -4941,8 +4941,14 @@ con tweeter y woofer; frente ancho de amplificador con perilla y ranura; caja ba
 ventana para streamer y DAC). La sección opcional pasa de "Añadir fuente y conversor"
 a **"Agrega Streamer y DAC · opcional"** (`config.pcOpcionales`, en los dos idiomas).
 Y la **selección de equipos (paso 1) también es franja marfil**, igual que la revisión:
-el selector CSS `#s-config:is([data-paso="0"],[data-paso="2"])` comparte las mismas
-reglas. El paso 2 (sala y escucha) sigue oscuro. Los cuadros de selección de equipo
+el selector CSS `#s-config[data-paso]` comparte las mismas reglas.
+**Actualización:** el paso 2 (sala y escucha) también pasó a marfil, así que los tres
+pasos usan la misma franja. Sobre marfil, el dorado (`α 0,10`) y el rojo del aviso de
+dimensiones no llegaban a 3:1 de contraste: dentro de la franja se redefinen
+`--dorado`/`--alert` a versiones oscuras, y los selectores de nivel de escucha y género
+invierten el activo a negro con texto marfil (un tinte marfil translúcido no se veía).
+Comprobado por script (contraste de cada control del paso 2, con materiales abiertos y
+con el error de dimensiones) y por captura a 1440 y 390 px. Los cuadros de selección de equipo
 no heredan los tokens invertidos porque los `<dialog>` cuelgan de `.wrap`, no de la
 franja.
 

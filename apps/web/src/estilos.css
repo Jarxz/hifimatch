@@ -1385,15 +1385,22 @@ dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}
    oscuro, las líneas y grises se oscurecen): todo lo que ya se pintaba con
    var(--paper)/var(--pc-*) queda legible sobre marfil sin tocarlo, y el botón
    principal (fondo --paper, texto --pc-bg) se invierte solo a negro sobre marfil. */
-.pc-claro, #s-config:is([data-paso="0"],[data-paso="2"]) .pc-cfg-cuerpo{--paper:#111310; --pc-bg:#efede7; --pc-line:rgba(17,19,16,.2); --pc-dim:#4c504a; --pc-faint:#6b6f68; --dim:#4c504a; --faint:#6b6f68; --label:#5c605a; --text:#111310; --line:rgba(17,19,16,.2); --line2:rgba(17,19,16,.35); --panel:transparent; --panel2:transparent; background:#efede7; color:#111310}
-.pc-claro .pc-cta:hover, #s-config:is([data-paso="0"],[data-paso="2"]) .pc-cta:hover, #s-config:is([data-paso="0"],[data-paso="2"]) .analizar:not(:disabled):hover{background:#2a2d28; color:#efede7}
-.pc-claro .pc-enlace:focus-visible, .pc-claro .pc-btn-linea:focus-visible, .pc-claro summary:focus-visible, .pc-claro [role=tab]:focus-visible, #s-config:is([data-paso="0"],[data-paso="2"]) .pc-enlace:focus-visible, #s-config:is([data-paso="0"],[data-paso="2"]) .pc-cta:focus-visible{outline-color:#2b5a9c}
+.pc-claro, #s-config[data-paso] .pc-cfg-cuerpo{--paper:#111310; --pc-bg:#efede7; --pc-line:rgba(17,19,16,.2); --pc-dim:#4c504a; --pc-faint:#6b6f68; --dim:#4c504a; --faint:#6b6f68; --label:#5c605a; --text:#111310; --line:rgba(17,19,16,.2); --line2:rgba(17,19,16,.35); --panel:transparent; --panel2:transparent; background:#efede7; color:#111310}
+.pc-claro .pc-cta:hover, #s-config[data-paso] .pc-cta:hover, #s-config[data-paso] .analizar:not(:disabled):hover{background:#2a2d28; color:#efede7}
+.pc-claro .pc-enlace:focus-visible, .pc-claro .pc-btn-linea:focus-visible, .pc-claro summary:focus-visible, .pc-claro [role=tab]:focus-visible, #s-config[data-paso] .pc-enlace:focus-visible, #s-config[data-paso] .pc-cta:focus-visible{outline-color:#2b5a9c}
 
-/* Configurar, paso 3: la franja ocupa todo el ancho (sombra + recorte
+/* Configurar (los tres pasos): la franja ocupa todo el ancho (sombra + recorte
    horizontal) y queda pegada bajo el stepper. */
-#s-config:is([data-paso="0"],[data-paso="2"]) .pc-stepper{margin-bottom:0}
-#s-config:is([data-paso="0"],[data-paso="2"]) .pc-cfg-cuerpo{padding:48px 0 52px; margin-bottom:34px; box-shadow:0 0 0 100vmax #efede7; clip-path:inset(0 -100vmax)}
-#s-config:is([data-paso="0"],[data-paso="2"]) .pc-cadena{border-left-color:rgba(17,19,16,.2)}
+#s-config[data-paso] .pc-stepper{margin-bottom:0}
+#s-config[data-paso] .pc-cfg-cuerpo{padding:48px 0 52px; margin-bottom:34px; box-shadow:0 0 0 100vmax #efede7; clip-path:inset(0 -100vmax)}
+#s-config[data-paso] .pc-cadena{border-left-color:rgba(17,19,16,.2)}
+/* El dorado y el rojo de error, tal cual, no llegan a 3:1 sobre marfil (α 0,10 y
+   el aviso de dimensiones): en la franja se usan sus versiones oscuras. */
+#s-config[data-paso] .pc-cfg-cuerpo{--dorado:#6f5424; --alert:#9b2c1f}
+/* Nivel de escucha y género: sobre marfil, el activo se invierte a negro (un tinte
+   marfil translúcido no se vería) y el hover oscurece en vez de aclarar. */
+#s-config[data-paso] .cfg-segbloque .cfg-seg3 button[aria-pressed=true]{background:#111310; color:#efede7}
+#s-config[data-paso] .cfg-seg3 button:hover:not([aria-pressed=true]){background:rgba(17,19,16,.07); color:#111310}
 
 /* Guía: el cuerpo (lista de temas + tema activo) es la franja */
 .info-banda{padding:56px 0 64px}
@@ -1409,7 +1416,7 @@ dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}
 @media (max-width:850px){
   .info-banda{padding:36px 0 44px}
   .sala-banda{padding:34px 0 30px}
-  #s-config:is([data-paso="0"],[data-paso="2"]) .pc-cfg-cuerpo{padding:34px 0 38px}
+  #s-config[data-paso] .pc-cfg-cuerpo{padding:34px 0 38px}
 }
 
 /* DOCUMENTO — misma piel editorial (Fase 5). El informe pasa a ser una hoja
