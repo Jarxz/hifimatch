@@ -528,6 +528,9 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    del mismo tratamiento — ver CLAUDE.md, "gris apagado o punteado,
    nunca ámbar". */
 .regla-fila.regla-dim{border-bottom-style:dashed}
+/* La última fila no lleva línea de cierre: sin esto, el estilo dashed de arriba
+   la resucitaba (con ancho medio y color de texto) al pie del grupo. */
+.regla-fila.regla-dim:last-child{border-bottom:none}
 .regla-fila.regla-dim .fila-nombre{font-style:italic}
 
 /* Layout real para el ancho de un teléfono: incluso conteniendo el
@@ -1198,6 +1201,18 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
 .res-bloque li b{color:var(--paper); font-weight:500}
 #s-results .nota-sindatos{border-top-color:var(--pc-line)}
 
+/* Lectura general en dos columnas (como la maqueta): lectura del sistema a la
+   izquierda, "tu sala en frecuencia" a la derecha. */
+.res-dos{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:56px; align-items:start}
+.res-col{min-width:0}
+.res-etiqueta{margin:0 0 20px; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--pc-faint)}
+.res-col .estados-grid{grid-template-columns:1fr; gap:12px}
+.res-col-modos .res-h3{margin-bottom:0}
+.res-modos{margin:28px 0 6px}
+.res-modos svg{display:block; width:100%; height:auto; max-height:340px}
+.res-col-modos .res-intro{margin-top:14px}
+.res-col-modos .pc-enlace{margin-top:6px}
+
 /* Componentes ya existentes, con la piel editorial: esquinas rectas y línea
    fina. Sólo se cambian los bordes que NO llevan color de severidad: el borde
    izquierdo de estados y grupos lo colorea :has() según la clase de cada uno. */
@@ -1232,6 +1247,7 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
 @media (max-width:1024px){
   #s-results .wrap, #s-sala .wrap{padding-top:96px}
   .res-cuerpo{grid-template-columns:1fr; gap:30px}
+  .res-dos{grid-template-columns:1fr; gap:44px}
 }
 @media (max-width:850px){
   .res-inner{padding:0 22px}
@@ -1242,6 +1258,8 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
   .res-tabs [role=tab]{margin-right:22px}
 }
 @media (max-width:640px){
+  .res-modos{overflow-x:auto}
+  .res-modos svg{min-width:440px}
   .res-tabs{overflow-x:visible}
   .res-tabs [role=tab]{flex:1 1 0; min-width:0; margin-right:14px; padding:14px 0; font-size:9.5px; line-height:1.4; text-align:left; white-space:normal}
 }

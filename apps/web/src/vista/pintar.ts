@@ -362,6 +362,15 @@ export function pintarBandaResultado(m: ModeloBandaResultado): void {
   }
 }
 
+/** Gráfico "Tu sala en frecuencia" (Lectura general). El SVG lo arma
+ * `graficoModos.ts` a partir de los modos que ya calculó el motor; sin modos
+ * en el rango se oculta el gráfico en vez de dejar un recuadro vacío. */
+export function pintarGraficoModos(svg: string): void {
+  const cont = el('res-modos');
+  cont.innerHTML = svg;
+  cont.classList.toggle('hidden', svg === '');
+}
+
 /** Tabla "Datos y fuentes": un <tbody> por equipo (más uno para la sala). El
  * origen puede ser una URL hallada en la web — sólo textContent. `data-label`
  * repite el encabezado de cada columna para la vista apilada en móvil. */

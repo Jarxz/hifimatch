@@ -416,6 +416,15 @@ export const en: Textos = {
     pcModificadoAviso:
       'You are viewing the modified analysis: the speakers or the listening position differ from the reference layout.',
     pcVerOriginal: 'View the original',
+    pcLecturaEtiqueta: 'Reading of the system',
+    pcModosEtiqueta: 'Your room in frequency',
+    pcModosTitulo: 'Resonances worth knowing.',
+    pcModosCaption:
+      'Theoretical axial frequencies of a rigid rectangular room: the first three modes of each axis, between 20 and 200 Hz. The height of the marks does not represent sound amplitude.',
+    pcModosAria: 'Frequencies of the first axial modes for width, length and height',
+    pcModosCoinciden: 'Coinciding frequencies',
+    pcVerSala: 'See the room layout ↗',
+    pcFisicaTitulo: 'The numbers, in context.',
     pcSalaEyebrow: 'Layout / geometric model',
     pcSalaTitulo: 'The room is part of the sound.',
     pcSalaLead:

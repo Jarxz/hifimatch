@@ -531,6 +531,15 @@ export const es = {
     pcModificadoAviso:
       'Estás viendo el análisis modificado: los parlantes o el punto de escucha están en otra posición que la disposición de referencia.',
     pcVerOriginal: 'Ver el original',
+    pcLecturaEtiqueta: 'Lectura del sistema',
+    pcModosEtiqueta: 'Tu sala en frecuencia',
+    pcModosTitulo: 'Resonancias que conviene conocer.',
+    pcModosCaption:
+      'Frecuencias axiales teóricas de una sala rectangular rígida: los tres primeros modos de cada eje, entre 20 y 200 Hz. La altura de las marcas no representa amplitud sonora.',
+    pcModosAria: 'Frecuencias de los primeros modos axiales por ancho, largo y alto',
+    pcModosCoinciden: 'Frecuencias que coinciden',
+    pcVerSala: 'Ver la disposición de sala ↗',
+    pcFisicaTitulo: 'Los números, con contexto.',
     pcSalaEyebrow: 'Disposición / modelo geométrico',
     pcSalaTitulo: 'El espacio también suena.',
     pcSalaLead:

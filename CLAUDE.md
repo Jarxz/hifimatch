@@ -4799,6 +4799,20 @@ mismas reglas de siempre.
   defecto. Todo se pinta con `textContent`: el origen de un equipo hallado en la
   web es una URL ajena y no se interpola como HTML. Formato numérico adaptativo
   (0,05 Ω no se redondea a "0 Ω").
+- **"Tu sala en frecuencia" y fórmulas a la vista** (segunda vuelta, tras el aviso
+  "Resultado falta" y comparar contra la maqueta): "Lectura general" pasa a dos
+  columnas — a la izquierda los tres estados y "Qué conviene hacer"; a la derecha
+  **"Resonancias que conviene conocer"**, un gráfico de marcas de los primeros
+  tres modos axiales de cada eje entre 20 y 200 Hz (`vista/graficoModos.ts`,
+  PURO, +6 tests). Sólo dibuja lo que `evaluarModos` ya calculó: **la altura de
+  las marcas no es amplitud** (el motor no la tiene) y se declara en el texto; las
+  bandas doradas son los pares que `evaluarModos` ya marcó como agrupados
+  (frecuencias que coinciden), el mismo dato del veredicto de "Modos de sala".
+  "Física y fórmulas" abre por defecto los tres grupos y la fila de Potencia, así
+  la pestaña muestra la fórmula con los números reales en vez de tres barras
+  cerradas. De paso se corrigió una línea `dashed` blanca al pie del grupo Sala
+  (`.regla-dim` resucitaba el borde de la última fila; ya estaba así en `master`).
+
 - **Explorar mi sala** (`#s-sala`, `Pantalla` gana `'sala'`): la tarjeta del plano
   (pestañas Original/Modificado, vistas, candado, Recalcular, Ver en AR) se movió
   **con todos sus ids**, así `arrastre.ts`, `pintarPlano` y los snapshots no

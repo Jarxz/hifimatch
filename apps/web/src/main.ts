@@ -52,6 +52,7 @@ import { construirPlanoSvg } from './vista/plano.ts';
 import type { MurosVista, Vista } from './vista/plano.ts';
 import { activarArrastre } from './vista/arrastre.ts';
 import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
+import { construirGraficoModosSvg } from './vista/graficoModos.ts';
 import {
   modeloPotencia,
   modeloCarga,
@@ -88,6 +89,7 @@ import {
   pintarNotaSinDatos,
   pintarBandaResultado,
   pintarDatosYFuentes,
+  pintarGraficoModos,
   pintarDocumento,
   pintarMatchDelMes,
 } from './vista/pintar.ts';
@@ -1451,6 +1453,9 @@ function renderizarResultado(): void {
   const techoModosHz = techoModosDesdeSchroeder(resReverb.frecuenciaSchroederHz);
   const resModos = evaluarModos(sala, techoModosHz);
   pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
+  // Mismos modos, dibujados como marcas por eje en "Lectura general": sólo
+  // depende de las dimensiones, así que se pinta una vez por Analizar.
+  pintarGraficoModos(construirGraficoModosSvg(resModos.modos, resModos.agrupados, idiomaActual));
 
   ultimoAnalisis = {
     sala,

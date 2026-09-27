@@ -665,40 +665,53 @@
       </div>
 
       <div class="res-panel" role="tabpanel" id="panel-res-lectura" aria-labelledby="tab-res-lectura">
-        <div class="estados-grid">
-          <div class="estado-item" id="est-potencia">
-            <div class="est-nombre" id="est-potencia-nombre">—</div>
-            <div class="est-estado" id="est-potencia-estado">—</div>
-            <div class="est-detalle" id="est-potencia-detalle">—</div>
+        <div class="res-dos">
+          <div class="res-col">
+            <p class="res-etiqueta" data-i18n="resultado.pcLecturaEtiqueta">Lectura del sistema</p>
+            <div class="estados-grid">
+              <div class="estado-item" id="est-potencia">
+                <div class="est-nombre" id="est-potencia-nombre">—</div>
+                <div class="est-estado" id="est-potencia-estado">—</div>
+                <div class="est-detalle" id="est-potencia-detalle">—</div>
+              </div>
+              <div class="estado-item" id="est-acople">
+                <div class="est-nombre" id="est-acople-nombre">—</div>
+                <div class="est-estado" id="est-acople-estado">—</div>
+                <div class="est-detalle" id="est-acople-detalle">—</div>
+              </div>
+              <div class="estado-item" id="est-sala">
+                <div class="est-nombre" id="est-sala-nombre">—</div>
+                <div class="est-estado" id="est-sala-estado">—</div>
+                <div class="est-detalle" id="est-sala-detalle">—</div>
+              </div>
+            </div>
+            <div class="res-bloque">
+              <h3 data-i18n="resultado.recomendacionesTitulo">Qué conviene hacer</h3>
+              <ul class="rf-recomendaciones" id="top-recomendaciones"></ul>
+            </div>
+            <p class="src nota-sindatos hidden" id="nota-sindatos"></p>
           </div>
-          <div class="estado-item" id="est-acople">
-            <div class="est-nombre" id="est-acople-nombre">—</div>
-            <div class="est-estado" id="est-acople-estado">—</div>
-            <div class="est-detalle" id="est-acople-detalle">—</div>
-          </div>
-          <div class="estado-item" id="est-sala">
-            <div class="est-nombre" id="est-sala-nombre">—</div>
-            <div class="est-estado" id="est-sala-estado">—</div>
-            <div class="est-detalle" id="est-sala-detalle">—</div>
+          <div class="res-col res-col-modos">
+            <p class="res-etiqueta" data-i18n="resultado.pcModosEtiqueta">Tu sala en frecuencia</p>
+            <h3 class="res-h3" data-i18n="resultado.pcModosTitulo">Resonancias que conviene conocer.</h3>
+            <div class="res-modos" id="res-modos"></div>
+            <p class="res-intro" data-i18n="resultado.pcModosCaption">—</p>
+            <button type="button" class="pc-enlace" data-nav-ir="sala" data-i18n="resultado.pcVerSala">Ver la disposición de sala ↗</button>
           </div>
         </div>
-        <div class="res-bloque">
-          <h3 data-i18n="resultado.recomendacionesTitulo">Qué conviene hacer</h3>
-          <ul class="rf-recomendaciones" id="top-recomendaciones"></ul>
-        </div>
-        <p class="src nota-sindatos hidden" id="nota-sindatos"></p>
       </div>
 
       <div class="res-panel" role="tabpanel" id="panel-res-fisica" aria-labelledby="tab-res-fisica" hidden>
+        <h3 class="res-h3" data-i18n="resultado.pcFisicaTitulo">Los números, con contexto.</h3>
         <p class="res-intro" data-i18n="resultado.pcFisicaIntro">Cada regla con su fórmula, su umbral y su fuente. Ábrela para ver el cálculo completo.</p>
-        <details class="grupo-evidencia" id="grupo-potencia">
+        <details class="grupo-evidencia" id="grupo-potencia" open>
           <summary>
             <span class="grupo-nombre" data-i18n="motor.veredicto.nombrePotencia">Potencia</span>
             <span class="grupo-estado" id="grupo-potencia-estado">—</span>
             <span class="grupo-linea" id="grupo-potencia-linea">—</span>
           </summary>
           <div class="filas">
-            <details class="regla-fila" id="fila-potencia">
+            <details class="regla-fila" id="fila-potencia" open>
               <summary>
                 <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
                 <span class="fila-nombre" data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</span>
@@ -722,7 +735,7 @@
           </div>
         </details>
 
-        <details class="grupo-evidencia" id="grupo-acople">
+        <details class="grupo-evidencia" id="grupo-acople" open>
           <summary>
             <span class="grupo-nombre" data-i18n="motor.veredicto.nombreAcople">Acople eléctrico</span>
             <span class="grupo-estado" id="grupo-acople-estado">—</span>
@@ -837,7 +850,7 @@
           </div>
         </details>
 
-        <details class="grupo-evidencia" id="grupo-sala">
+        <details class="grupo-evidencia" id="grupo-sala" open>
           <summary>
             <span class="grupo-nombre" data-i18n="motor.veredicto.nombreSala">Sala</span>
             <span class="grupo-estado" id="grupo-sala-estado">—</span>
