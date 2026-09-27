@@ -1213,10 +1213,8 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
 .res-col-modos .res-intro{margin-top:14px}
 .res-col-modos .pc-enlace{margin-top:6px}
 
-/* Componentes ya existentes, con la piel editorial: esquinas rectas y línea
-   fina. Sólo se cambian los bordes que NO llevan color de severidad: el borde
-   izquierdo de estados y grupos lo colorea :has() según la clase de cada uno. */
-#s-results .estado-item, #s-results .grupo-evidencia{border-radius:0; border-top-color:var(--pc-line); border-right-color:var(--pc-line); border-bottom-color:var(--pc-line)}
+/* Componentes ya existentes con la piel editorial (esquinas rectas y línea
+   fina); estados y grupos de evidencia van en el bloque "PIEL BLANCO Y NEGRO". */
 #s-results .blk{border-radius:0; border-color:var(--pc-line)}
 #s-results .ficha-final{margin-top:40px; padding-top:26px; border-color:var(--pc-line)}
 #s-results .ficha-final h2{font-family:var(--mono); font-size:10px; letter-spacing:.09em; color:var(--pc-dim)}
@@ -1272,3 +1270,63 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
   .res-tabla-grupo th{padding-top:26px}
 }
 @media (prefers-reduced-motion:reduce){ .res-btn, .res-tabs [role=tab]{transition:none} }
+
+/* PIEL BLANCO Y NEGRO — los cuadros de las pantallas nuevas y sus cuadros de
+   diálogo dejan el azul grisáceo de las superficies de siempre: fondo negro,
+   línea fina marfil y texto marfil. El color queda SOLO en los puntos de
+   estado (verde / dorado / rojo), no en fondos, bordes ni textos. Los tokens
+   --panel* se redefinen en estos ámbitos, así todo lo que ya los usa (selects,
+   listas de resultados, chips, ficha manual…) se adapta sin tocarlo uno a uno. */
+#s-splash, #s-config, #s-results, #s-sala, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
+
+/* Estados de Lectura general y grupos de evidencia */
+#s-results .estado-item, #s-results .grupo-evidencia{background:transparent; border:1px solid var(--pc-line); border-radius:0}
+#s-results .estado-item .est-nombre::before{box-shadow:none}
+#s-results .est-estado, #s-results .est-estado.est-ok, #s-results .est-estado.est-warn, #s-results .est-estado.est-alert{color:var(--paper); font-weight:500}
+#s-results .est-estado.est-dim{color:var(--pc-dim)}
+#s-results .est-detalle{color:var(--pc-dim)}
+#s-results .grupo-evidencia[open] > summary{border-bottom-color:var(--pc-line)}
+#s-results .grupo-nombre{color:var(--paper)}
+#s-results .grupo-estado, #s-results .grupo-estado.est-ok, #s-results .grupo-estado.est-warn, #s-results .grupo-estado.est-alert, #s-results .grupo-estado.est-dim{color:var(--paper); border-color:var(--pc-line); border-radius:0; box-shadow:none; font-weight:500}
+#s-results .grupo-estado.est-dim{color:var(--pc-dim)}
+#s-results .grupo-estado::before, #s-results .verdict::before{content:''; display:inline-block; width:6px; height:6px; margin-right:8px; border-radius:50%; vertical-align:middle; background:var(--pc-faint)}
+#s-results .grupo-estado.est-ok::before, #s-results .verdict.ok::before{background:var(--ok)}
+#s-results .grupo-estado.est-warn::before, #s-results .verdict.warn::before{background:var(--warn)}
+#s-results .grupo-estado.est-alert::before, #s-results .verdict.alert::before{background:var(--alert)}
+
+/* Filas de evidencia: veredicto en marfil con punto de color */
+#s-results .regla-fila{border-bottom-color:var(--pc-line)}
+#s-results .verdict, #s-results .verdict.ok, #s-results .verdict.warn, #s-results .verdict.alert{color:var(--paper); font-weight:500}
+#s-results .calc, #s-results .flag, #s-sala .candado-comparador-aviso{background:transparent; border:1px solid var(--pc-line); border-radius:0; box-shadow:none}
+#s-results .flag, #s-sala .candado-comparador-aviso{border-left:2px solid var(--pc-dim); color:var(--pc-dim)}
+#s-results .flag.sindato{border-left-color:var(--pc-faint)}
+#s-results .conf{border-color:var(--pc-line); border-radius:0}
+/* El medidor pinta el color del número en línea (lo usa también el informe):
+   acá va en marfil, y la severidad la dice la zona y el punto del veredicto. */
+#s-results .readout{color:var(--paper) !important}
+#s-results .chainitem{border-bottom-color:var(--pc-line)}
+#s-results .blk h3{color:var(--pc-dim)}
+#s-sala .candado-btn[aria-pressed="true"]{border-color:var(--paper); color:var(--paper)}
+#s-sala .plan-hint, #s-sala .legend{color:var(--pc-dim)}
+
+/* Configurar: selección activa sin dorado */
+#s-config .cfg-segbloque .cfg-seg3 button[aria-pressed=true]{background:rgba(239,237,231,.1); color:var(--paper); font-weight:500; box-shadow:none}
+.equipo-dialogo .modo-busqueda-btn[aria-pressed="true"]{color:var(--paper); border-color:var(--paper)}
+.equipo-dialogo .buscar-btn{color:var(--paper); border-radius:0}
+.equipo-dialogo .modo-busqueda-btn{border-radius:0}
+
+/* Portada: tarjeta de The Match Recomendado y aviso de novedades */
+.pc-match .veredicto-card, .pc-match .veredicto-card.veredicto-ok, .pc-match .veredicto-card.veredicto-warn, .pc-match .veredicto-card.veredicto-alert{background:transparent; border:1px solid var(--pc-line); box-shadow:none; border-radius:0}
+.pc-match .veredicto-ok .vd-titulo, .pc-match .veredicto-warn .vd-titulo, .pc-match .veredicto-alert .vd-titulo{color:var(--paper)}
+.pc-match .match-mes-veredicto .vd-titulo::before{content:''; display:inline-block; width:8px; height:8px; margin-right:10px; border-radius:50%; vertical-align:middle; background:var(--pc-faint)}
+.pc-match .veredicto-ok .vd-titulo::before{background:var(--ok)}
+.pc-match .veredicto-warn .vd-titulo::before{background:var(--warn)}
+.pc-match .veredicto-alert .vd-titulo::before{background:var(--alert)}
+.pc-match .match-mes-titulo{font-weight:300; font-size:24px; letter-spacing:-.03em; color:var(--paper)}
+.pc-match .layer{border-radius:0}
+#s-splash .novedades-titulo{color:var(--paper)}
+#s-splash .novedades-lista li::marker{color:var(--pc-dim)}
+
+/* Cuadros emergentes (información, guardar, contacto…): mismo lenguaje */
+dialog.info-popup{background:#050606; border-color:rgba(239,237,231,.22); border-radius:0; box-shadow:none}
+dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}

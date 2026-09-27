@@ -4813,6 +4813,22 @@ mismas reglas de siempre.
   cerradas. De paso se corrigió una línea `dashed` blanca al pie del grupo Sala
   (`.regla-dim` resucitaba el borde de la última fila; ya estaba así en `master`).
 
+- **Piel blanco y negro para los cuadros** (pedido del usuario: los estados y los
+  grupos de evidencia seguían en azul grisáceo): en las pantallas nuevas
+  (portada, Configurar, Resultado, Sala) y en los cuadros de diálogo, los fondos
+  pasan a negro, la línea a marfil fino y los textos a marfil; **el color queda
+  sólo en los puntos** (verde/dorado/rojo) de los estados, de los pills de grupo,
+  de los veredictos de cada fila y de la tarjeta de The Match Recomendado. Se
+  hizo redefiniendo `--panel/--panel2/--panel3` en esos ámbitos (así selects,
+  listas de resultados, chips y ficha manual se adaptan sin tocarlos uno a uno) y
+  un bloque "PIEL BLANCO Y NEGRO" al final de `estilos.css`. **`dialog.info-popup`
+  cambia para todas las pantallas** (información, guardar, contacto, QR): es un
+  cuadro emergente compartido. El titular del veredicto en la banda marfil
+  conserva su color de severidad (decisión anterior del usuario, "tono visual");
+  si se quiere pasar también a punto de color, es un cambio de una regla.
+  De paso, el número del medidor de Potencia ya no se recorta contra el borde
+  cuando la aguja está al extremo (`medidor.ts` ancla el número al lado con
+  lugar; el informe usa el mismo medidor y gana el mismo arreglo).
 - **Explorar mi sala** (`#s-sala`, `Pantalla` gana `'sala'`): la tarjeta del plano
   (pestañas Original/Modificado, vistas, candado, Recalcular, Ver en AR) se movió
   **con todos sus ids**, así `arrastre.ts`, `pintarPlano` y los snapshots no
