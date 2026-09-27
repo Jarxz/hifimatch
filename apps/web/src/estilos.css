@@ -168,7 +168,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    en muchas rondas anteriores (ver el media query de abajo, que ahora
    declara su propio grid-template-areas en vez de heredar éste). */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:grid; grid-template-columns:auto auto 1fr; grid-template-areas:"hm nav hright"; align-items:center; column-gap:28px; padding:14px 22px; border-bottom:1px solid var(--line)}
-#s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:78px}
+#s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap{padding-top:78px}
 .head .hm{grid-area:hm; font-weight:300; letter-spacing:.05em; font-size:19px; padding-left:.05em}
 .head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}
@@ -225,7 +225,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .idioma-splash{top:9px}
   .segs.idioma button{padding:5px 7px; font-size:9px}
   .head-nav-btn{font-size:9.5px; padding:5px 8px 7px}
-  #s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:96px}
+  #s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap{padding-top:96px}
 }
 
 /* CONFIG */
@@ -869,18 +869,18 @@ html:has(#ar-canvas), html:has(#ar-canvas) body{height:100%; overflow:hidden}
 @keyframes st-pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
 @keyframes proof-in{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
 
-#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento{--paper:#efede7; --ink:#111310; --pc-bg:#050606; --pc-line:rgba(239,237,231,.16); --pc-dim:#a9ada6; --pc-faint:#7f847d; background:var(--pc-bg); font-weight:300}
+#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes{--paper:#efede7; --ink:#111310; --pc-bg:#050606; --pc-line:rgba(239,237,231,.16); --pc-dim:#a9ada6; --pc-faint:#7f847d; background:var(--pc-bg); font-weight:300}
 #s-splash .wrap{max-width:none; padding:88px 0 0}
-#s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head{background:rgba(5,6,6,.96); border-bottom-color:var(--pc-line)}
-#s-splash .head-status, #s-config .head-status, #s-results .head-status, #s-sala .head-status, #s-info .head-status, #s-documento .head-status{display:none}
-#s-splash .head-nav-btn, #s-config .head-nav-btn, #s-results .head-nav-btn, #s-sala .head-nav-btn, #s-info .head-nav-btn, #s-documento .head-nav-btn{color:var(--pc-dim); font-size:10px; letter-spacing:.09em; border-bottom-width:1px}
-#s-splash .head-nav-btn:hover, #s-config .head-nav-btn:hover, #s-results .head-nav-btn:hover, #s-sala .head-nav-btn:hover, #s-info .head-nav-btn:hover, #s-documento .head-nav-btn:hover{color:var(--paper)}
-#s-splash .head-nav-btn[aria-current="page"], #s-config .head-nav-btn[aria-current="page"], #s-results .head-nav-btn[aria-current="page"], #s-sala .head-nav-btn[aria-current="page"], #s-info .head-nav-btn[aria-current="page"], #s-documento .head-nav-btn[aria-current="page"]{color:var(--paper); border-bottom-color:var(--paper); text-shadow:none}
+#s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head{background:rgba(5,6,6,.96); border-bottom-color:var(--pc-line)}
+#s-splash .head-status, #s-config .head-status, #s-results .head-status, #s-sala .head-status, #s-info .head-status, #s-documento .head-status, #s-mensajes .head-status{display:none}
+#s-splash .head-nav-btn, #s-config .head-nav-btn, #s-results .head-nav-btn, #s-sala .head-nav-btn, #s-info .head-nav-btn, #s-documento .head-nav-btn, #s-mensajes .head-nav-btn{color:var(--pc-dim); font-size:10px; letter-spacing:.09em; border-bottom-width:1px}
+#s-splash .head-nav-btn:hover, #s-config .head-nav-btn:hover, #s-results .head-nav-btn:hover, #s-sala .head-nav-btn:hover, #s-info .head-nav-btn:hover, #s-documento .head-nav-btn:hover, #s-mensajes .head-nav-btn:hover{color:var(--paper)}
+#s-splash .head-nav-btn[aria-current="page"], #s-config .head-nav-btn[aria-current="page"], #s-results .head-nav-btn[aria-current="page"], #s-sala .head-nav-btn[aria-current="page"], #s-info .head-nav-btn[aria-current="page"], #s-documento .head-nav-btn[aria-current="page"], #s-mensajes .head-nav-btn[aria-current="page"]{color:var(--paper); border-bottom-color:var(--paper); text-shadow:none}
 @media (min-width:1025px){
-  #s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head{max-width:none; left:0; transform:none; grid-template-columns:1fr auto 1fr; column-gap:36px; padding:0 max(44px, calc((100vw - 1380px) / 2 + 44px)); height:88px}
-  #s-splash .head .hright, #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright{justify-self:end}
-  #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright{padding-right:96px}
-  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash{top:28px; right:max(44px, calc((100vw - 1380px) / 2 + 44px))}
+  #s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head{max-width:none; left:0; transform:none; grid-template-columns:1fr auto 1fr; column-gap:36px; padding:0 max(44px, calc((100vw - 1380px) / 2 + 44px)); height:88px}
+  #s-splash .head .hright, #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright{justify-self:end}
+  #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright{padding-right:96px}
+  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash{top:28px; right:max(44px, calc((100vw - 1380px) / 2 + 44px))}
 }
 @media (max-width:1024px){ #s-splash .wrap{padding-top:96px} }
 
@@ -970,7 +970,7 @@ html:has(#ar-canvas), html:has(#ar-canvas) body{height:100%; overflow:hidden}
 #s-splash .novedades-popup{position:relative; top:auto; bottom:auto; left:auto; max-width:330px; margin-top:26px; border-radius:0; box-shadow:none; border-color:var(--pc-line); background:var(--pc-bg)}
 
 @media (max-width:1024px){
-  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash{top:9px}
+  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash{top:9px}
 }
 /* Tablet: texto e imagen en dos columnas sin solaparse (el titular no pisa a los parlantes). */
 @media (min-width:851px) and (max-width:1024px){
@@ -1265,10 +1265,10 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
    estado (verde / dorado / rojo), no en fondos, bordes ni textos. Los tokens
    --panel* se redefinen en estos ámbitos, así todo lo que ya los usa (selects,
    listas de resultados, chips, ficha manual…) se adapta sin tocarlo uno a uno. */
-#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
+#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
 /* Resultado y Sala: los grises de texto suben hacia el marfil (más blanco y
    negro, menos gris); la jerarquía se conserva con tamaño, mayúsculas y peso. */
-#s-results, #s-sala, #s-info, #s-documento{--dim:#cdd0c9; --faint:#a3a79f; --label:#b8bbb4; --pc-dim:#c4c7c0; --pc-faint:#9a9e97}
+#s-results, #s-sala, #s-info, #s-documento, #s-mensajes{--dim:#cdd0c9; --faint:#a3a79f; --label:#b8bbb4; --pc-dim:#c4c7c0; --pc-faint:#9a9e97}
 
 /* Estados de Lectura general y grupos de evidencia */
 #s-results .estado-item, #s-results .grupo-evidencia{background:transparent; border:1px solid var(--pc-line); border-radius:0}
@@ -1376,7 +1376,7 @@ dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}
    oscuro, las líneas y grises se oscurecen): todo lo que ya se pintaba con
    var(--paper)/var(--pc-*) queda legible sobre marfil sin tocarlo, y el botón
    principal (fondo --paper, texto --pc-bg) se invierte solo a negro sobre marfil. */
-.pc-claro, #s-config[data-paso="2"] .pc-cfg-cuerpo{--paper:#111310; --pc-bg:#efede7; --pc-line:rgba(17,19,16,.2); --pc-dim:#4c504a; --pc-faint:#6b6f68; --dim:#4c504a; --faint:#6b6f68; --label:#5c605a; background:#efede7; color:#111310}
+.pc-claro, #s-config[data-paso="2"] .pc-cfg-cuerpo{--paper:#111310; --pc-bg:#efede7; --pc-line:rgba(17,19,16,.2); --pc-dim:#4c504a; --pc-faint:#6b6f68; --dim:#4c504a; --faint:#6b6f68; --label:#5c605a; --text:#111310; --line:rgba(17,19,16,.2); --line2:rgba(17,19,16,.35); --panel:transparent; --panel2:transparent; background:#efede7; color:#111310}
 .pc-claro .pc-cta:hover, #s-config[data-paso="2"] .pc-cta:hover, #s-config[data-paso="2"] .analizar:not(:disabled):hover{background:#2a2d28; color:#efede7}
 .pc-claro .pc-enlace:focus-visible, .pc-claro .pc-btn-linea:focus-visible, .pc-claro summary:focus-visible, .pc-claro [role=tab]:focus-visible, #s-config[data-paso="2"] .pc-enlace:focus-visible, #s-config[data-paso="2"] .pc-cta:focus-visible{outline-color:#2b5a9c}
 
@@ -1462,3 +1462,45 @@ dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}
   .doc-cab{padding-top:30px; padding-bottom:26px}
   #s-documento .doc-paper{padding:28px 22px}
 }
+
+/* MENSAJES — misma piel editorial (Fase 6). El formulario vive en una franja
+   marfil y la lista de mensajes, debajo, en negro con línea fina. Lógica y ids
+   (`form-mensajes`, `mensajes-lista`, `mensajes-estado`) son los de siempre;
+   los textos de cada mensaje los sigue escapando `vista/mensajes.ts`. */
+#s-mensajes{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-mensajes .wrap{max-width:none; padding:88px 0 46px}
+#s-mensajes [hidden]{display:none !important}
+.msj-cab{padding-top:44px; padding-bottom:36px}
+.msj-lead{max-width:620px; margin:22px 0 0; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+.msj-banda{padding:52px 0 58px}
+#s-mensajes #form-mensajes{display:grid; grid-template-columns:1fr 1fr; gap:22px 32px; max-width:920px}
+#s-mensajes #form-mensajes .campo{margin:0}
+#s-mensajes #form-mensajes .campo-ancho, #s-mensajes #form-mensajes .contacto-estado, #s-mensajes #form-mensajes .contacto-acciones{grid-column:1 / -1}
+#s-mensajes #form-mensajes .campo label{margin-bottom:9px; font-family:var(--mono); font-size:10px; letter-spacing:.09em; color:var(--pc-dim)}
+#s-mensajes #form-mensajes input[type=text], #s-mensajes #form-mensajes input[type=email], #s-mensajes #form-mensajes textarea{padding:12px 14px; background:transparent; border:1px solid rgba(17,19,16,.32); border-radius:0; color:#111310; font-size:15px; font-weight:300}
+#s-mensajes #form-mensajes input:focus-visible, #s-mensajes #form-mensajes textarea:focus-visible{outline:none; border-color:#111310}
+#s-mensajes #form-mensajes .contacto-acciones{margin-top:0; justify-content:flex-end}
+#s-mensajes #form-mensajes .contacto-estado{margin:0}
+.msj-lista-wrap{padding-top:54px}
+.msj-lista-titulo{margin:0 0 22px; font-weight:300; font-size:clamp(26px,3vw,38px); line-height:1.05; letter-spacing:-.05em; color:var(--paper)}
+#s-mensajes .mensaje-item{padding:20px 0; margin:0; border:0; border-top:1px solid var(--pc-line); border-radius:0; background:transparent}
+#s-mensajes .mensaje-item:last-child{border-bottom:1px solid var(--pc-line)}
+#s-mensajes .mensaje-nombre{font-size:15px; font-weight:500; color:var(--paper)}
+#s-mensajes .mensaje-fecha{font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--pc-faint)}
+#s-mensajes .mensaje-texto{max-width:760px; font-size:14.5px; line-height:1.75; color:var(--pc-dim)}
+#s-mensajes .mensajes-estado{color:var(--pc-dim)}
+
+@media (max-width:1024px){
+  #s-mensajes .wrap{padding-top:96px}
+}
+@media (max-width:850px){
+  #s-mensajes .pc-inner{padding-left:22px; padding-right:22px}
+  .msj-cab{padding-top:30px; padding-bottom:26px}
+  .msj-banda{padding:36px 0 42px}
+  #s-mensajes #form-mensajes{grid-template-columns:1fr; gap:18px}
+}
+
+/* Botón "Enviar" del formulario de contacto (cuadro emergente): mismo botón
+   principal que el resto, no el degradé dorado de siempre. */
+dialog.info-popup .analizar{background:#efede7; color:#050606; border-radius:0; box-shadow:none; font-family:var(--mono); font-size:10.5px; font-weight:300; letter-spacing:.09em; padding:15px 24px}
+dialog.info-popup .analizar:not(:disabled):hover{background:#d6d8d0; box-shadow:none; opacity:1}

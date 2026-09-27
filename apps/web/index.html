@@ -1281,34 +1281,43 @@
       </div>
     </div>
 
-    <h2 class="lead" data-i18n="mensajes.titulo">Mensajes</h2>
-    <p class="lead-note" data-i18n="mensajes.intro">—</p>
+    <div class="pc-inner msj-cab">
+      <p class="pc-eyebrow" data-i18n="mensajes.pcEyebrow">Mensajes / Muro público</p>
+      <h2 class="res-titulo res-titulo-oscuro" data-i18n="mensajes.pcTitulo">Deja tu mensaje.</h2>
+      <p class="msj-lead" data-i18n="mensajes.intro">—</p>
+    </div>
 
-    <form id="form-mensajes" novalidate>
-      <div class="campo">
-        <label for="mn-nombre" data-i18n="mensajes.campoNombre">Nombre (opcional)</label>
-        <input type="text" id="mn-nombre" name="nombre" autocomplete="name" maxlength="100">
+    <div class="pc-claro msj-banda">
+      <div class="pc-inner">
+        <form id="form-mensajes" novalidate>
+          <div class="campo">
+            <label for="mn-nombre" data-i18n="mensajes.campoNombre">Nombre (opcional)</label>
+            <input type="text" id="mn-nombre" name="nombre" autocomplete="name" maxlength="100">
+          </div>
+          <div class="campo">
+            <label for="mn-email" data-i18n="mensajes.campoEmail">Tu email</label>
+            <input type="email" id="mn-email" name="email" required autocomplete="email">
+          </div>
+          <div class="campo campo-ancho">
+            <label for="mn-mensaje" data-i18n="mensajes.campoMensaje">Mensaje</label>
+            <textarea id="mn-mensaje" name="mensaje" rows="5" required maxlength="1000"></textarea>
+          </div>
+          <div class="campo-hp" aria-hidden="true">
+            <label for="mn-sitio">Sitio web</label>
+            <input type="text" id="mn-sitio" name="sitio_web" tabindex="-1" autocomplete="off">
+          </div>
+          <p id="mensajes-estado" class="contacto-estado hidden" role="status" aria-live="polite"></p>
+          <div class="contacto-acciones">
+            <button type="submit" id="mensajes-enviar" class="pc-cta"><span data-i18n="mensajes.enviar">Publicar</span><span aria-hidden="true">↗</span></button>
+          </div>
+        </form>
       </div>
-      <div class="campo">
-        <label for="mn-email" data-i18n="mensajes.campoEmail">Tu email</label>
-        <input type="email" id="mn-email" name="email" required autocomplete="email">
-      </div>
-      <div class="campo">
-        <label for="mn-mensaje" data-i18n="mensajes.campoMensaje">Mensaje</label>
-        <textarea id="mn-mensaje" name="mensaje" rows="5" required maxlength="1000"></textarea>
-      </div>
-      <div class="campo-hp" aria-hidden="true">
-        <label for="mn-sitio">Sitio web</label>
-        <input type="text" id="mn-sitio" name="sitio_web" tabindex="-1" autocomplete="off">
-      </div>
-      <p id="mensajes-estado" class="contacto-estado hidden" role="status" aria-live="polite"></p>
-      <div class="contacto-acciones">
-        <button type="submit" id="mensajes-enviar" class="analizar" data-i18n="mensajes.enviar">Publicar</button>
-      </div>
-    </form>
+    </div>
 
-    <h2 class="lead" data-i18n="mensajes.listaTitulo">Mensajes recientes</h2>
-    <div id="mensajes-lista" aria-live="polite"></div>
+    <div class="pc-inner msj-lista-wrap">
+      <h3 class="msj-lista-titulo" data-i18n="mensajes.listaTitulo">Mensajes recientes</h3>
+      <div id="mensajes-lista" aria-live="polite"></div>
+    </div>
   </div>
 </section>
 

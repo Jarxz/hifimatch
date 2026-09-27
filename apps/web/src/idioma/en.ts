@@ -58,7 +58,8 @@ export const en: Textos = {
   },
 
   mensajes: {
-    titulo: 'Messages',
+    pcEyebrow: 'Messages / Public wall',
+    pcTitulo: 'Leave your message.',
     intro: 'Leave a public message for other visitors of the site — it publishes right away, with no review beforehand.',
     campoNombre: 'Name (optional)',
     campoEmail: "Your email (never shown — only so we can reply if needed)",

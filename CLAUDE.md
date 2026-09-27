@@ -4918,6 +4918,17 @@ se llamó primero `.doc-cuerpo`, igual que los párrafos del informe que
 `.doc-layout`. Antes de nombrar un contenedor, `grep` la clase en `index.html`,
 `estilos.css` **y `vista/*.ts`**.
 
+**Fase 6 — Mensajes con la piel editorial (misma rama).** Título grande "Deja tu
+mensaje.", el **formulario en una franja marfil** (nombre y email lado a lado,
+mensaje a todo el ancho, botón "Publicar" negro) y, debajo, la lista de mensajes en
+negro con línea fina y punto de separación por fila. Lógica, ids y el escapado de
+cada mensaje (`vista/mensajes.ts`) no cambian. `.pc-claro` ahora también invierte
+`--text/--line/--line2/--panel*`, así un formulario existente (inputs con
+`var(--panel)`/`var(--line)`) queda legible sobre marfil sin reescribirlo. De paso
+el botón "Enviar" del cuadro de contacto deja el degradé dorado y usa el botón
+principal marfil; se retiró la clave `mensajes.titulo` (reemplazada por
+`mensajes.pcTitulo`).
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

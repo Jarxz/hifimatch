@@ -119,7 +119,8 @@ export const es = {
   // Nombre y mensaje se muestran a cualquier visitante; el email nunca
   // se muestra (viaja al servidor, se guarda, no más que eso).
   mensajes: {
-    titulo: 'Mensajes',
+    pcEyebrow: 'Mensajes / Muro público',
+    pcTitulo: 'Deja tu mensaje.',
     intro: 'Deja un mensaje público para otros visitantes del sitio — se publica de inmediato, sin revisión previa.',
     campoNombre: 'Nombre (opcional)',
     campoEmail: 'Tu email (no se muestra — sólo para responder si hiciera falta)',
