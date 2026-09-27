@@ -454,7 +454,7 @@ export const es = {
     pcPaso1: 'Equipos',
     pcPaso2: 'Sala y escucha',
     pcPaso3: 'Revisión',
-    pcOpcionales: 'Añadir fuente y conversor · opcional',
+    pcOpcionales: 'Agrega Streamer y DAC · opcional',
     pcCadenaEyebrow: 'Tu cadena de escucha',
     pcCadenaTitulo: 'Mi sistema de escucha',
     pcSinSeleccionar: 'Por seleccionar',

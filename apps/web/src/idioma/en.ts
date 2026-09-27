@@ -344,7 +344,7 @@ export const en: Textos = {
     pcPaso1: 'Equipment',
     pcPaso2: 'Room and listening',
     pcPaso3: 'Review',
-    pcOpcionales: 'Add source and converter · optional',
+    pcOpcionales: 'Add Streamer and DAC · optional',
     pcCadenaEyebrow: 'Your listening chain',
     pcCadenaTitulo: 'My listening system',
     pcSinSeleccionar: 'To be selected',

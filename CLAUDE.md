@@ -4683,7 +4683,7 @@ regla CSS, buscar su uso en `index.html` y en las plantillas de
 **Fase 2 — Configurar en 3 pasos (misma rama `portada-editorial`).**
 Estructura de la propuesta de Codex: Equipos / Sala y escucha /
 Revisión, con un resumen lateral "Tu cadena de escucha" y streamer +
-DAC plegados en un `<details>` "Añadir fuente y conversor · opcional".
+DAC plegados en un `<details>` "Agrega Streamer y DAC · opcional" (antes "Añadir fuente y conversor").
 **Es sólo presentación**: los selectores, la búsqueda web, la ficha
 manual, los sliders y los materiales son los de siempre (mismos ids),
 y `estado`/`pick`/`setDim`/`setNivel` siguen siendo la única fuente de
@@ -4933,6 +4933,18 @@ cada mensaje (`vista/mensajes.ts`) no cambian. `.pc-claro` ahora también invier
 el botón "Enviar" del cuadro de contacto deja el degradé dorado y usa el botón
 principal marfil; se retiró la clave `mensajes.titulo` (reemplazada por
 `mensajes.pcTitulo`).
+
+**Configurar: pictogramas de la maqueta, paso 1 en marfil y "Agrega Streamer y DAC"
+(misma rama, pedido del usuario).** Los iconos de equipo dejan el trazo lineal y usan
+los **pictogramas dibujados con CSS de la maqueta** (`.device-icon`: caja de parlante
+con tweeter y woofer; frente ancho de amplificador con perilla y ranura; caja baja con
+ventana para streamer y DAC). La sección opcional pasa de "Añadir fuente y conversor"
+a **"Agrega Streamer y DAC · opcional"** (`config.pcOpcionales`, en los dos idiomas).
+Y la **selección de equipos (paso 1) también es franja marfil**, igual que la revisión:
+el selector CSS `#s-config:is([data-paso="0"],[data-paso="2"])` comparte las mismas
+reglas. El paso 2 (sala y escucha) sigue oscuro. Los cuadros de selección de equipo
+no heredan los tokens invertidos porque los `<dialog>` cuelgan de `.wrap`, no de la
+franja.
 
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
