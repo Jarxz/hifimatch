@@ -68,6 +68,7 @@ export const es = {
     cerrarAria: 'Cerrar',
     acercaDe: 'Acerca de',
     privacidad: 'Privacidad',
+    novedades: 'Novedades',
     // Pie de página real (Configurar/Resultado/Guía) — mismo lugar que
     // ocupa el footer de la referencia de Stitch, con texto real en vez
     // de "LAB INSTRUMENT PLATFORM"/"CALIBRATED SPECS: IEC-60268-5".

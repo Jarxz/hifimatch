@@ -45,6 +45,22 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://www.thehifimatch.com/en/privacy.html"/>
   </url>
   <url>
+    <loc>https://www.thehifimatch.com/novedades.html</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.thehifimatch.com/novedades.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.thehifimatch.com/en/novedades.html"/>
+  </url>
+  <url>
+    <loc>https://www.thehifimatch.com/en/novedades.html</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.2</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.thehifimatch.com/novedades.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.thehifimatch.com/en/novedades.html"/>
+  </url>
+  <url>
     <loc>https://www.thehifimatch.com/ar.html</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>

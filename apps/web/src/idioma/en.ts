@@ -18,6 +18,7 @@ export const en: Textos = {
     cerrarAria: 'Close',
     acercaDe: 'About',
     privacidad: 'Privacy',
+    novedades: "What's new",
     pieDescripcion: 'Electrical coupling, power headroom and room acoustics diagnostics — every rule with its own formula and source.',
     pieNota: 'Runs in your browser, no server',
   },

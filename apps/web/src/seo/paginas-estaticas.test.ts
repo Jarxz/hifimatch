@@ -133,6 +133,12 @@ test('index.html: nada de lo agregado en esta ronda tiene voseo', () => {
   assert.doesNotMatch(html, PATRON_VOSEO);
 });
 
+test('index.html: "Novedades" enlaza a la página estática, en los dos pies del sitio (portada y Configurar)', () => {
+  const html = leer('index.html');
+  const enlaces = [...html.matchAll(/<a href="\.\/novedades\.html" class="back" data-i18n="comun\.novedades">/g)];
+  assert.equal(enlaces.length, 2, 'debería aparecer en .foot-links-splash y en .site-foot-links');
+});
+
 test('index.html: los 13 títulos de la Guía y el título del veredicto ya no son "—" en el HTML crudo — coinciden exactamente con es.ts (JS los pisa igual, esto es sólo el snapshot sin JS)', () => {
   const html = leer('index.html');
   const clavesInfo = [
@@ -163,6 +169,9 @@ test('vercel.json: rewrites dan alias sin extensión a las páginas de confianza
   assert.equal(porOrigen['/privacy-policy'], '/privacy.html');
   assert.equal(porOrigen['/en/about'], '/en/about.html');
   assert.equal(porOrigen['/en/privacy'], '/en/privacy.html');
+  assert.equal(porOrigen['/novedades'], '/novedades.html');
+  assert.equal(porOrigen['/whats-new'], '/novedades.html');
+  assert.equal(porOrigen['/en/novedades'], '/en/novedades.html');
 });
 
 test('vercel.json: cabeceras de seguridad HTTP en todas las rutas — revisión de seguridad', () => {
@@ -216,7 +225,7 @@ test('ar.html: canonical + OG básicos, propios (no copiados de index.html)', ()
   assert.match(html, /<meta property="og:title" content="The Hifi Match · AR">/);
 });
 
-for (const pagina of ['about.html', 'contact.html', 'privacy.html']) {
+for (const pagina of ['about.html', 'contact.html', 'privacy.html', 'novedades.html']) {
   test(`public/${pagina}: contenido real (≥500 caracteres), un <h1>, sin voseo`, () => {
     const html = leer(join('public', pagina));
     const textoVisible = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -228,7 +237,7 @@ for (const pagina of ['about.html', 'contact.html', 'privacy.html']) {
   });
 }
 
-for (const [es_, en_] of [['about.html', 'en/about.html'], ['privacy.html', 'en/privacy.html']] as const) {
+for (const [es_, en_] of [['about.html', 'en/about.html'], ['privacy.html', 'en/privacy.html'], ['novedades.html', 'en/novedades.html']] as const) {
   test(`public/${es_} ↔ public/${en_}: selector ES/EN visible + hreflang recíproco en las dos direcciones`, () => {
     const htmlEs = leer(join('public', es_));
     const htmlEn = leer(join('public', en_));
@@ -314,7 +323,7 @@ test('public/robots.txt: permite todo y declara el sitemap', () => {
   assert.match(txt, /^Sitemap: https:\/\/www\.thehifimatch\.com\/sitemap\.xml$/m);
 });
 
-test('public/sitemap.xml: XML bien formado con las 7 URLs reales del sitio (incluye las versiones /en/)', () => {
+test('public/sitemap.xml: XML bien formado con las 9 URLs reales del sitio (incluye las versiones /en/)', () => {
   const xml = leer(join('public', 'sitemap.xml'));
   assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
@@ -325,14 +334,16 @@ test('public/sitemap.xml: XML bien formado con las 7 URLs reales del sitio (incl
     'https://www.thehifimatch.com/contact.html',
     'https://www.thehifimatch.com/privacy.html',
     'https://www.thehifimatch.com/en/privacy.html',
+    'https://www.thehifimatch.com/novedades.html',
+    'https://www.thehifimatch.com/en/novedades.html',
     'https://www.thehifimatch.com/ar.html',
   ]);
   const lastmods = [...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
   assert.equal(lastmods.length, locs.length);
-  // Las 4 páginas bilingües (about/privacy, es+en) declaran su alternate
-  // recíproco dentro del propio sitemap, no sólo en el <head> del HTML.
+  // Las 6 páginas bilingües (about/privacy/novedades, es+en) declaran su
+  // alternate recíproco dentro del propio sitemap, no sólo en el <head> del HTML.
   const alternates = [...xml.matchAll(/<xhtml:link rel="alternate"/g)];
-  assert.equal(alternates.length, 8, '2 alternates (es+en) × 4 URLs bilingües');
+  assert.equal(alternates.length, 12, '2 alternates (es+en) × 6 URLs bilingües');
 });
 
 test('public/llms.txt: formato llmstxt.org (H1 + blockquote) con "When to use this" en inglés — la auditoría busca ese patrón, no lo reconocía en español', () => {

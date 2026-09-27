@@ -4991,6 +4991,62 @@ cambiado; "Eliminar" pide confirmación ("Conservar" no borra); estado vacío co
 "Explorar ejemplo"; 390 px sin desborde; EN traducido; cero errores de consola y cero
 pedidos externos.
 
+**Fase 8 — Novedades/Método/Privacidad: hoja de estilos compartida para las
+páginas de confianza, y una página nueva de novedades reales (misma rama).**
+La maqueta trae tres pantallas separadas ("novedades", "método y alcance",
+"privacidad") — el sitio real ya tenía Privacidad como página estática robusta
+(desde la ronda de auditoría "Is Agentic") y ninguna equivalente de "Novedades"
+ni de "Método" (más allá del popup chico de "nuevas funciones" en la portada).
+
+**Decisión: "Método" no se separa de "Acerca de".** El contenido de "método"
+en la maqueta (dos capas, qué evalúa, qué falta conectar) es exactamente lo
+que `about.html` ya cubría — separarlo habría fragmentado la misma explicación
+en dos páginas. En cambio, `about.html`/`en/about.html` ganan una sección
+nueva ("Límites que se declaran") con los límites que el motor real sí tiene
+(reglas de sala con techo `warn`, búsqueda online con confianza baja, veredicto
+como criterio editorial) — contenido que la maqueta no podía tener porque es
+una demo sin motor real detrás.
+
+**`apps/web/public/paginas.css` (nuevo, compartido)** — negro/marfil/dorado
+tomados de los tokens de `estilos.css`, Helvetica ligera, etiquetas
+monoespaciadas: mismo lenguaje visual del sitio, pero **sin JavaScript**
+(estas páginas tienen que leerse igual en un rastreador o con scripts
+desactivados, doctrina ya vigente desde la ronda de la auditoría). Reemplaza
+el `<style>` inline que cada página tenía repetido. Header con marca + nav +
+selector ES/EN, banda marfil de bloques "título a la izquierda / texto a la
+derecha" (mismo espíritu que las franjas del resto de la web), pie con enlaces
+de vuelta.
+
+**`apps/web/public/novedades.html` + `en/novedades.html` (nuevo, par
+bilingüe).** Registro real de funciones agregadas, con fecha por mes tomada
+del historial de commits — no un roadmap de promesas como el de la maqueta:
+Mis sistemas y el muro de mensajes (septiembre 2026), búsqueda online de
+equipos (septiembre 2026), realidad aumentada (agosto 2026). Enlazada desde
+`novedades.html`/`/en/novedades` (rewrites en `vercel.json`, alias
+`/whats-new`), desde `llms.txt`, `sitemap.xml` (con su alternate bilingüe) y
+desde los dos pies reales de la SPA que ya listaban "Contacto · Acerca de ·
+Privacidad" (`.foot-links-splash` en la portada, `.site-foot-links` en
+Configurar — las demás pantallas no tienen ese pie, sólo esas dos lo llevan).
+Clave nueva `comun.novedades` en `es.ts`/`en.ts`.
+
+**`about.html`/`privacy.html`/`contact.html`/`404.html` restilados con
+`paginas.css`, sin cambiar ningún hecho ya declarado.** El texto de privacidad
+se reorganizó en bloques por tema (uno por párrafo existente, más "Mis
+sistemas" — dato nuevo desde la Fase 7 que la página todavía no declaraba) sin
+tocar ninguna frase ya verificada por los tests (`Vercel Web Analytics`,
+"no usa cookies", "24 horas"/"24 hours"). El JSON-LD de `contact.html` no se
+tocó. `paginas-estaticas.test.ts` suma `novedades.html` a los tres bucles
+existentes (contenido real, par bilingüe, rewrites), el sitemap pasa de 7 a 9
+URLs, y un test nuevo confirma que "Novedades" aparece en los dos pies reales
+de `index.html`.
+
+Verificado sirviendo `dist/` por HTTP (estas páginas no abren por `file://`
+como el resto de páginas estáticas de confianza — sólo `index.html`/`ar.html`
+tienen esa exigencia): las 8 páginas (4 pares es/en) cargan con su nav y su
+selector de idioma, un único `<h1>` cada una, cero `<script>` fuera del
+JSON-LD de contacto, cero errores de consola, 390px sin desborde horizontal.
+711 tests totales (antes 707 tras la Fase 7).
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

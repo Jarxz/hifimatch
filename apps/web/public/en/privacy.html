@@ -14,47 +14,95 @@
 <meta property="og:description" content="What data The Hifi Match collects: no accounts, no tracking cookies — aggregated, anonymous analytics (Vercel Web Analytics) and the public message-wall posts.">
 <meta property="og:url" content="https://www.thehifimatch.com/en/privacy.html">
 <title>Privacy · The Hifi Match</title>
-<style>
-:root{--bg:#0A0A0B; --text:#ECECEE; --dim:#A3A3AA; --dorado:#B8996A; --line:rgba(255,255,255,.10)}
-*{box-sizing:border-box}
-body{margin:0; background:var(--bg); color:var(--text); font-family:'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif; font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased}
-.idioma{position:fixed; top:20px; right:22px; display:flex; border:1px solid var(--line); border-radius:2px; overflow:hidden}
-.idioma a{padding:7px 14px; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); text-decoration:none}
-.idioma a:hover{color:var(--text)}
-.idioma a.activo{background:var(--text); color:var(--bg)}
-.idioma a.activo:hover{color:var(--bg)}
-.wrap{max-width:640px; margin:0 auto; padding:56px 22px 80px}
-.mark{font-weight:300; font-size:14px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim); margin:0 0 34px}
-.mark b{color:var(--dorado); font-weight:600}
-h1{font-weight:300; font-size:30px; letter-spacing:.01em; margin:0 0 26px; color:var(--dorado)}
-p{margin:0 0 20px}
-a{color:var(--text)}
-a:hover{color:var(--dorado)}
-.volver{display:inline-block; margin-top:28px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
-</style>
+<link rel="stylesheet" href="/paginas.css">
 </head>
 <body>
-<div class="idioma">
-  <a href="/privacy.html">ES</a>
-  <a href="/en/privacy.html" class="activo" aria-current="page">EN</a>
-</div>
-<div class="wrap">
-  <div class="mark"><b>THE</b> HIFI <b>MATCH</b></div>
-  <h1>Privacy</h1>
+<header class="cab">
+  <div class="in">
+    <a class="mark" href="/"><b class="the">THE</b> HIFI <b>MATCH</b></a>
+    <nav class="cab-nav" aria-label="Site sections">
+      <a href="/en/about.html">About</a>
+      <a href="/en/privacy.html" aria-current="page">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <div class="idioma">
+      <a href="/privacy.html">ES</a>
+      <a href="/en/privacy.html" class="activo" aria-current="page">EN</a>
+    </div>
+  </div>
+</header>
 
-  <p>The Hifi Match doesn't ask you to create an account or sign in. The compatibility analysis runs entirely in your browser: room measurements, the equipment you choose, and the result are never sent to a server or stored in a database.</p>
+<main>
+  <section class="portada">
+    <div class="in">
+      <p class="eyebrow">Privacy</p>
+      <h1>Your setup, in your browser.</h1>
+      <p class="lead">No accounts. No tracking cookies. This page says exactly what's stored, where, and why.</p>
+    </div>
+  </section>
 
-  <p>The site uses <a href="https://vercel.com/docs/analytics">Vercel Web Analytics</a> to count visits in an aggregated, anonymous way. It uses no cookies: each visitor is recognized by a hash derived from the request, discarded after 24 hours — never a persistent identifier that follows the same person across visits. What's recorded per visit is aggregated (approximate country/city, device type, browser, which page was viewed and where it came from) and is never tied to a stored IP address or an identifiable person.</p>
+  <div class="banda">
+    <div class="in">
+      <section class="bloque">
+        <h2>No account, no server</h2>
+        <div>
+          <p>The Hifi Match doesn't ask you to create an account or sign in. The compatibility analysis runs entirely in your browser: room measurements, the equipment you choose, and the result are never sent to a server or stored in a database.</p>
+        </div>
+      </section>
 
-  <p>The only personal data this site receives is what's voluntarily typed into the contact form (optional name, email, and message). That submission is processed through an email provider (Resend) and goes straight to the site's contact inbox — it isn't stored in any database of ours, nor shared with anyone else. The form includes automatic checks against automated submissions (a hidden field and a minimum-time check) that don't collect any additional data about the person writing.</p>
+      <section class="bloque">
+        <h2>Aggregated analytics</h2>
+        <div>
+          <p>The site uses <a href="https://vercel.com/docs/analytics">Vercel Web Analytics</a> to count visits in an aggregated, anonymous way. It uses no cookies: each visitor is recognized by a hash derived from the request, discarded after 24 hours — never a persistent identifier that follows the same person across visits. What's recorded per visit is aggregated (approximate country/city, device type, browser, which page was viewed and where it came from) and is never tied to a stored IP address or an identifiable person.</p>
+        </div>
+      </section>
 
-  <p>This site also has a public message wall. The name (if given) and the message text are stored in a database (Upstash Redis) and shown to any visitor — it's public content, not private. The email address requested alongside the message is stored too, but never shown publicly: it's only used if a reply is needed by that channel. None of this touches the compatibility analysis (room measurements, chosen equipment, result), which still never leaves the browser.</p>
+      <section class="bloque">
+        <h2>Contact form</h2>
+        <div>
+          <p>The only personal data this site receives is what's voluntarily typed into the contact form (optional name, email, and message). That submission is processed through an email provider (Resend) and goes straight to the site's contact inbox — it isn't stored in any database of ours, nor shared with anyone else. The form includes automatic checks against automated submissions (a hidden field and a minimum-time check) that don't collect any additional data about the person writing.</p>
+        </div>
+      </section>
 
-  <p>As with any site on the internet, the hosting provider (Vercel) logs basic technical information for each request (for example, IP address) for infrastructure operation and security purposes — this site does not access those logs for tracking purposes.</p>
+      <section class="bloque">
+        <h2>Public message wall</h2>
+        <div>
+          <p>This site also has a public message wall. The name (if given) and the message text are stored in a database (Upstash Redis) and shown to any visitor — it's public content, not private. The email address requested alongside the message is stored too, but never shown publicly: it's only used if a reply is needed by that channel. None of this touches the compatibility analysis (room measurements, chosen equipment, result), which still never leaves the browser.</p>
+        </div>
+      </section>
 
-  <p>For any questions about any of this, write to <a href="mailto:thehmcontacto@gmail.com">thehmcontacto@gmail.com</a>.</p>
+      <section class="bloque">
+        <h2>My systems</h2>
+        <div>
+          <p>Saving a system under "My systems" stays only in your own browser's local storage — no account, no sync across devices. None of it reaches a server; clearing your browser's history also clears those saved systems.</p>
+        </div>
+      </section>
 
-  <a class="volver" href="/">← Analyze a system</a>
-</div>
+      <section class="bloque">
+        <h2>Hosting logs</h2>
+        <div>
+          <p>As with any site on the internet, the hosting provider (Vercel) logs basic technical information for each request (for example, IP address) for infrastructure operation and security purposes — this site does not access those logs for tracking purposes.</p>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h2>Questions</h2>
+        <div>
+          <p>For any questions about any of this, write to <a class="email" href="mailto:thehmcontacto@gmail.com">thehmcontacto@gmail.com</a>.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="in">
+    <nav aria-label="Site links">
+      <a href="/">← Analyze a system</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <small>Runs in your browser, no server</small>
+  </div>
+</footer>
 </body>
 </html>
