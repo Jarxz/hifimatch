@@ -218,7 +218,7 @@ export const es = {
     pcTitulo3: 'equilibrio.',
     pcLead: 'Entiende la relación entre tus equipos, tu sala y tu forma de escuchar.',
     pcCta: 'Configurar mi sistema',
-    pcImagenNota: 'Ilustración conceptual: los trazados no son una medición de tu sala.',
+    pcImagenNota: 'Ilustración conceptual, no es una medición de tu sala.',
     pcCarril1Titulo: 'Acople eléctrico',
     pcCarril1Sub: 'amplificador ↔ parlantes',
     pcCarril2Titulo: 'Reserva de potencia',

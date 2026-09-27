@@ -4663,8 +4663,13 @@ headless desde un PNG de 1,4 MB generado con IA por Codex): basta pisar
 ese archivo, mismo nombre. Es decorativa (`alt=""`) y lleva un pie de
 figura visible — "Ilustración conceptual: los trazados no son una
 medición de tu sala" — porque el sitio no afirma física sin mecanismo.
-Ojo: la guía gráfica THM pide evitar imágenes generadas por IA; el
-usuario lo sabe y eligió dejarla por ahora. `vite-plugin-singlefile` la
+**Actualización:** el usuario entregó una imagen nueva (`fondo thm portada1`, la
+misma escena sin las líneas naranjas y con el lado izquierdo ya oscurecido);
+reemplaza a la anterior (139 KB, WebP a calidad 0,94 — a 0,86 se veía más
+liviana, pero un degradé oscuro es justo donde el WebP marca bandas). Como ya
+no hay trazados, el pie de figura pasa a "Ilustración conceptual, no es una
+medición de tu sala". Ojo: la guía gráfica THM pide evitar imágenes generadas
+por IA; el usuario lo sabe y eligió dejarla por ahora. `vite-plugin-singlefile` la
 inlinea en base64 (`index.html` ≈ 878 KB), y `img-src 'self' data:` del
 CSP ya la permite.
 

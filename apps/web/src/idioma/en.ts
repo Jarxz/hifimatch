@@ -124,7 +124,7 @@ export const en: Textos = {
     pcTitulo3: 'balance.',
     pcLead: 'Understand how your equipment, your room and the way you listen relate to each other.',
     pcCta: 'Set up my system',
-    pcImagenNota: 'Conceptual illustration: the lines are not a measurement of your room.',
+    pcImagenNota: 'Conceptual illustration, not a measurement of your room.',
     pcCarril1Titulo: 'Electrical match',
     pcCarril1Sub: 'amplifier ↔ speakers',
     pcCarril2Titulo: 'Power headroom',
