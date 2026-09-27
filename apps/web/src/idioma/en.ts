@@ -554,6 +554,11 @@ export const en: Textos = {
     comparar: 'Compare',
     descargarPdf: 'Download PDF',
     titulo: 'Analysis report',
+    pcEyebrow: 'Document / analysis summary',
+    pcTitulo: 'A reference to come back to.',
+    pcLateralEtiqueta: 'Export and compare',
+    pcLateralNota:
+      'Saving analyses, comparing them and downloading them as PDF will be available with an account. Meanwhile, this report always shows the current analysis, with the source and confidence of each figure.',
     equipoTitulo: 'Equipment',
     planoTitulo: 'Layout, listening position and reflections (top view)',
     veredictoTitulo: 'Overall verdict',

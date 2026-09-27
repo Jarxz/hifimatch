@@ -199,14 +199,14 @@ test('vercel.json: cabeceras de seguridad HTTP en todas las rutas — revisión 
   assert.match(csp, /frame-ancestors 'none'/);
 });
 
-test('index.html: el informe (#s-documento) no encadena h2 hermanos sin nivel intermedio — Equipo/Sala/Veredicto/Evaluación/Resumen son h3 bajo "Informe de análisis" (h2)', () => {
+test('index.html: #s-documento sin saltos de nivel — título de la pantalla h2, "Informe de análisis" h3 y Equipo/Sala/Veredicto/Evaluación/Resumen h4', () => {
   const html = leer('index.html');
   const seccionDocumento = html.slice(html.indexOf('id="s-documento"'), html.indexOf('</section>', html.indexOf('id="s-documento"')));
-  assert.match(seccionDocumento, /<h2 class="doc-title"[^>]*>[^<]*<\/h2>/);
   const h2sDentro = seccionDocumento.match(/<h2\b/g) ?? [];
-  assert.equal(h2sDentro.length, 1, 'sólo "Informe de análisis" debería ser <h2> ahí adentro; el resto va en <h3>');
-  const h3Doc = seccionDocumento.match(/<h3 class="doc-h2"/g) ?? [];
-  assert.equal(h3Doc.length, 5);
+  assert.equal(h2sDentro.length, 1, 'sólo el título de la pantalla debería ser <h2> ahí adentro');
+  assert.match(seccionDocumento, /<h3 class="doc-title"[^>]*>[^<]*<\/h3>/);
+  const h4Doc = seccionDocumento.match(/<h4 class="doc-h2"/g) ?? [];
+  assert.equal(h4Doc.length, 5);
 });
 
 test('ar.html: canonical + OG básicos, propios (no copiados de index.html)', () => {

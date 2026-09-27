@@ -4899,6 +4899,25 @@ sección propia para el paso 3, así que `pasos.ts` fija `data-paso` en `#s-conf
 y el CSS pinta la franja sólo con `data-paso="2"` (sombra de `100vmax` + `clip-path`
 horizontal para salirse del contenedor sin desbordar el scroll).
 
+**Fase 5 — Documento con la piel editorial (misma rama).** Título grande "Una
+referencia para volver." con "← Resultado", el **informe como una hoja marfil**
+(esquinas rectas, sin sombra, tipografía algo mayor) y a la derecha un lateral
+**"Exportar y comparar"** con las pestañas Análisis 1/2, "Descargar PDF" y
+"Comparar" — la barra de herramientas de arriba desaparece. **Nada del contenido
+ni del pintado cambia**: la hoja conserva sus ids (`doc-fecha`, `doc-equipos`,
+`doc-secciones`…) y `pintarDocumento` sigue escribiéndola igual; los tres controles
+siguen abriendo el popup "Debe iniciar sesión" (siguen bloqueados hasta que exista
+login). El veredicto de cada sección va en texto oscuro con **punto de color**; el
+titular del veredicto general conserva su color, igual que en Resultado. Los
+niveles de encabezado se ordenaron (h2 pantalla → h3 "Informe de análisis" → h4
+secciones) y `paginas-estaticas.test.ts` se actualizó a esa jerarquía.
+
+Colisión de nombres cazada al verificar (otra vez, ver Fase 2): el contenedor nuevo
+se llamó primero `.doc-cuerpo`, igual que los párrafos del informe que
+`resultado.ts` genera con esa clase, y les rompió la disposición. Ahora es
+`.doc-layout`. Antes de nombrar un contenedor, `grep` la clase en `index.html`,
+`estilos.css` **y `vista/*.ts`**.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

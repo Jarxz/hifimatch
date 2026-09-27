@@ -1187,53 +1187,67 @@
       </div>
     </div>
 
-    <div class="doc-toolbar">
-      <div class="segs" role="group" id="tabs-documento">
-        <button type="button" data-doc-tab="1" aria-pressed="true" data-i18n="documento.pestana1">Análisis 1</button>
-        <button type="button" data-doc-tab="2" aria-pressed="false" data-i18n="documento.pestana2">Análisis 2</button>
-      </div>
-      <div class="doc-toolbar-acciones">
-        <button type="button" class="back" id="btn-doc-comparar" data-i18n="documento.comparar">Comparar</button>
-        <button type="button" class="back" id="btn-doc-pdf" data-i18n="documento.descargarPdf">Descargar PDF</button>
+    <div class="pc-inner doc-cab">
+      <p class="pc-eyebrow" data-i18n="documento.pcEyebrow">Documento / resumen del análisis</p>
+      <div class="res-cab">
+        <div class="res-cab-textos">
+          <h2 class="res-titulo res-titulo-oscuro" data-i18n="documento.pcTitulo">Una referencia para volver.</h2>
+        </div>
+        <div class="res-cab-acciones">
+          <button type="button" class="pc-btn-linea" data-nav-ir="results" data-i18n="resultado.pcVolverResultado">← Resultado</button>
+        </div>
       </div>
     </div>
 
-    <div class="doc-paper">
-      <div class="doc-logo"><b class="doc-logo-the">THE</b> HIFI <b>MATCH</b></div>
-      <h2 class="doc-title" data-i18n="documento.titulo">Informe de análisis</h2>
-      <div class="doc-fecha" id="doc-fecha">—</div>
+    <div class="pc-inner doc-layout">
+      <div class="doc-paper">
+        <div class="doc-logo"><b class="doc-logo-the">THE</b> HIFI <b>MATCH</b></div>
+        <h3 class="doc-title" data-i18n="documento.titulo">Informe de análisis</h3>
+        <div class="doc-fecha" id="doc-fecha">—</div>
 
-      <h3 class="doc-h2" data-i18n="documento.equipoTitulo">Equipo</h3>
-      <div class="doc-equipos" id="doc-equipos"></div>
+        <h4 class="doc-h2" data-i18n="documento.equipoTitulo">Equipo</h4>
+        <div class="doc-equipos" id="doc-equipos"></div>
 
-      <h3 class="doc-h2" data-i18n="resultado.sala">Sala</h3>
-      <div class="doc-sala">
-        <div class="doc-row"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="doc-r-wl">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.alto">Alto</span><b id="doc-r-h">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="doc-r-dist">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.nivel">Nivel</span><b id="doc-r-lvl">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="doc-r-peak">—</b></div>
+        <h4 class="doc-h2" data-i18n="resultado.sala">Sala</h4>
+        <div class="doc-sala">
+          <div class="doc-row"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="doc-r-wl">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.alto">Alto</span><b id="doc-r-h">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="doc-r-dist">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.nivel">Nivel</span><b id="doc-r-lvl">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="doc-r-peak">—</b></div>
+        </div>
+
+        <div id="doc-plano"></div>
+
+        <h4 class="doc-h2" data-i18n="documento.veredictoTitulo">Veredicto general</h4>
+        <div class="doc-veredicto-wrap">
+          <b class="doc-veredicto-titulo" id="doc-veredicto-titulo">—</b>
+          <span class="doc-veredicto-rotulo" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
+        </div>
+
+        <h4 class="doc-h2" data-i18n="resultado.evaluacion">Evaluación</h4>
+        <div id="doc-secciones"></div>
+
+        <h4 class="doc-h2" data-i18n="motor.resumen.titulo">En resumen</h4>
+        <div id="doc-resumen"></div>
+
+        <div class="doc-footer" data-i18n-html="documento.disclaimerHtml">—</div>
       </div>
 
-      <div id="doc-plano"></div>
-
-      <h3 class="doc-h2" data-i18n="documento.veredictoTitulo">Veredicto general</h3>
-      <div class="doc-veredicto-wrap">
-        <b class="doc-veredicto-titulo" id="doc-veredicto-titulo">—</b>
-        <span class="doc-veredicto-rotulo" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
-      </div>
-
-      <h3 class="doc-h2" data-i18n="resultado.evaluacion">Evaluación</h3>
-      <div id="doc-secciones"></div>
-
-      <h3 class="doc-h2" data-i18n="motor.resumen.titulo">En resumen</h3>
-      <div id="doc-resumen"></div>
-
-      <div class="doc-footer" data-i18n-html="documento.disclaimerHtml">—</div>
+      <aside class="doc-lateral">
+        <p class="pc-eyebrow" data-i18n="documento.pcLateralEtiqueta">Exportar y comparar</p>
+        <div class="segs" role="group" id="tabs-documento">
+          <button type="button" data-doc-tab="1" aria-pressed="true" data-i18n="documento.pestana1">Análisis 1</button>
+          <button type="button" data-doc-tab="2" aria-pressed="false" data-i18n="documento.pestana2">Análisis 2</button>
+        </div>
+        <button type="button" class="pc-cta doc-lateral-cta" id="btn-doc-pdf"><span data-i18n="documento.descargarPdf">Descargar PDF</span><span aria-hidden="true">↓</span></button>
+        <button type="button" class="pc-btn-linea doc-lateral-btn" id="btn-doc-comparar" data-i18n="documento.comparar">Comparar</button>
+        <p class="doc-lateral-nota" data-i18n="documento.pcLateralNota">—</p>
+      </aside>
     </div>
 
-    <div style="display:flex; justify-content:center; margin:20px 0 10px">
-      <button class="back" id="btn-doc-volver-2" data-i18n="info.volver">← Volver al análisis</button>
+    <div class="pc-inner doc-pie">
+      <button class="pc-enlace" id="btn-doc-volver-2" data-i18n="info.volver">← Volver al análisis</button>
     </div>
   </div>
 </section>

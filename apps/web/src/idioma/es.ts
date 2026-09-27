@@ -669,6 +669,11 @@ export const es = {
     comparar: 'Comparar',
     descargarPdf: 'Descargar PDF',
     titulo: 'Informe de análisis',
+    pcEyebrow: 'Documento / resumen del análisis',
+    pcTitulo: 'Una referencia para volver.',
+    pcLateralEtiqueta: 'Exportar y comparar',
+    pcLateralNota:
+      'Guardar análisis, compararlos y descargarlos como PDF estará disponible con una cuenta. Mientras tanto, este informe muestra siempre el análisis vigente, con la fuente y la confianza de cada dato.',
     equipoTitulo: 'Equipo',
     planoTitulo: 'Plano, escucha y reflexiones (vista superior)',
     veredictoTitulo: 'Veredicto general',
