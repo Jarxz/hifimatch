@@ -37,6 +37,15 @@ import { iniciarPestanas } from './vista/pestanas.ts';
 import type { ControlPestanas } from './vista/pestanas.ts';
 import { modeloBandaResultado, primerModoAxialHz } from './vista/resumenResultado.ts';
 import { modeloDatosYFuentes } from './vista/datosYFuentes.ts';
+import {
+  configDesdeEstado,
+  leerSistemas,
+  guardarSistema,
+  eliminarSistema,
+  CLAVE_ALMACEN,
+} from './datos/sistemasGuardados.ts';
+import type { AlmacenLike, ConfiguracionGuardada, SistemaGuardado } from './datos/sistemasGuardados.ts';
+import { modeloTarjetaSistema, nombreSugerido, cuerpoGuardarHtml, cuerpoGuardadoHtml, cuerpoEliminarHtml, cuerpoErrorHtml } from './vista/sistemas.ts';
 import { filasResumenConfig, requeridosCompletos } from './vista/resumenConfig.ts';
 import { LIMITES_DIMENSION_M, validarDimension } from './vista/dimensiones.ts';
 import type { DimensionSala } from './vista/dimensiones.ts';
@@ -90,6 +99,7 @@ import {
   pintarBandaResultado,
   pintarDatosYFuentes,
   pintarGraficoModos,
+  pintarSistemas,
   pintarDocumento,
   pintarMatchDelMes,
 } from './vista/pintar.ts';
@@ -389,6 +399,13 @@ function actualizarBadgesNivelGenero(): void {
 let controlPasos: ControlPasos | null = null;
 let controlPestanasRes: ControlPestanas | null = null;
 let controlTemasGuia: ControlPestanas | null = null;
+
+/** "Mis sistemas": lo guardado en este navegador y la configuración con la que
+ * se calculó el ÚLTIMO análisis — "Guardar" guarda lo que se está viendo en
+ * Resultado, no lo que se haya tocado después en Configurar sin volver a
+ * analizar. */
+let sistemasGuardados: SistemaGuardado[] = [];
+let configAnalizada: ReturnType<typeof configDesdeEstado> | null = null;
 
 function actualizarPasosUi(): void {
   if (!controlPasos) return;
@@ -1487,6 +1504,8 @@ function renderizarResultado(): void {
     picoObjetivo,
   };
 
+  configAnalizada = configDesdeEstado(estado);
+
   // "Analizar" nuevo siempre vuelve a partir de cero: candado cerrado y sin
   // posición manual de asiento guardada, igual que un sistema recién
   // elegido — nada de un arrastre de un análisis anterior sobrevive acá
@@ -1542,6 +1561,7 @@ function cambiarIdioma(idioma: Idioma): void {
 
   refrescar();
   renderizarResultado();
+  repintarSistemas();
 }
 
 type InfoClave =
@@ -1565,7 +1585,7 @@ function abrirPopup(titulo: string, cuerpoHtml: string): void {
   if (!dialog || !tituloEl || !cuerpoEl) return;
   tituloEl.textContent = titulo;
   cuerpoEl.innerHTML = cuerpoHtml;
-  dialog.showModal();
+  if (!dialog.open) dialog.showModal();
 }
 
 /** Popup con la misma explicación de la pantalla "Guía del análisis"
@@ -1577,9 +1597,172 @@ function abrirInfoPopup(clave: InfoClave): void {
   abrirPopup(info.titulo, info.cuerpoHtml);
 }
 
-/** "Guardar" queda diferido (necesita backend/auth) — el botón sólo
- * declara la limitación, mismo patrón que "Distribuidor
- * próximamente". */
+/** "Mis sistemas" guarda en localStorage — que en Safari por file:// o con los
+ * datos del sitio bloqueados tira SecurityError. `null` = no hay dónde guardar. */
+function almacenLocal(): AlmacenLike | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** ¿El navegador deja escribir de verdad? (una lectura no lo prueba) */
+function almacenPermiteEscribir(): boolean {
+  const a = almacenLocal();
+  if (!a) return false;
+  try {
+    a.setItem(CLAVE_ALMACEN + '.prueba', '1');
+    (a as Storage).removeItem(CLAVE_ALMACEN + '.prueba');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function repintarSistemas(): void {
+  pintarSistemas(sistemasGuardados.map((s) => modeloTarjetaSistema(s, idiomaActual)), idiomaActual);
+  const pie = document.getElementById('sis-pie');
+  const t = textosDe(idiomaActual).sistemas;
+  if (pie) pie.textContent = almacenPermiteEscribir() ? t.pie : t.pieBloqueado;
+}
+
+/** Cuadro para nombrar y guardar el sistema que se está viendo en Resultado. */
+function abrirGuardarSistema(): void {
+  const t = textosDe(idiomaActual).sistemas;
+  const cfg = configAnalizada;
+  if (!cfg || !estado.spk || !estado.amp) {
+    abrirPopup(t.guardarTitulo, cuerpoErrorHtml('sin-equipos', idiomaActual));
+    return;
+  }
+  if (!cfg.ok) {
+    abrirPopup(t.guardarTitulo, cuerpoErrorHtml(cfg.codigo, idiomaActual));
+    return;
+  }
+  const sugerido = nombreSugerido(buscarParlante(cfg.config.spk).nombre, buscarAmplificador(cfg.config.amp).nombre);
+  abrirPopup(t.guardarTitulo, cuerpoGuardarHtml(sugerido, idiomaActual));
+  (document.getElementById('gs-nombre') as HTMLInputElement | null)?.select();
+}
+
+function confirmarGuardarSistema(nombre: string): void {
+  const t = textosDe(idiomaActual).sistemas;
+  const cfg = configAnalizada;
+  const mostrarError = (codigo: keyof typeof t.error): void => {
+    const el = document.getElementById('gs-error');
+    if (!el) return;
+    el.textContent = t.error[codigo];
+    el.classList.remove('hidden');
+  };
+  if (!cfg || !cfg.ok) {
+    mostrarError(cfg && !cfg.ok ? cfg.codigo : 'sin-equipos');
+    return;
+  }
+  const r = guardarSistema(almacenLocal(), sistemasGuardados, nombre, cfg.config, Date.now());
+  if (!r.ok) {
+    mostrarError(r.codigo);
+    return;
+  }
+  sistemasGuardados = r.sistemas;
+  repintarSistemas();
+  abrirPopup(t.guardadoTitulo, cuerpoGuardadoHtml(r.sistemas[0]!.nombre, idiomaActual));
+}
+
+/** Vuelve a poner en los controles de Configurar lo que se guardó, pasando por
+ * los mismos `pick`/`set*` de siempre (así el resumen, los pasos y las
+ * validaciones no se enteran de que vino de un guardado). */
+function aplicarConfiguracion(c: ConfiguracionGuardada): void {
+  pick('spk', c.spk);
+  pick('amp', c.amp);
+  pick('streamer', c.streamer ?? '');
+  pick('dac', c.dac ?? '');
+  for (const [id, valor] of [['in-W', c.W], ['in-L', c.L], ['in-H', c.H]] as const) {
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    if (!input) continue;
+    input.value = String(valor);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  const material = (id: string, valor: string, set: (v: never) => void): void => {
+    const sel = document.getElementById(id) as HTMLSelectElement | null;
+    if (sel) sel.value = valor;
+    set(valor as never);
+  };
+  material('sel-murofrontal', c.muroFrontal, setMuroFrontal);
+  material('sel-muroposterior', c.muroPosterior, setMuroPosterior);
+  material('sel-muroizquierdo', c.muroIzquierdo, setMuroIzquierdo);
+  material('sel-muroderecho', c.muroDerecho, setMuroDerecho);
+  material('sel-piso', c.piso, setPiso);
+  material('sel-techo', c.techo, setTecho);
+  setNivel(c.lvl);
+  setGenero(c.genero as Genero);
+}
+
+/** "Abrir": restaura la configuración y la analiza — se llega a Resultado. */
+function abrirSistema(id: string): void {
+  const s = sistemasGuardados.find((x) => x.id === id);
+  if (!s) return;
+  aplicarConfiguracion(s.config);
+  analizar();
+}
+
+function pedirEliminarSistema(id: string): void {
+  const s = sistemasGuardados.find((x) => x.id === id);
+  if (!s) return;
+  const t = textosDe(idiomaActual).sistemas;
+  abrirPopup(t.eliminarTitulo, cuerpoEliminarHtml(s.id, s.nombre, idiomaActual));
+}
+
+function confirmarEliminarSistema(id: string): void {
+  const r = eliminarSistema(almacenLocal(), sistemasGuardados, id);
+  const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
+  if (r.ok) {
+    sistemasGuardados = r.sistemas;
+    repintarSistemas();
+    dialog?.close();
+  } else {
+    abrirPopup(textosDe(idiomaActual).sistemas.eliminarTitulo, cuerpoErrorHtml(r.codigo, idiomaActual));
+  }
+}
+
+/** Los botones de los cuadros de "Mis sistemas" se inyectan con innerHTML: un
+ * solo listener delegado en el cuadro los atiende. */
+function wireSistemas(): void {
+  const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
+  dialog?.addEventListener('click', (ev) => {
+    const boton = (ev.target as HTMLElement).closest<HTMLElement>('[data-popup-accion]');
+    if (!boton) return;
+    const accion = boton.dataset.popupAccion;
+    if (accion === 'cerrar') dialog.close();
+    else if (accion === 'ir-sistemas') {
+      dialog.close();
+      ir('sistemas');
+    } else if (accion === 'eliminar' && boton.dataset.id) confirmarEliminarSistema(boton.dataset.id);
+  });
+  dialog?.addEventListener('submit', (ev) => {
+    const form = ev.target as HTMLFormElement;
+    if (form.id !== 'form-guardar-sistema') return;
+    ev.preventDefault();
+    const nombre = (form.elements.namedItem('nombre') as HTMLInputElement | null)?.value ?? '';
+    confirmarGuardarSistema(nombre);
+  });
+  document.getElementById('sis-lista')?.addEventListener('click', (ev) => {
+    const boton = (ev.target as HTMLElement).closest<HTMLElement>('[data-sis-abrir], [data-sis-eliminar]');
+    if (!boton) return;
+    if (boton.dataset.sisAbrir) abrirSistema(boton.dataset.sisAbrir);
+    else if (boton.dataset.sisEliminar) pedirEliminarSistema(boton.dataset.sisEliminar);
+  });
+  document.getElementById('btn-sis-ejemplo')?.addEventListener('click', () => {
+    cargarEjemplo();
+    ir('config');
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-nav-ir="sistemas"]').forEach((b) => {
+    b.addEventListener('click', () => repintarSistemas());
+  });
+  document.getElementById('btn-contacto-sistemas')?.addEventListener('click', () => abrirContactoPopup());
+}
+
+/** Guardar y comparar con CUENTA (Análisis 2, Comparar, Descargar PDF del
+ * informe) sigue diferido — necesita backend/auth — y sólo declara la
+ * limitación. Guardar EN ESTE NAVEGADOR es "Mis sistemas" (`abrirGuardarSistema`). */
 function abrirGuardarPopup(): void {
   const t = textosDe(idiomaActual).resultado;
   abrirPopup(t.guardarPopupTitulo, t.guardarPopupCuerpo);
@@ -2039,8 +2222,9 @@ function wireEventos(): void {
     d.querySelector('[data-cerrar-dialogo]')?.addEventListener('click', () => d.close());
   });
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
-  document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
-  document.getElementById('btn-guardar-res')?.addEventListener('click', () => abrirGuardarPopup());
+  document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarSistema());
+  document.getElementById('btn-guardar-res')?.addEventListener('click', () => abrirGuardarSistema());
+  wireSistemas();
   document.getElementById('btn-ver-original')?.addEventListener('click', () => activarPestana('original'));
   controlPestanasRes = iniciarPestanas(document.getElementById('res-tabs'));
   controlTemasGuia = iniciarPestanas(document.getElementById('info-temas'), 'vertical');
@@ -2202,6 +2386,8 @@ function main(): void {
   actualizarNavHabilitada();
   controlPasos = iniciarPasos();
   refrescar();
+  sistemasGuardados = leerSistemas(almacenLocal());
+  repintarSistemas();
 
   // Hook de devtools, ya no el único camino a "Documento" (tiene su propia
   // pestaña en .head-nav) — se conserva como atajo para saltar la

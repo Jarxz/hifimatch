@@ -20,6 +20,7 @@ import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import type { ModeloMatchDelMes } from './matchDelMes.ts';
 import type { ModeloBandaResultado } from './resumenResultado.ts';
 import type { GrupoDatosFuentes } from './datosYFuentes.ts';
+import type { TarjetaSistema } from './sistemas.ts';
 import { textosDe } from '../idioma/idioma.ts';
 import { actualizarMedidor, construirEscala } from './medidor.ts';
 
@@ -416,6 +417,49 @@ export function pintarDatosYFuentes(grupos: GrupoDatosFuentes[], idioma: Idioma)
       cuerpo.append(tr);
     }
     tabla.append(cuerpo);
+  }
+}
+
+/** "Mis sistemas": una tarjeta por sistema guardado. Todo con textContent (el
+ * nombre lo escribe el usuario). Sin sistemas se muestra el estado vacío. */
+export function pintarSistemas(tarjetas: TarjetaSistema[], idioma: Idioma): void {
+  const t = textosDe(idioma).sistemas;
+  const lista = el('sis-lista');
+  lista.replaceChildren();
+  el('sis-vacio').classList.toggle('hidden', tarjetas.length > 0);
+  for (const s of tarjetas) {
+    const art = document.createElement('article');
+    art.className = 'sis-tarjeta';
+    const fecha = document.createElement('div');
+    fecha.className = 'sis-fecha';
+    fecha.textContent = s.fechaTexto;
+    const nombre = document.createElement('h3');
+    nombre.className = 'sis-nombre';
+    nombre.textContent = s.nombre;
+    const datos = document.createElement('p');
+    datos.className = 'sis-datos';
+    // El nombre sugerido al guardar ya es "parlante + amplificador": no se repite debajo.
+    for (const linea of [s.equipos === s.nombre ? '' : s.equipos, s.sala, s.escucha]) {
+      if (!linea) continue;
+      const span = document.createElement('span');
+      span.textContent = linea;
+      datos.append(span);
+    }
+    const acciones = document.createElement('div');
+    acciones.className = 'sis-acciones';
+    const abrir = document.createElement('button');
+    abrir.type = 'button';
+    abrir.className = 'pc-enlace';
+    abrir.dataset.sisAbrir = s.id;
+    abrir.textContent = t.abrir;
+    const eliminar = document.createElement('button');
+    eliminar.type = 'button';
+    eliminar.className = 'pc-enlace pc-quitar';
+    eliminar.dataset.sisEliminar = s.id;
+    eliminar.textContent = t.eliminar;
+    acciones.append(abrir, eliminar);
+    art.append(fecha, nombre, datos, acciones);
+    lista.append(art);
   }
 }
 

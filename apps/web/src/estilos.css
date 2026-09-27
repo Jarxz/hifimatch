@@ -168,7 +168,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    en muchas rondas anteriores (ver el media query de abajo, que ahora
    declara su propio grid-template-areas en vez de heredar éste). */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:grid; grid-template-columns:auto auto 1fr; grid-template-areas:"hm nav hright"; align-items:center; column-gap:28px; padding:14px 22px; border-bottom:1px solid var(--line)}
-#s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap{padding-top:78px}
+#s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap, #s-sistemas .wrap{padding-top:78px}
 .head .hm{grid-area:hm; font-weight:300; letter-spacing:.05em; font-size:19px; padding-left:.05em}
 .head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}
@@ -225,7 +225,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .idioma-splash{top:9px}
   .segs.idioma button{padding:5px 7px; font-size:9px}
   .head-nav-btn{font-size:9.5px; padding:5px 8px 7px}
-  #s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap{padding-top:96px}
+  #s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap, #s-mensajes .wrap, #s-sistemas .wrap{padding-top:96px}
 }
 
 /* CONFIG */
@@ -867,18 +867,18 @@ html:has(#ar-canvas), html:has(#ar-canvas) body{height:100%; overflow:hidden}
 @keyframes st-pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
 @keyframes proof-in{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
 
-#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes{--paper:#efede7; --ink:#111310; --pc-bg:#050606; --pc-line:rgba(239,237,231,.16); --pc-dim:#a9ada6; --pc-faint:#7f847d; background:var(--pc-bg); font-weight:300}
+#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas{--paper:#efede7; --ink:#111310; --pc-bg:#050606; --pc-line:rgba(239,237,231,.16); --pc-dim:#a9ada6; --pc-faint:#7f847d; background:var(--pc-bg); font-weight:300}
 #s-splash .wrap{max-width:none; padding:88px 0 0}
-#s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head{background:rgba(5,6,6,.96); border-bottom-color:var(--pc-line)}
-#s-splash .head-status, #s-config .head-status, #s-results .head-status, #s-sala .head-status, #s-info .head-status, #s-documento .head-status, #s-mensajes .head-status{display:none}
-#s-splash .head-nav-btn, #s-config .head-nav-btn, #s-results .head-nav-btn, #s-sala .head-nav-btn, #s-info .head-nav-btn, #s-documento .head-nav-btn, #s-mensajes .head-nav-btn{color:var(--pc-dim); font-size:10px; letter-spacing:.09em; border-bottom-width:1px}
-#s-splash .head-nav-btn:hover, #s-config .head-nav-btn:hover, #s-results .head-nav-btn:hover, #s-sala .head-nav-btn:hover, #s-info .head-nav-btn:hover, #s-documento .head-nav-btn:hover, #s-mensajes .head-nav-btn:hover{color:var(--paper)}
-#s-splash .head-nav-btn[aria-current="page"], #s-config .head-nav-btn[aria-current="page"], #s-results .head-nav-btn[aria-current="page"], #s-sala .head-nav-btn[aria-current="page"], #s-info .head-nav-btn[aria-current="page"], #s-documento .head-nav-btn[aria-current="page"], #s-mensajes .head-nav-btn[aria-current="page"]{color:var(--paper); border-bottom-color:var(--paper); text-shadow:none}
+#s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head, #s-sistemas .head{background:rgba(5,6,6,.96); border-bottom-color:var(--pc-line)}
+#s-splash .head-status, #s-config .head-status, #s-results .head-status, #s-sala .head-status, #s-info .head-status, #s-documento .head-status, #s-mensajes .head-status, #s-sistemas .head-status{display:none}
+#s-splash .head-nav-btn, #s-config .head-nav-btn, #s-results .head-nav-btn, #s-sala .head-nav-btn, #s-info .head-nav-btn, #s-documento .head-nav-btn, #s-mensajes .head-nav-btn, #s-sistemas .head-nav-btn{color:var(--pc-dim); font-size:10px; letter-spacing:.09em; border-bottom-width:1px}
+#s-splash .head-nav-btn:hover, #s-config .head-nav-btn:hover, #s-results .head-nav-btn:hover, #s-sala .head-nav-btn:hover, #s-info .head-nav-btn:hover, #s-documento .head-nav-btn:hover, #s-mensajes .head-nav-btn:hover, #s-sistemas .head-nav-btn:hover{color:var(--paper)}
+#s-splash .head-nav-btn[aria-current="page"], #s-config .head-nav-btn[aria-current="page"], #s-results .head-nav-btn[aria-current="page"], #s-sala .head-nav-btn[aria-current="page"], #s-info .head-nav-btn[aria-current="page"], #s-documento .head-nav-btn[aria-current="page"], #s-mensajes .head-nav-btn[aria-current="page"], #s-sistemas .head-nav-btn[aria-current="page"]{color:var(--paper); border-bottom-color:var(--paper); text-shadow:none}
 @media (min-width:1025px){
-  #s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head{max-width:none; left:0; transform:none; grid-template-columns:1fr auto 1fr; column-gap:36px; padding:0 max(44px, calc((100vw - 1380px) / 2 + 44px)); height:88px}
-  #s-splash .head .hright, #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright{justify-self:end}
-  #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright{padding-right:96px}
-  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash{top:28px; right:max(44px, calc((100vw - 1380px) / 2 + 44px))}
+  #s-splash .head, #s-config .head, #s-results .head, #s-sala .head, #s-info .head, #s-documento .head, #s-mensajes .head, #s-sistemas .head{max-width:none; left:0; transform:none; grid-template-columns:1fr auto 1fr; column-gap:36px; padding:0 max(44px, calc((100vw - 1380px) / 2 + 44px)); height:88px}
+  #s-splash .head .hright, #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright, #s-sistemas .head .hright{justify-self:end}
+  #s-config .head .hright, #s-results .head .hright, #s-sala .head .hright, #s-info .head .hright, #s-documento .head .hright, #s-mensajes .head .hright, #s-sistemas .head .hright{padding-right:96px}
+  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash, #s-sistemas .idioma-splash{top:28px; right:max(44px, calc((100vw - 1380px) / 2 + 44px))}
 }
 @media (max-width:1024px){ #s-splash .wrap{padding-top:96px} }
 
@@ -968,7 +968,7 @@ html:has(#ar-canvas), html:has(#ar-canvas) body{height:100%; overflow:hidden}
 #s-splash .novedades-popup{position:relative; top:auto; bottom:auto; left:auto; max-width:330px; margin-top:26px; border-radius:0; box-shadow:none; border-color:var(--pc-line); background:var(--pc-bg)}
 
 @media (max-width:1024px){
-  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash{top:9px}
+  #s-splash .idioma-splash, #s-config .idioma-splash, #s-results .idioma-splash, #s-sala .idioma-splash, #s-info .idioma-splash, #s-documento .idioma-splash, #s-mensajes .idioma-splash, #s-sistemas .idioma-splash{top:9px}
 }
 /* Tablet: texto e imagen en dos columnas sin solaparse (el titular no pisa a los parlantes). */
 @media (min-width:851px) and (max-width:1024px){
@@ -1274,10 +1274,10 @@ dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; ba
    estado (verde / dorado / rojo), no en fondos, bordes ni textos. Los tokens
    --panel* se redefinen en estos ámbitos, así todo lo que ya los usa (selects,
    listas de resultados, chips, ficha manual…) se adapta sin tocarlo uno a uno. */
-#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
+#s-splash, #s-config, #s-results, #s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
 /* Resultado y Sala: los grises de texto suben hacia el marfil (más blanco y
    negro, menos gris); la jerarquía se conserva con tamaño, mayúsculas y peso. */
-#s-results, #s-sala, #s-info, #s-documento, #s-mensajes{--dim:#cdd0c9; --faint:#a3a79f; --label:#b8bbb4; --pc-dim:#c4c7c0; --pc-faint:#9a9e97}
+#s-results, #s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas{--dim:#cdd0c9; --faint:#a3a79f; --label:#b8bbb4; --pc-dim:#c4c7c0; --pc-faint:#9a9e97}
 
 /* Estados de Lectura general y grupos de evidencia */
 #s-results .estado-item, #s-results .grupo-evidencia{background:transparent; border:1px solid var(--pc-line); border-radius:0}
@@ -1513,3 +1513,50 @@ dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}
    principal que el resto, no el degradé dorado de siempre. */
 dialog.info-popup .analizar{background:#efede7; color:#050606; border-radius:0; box-shadow:none; font-family:var(--mono); font-size:10.5px; font-weight:300; letter-spacing:.09em; padding:15px 24px}
 dialog.info-popup .analizar:not(:disabled):hover{background:#d6d8d0; box-shadow:none; opacity:1}
+
+/* MIS SISTEMAS — misma piel editorial (Fase 7). Configuraciones guardadas en
+   el navegador; la lista y los cuadros de guardar/eliminar son texto del sitio,
+   el nombre que escribe el usuario se escapa siempre (vista/sistemas.ts). */
+#s-sistemas{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-sistemas .wrap{max-width:none; padding:88px 0 46px}
+#s-sistemas [hidden]{display:none !important}
+.sis-cab{padding-top:44px; padding-bottom:36px}
+.sis-cab .res-cab{margin-bottom:0; align-items:flex-end}
+.sis-lead{max-width:600px; margin:22px 0 0; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+.sis-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:22px}
+.sis-tarjeta{display:flex; flex-direction:column; gap:14px; padding:26px; border:1px solid var(--pc-line)}
+.sis-fecha{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--pc-faint)}
+.sis-nombre{margin:0; font-weight:300; font-size:26px; line-height:1.1; letter-spacing:-.045em; color:var(--paper); overflow-wrap:anywhere}
+.sis-datos{margin:0; font-size:14px; line-height:1.65; color:var(--pc-dim)}
+.sis-datos span{display:block}
+.sis-acciones{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; padding-top:16px; border-top:1px solid var(--pc-line)}
+.sis-vacio{max-width:820px; margin:0 auto; padding:56px 30px; text-align:center; border:1px dashed var(--pc-line)}
+.sis-vacio .pc-eyebrow{margin-bottom:16px}
+.sis-vacio-titulo{margin:0 0 16px; font-weight:300; font-size:clamp(28px,3.6vw,46px); line-height:1.05; letter-spacing:-.05em; color:var(--paper)}
+.sis-vacio-texto{max-width:480px; margin:0 auto 28px; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+.sis-vacio-acciones{display:flex; flex-wrap:wrap; justify-content:center; gap:12px}
+.sis-pie{padding-top:44px}
+.sis-pie p{margin:0; padding-top:22px; border-top:1px solid var(--pc-line); font-size:13px; color:var(--pc-faint)}
+
+/* Formulario y acciones dentro de los cuadros emergentes (guardar / eliminar) */
+.popup-form{display:flex; flex-direction:column; gap:12px}
+.popup-form label{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:#a9ada6}
+.popup-form input[type=text]{width:100%; padding:12px 14px; background:transparent; border:1px solid rgba(239,237,231,.28); border-radius:0; color:#efede7; font:inherit; font-size:15px}
+.popup-form input[type=text]:focus-visible{outline:none; border-color:#efede7}
+.popup-nota{margin:0; font-size:12.5px; line-height:1.6; color:#a9ada6}
+.popup-error{margin:0; font-size:13px; color:#c58474}
+.popup-acciones{display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; margin-top:18px}
+.popup-form .popup-acciones{margin-top:8px}
+dialog.info-popup .pc-cta{background:#efede7; color:#050606; border:0; border-radius:0; padding:14px 22px; gap:26px; font:inherit; font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer}
+dialog.info-popup .pc-cta:hover{background:#d6d8d0}
+dialog.info-popup .pc-btn-linea{padding:14px 22px; background:transparent; border:1px solid rgba(239,237,231,.28); border-radius:0; color:#efede7; font:inherit; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer}
+dialog.info-popup .pc-btn-linea:hover{border-color:#efede7}
+
+@media (max-width:1024px){
+  #s-sistemas .wrap{padding-top:96px}
+}
+@media (max-width:850px){
+  #s-sistemas .pc-inner{padding-left:22px; padding-right:22px}
+  .sis-cab{padding-top:30px; padding-bottom:26px}
+  .sis-vacio{padding:40px 20px}
+}

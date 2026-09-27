@@ -1,5 +1,5 @@
 /** Las pantallas del sitio y el cambio entre ellas — el `go()` del prototipo. */
-export type Pantalla = 'splash' | 'config' | 'results' | 'sala' | 'info' | 'documento' | 'mensajes';
+export type Pantalla = 'splash' | 'config' | 'results' | 'sala' | 'info' | 'documento' | 'sistemas' | 'mensajes';
 
 /** `despues` corre ya con la pantalla activa (p. ej. abrir una tarjeta y
  * llevarla a la vista), después del `scrollTo(0, 0)` propio del cambio. */

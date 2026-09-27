@@ -20,6 +20,7 @@ import type { NombreReflexion, CodigoAnguloEscucha } from '../../../../packages/
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 import type { CodigoContacto } from '../../../../packages/contact/src/contacto.ts';
 import type { CodigoMensaje } from '../../../../packages/mensajes/src/mensajes.ts';
+import type { CodigoGuardado } from '../datos/sistemasGuardados.ts';
 
 /** Códigos que puede devolver `/api/contact.ts` — superset de
  * `CodigoContacto` (que sólo cubre lo que valida `validarContacto`, del
@@ -84,6 +85,7 @@ export const es = {
     resultado: 'Resultado',
     guia: 'Guía',
     documento: 'Documento',
+    sistemas: 'Mis sistemas',
     mensajes: 'Mensajes',
     ar: 'AR',
     arAria: 'Ver en realidad aumentada — Chrome/Android con un análisis ya calculado',
@@ -118,6 +120,42 @@ export const es = {
   // concepto se superpone), con las claves propias del listado público.
   // Nombre y mensaje se muestran a cualquier visitante; el email nunca
   // se muestra (viaja al servidor, se guarda, no más que eso).
+  sistemas: {
+    eyebrow: 'Biblioteca de configuraciones / En este navegador',
+    titulo: 'Tus sistemas. Tu punto de partida.',
+    lead: 'Guarda escenarios para volver a explorarlos. Se guardan sólo en este navegador: sin cuenta y sin sincronización.',
+    nuevo: 'Nuevo sistema +',
+    vacioEtiqueta: 'Tu primera configuración',
+    vacioTitulo: 'Haz espacio para tu sistema.',
+    vacioTexto: 'Aún no has guardado ninguno. Empieza con tus equipos o explora un sistema de ejemplo.',
+    configurar: 'Configurar ↗',
+    ejemplo: 'Explorar ejemplo',
+    abrir: 'Abrir ↗',
+    eliminar: 'Eliminar',
+    pie: 'Almacenamiento local del navegador · sin sincronización.',
+    pieBloqueado: 'El navegador no permite guardar en este momento (almacenamiento bloqueado): los sistemas guardados no se conservarán.',
+    guardarTitulo: 'Guardar este sistema',
+    guardarNombre: 'Nombre del sistema',
+    guardarNota: 'Se guarda sólo en este navegador: sin cuenta y sin sincronización, y no viaja a otro dispositivo.',
+    guardar: 'Guardar',
+    cancelar: 'Cancelar',
+    guardadoTitulo: 'Sistema guardado',
+    guardadoTexto: (p: { nombre: string }): string => `«${p.nombre}» quedó en «Mis sistemas», en este navegador.`,
+    verSistemas: 'Ver mis sistemas',
+    cerrar: 'Cerrar',
+    eliminarTitulo: 'Eliminar este sistema',
+    eliminarTexto: (p: { nombre: string }): string => `Se quitará «${p.nombre}» de los sistemas guardados en este navegador.`,
+    conservar: 'Conservar',
+    error: {
+      'nombre-vacio': 'Escribe un nombre para el sistema.',
+      'sin-equipos': 'Falta elegir parlantes y amplificador.',
+      'equipo-fuera-de-catalogo':
+        'Este sistema incluye un equipo hallado en la web o ingresado a mano, que todavía no se puede guardar. Con equipos del catálogo sí.',
+      'almacen-bloqueado': 'El navegador no permitió guardar (almacenamiento bloqueado o lleno).',
+      'limite-alcanzado': 'Ya hay 30 sistemas guardados: elimina alguno para guardar otro.',
+    } satisfies Record<CodigoGuardado, string>,
+  },
+
   mensajes: {
     pcEyebrow: 'Mensajes / Muro público',
     pcTitulo: 'Deja tu mensaje.',

@@ -4946,6 +4946,45 @@ reglas. El paso 2 (sala y escucha) sigue oscuro. Los cuadros de selección de eq
 no heredan los tokens invertidos porque los `<dialog>` cuelgan de `.wrap`, no de la
 franja.
 
+**Fase 7 — "Mis sistemas": lista simple en el navegador (misma rama, sin login).**
+Pantalla nueva `#s-sistemas` (`Pantalla` gana `'sistemas'`; botón "Mis sistemas" en la
+navegación de las 8 pantallas, tras Documento). Guarda, abre y elimina configuraciones;
+**nada de comparar, exportar ni importar** (eso queda para cuando exista cuenta). El
+botón "Guardar" de Resultado y "Guardar sistema" de la banda abren un cuadro para
+ponerle nombre (sugerido: "parlante + amplificador"); "Abrir" en una tarjeta vuelve a
+poner los equipos, las dimensiones, los materiales, el nivel y el género y lleva
+directo a Resultado (pasa por los mismos `pick`/`set*` de siempre, así el resumen y los
+pasos no se enteran de que viene de un guardado). Las tarjetas de Análisis 2 / Comparar
+/ PDF del Documento siguen con el cuadro de "próximamente".
+
+**Dónde vive y por qué es seguro tocarlo.** `localStorage`, clave `cadena.sistemas`,
+`{version:1, sistemas:[...]}`. `datos/sistemasGuardados.ts` (PURO, 13 tests) trata todo
+lo leído como no confiable: cada entrada se revalida contra el catálogo real y contra
+los mismos límites de dimensión y las mismas tablas de materiales del motor
+(`validarConfiguracion`); una entrada inválida, repetida o de un equipo que ya no
+existe se descarta, **nunca se "repara" con un valor por defecto**. Contenido corrupto
+o de otra versión → lista vacía sin excepción. El almacenamiento bloqueado o lleno se
+declara (`almacen-bloqueado`) en vez de fingir que se guardó, y el pie de la pantalla
+avisa si el navegador no deja escribir.
+
+**Decisiones que no son obvias.** (1) Un equipo **hallado en la web o ingresado a
+mano** (`web:` / `manual:`) **no se guarda** (`equipo-fuera-de-catalogo`): esos ids no
+sobreviven a recargar la página y guardarlos dejaría un sistema imposible de reabrir.
+(2) Tope de 30: pasado eso se pide eliminar uno, **nunca se borra otro en silencio**.
+(3) Lo que se guarda es la configuración **del último análisis** (`configAnalizada`),
+no lo que se haya tocado después en Configurar sin volver a analizar. (4) El nombre lo
+escribe el usuario y se vuelve a mostrar: las tarjetas se arman con `textContent` y los
+cuadros (que sí usan `innerHTML`) escapan cada campo (`vista/sistemas.ts`, con prueba
+de escapado). El nombre sugerido no se repite en la tarjeta cuando coincide con la
+línea de equipos.
+
+**Verificado con Chrome headless por `file://`:** guardar con nombre vacío da error y
+no escribe; un nombre con espacios extra y `<b>` queda saneado y se ve literal;
+persiste tras recargar; "Abrir" restaura dimensiones y streamer aunque se hayan
+cambiado; "Eliminar" pide confirmación ("Conservar" no borra); estado vacío con
+"Explorar ejemplo"; 390 px sin desborde; EN traducido; cero errores de consola y cero
+pedidos externos.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
