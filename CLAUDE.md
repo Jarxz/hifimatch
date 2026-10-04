@@ -4618,6 +4618,248 @@ perceptible), sin overflow horizontal en 1400/768/390px, grilla
 4→2→1 columnas según el ancho. **Pendiente**: aprobación del usuario
 antes de commit/push/deploy.
 
+**"The Match Recomendado" quedó aprobado y desplegado.** El punto anterior
+("Pendiente: aprobación del usuario antes de commit/push/deploy") ya se
+resolvió — el usuario aprobó, se hizo commit/push, y las rondas que siguen
+(más abajo) lo siguen refinando en producción.
+
+**Buscador de equipos: marca + modelo → catálogo local o búsqueda web, con
+Tavily + Gemini en vez del diseño original de sólo-Gemini.** Portado desde
+la rama `diseno-elevenlabs` (un rediseño visual "premium espacioso" que el
+usuario terminó descartando como base de todo el sitio, pero cuya
+funcionalidad de buscador sí quiso conservar) con `git apply --3way` sobre
+`master`, adaptando radios/colores de hover al lenguaje visual real del
+sitio en vez de los del rediseño descartado. `diseno-elevenlabs` queda
+intacta como registro histórico, sin fusionar.
+
+El diseño original (de la sesión de planificación previa a este port)
+usaba una sola llamada a Gemini con `google_search` (grounding) para
+buscar y extraer a la vez. En producción esa herramienta devolvió **429
+RESOURCE_EXHAUSTED en cualquier modelo, sin haber hecho una sola
+búsqueda antes** — confirmado que no es un problema de esta cuenta: es un
+bug abierto y reportado por múltiples desarrolladores en el foro oficial
+de Google (`discuss.ai.google.dev`, "Google Search grounding is broken",
+septiembre 2026), incluso con facturación habilitada. Reemplazado por dos
+proveedores (`api/proveedor-busqueda.ts`, el único archivo que los
+conoce): **Tavily** (`api.tavily.com/search`, 1.000 búsquedas/mes gratis,
+sin tarjeta) hace la búsqueda real, y **Gemini sin `google_search`**
+(sólo `generateContent` + `responseSchema`) extrae el JSON tipado del
+texto que Tavily ya trajo — confirmado en vivo que esta llamada sí
+funciona con la misma clave que grounding rechaza. Las URLs de origen
+siguen siendo reales (las de Tavily), cada dato conserva su `fuente`
+verificable. `gemini-3.5-flash-lite` se eligió tras ver que
+`gemini-flash-latest`/`gemini-3.6-flash` devolvían 503 "high demand" con
+frecuencia real; hay reintento corto con backoff (3 intentos) para un 503
+puntual en cualquier modelo.
+
+**Arquitectura** — mismo patrón que `packages/contact`: `packages/buscador`
+(workspace nuevo) tiene la lógica pura (validación de rangos físicos,
+armado del `*Cat`, clave de caché) en `buscador.ts`, más `geo.ts` aparte
+(la lista EEE+Suiza+Reino Unido — sin cadena de imports interna que
+tropiece con la regla `.ts`/`.js` de `api/**`, así que no necesitó
+fusionarse en un solo archivo como si le pasó a `contact`/`mensajes`).
+`api/buscar-equipo.ts` resuelve geo-gate (por los términos de Google,
+antes de tocar Redis o los proveedores) + límite de cupo (900/mes global,
+15/día por IP, sólo cuenta un intento real contra el proveedor, nunca un
+acierto de caché) + caché (180 días, specs físicas de un producto real no
+cambian) y delega el resto en `manejarBusqueda`, testeado sin red con un
+proveedor falso. Un equipo hallado por esta vía nunca entra a `CATALOGO`
+(mismo mecanismo ya usado por `MARCA_GENERICA`/equipos `web:`/`manual:`
+documentado más abajo en este archivo): ids con prefijo reservado `web:`,
+confianza baja declarada en cada dato, fuente = la URL real de Tavily.
+
+**Bugs reales encontrados y corregidos probando contra el servidor real,
+no en abstracto:**
+- **Fuse.js (búsqueda local) dejaba pasar coincidencias de sólo-marca.**
+  Con varias `keys` ponderadas, Fuse incluye un ítem si CUALQUIER campo
+  matchea bien (ahí, "marca" sola) — el score combinado sólo ordena,
+  nunca excluye, así que el `threshold` no protege contra esto. "WiiM"+
+  "Ultra" (no catalogado) devolvía "WiiM Pro Plus" (mismo fabricante,
+  modelo distinto) y nunca llegaba a ofrecer la búsqueda web. Fix: filtro
+  explícito por score combinado (`UMBRAL_ACEPTACION=0.55`), calibrado
+  contra vectores reales (mantiene "Wharfdale"→Wharfedale 0,504; rechaza
+  "WiiM Ultra"→WiiM Pro Plus 0,797 y "Sonos Move"→Sonus Faber 0,567).
+- **Con un catálogo local "casi coincidente" no había forma de decirle al
+  sitio "no es éste, busca en la web".** Botón nuevo bajo la lista de
+  resultados locales ("Ninguno de estos es mi equipo — buscar en la
+  web"), sólo visible con marca+modelo tipeados.
+- **La extracción a veces volvía vacía** cuando Tavily rankeaba primero
+  una ficha oficial con specs renderizadas por JS (sin texto extraíble) —
+  la misma consulta a veces traía Stereophile/SoundStage (con datos) y a
+  veces la ficha oficial (sin datos), verificado en vivo. `max_results`
+  sube de 5 a 8 (sin costo extra — Tavily cobra por `search_depth`, no
+  por `max_results`) y se reintenta la pasada completa una vez si la
+  primera extracción no sacó ningún dato.
+- **Versionado de la clave de caché.** Un streamer buscado ANTES de
+  agregar los estándares de categoría (ver abajo) seguía sirviéndose
+  cacheado sin ellos durante 180 días — `claveCache()` antepone
+  `VERSION_FICHA` (v2), así que un cambio de formato futuro invalida las
+  entradas viejas solo, sin borrar nada de Upstash a mano.
+
+**Descripción técnica real** (qué ES el equipo: topología, driver,
+conector, conversor) la redacta Gemini a partir de los resultados de
+Tavily, con la misma prohibición explícita del motor contra juicios de
+carácter tonal o comparaciones de calidad — si los resultados no alcanzan
+para algo factual, el campo queda `null` y se usa el texto genérico de
+siempre, nunca se fuerza.
+
+**Estándar de categoría cuando falta un dato de acople eléctrico** —
+pedido explícito del usuario, con la tensión marcada contra la doctrina
+existente ("nunca inventes un dato") resuelta acotando el alcance:
+**sólo equipos hallados por búsqueda web, nunca el catálogo curado**.
+Sin esto, "Acople eléctrico" quedaba sin evaluar para casi cualquier
+equipo web. Estándares aplicados, cada uno justificado: impedancia de
+entrada de ampli 47 kΩ (convención casi universal de línea RCA);
+tensión de salida de streamer/DAC 2,0 V (nivel "Red Book"); sensibilidad
+de entrada/impedancia de salida por el extremo más exigente cuando no
+hay valor observado; factor de amortiguamiento reusa los valores YA
+aprobados de los arquetipos genéricos del catálogo (60 estado sólido/8
+valvular, detectado por palabra clave). Un transporte puro confirmado
+(`tieneSalidaAnalogica:false`, declarado por el proveedor) **nunca**
+recibe salida/impedancia sustituta — sería un dato falso, no una
+aproximación, mismo tratamiento que ya reciben HiFi Rose RS130/Aurender
+N200 en el catálogo real. Todo supuesto aplicado se declara en la
+descripción de la ficha.
+
+**El selector de modo (`Configurar`) pasó por tres formas en la misma
+semana, cada una a pedido explícito:** empezó como un badge decorativo
+("REF: CATÁLOGO #0N") sin función propia → selector de 2 botones
+Catálogo/Búsqueda web (modo "Catálogo" ya NO cae solo a la web sin
+coincidencias — nuevo panel que ofrece el salto explícito; modo "Búsqueda
+web" salta el catálogo local por completo, incluso con un match local
+parecido) → modo "Catálogo" cambia de nuevo, de campos de texto a **2
+`<select>` reales en cascada** (marca → modelo, igual patrón que ya usaba
+el sitio antes del buscador de texto), con los botones de modo reducidos
+a dos píldoras chicas estilo "requerido"/"opcional". Nota dejada sin
+resolver a propósito: con el modo Catálogo resuelto por selects, el
+camino de Fuse.js dentro de `ejecutarBusqueda` ya no es alcanzable desde
+la UI (sólo "Búsqueda web" lo sigue usando) — no se retiró para no
+mezclar una limpieza no pedida con el cambio.
+
+**Configurar también pasó a una sola columna**: Parlantes/Amplificador
+comparten fila (mismo patrón `.split` que ya usaba Streamer/DAC, heredan
+el fix de columna angosta que evita que el placeholder se corte), Sala
+de escucha queda debajo de la cadena de equipos en vez de al costado.
+Nuevos defaults de sala: 3,2×3,2×2,4 m (antes 3,6×5,0×2,4), nivel
+"Moderado" (antes "Alto"), piso "Alfombra" (antes "Madera laminado"),
+género "Jazz/Vocal" (antes "Rock/Pop") — y Género musical pasa a compartir
+fila con Nivel de escucha. Los defaults viven en dos lugares que hay que
+sincronizar a mano (`estado.ts` y los atributos del HTML).
+
+**Match Recomendado: íconos isométricos con volumen propio, dos rondas
+de corrección geométrica real.** `vista/iconosIsometricos.ts` (PURO)
+reemplaza el ícono plano de frente por un volumen isométrico — misma
+fórmula de proyección de 30° que ya usa el plano de reflexiones
+(`sx=(x−y)·cos30, sy=(x+y)·sin30−z`), reusando las mismas palabras clave
+que `iconosCategoria.ts` para vías/válvulas/pantalla (exportadas, nunca
+dos listas separadas de la misma pregunta). El primer intento (vértice
+A2, el punto más alto en pantalla) parecía correcto pero no cerraba el
+volumen — el usuario lo reportó dos veces ("sigue mal... faltan caras").
+El diagnóstico real, verificado coloreando cada cara de un cubo perfecto
+por separado: bajo esta proyección, la diagonal principal del cubo queda
+alineada con la dirección de vista, así que las 3 caras visibles son las
+que tocan el vértice OPUESTO (C2), no el más alto en pantalla —
+confundir "más alto" con "más cerca de cámara" fue el error. El test de
+regresión original ("las 3 caras comparten un vértice") no servía —
+topológicamente eso es cierto para cualquier elección de vértice en un
+cubo; el test correcto verifica que ningún borde de una cara cruza por
+el medio el borde de otra. Detalles ajustados contra fotos reales que
+mandó el usuario (B&W 606 S2, Gold Note IS-10): tweeter siempre arriba
+del woofer (estaban invertidos), proporciones de caja según el ancho
+real del gabinete, pantalla + perilla en la cara del amplificador.
+
+Tres ajustes más sobre la misma sección, todos a pedido explícito: el
+cuadro "100%" de la portada se reescribe para declarar la búsqueda
+online como fuente adicional (ya no sólo el catálogo curado); un 4º
+cuadro "AR" promociona la función ya existente; la caja de Match
+Recomendado pasa a ancho completo (1076px, igual que el resto de
+Resultado) con una grilla que se adapta a 2 columnas cuando sólo hay
+parlante+amplificador (sin streamer ni dac); y el veredicto de esa
+tarjeta deja de mostrar el titular general y la nota de "sala de
+referencia" — Sala nunca puede dar `ok` ahí por un límite estructural
+del propio modelo (ningún posible match podría evitarlo, así que ese
+aviso no distinguía nada), y en su lugar muestra sólo Potencia y Acople
+eléctrico, los dos grupos que el filtro de selección ya garantiza en
+`ok` — reusando el mismo vocabulario de `motor.veredicto`, no texto
+inventado.
+
+**Código QR para "Ver en AR" desde una computadora — un bug real de
+detección, encontrado y corregido dos veces.** Antes, en PC/Mac sin
+cámara AR, el botón sólo mostraba "no disponible". Primer intento:
+generar un QR (`ar/qr.ts`, PURO, `qrcode-generator` — MIT, cero
+dependencias, bundleado como ya se hizo con Fuse.js, nunca cargado de un
+CDN) con la URL de `ar.html?<estado>` cuando el dispositivo actual no
+tiene soporte pero es claramente un escritorio (`esDispositivoDeEscritorio`,
+ausencia de tokens de UA móvil). **El usuario reportó que en PC el QR
+nunca se generaba.** Causa real: `irAVerEnAr()` decidía mirando sólo si
+`navigator.xr` EXISTE como objeto — cualquier Chrome de escritorio lo
+expone aunque no haya ARCore detrás, así que el botón navegaba derecho a
+`ar.html`, que mostraba "no disponible" sin ningún camino hacia
+adelante; el chequeo autoritativo real (`soportaArInmersiva`,
+`isSessionSupported('immersive-ar')`) ya existía pero nunca se llamaba
+desde `main.ts` — y no podía llamarse desde ahí sin romper el build (el
+string `"immersive-ar"` colado en `dist/index.html` dispara el canario
+de `verificar-build.mjs` que mantiene esa página liviana para `file://`).
+Solución real: `main.ts` deja de decidir — "Ver en AR" navega siempre a
+`ar.html` (salvo `file://`), y es esa página, que ya carga three.js, la
+que corre el chequeo autoritativo y elige entre calibración real, el
+panel QR (`ar-desktop-qr`, generado desde `location.href`, que ya trae
+el estado de la sala codificado) o "no disponible".
+
+**Popup chico de "nuevas funciones" en la portada** anuncia búsqueda
+online de equipos y simulación con AR — tarjeta fija bajo el header, se
+cierra con "×" y no vuelve a aparecer en el mismo navegador
+(`localStorage`, mismo try/catch defensivo que `idioma.ts`). Bilingüe
+como el resto del sitio.
+
+**Muro de mensajes públicos — primera vez que el sitio guarda contenido
+público generado por usuarios.** Hasta acá el único backend real
+(`api/contact.ts`) era fire-and-forget a email, sin persistencia. Pedido
+explícito, aclarado con dos rondas de preguntas: mensajes públicos
+(cualquier visitante los ve), pantalla nueva en la navegación, sin
+moderación ni login esta ronda (se publican al instante; algo
+problemático se borra a mano de Redis), con nombre opcional + email
+(privado, nunca se muestra) + mensaje.
+
+Reusa al máximo lo ya probado, no inventa una arquitectura nueva:
+`packages/mensajes` (mismo andamiaje que `packages/contact`) valida con
+el mismo patrón que `validarContacto` (honeypot, 1 s mínimo, email,
+mensaje vacío/largo). `aMensajePublico()` es la línea más sensible en
+privacidad de todo el feature: arma el tipo que sale hacia el cliente
+**campo por campo, nunca con un spread** — así un campo nuevo agregado a
+futuro a `MensajeAlmacenado` no puede filtrar el email por accidente.
+Reusa el mismo Upstash Redis que ya usa `packages/buscador`, con
+namespace de claves propio (`rl:mensajes:*`, `mensajes:muro`) para no
+colisionar con los contadores de búsqueda de equipos. `api/mensajes.ts`:
+GET (lista pública, últimos 50) + POST (publicar) en un handler — límites
+propios del riesgo de exhibición pública, no copiados del buscador:
+cooldown de 30 s por IP (`SET NX EX` atómico), 20 mensajes/día por IP,
+200/día global. Guardado como lista Redis (`LPUSH`+`LTRIM`, tope 500),
+sin índice aparte.
+
+`vista/mensajes.ts` es el punto real de defensa XSS: nombre/mensaje los
+escribe cualquier visitante y se muestran a todos los demás (a
+diferencia de Contacto, que sólo llega a un email privado) —
+`escapeHtml()` obligatorio antes de toda interpolación, y los saltos de
+línea se escapan primero y recién después se convierten en `<br>`, nunca
+al revés. Pantalla nueva `#s-mensajes` en la navegación, sin equivalente
+a `mailto:` para `file://` (no hay forma de publicar ni leer una lista
+pública sin red real) — se declara la limitación en vez de fingir una.
+`privacy.html` (es/en) se actualiza declarando que el muro guarda nombre
+y mensaje públicamente y el email en privado, sin tocar las afirmaciones
+ya existentes.
+
+Bug real encontrado y corregido en el camino: una fecha larga desbordaba
+el ancho de página en mobile (`nowrap` sin espacio) — se apila en
+columna bajo 480px.
+
+**659 tests totales** entre los 7 workspaces/piezas (187 engine + 16
+data + 17 contact + 61 buscador + 24 mensajes + 346 web + 8 middleware —
+antes 505 al cierre de la ronda de "Match Recomendado"). `apps/web`
+incluye además `buscadorLocal.test.ts` (Fuse.js sobre el catálogo
+curado — distinto de `packages/buscador`, que valida y arma la ficha
+que llega por la web).
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un
@@ -4688,14 +4930,15 @@ Falta:
   presets existen, a qué combinación de los 6 materiales + qué supuesto
   de dimensiones mapea cada uno, y dónde vive esa data.
 - **Componente fuera de catálogo → especificar specs a mano** (en vez
-  de un callejón sin salida al formulario de contacto): los 6 perfiles
-  "Genérico (Arquetipo)" (ver más arriba) cubren una parte de esto —
-  aproximar por parecido eléctrico cuando el equipo real no está — pero
-  siguen siendo 6 puntos fijos, no un formulario donde el usuario tipee
-  sus propios números. El motor ya acepta objetos planos desacoplados
-  del catálogo (`tipos.ts`), así que un formulario libre es viable sin
-  romper doctrina, pero exige decidir primero qué `confianza` le
-  corresponde a un dato que tipeó el propio usuario — sesión aparte.
+  de un callejón sin salida al formulario de contacto): **en gran parte
+  resuelto desde el buscador de equipos** (ver más arriba) — un equipo
+  ausente ahora se busca automáticamente en la web (Tavily+Gemini) con
+  confianza baja declarada, en vez de requerir que el usuario tipee sus
+  propios números. Los 6 perfiles "Genérico (Arquetipo)" siguen siendo
+  la alternativa cuando ni el catálogo ni la búsqueda web encuentran el
+  equipo real. Lo que sigue sin existir es un formulario 100% manual
+  (el usuario tipeando sus propios números cuando ni el catálogo, ni la
+  web, ni un arquetipo sirven) — caso residual, no el camino principal.
 - **Arquetipos genéricos de streamer/DAC**: esta ronda sólo cubrió
   parlantes y amplificadores (lo pedido); `FuenteCat`/`Fuente` podrían
   recibir el mismo tratamiento (`salidaV`/`impedanciaSalidaOhm`
