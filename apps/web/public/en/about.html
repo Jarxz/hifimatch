@@ -14,46 +14,90 @@
 <meta property="og:description" content="What The Hifi Match is: a physics-based hi-fi compatibility engine, with its two layers — falsifiable data and declared editorial criteria.">
 <meta property="og:url" content="https://www.thehifimatch.com/en/about.html">
 <title>About · The Hifi Match</title>
-<style>
-:root{--bg:#0A0A0B; --text:#ECECEE; --dim:#A3A3AA; --dorado:#B8996A; --line:rgba(255,255,255,.10)}
-*{box-sizing:border-box}
-body{margin:0; background:var(--bg); color:var(--text); font-family:'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif; font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased}
-.idioma{position:fixed; top:20px; right:22px; display:flex; border:1px solid var(--line); border-radius:2px; overflow:hidden}
-.idioma a{padding:7px 14px; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); text-decoration:none}
-.idioma a:hover{color:var(--text)}
-.idioma a.activo{background:var(--text); color:var(--bg)}
-.idioma a.activo:hover{color:var(--bg)}
-.wrap{max-width:640px; margin:0 auto; padding:56px 22px 80px}
-.mark{font-weight:300; font-size:14px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim); margin:0 0 34px}
-.mark b{color:var(--dorado); font-weight:600}
-h1{font-weight:300; font-size:30px; letter-spacing:.01em; margin:0 0 26px; color:var(--dorado)}
-p{margin:0 0 20px}
-a{color:var(--text)}
-a:hover{color:var(--dorado)}
-.volver{display:inline-block; margin-top:28px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
-</style>
+<link rel="stylesheet" href="/paginas.css">
 </head>
 <body>
-<div class="idioma">
-  <a href="/about.html">ES</a>
-  <a href="/en/about.html" class="activo" aria-current="page">EN</a>
-</div>
-<div class="wrap">
-  <div class="mark"><b>THE</b> HIFI <b>MATCH</b></div>
-  <h1>About The Hifi Match</h1>
+<header class="cab">
+  <div class="in">
+    <a class="mark" href="/"><b class="the">THE</b> HIFI <b>MATCH</b></a>
+    <nav class="cab-nav" aria-label="Site sections">
+      <a href="/en/about.html" aria-current="page">About</a>
+      <a href="/en/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <div class="idioma">
+      <a href="/about.html">ES</a>
+      <a href="/en/about.html" class="activo" aria-current="page">EN</a>
+    </div>
+  </div>
+</header>
 
-  <p>The Hifi Match is a hi-fi compatibility engine: it checks whether the components of an audio system work together and what they actually deliver in a real room. It runs entirely in the browser, with no accounts and no payments.</p>
+<main>
+  <section class="portada">
+    <div class="in">
+      <p class="eyebrow">About / Method and scope</p>
+      <h1>About The Hifi Match</h1>
+      <p class="lead">A hi-fi compatibility engine: it says whether the components of a system work together and what they deliver in a real room, with every rule out in the open.</p>
+    </div>
+  </section>
 
-  <p>Every result is split into two layers, always declared. The physics layer has a formula, a threshold, a data source, and a confidence level — it's falsifiable, and that's what makes it defensible: a threshold can be argued with evidence. The editorial-criteria layer is preferences the site declares as such (for example, how several severities get grouped into one verdict), and it's never mixed visually with the physics.</p>
+  <div class="banda">
+    <div class="in">
+      <section class="bloque">
+        <h2>What it is</h2>
+        <div>
+          <p>The Hifi Match is a hi-fi compatibility engine: it checks whether the components of an audio system work together and what they actually deliver in a real room. It runs entirely in the browser, with no accounts and no payments.</p>
+        </div>
+      </section>
 
-  <p>The engine evaluates power margin against the room's peaks, the load and impedance the amplifier sees, impedance bridging and volume headroom when a streamer or DAC is added, the room's axial modes, and the estimated reverberation time (RT60). A missing spec is never shown as passing: it's marked "no data," and the reason is stated.</p>
+      <section class="bloque">
+        <h2>Two layers, always declared</h2>
+        <div>
+          <p>Every result is split into two layers, always declared. The physics layer has a formula, a threshold, a data source, and a confidence level — it's falsifiable, and that's what makes it defensible: a threshold can be argued with evidence. The editorial-criteria layer is preferences the site declares as such (for example, how several severities get grouped into one verdict), and it's never mixed visually with the physics.</p>
+        </div>
+      </section>
 
-  <p>The engine never issues judgments about tonal character, predictions of sonic synergy between brands, or quality comparisons between products — that isn't calculated, and there's no plan to make it. The final listening call stays with each person; the site provides the data and the physical mechanism behind each one.</p>
+      <section class="bloque">
+        <h2>What it evaluates</h2>
+        <div>
+          <p>The engine evaluates power margin against the room's peaks, the load and impedance the amplifier sees, impedance bridging and volume headroom when a streamer or DAC is added, the room's axial modes, and the estimated reverberation time (RT60). A missing spec is never shown as passing: it's marked "no data," and the reason is stated.</p>
+        </div>
+      </section>
 
-  <p>It's built for anyone assembling or reviewing an audio system who wants a physics-based check before making a purchase.</p>
+      <section class="bloque">
+        <h2>What it never says</h2>
+        <div>
+          <p>The engine never issues judgments about tonal character, predictions of sonic synergy between brands, or quality comparisons between products — that isn't calculated, and there's no plan to make it. The final listening call stays with each person; the site provides the data and the physical mechanism behind each one.</p>
+        </div>
+      </section>
 
-  <a class="volver" href="/">← Analyze a system</a><br>
-  <a class="volver" href="/contact.html" style="margin-top:8px; border-top:0; padding-top:0">Contact</a>
-</div>
+      <section class="bloque">
+        <h2>Limits, declared</h2>
+        <div>
+          <p>Manufacturers publish output impedance, impedance curves and, sometimes, real sensitivity (measured in half-space and overstated) with uneven quality. That's why every spec carries its own source and confidence level, and a rule that runs on low-confidence data degrades its own confidence and states so.</p>
+          <p>Room rules start from a rigid rectangular box, an approximation that's easy to get wrong: none of them issues an error-level verdict — the ceiling is a warning, always with the caveat that it's verified by measuring, not calculating. Modes only consider axial ones, and reverberation time is given as an estimated range, not a verdict, because the site doesn't measure the room.</p>
+          <p>Equipment found through online search isn't part of the curated catalog: it enters with low confidence and its source visible, and data outside a reasonable physical range is discarded. The overall verdict (Power, Electrical coupling, Room) is the site's editorial criterion: it takes the worst component of each group, and it's labeled as such on screen.</p>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h2>Who it's for</h2>
+        <div>
+          <p>It's built for anyone assembling or reviewing an audio system who wants a physics-based check before making a purchase.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="in">
+    <nav aria-label="Site links">
+      <a href="/">← Analyze a system</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+    <small>Runs in your browser, no server</small>
+  </div>
+</footer>
 </body>
 </html>

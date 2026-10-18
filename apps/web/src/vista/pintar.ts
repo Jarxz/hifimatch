@@ -18,6 +18,10 @@ import type {
 } from './resultado.ts';
 import type { Idioma } from '../../../../packages/data/src/idioma.ts';
 import type { ModeloMatchDelMes } from './matchDelMes.ts';
+import type { ModeloBandaResultado } from './resumenResultado.ts';
+import type { GrupoDatosFuentes } from './datosYFuentes.ts';
+import type { TarjetaSistema } from './sistemas.ts';
+import { textosDe } from '../idioma/idioma.ts';
 import { actualizarMedidor, construirEscala } from './medidor.ts';
 
 function el(id: string): HTMLElement {
@@ -303,8 +307,11 @@ function pintarGrupoResumen(prefijo: string, g: ModeloEstadoGrupo): void {
  * sitio (ver CLAUDE.md, "Veredicto y tres estados"); reemplazó por
  * completo a un puntaje 1-10 de una ronda anterior, ya retirado. */
 export function pintarVeredicto(m: ModeloVeredicto): void {
+  // classList y no className: el contenedor trae sus clases base en index.html
+  // (la banda de Resultado no es una .card), aquí sólo cambia la de severidad.
   const card = el('veredicto-card');
-  card.className = 'card veredicto-card veredicto-' + m.clase;
+  card.classList.remove('veredicto-ok', 'veredicto-warn', 'veredicto-alert');
+  card.classList.add('veredicto-' + m.clase);
   el('vd-titulo').textContent = m.tituloHtml;
   el('vd-subtexto').textContent = m.subtextoHtml;
   pintarEstadoGrupo('potencia', m.potencia);
@@ -313,6 +320,147 @@ export function pintarVeredicto(m: ModeloVeredicto): void {
   pintarGrupoResumen('potencia', m.potencia);
   pintarGrupoResumen('acople', m.acopleElectrico);
   pintarGrupoResumen('sala', m.sala);
+}
+
+/** Banda de Resultado: tabla Cadena / Espacio / Escucha / Confianza y las tres
+ * cifras. Todo con textContent: los nombres de equipo pueden venir de una
+ * búsqueda web, nunca se interpolan como HTML. */
+export function pintarBandaResultado(m: ModeloBandaResultado): void {
+  const dl = el('res-sum');
+  dl.replaceChildren();
+  for (const f of m.filas) {
+    const dt = document.createElement('dt');
+    dt.textContent = f.etiqueta;
+    const dd = document.createElement('dd');
+    dd.textContent = f.valor;
+    dd.dataset.clave = f.clave;
+    dl.append(dt, dd);
+  }
+  const cont = el('res-metricas');
+  cont.replaceChildren();
+  for (const x of m.metricas) {
+    const caja = document.createElement('div');
+    caja.className = 'res-metrica';
+    const et = document.createElement('span');
+    et.className = 'res-metrica-et';
+    et.textContent = x.etiqueta;
+    const valor = document.createElement('strong');
+    valor.className = 'res-metrica-valor';
+    valor.textContent = x.valor;
+    const unidad = document.createElement('small');
+    unidad.textContent = ' ' + x.unidad;
+    valor.append(unidad);
+    const texto = document.createElement('p');
+    texto.textContent = x.texto;
+    caja.append(et, valor, texto);
+    if (x.rango) {
+      const rango = document.createElement('p');
+      rango.className = 'res-metrica-rango';
+      rango.textContent = x.rango;
+      caja.append(rango);
+    }
+    cont.append(caja);
+  }
+}
+
+/** Gráfico "Tu sala en frecuencia" (Lectura general). El SVG lo arma
+ * `graficoModos.ts` a partir de los modos que ya calculó el motor; sin modos
+ * en el rango se oculta el gráfico en vez de dejar un recuadro vacío. */
+export function pintarGraficoModos(svg: string): void {
+  const cont = el('res-modos');
+  cont.innerHTML = svg;
+  cont.classList.toggle('hidden', svg === '');
+}
+
+/** Tabla "Datos y fuentes": un <tbody> por equipo (más uno para la sala). El
+ * origen puede ser una URL hallada en la web — sólo textContent. `data-label`
+ * repite el encabezado de cada columna para la vista apilada en móvil. */
+export function pintarDatosYFuentes(grupos: GrupoDatosFuentes[], idioma: Idioma): void {
+  const d = textosDe(idioma).resultado.datos;
+  const tabla = el('res-tabla');
+  tabla.querySelectorAll('tbody').forEach((b) => b.remove());
+  const celda = (etiqueta: string, texto: string): HTMLTableCellElement => {
+    const td = document.createElement('td');
+    td.dataset.label = etiqueta;
+    td.textContent = texto;
+    return td;
+  };
+  for (const g of grupos) {
+    const cuerpo = document.createElement('tbody');
+    const cab = document.createElement('tr');
+    cab.className = 'res-tabla-grupo';
+    const th = document.createElement('th');
+    th.colSpan = 4;
+    th.scope = 'colgroup';
+    th.textContent = g.titulo;
+    cab.append(th);
+    cuerpo.append(cab);
+    for (const f of g.filas) {
+      const tr = document.createElement('tr');
+      const origen = celda(d.colOrigen, f.origen);
+      if (f.nota) {
+        const nota = document.createElement('span');
+        nota.className = 'res-tabla-nota';
+        nota.textContent = f.nota;
+        origen.append(nota);
+      }
+      tr.append(celda(d.colDato, f.dato), celda(d.colValor, f.valor), origen, celda(d.colEstado, f.estado));
+      cuerpo.append(tr);
+    }
+    if (g.nota) {
+      const tr = document.createElement('tr');
+      tr.className = 'res-tabla-aviso';
+      const td = document.createElement('td');
+      td.colSpan = 4;
+      td.textContent = g.nota;
+      tr.append(td);
+      cuerpo.append(tr);
+    }
+    tabla.append(cuerpo);
+  }
+}
+
+/** "Mis sistemas": una tarjeta por sistema guardado. Todo con textContent (el
+ * nombre lo escribe el usuario). Sin sistemas se muestra el estado vacío. */
+export function pintarSistemas(tarjetas: TarjetaSistema[], idioma: Idioma): void {
+  const t = textosDe(idioma).sistemas;
+  const lista = el('sis-lista');
+  lista.replaceChildren();
+  el('sis-vacio').classList.toggle('hidden', tarjetas.length > 0);
+  for (const s of tarjetas) {
+    const art = document.createElement('article');
+    art.className = 'sis-tarjeta';
+    const fecha = document.createElement('div');
+    fecha.className = 'sis-fecha';
+    fecha.textContent = s.fechaTexto;
+    const nombre = document.createElement('h3');
+    nombre.className = 'sis-nombre';
+    nombre.textContent = s.nombre;
+    const datos = document.createElement('p');
+    datos.className = 'sis-datos';
+    // El nombre sugerido al guardar ya es "parlante + amplificador": no se repite debajo.
+    for (const linea of [s.equipos === s.nombre ? '' : s.equipos, s.sala, s.escucha]) {
+      if (!linea) continue;
+      const span = document.createElement('span');
+      span.textContent = linea;
+      datos.append(span);
+    }
+    const acciones = document.createElement('div');
+    acciones.className = 'sis-acciones';
+    const abrir = document.createElement('button');
+    abrir.type = 'button';
+    abrir.className = 'pc-enlace';
+    abrir.dataset.sisAbrir = s.id;
+    abrir.textContent = t.abrir;
+    const eliminar = document.createElement('button');
+    eliminar.type = 'button';
+    eliminar.className = 'pc-enlace pc-quitar';
+    eliminar.dataset.sisEliminar = s.id;
+    eliminar.textContent = t.eliminar;
+    acciones.append(abrir, eliminar);
+    art.append(fecha, nombre, datos, acciones);
+    lista.append(art);
+  }
 }
 
 /** "Qué conviene hacer" — máximo 3 recomendaciones, las de mayor

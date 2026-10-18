@@ -29,35 +29,70 @@
   ]
 }
 </script>
-<style>
-:root{--bg:#0A0A0B; --text:#ECECEE; --dim:#A3A3AA; --dorado:#B8996A; --line:rgba(255,255,255,.10)}
-*{box-sizing:border-box}
-body{margin:0; background:var(--bg); color:var(--text); font-family:'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif; font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased}
-.wrap{max-width:640px; margin:0 auto; padding:56px 22px 80px}
-.mark{font-weight:300; font-size:14px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim); margin:0 0 34px}
-.mark b{color:var(--dorado); font-weight:600}
-h1{font-weight:300; font-size:30px; letter-spacing:.01em; margin:0 0 26px; color:var(--dorado)}
-p{margin:0 0 20px}
-a{color:var(--text)}
-a:hover{color:var(--dorado)}
-.email{font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace; color:var(--dorado)}
-.volver{display:inline-block; margin-top:28px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
-</style>
+<link rel="stylesheet" href="/paginas.css">
 </head>
 <body>
-<div class="wrap">
-  <div class="mark"><b>THE</b> HIFI <b>MATCH</b></div>
-  <h1>Contacto</h1>
+<header class="cab">
+  <div class="in">
+    <a class="mark" href="/"><b class="the">THE</b> HIFI <b>MATCH</b></a>
+    <nav class="cab-nav" aria-label="Secciones del sitio">
+      <a href="/about.html">Acerca de</a>
+      <a href="/privacy.html">Privacidad</a>
+      <a href="/contact.html" aria-current="page">Contacto</a>
+    </nav>
+  </div>
+</header>
 
-  <p>Para consultas, sugerencias de equipos para el catálogo, o para reportar un dato que parece incorrecto, se puede escribir directamente a <a class="email" href="mailto:thehmcontacto@gmail.com">thehmcontacto@gmail.com</a>.</p>
+<main>
+  <section class="portada">
+    <div class="in">
+      <p class="eyebrow">Contacto</p>
+      <h1>Contacto</h1>
+      <p class="lead">Un solo canal, sin equipo de soporte con plazos garantizados — pero se lee.</p>
+    </div>
+  </section>
 
-  <p>El sitio no tiene un equipo de soporte con tiempos de respuesta garantizados — es un proyecto que se mantiene activamente, así que los mensajes se leen, pero no hay un plazo de respuesta comprometido.</p>
+  <div class="banda">
+    <div class="in">
+      <section class="bloque">
+        <h2>Escribir</h2>
+        <div>
+          <p>Para consultas, sugerencias de equipos para el catálogo, o para reportar un dato que parece incorrecto, se puede escribir directamente a <a class="email" href="mailto:thehmcontacto@gmail.com">thehmcontacto@gmail.com</a>.</p>
+        </div>
+      </section>
 
-  <p>Este canal es el mismo que usa el formulario de contacto dentro de la herramienta ("Contacto", disponible en la portada y en cada pantalla del análisis) — ambos llegan a la misma casilla.</p>
+      <section class="bloque">
+        <h2>Tiempos de respuesta</h2>
+        <div>
+          <p>El sitio no tiene un equipo de soporte con tiempos de respuesta garantizados — es un proyecto que se mantiene activamente, así que los mensajes se leen, pero no hay un plazo de respuesta comprometido.</p>
+        </div>
+      </section>
 
-  <p>Para preguntas sobre cómo funciona el motor de compatibilidad, conviene revisar primero <a href="/about.html">Acerca de</a> o la guía "Cómo leer este análisis" dentro de la propia herramienta.</p>
+      <section class="bloque">
+        <h2>Mismo canal</h2>
+        <div>
+          <p>Este canal es el mismo que usa el formulario de contacto dentro de la herramienta ("Contacto", disponible en la portada y en cada pantalla del análisis) — ambos llegan a la misma casilla.</p>
+        </div>
+      </section>
 
-  <a class="volver" href="/">← Analizar un sistema</a>
-</div>
+      <section class="bloque">
+        <h2>Antes de escribir</h2>
+        <div>
+          <p>Para preguntas sobre cómo funciona el motor de compatibilidad, conviene revisar primero <a href="/about.html">Acerca de</a> o la guía "Cómo leer este análisis" dentro de la propia herramienta.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="in">
+    <nav aria-label="Enlaces del sitio">
+      <a href="/">← Analizar un sistema</a>
+      <a href="/about.html">Acerca de</a>
+    </nav>
+    <small>Se calcula en tu navegador, sin servidor</small>
+  </div>
+</footer>
 </body>
 </html>

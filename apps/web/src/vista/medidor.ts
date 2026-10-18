@@ -71,6 +71,10 @@ export function actualizarMedidor(margenDb: number, idioma: Idioma, prefijo = 'p
   needle.style.left = pct + '%';
   read.textContent = numConSigno(margenDb, 1, idioma) + ' dB';
   read.style.left = pct + '%';
+  // Con la aguja en un extremo, centrar el número sobre ella lo recorta contra
+  // el borde del medidor (+16,7 dB quedaba como "+16,"): se ancla al lado que
+  // sí tiene lugar, junto a la aguja.
+  read.style.transform = pct > 88 ? 'translateX(-100%)' : pct < 12 ? 'translateX(0)' : '';
 
   if (margenDb >= 0) {
     zone.style.left = '50%';

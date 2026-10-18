@@ -11,7 +11,11 @@
     { "source": "/privacy", "destination": "/privacy.html" },
     { "source": "/privacy-policy", "destination": "/privacy.html" },
     { "source": "/en/about", "destination": "/en/about.html" },
-    { "source": "/en/privacy", "destination": "/en/privacy.html" }
+    { "source": "/en/privacy", "destination": "/en/privacy.html" },
+    { "source": "/novedades", "destination": "/novedades.html" },
+    { "source": "/whats-new", "destination": "/novedades.html" },
+    { "source": "/en/novedades", "destination": "/en/novedades.html" },
+    { "source": "/en/whats-new", "destination": "/en/novedades.html" }
   ],
   "headers": [
     {

@@ -34,22 +34,6 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .screen{display:none}
 .screen.active{display:block}
 .mono{font-family:var(--mono)}
-/* Fondo ambiente de la portada: cubos de alambre isométricos muy tenues —
-   mismo motivo visual del plano de reflexiones (vista/plano.ts), llevado a
-   la marca en vez de vivir sólo dentro de una tarjeta de resultado. Dibujo
-   puramente decorativo (proporciones arbitrarias, no una sala real) — ver
-   pintarFondoAmbiente() en main.ts. position:fixed + z-index:0 detrás de
-   todo; .splash gana su propio z-index:1 para pintar encima. */
-.ambient{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden}
-.ambient svg{position:absolute; opacity:0; animation:ambient-in 2.8s cubic-bezier(.22,.61,.36,1) forwards}
-@keyframes ambient-in{ from{opacity:0} to{opacity:.24} }
-/* En viewports angostos y altos (teléfono, sobre todo) el mismo viewBox
-   1440×900 con preserveAspectRatio="slice" amplifica el motivo mucho más
-   que en desktop — una línea termina cruzando justo detrás del botón
-   "Analizar". Más simple que reajustar coordenadas para cada proporción:
-   la decoración existe para llenar el espacio vacío alrededor del bloque
-   central, algo que sólo sobra en pantallas anchas. */
-@media (max-width:760px){ .ambient{display:none} }
 /* Transición entre pantallas: startViewTransition() ya envolvía el cambio de
    clase .active (ver vista/pantallas.ts) pero sin keyframes propios caía al
    cross-fade por defecto del navegador. Un leve deslizamiento hacia arriba
@@ -62,17 +46,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 @keyframes pantalla-sale{ to{ transform:translateY(-3.5%); opacity:0; } }
 @keyframes pantalla-entra{ from{ transform:translateY(3.5%); opacity:0; } to{ transform:translateY(0); opacity:1; } }
 
-/* SPLASH */
-/* flex, no grid: .splash pasó de tener un único hijo (.enter, con todo
-   adentro) a tres (.enter, .cta-sec, .proof — ver index.html, un botón no
-   puede anidar otro elemento interactivo). "display:grid; place-items:
-   center" centra cada hijo DENTRO DE SU PROPIA fila implícita — con 3
-   hijos eso dejaba huecos grandes entre ellos en vez de agruparlos. Flex
-   en columna con justify-content:center empaqueta los 3 juntos en el
-   medio, igual que el grid centraba al único hijo que había antes. */
-.splash{min-height:88vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; z-index:1}
-.enter{background:transparent; border:0; cursor:pointer; color:inherit; font:inherit; display:inline-block; padding:8px}
-.enter:focus-visible{outline:2px solid var(--line2); outline-offset:8px}
+/* SPLASH · portada editorial: ver el bloque "PORTADA EDITORIAL" al final del archivo. */
 /* Tamaño y peso subidos para acercarse a la maqueta (font-size fijo de
    34px/peso 600 → clamp responsivo hasta 60px/peso 800) — clamp en vez del
    clamp(26px,5.8vw,72px) literal de la maqueta: ese piso quedaba MÁS chico
@@ -87,7 +61,11 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .hm-base .mword, .hm-fill .mword{display:inline-flex; gap:.05em}
 .hm-base{opacity:0; transform:translateX(-22px); animation:hm-in 1s cubic-bezier(.16,.9,.3,1) .5s forwards}
 .hm-fill{position:absolute; left:0; top:0; color:var(--dorado); clip-path:inset(0 100% 0 0); transition:clip-path .5s cubic-bezier(.22,.61,.36,1); pointer-events:none}
-.enter:hover .hm-fill{clip-path:inset(0 0% 0 0)}
+.mark:hover .hm-fill{clip-path:inset(0 0% 0 0)}
+/* Botón secundario de texto — lo usa el panel de búsqueda de equipos de
+   Configurar ("Usar sin datos"), no la portada (que tiene .pc-enlace). */
+.cta-sec{display:block; margin:14px auto 0; background:transparent; border:0; color:var(--faint); font:inherit; font-size:12px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; padding:6px; transition:color .2s cubic-bezier(.22,.61,.36,1)}
+.cta-sec:hover{color:var(--dorado)}
 /* Fundido con leve desenfoque + escala ("se asienta", no "llega de golpe")
    — mismo espíritu que la maqueta (rise/riseSlide), radios más chicos
    porque acá el bloque es más compacto. */
@@ -97,63 +75,11 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .mark .the{animation:none; opacity:1}
   .hm-base{animation:none; opacity:1; transform:none}
   .hm-fill{transition:none}
-  .splash .proof{animation:none; opacity:1}
-  .ambient svg{animation:none; opacity:.24}
+  .pc-stats{animation:none; opacity:1}
   ::view-transition-old(root), ::view-transition-new(root){animation:none !important}
   dialog.info-popup, dialog.info-popup::backdrop{transition:none}
   .detalle[open] > :not(summary), .info-item[open] p{animation:none}
-  .room-toggle[open] > .room{animation:none}
 }
-.ticks{display:flex; justify-content:center; gap:6px; margin:20px 0 18px; height:22px; align-items:flex-end}
-.ticks i{display:block; width:1px; background:var(--line2)}
-/* Eyebrow + remate comparten tratamiento (mayúsculas, tracking ancho,
-   --faint) para leerse como un solo bloque con el logo en el medio —
-   mismo criterio que la maqueta, que usa un único selector para las dos. */
-.splash .subm, .splash .remate{color:var(--faint); font-size:12px; letter-spacing:.26em; text-transform:uppercase}
-.splash .subm{margin-bottom:14px}
-/* Párrafo de precisión (qué evalúa el motor, en una frase) — bajo el
-   remate, mismo lugar que ocupa el "precision subtext" de la referencia
-   de Stitch. Ancho acotado para que no se lea como una línea entera de
-   punta a punta del hero. */
-.lead-parrafo{max-width:520px; margin:18px auto 0; color:var(--dim); font-size:14px; line-height:1.6; text-align:center}
-.enter .cta{margin-top:34px; display:inline-flex; align-items:center; gap:12px; font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--text); border:1px solid var(--line2); border-radius:2px; padding:14px 26px; transition:background .2s,color .2s}
-.enter:hover .cta{background:var(--text); color:var(--bg)}
-/* CTA secundario — botón real (no anidado dentro de .enter, ver el
-   comentario en index.html), mismo tratamiento visual que .cta pero sin
-   marco propio, para que se lea como la opción secundaria. */
-.cta-sec{display:block; margin:14px auto 0; background:transparent; border:0; color:var(--faint); font:inherit; font-size:12px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; padding:6px; transition:color .2s cubic-bezier(.22,.61,.36,1)}
-.cta-sec:hover{color:var(--dorado)}
-/* Detalle real bajo cada número de .proof — fórmula/marca/prohibición ya
-   citada en otra parte del sitio, nunca un dato nuevo (ver es.ts). */
-.proof-detalle{margin-top:8px; padding-top:8px; border-top:1px dashed var(--line3); color:var(--faint); font-size:9.5px; letter-spacing:.03em; line-height:1.4}
-.proof-detalle.mono{font-family:var(--mono); letter-spacing:0}
-@media (max-width:640px){ .proof-detalle{display:none} }
-/* Prueba en cifras — reemplaza el viejo pie de una línea + cierre de dos
-   frases: 3 números (reglas del motor / equipos del catálogo / % con datos
-   comprobados) que cuentan rápido desde 0 al cargar (ver iniciarContadorProof
-   en main.ts), sincronizados con el mismo delay que esta propia aparición. */
-.splash .proof{margin-top:48px; display:flex; justify-content:center; gap:16px; flex-wrap:nowrap; opacity:0; animation:proof-in .6s cubic-bezier(.22,.61,.36,1) 1.1s forwards}
-/* Cada número pasa de "texto suelto" a una tarjeta chica (fondo + borde),
-   mismo tratamiento "instrumento de laboratorio" que el resto del
-   rediseño — el elemento .proof-num[data-count-to] en sí no cambia
-   (paginas-estaticas.test.ts lo busca por ese selector exacto), sólo
-   gana un contenedor visual alrededor. */
-.proof-item{max-width:190px; min-width:0; background:var(--panel3); border:1px solid var(--line3); border-radius:4px; padding:14px 12px; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
-.enter:hover .proof-item{border-color:var(--line2)}
-.proof-num{font-family:var(--mono); font-size:26px; font-weight:600; color:var(--text); white-space:nowrap}
-.proof-label{color:var(--faint); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; line-height:1.5; margin-top:6px}
-/* Los 3 números se quedan en una sola línea horizontal también en teléfono
-   y tablet (pedido explícito) — nunca se apilan verticalmente. flex:1 en
-   vez de max-width fijo: cada tercio se reparte el ancho real disponible;
-   min-width:0 evita el mínimo intrínseco por defecto de un flex item, que
-   si no se declara puede impedir que el texto se achique/envuelva. */
-@media (max-width:640px){
-  .splash .proof{gap:8px}
-  .proof-item{max-width:none; min-width:0; flex:1 1 0; padding:10px 8px}
-  .proof-num{font-size:18px}
-  .proof-label{font-size:9px; line-height:1.35}
-}
-@keyframes proof-in{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
 
 /* "The Match Recomendado" — sección debajo del botón de la portada,
    fuera de .enter para que en el futuro las fichas puedan ser
@@ -190,153 +116,13 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 @media (max-width:820px){ .match-mes-grid{grid-template-columns:1fr 1fr} }
 @media (max-width:480px){ .match-mes{padding:6px 16px 18px} .match-mes-grid{grid-template-columns:1fr} }
 
-/* Barra de telemetría — chrome decorativo sobre el CTA principal, arriba
-   de .splash. "Motor en vivo, sin servidor" es un hecho real (no hay
-   backend en el análisis); los dos puntos de capa reusan tal cual
-   resultado.capaFisica/capaCriterioEditorial (mismo rótulo que ya usa el
-   veredicto de Resultado), no un texto nuevo. */
-.splash-telemetry{position:relative; z-index:1; max-width:640px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px 22px; padding-top:64px; font-family:var(--mono); font-size:11px; color:var(--faint)}
-.st-badge{display:inline-flex; align-items:center; gap:7px; text-transform:uppercase; letter-spacing:.06em}
-.st-dot{width:6px; height:6px; border-radius:50%; background:var(--ok); flex:0 0 auto; animation:st-pulse 2.4s ease-in-out infinite}
-@keyframes st-pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
-.st-layers{display:inline-flex; align-items:center; gap:10px; text-transform:uppercase; letter-spacing:.06em}
-.st-layer{display:inline-flex; align-items:center; gap:6px}
-.st-layer i{width:6px; height:6px; border-radius:50%; flex:0 0 auto}
-.st-layer-fisica i{background:var(--ok)}
-.st-layer-criterio i{background:var(--info-badge)}
-.st-sep{color:var(--line2)}
-@media (prefers-reduced-motion:reduce){ .st-dot{animation:none} }
-@media (max-width:640px){ .splash-telemetry{padding-top:48px; font-size:9.5px; gap:8px 14px} }
 
-/* "Dos capas" — sección debajo del CTA, misma lógica de reuso de
-   resultado.capaFisica/capaCriterioEditorial que la barra de telemetría
-   de arriba. Los 3 ejemplos de la columna "criterio editorial" son
-   valores REALES ya declarados en el motor (potencia.ts, resultado.ts,
-   modos.ts) — nunca los inventados del mockup original (AES20,
-   instrumental de laboratorio propio, reparto de presupuesto). */
-.dos-capas{max-width:900px; margin:64px auto 0; position:relative; z-index:1; text-align:left}
-.dos-capas-head{text-align:center; max-width:560px; margin:0 auto 28px}
-.dc-eyebrow{display:block; color:var(--faint); font-size:11px; letter-spacing:.2em; text-transform:uppercase; margin-bottom:10px}
-.dc-titulo{font-weight:300; font-size:26px; letter-spacing:.005em; color:var(--text); margin:0 0 10px}
-.dc-intro{color:var(--dim); font-size:13.5px; line-height:1.6; margin:0}
-.dc-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}
-@media (max-width:720px){ .dc-grid{grid-template-columns:1fr} .dos-capas{margin-top:48px} }
-.dc-col{background:var(--panel3); border:1px solid var(--line3); border-radius:4px; padding:20px 22px}
-.dc-col-head{display:flex; align-items:center; gap:9px; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--text); margin-bottom:10px}
-.dc-dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
-.dc-dot-fisica{background:var(--ok)}
-.dc-dot-criterio{background:var(--info-badge)}
-.dc-col p{color:var(--dim); font-size:13px; line-height:1.65; margin:0 0 10px}
-.dc-nota{color:var(--faint) !important; font-size:11.5px !important; font-style:italic}
-.dc-lista{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:8px}
-.dc-lista li{color:var(--dim); font-size:12.5px; line-height:1.55}
-
-/* INTRO DE ARRANQUE ("boot splash") — capa fixed a pantalla completa que
-   corre una sola vez al cargar la portada, antes de que el logo animado
-   de .splash aparezca debajo (ver vista/bootSplash.ts). Puramente
-   decorativa: ningún paso corresponde a una carga asíncrona real (el
-   build es un único archivo, todo ya está en memoria antes de que esto
-   corra) — es ritmo visual, mismo espíritu que el conteo de .proof
-   (iniciarContadorProof en main.ts) hacia un valor ya conocido de
-   antemano. z-index por encima de .idioma-splash (21) para cubrir todo
-   mientras está activa. */
-.boot-splash{position:fixed; inset:0; z-index:30; background:var(--bg); display:flex; flex-direction:column; transition:opacity .3s cubic-bezier(.22,.61,.36,1); overflow:hidden}
-.boot-splash.boot-oculto{opacity:0; pointer-events:none}
-
-/* Fondo decorativo — misma familia visual que .ambient de la portada
-   (círculos concéntricos + una curva), pero fijo y propio de la intro:
-   no vale la pena compartir el generador de cubos de pintarFondoAmbiente
-   (proporciones pensadas para el hero, no para este panel centrado). */
-.boot-ambient{position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.4}
-.boot-ambient svg{width:100%; height:100%}
-/* Fondo animado — los dos círculos "laten" y las dos curvas se dibujan
-   solas al arrancar, mismo espíritu del mockup original (wavePulse +
-   dashSweep) que la primera versión de esta intro había perdido por
-   completo (quedó estática). El trazado dura lo mismo que el propio
-   boot (2,1 s, ver bootSplash.ts DURACION_MS) — la curva termina de
-   dibujarse justo cuando el diagnóstico llega a 100%. stroke-dasharray
-   más largo que el desarrollo real del trazo (~900-1000px) para que la
-   línea completa quede oculta al arrancar (dashoffset = dasharray) y se
-   revele entera al final (dashoffset:0). */
-.boot-grid{opacity:.5}
-.boot-wave{transform-box:fill-box; transform-origin:center; animation:boot-wave-pulse 3.2s ease-in-out infinite}
-.boot-wave-2{animation-delay:.6s; animation-duration:3.8s}
-@keyframes boot-wave-pulse{ 0%,100%{transform:scale(1); opacity:.35} 50%{transform:scale(1.06); opacity:.7} }
-.boot-trace{stroke-dasharray:1000; stroke-dashoffset:1000; animation:boot-trace-sweep 2.1s cubic-bezier(.16,1,.3,1) forwards}
-.boot-trace-2{stroke-dasharray:1000; stroke-dashoffset:1000; animation:boot-trace-sweep 2.1s cubic-bezier(.16,1,.3,1) .25s forwards}
-@keyframes boot-trace-sweep{ 0%{opacity:.15} 55%{opacity:.85} 100%{stroke-dashoffset:0; opacity:.55} }
-.boot-nodo{fill:var(--dorado); opacity:0; animation:boot-nodo-in .5s ease-out 2s forwards}
-.boot-nodo-2{fill:var(--ok); animation-name:boot-nodo-in; animation-delay:2.15s}
-@keyframes boot-nodo-in{ from{opacity:0; r:1} to{opacity:.9; r:3} }
-@media (prefers-reduced-motion:reduce){
-  .boot-wave, .boot-trace, .boot-trace-2, .boot-nodo, .boot-nodo-2{animation:none; opacity:.5}
-  .boot-trace, .boot-trace-2{stroke-dashoffset:0}
-}
-
-.boot-topbar, .boot-footbar{position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 20px; padding:18px 24px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint)}
-.boot-topbar{border-bottom:1px solid var(--line3)}
-.boot-footbar{border-top:1px solid var(--line3); margin-top:auto}
-.boot-sys{display:inline-flex; align-items:center; gap:9px; color:var(--dim)}
-.boot-sys-dot{width:6px; height:6px; border-radius:50%; background:var(--ok); flex:0 0 auto; animation:st-pulse 2.4s ease-in-out infinite}
-.boot-sys-sep{color:var(--line2)}
-.boot-topbar-right{display:inline-flex; align-items:center; gap:16px}
-.boot-badge-top{color:var(--faint)}
-.boot-saltar{display:inline-flex; align-items:center; gap:8px; background:var(--panel3); border:1px solid var(--line2); border-radius:4px; color:var(--text); font:inherit; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:8px 14px; cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
-.boot-saltar:hover{border-color:var(--dorado); color:var(--dorado)}
-
-.boot-inner{position:relative; z-index:1; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; padding:32px 24px; text-align:center}
-/* Halo suave detrás del emblema — mismo recurso que el mockup original
-   (shadow-[0_0_30px_rgba(226,195,153,.15)]), "encendido" en vez de plano. */
-.boot-emblema{width:56px; height:56px; border-radius:10px; background:var(--panel3); border:1px solid var(--line2); display:flex; align-items:center; justify-content:center; color:var(--dorado); box-shadow:0 0 32px rgba(184,153,106,.28)}
-.boot-emblema svg{width:28px; height:28px}
-.boot-mark{display:flex; flex-direction:column; align-items:center; gap:8px}
-.boot-mark-linea{font-weight:700; font-size:clamp(26px, 4.5vw, 42px); letter-spacing:.01em; text-transform:uppercase; color:var(--text)}
-.boot-mark-linea b{color:var(--dorado); font-weight:800}
-.boot-syslab{display:inline-block; vertical-align:middle; margin-left:10px; font-family:var(--mono); font-size:12px; font-weight:500; letter-spacing:.08em; color:var(--ok); background:var(--panel3); border-radius:3px; padding:3px 8px}
-.boot-tagline{color:var(--faint); font-size:12px; letter-spacing:.18em; text-transform:uppercase}
-
-.boot-panel{width:min(460px, 100%); background:var(--panel3); border:1px solid var(--line2); border-radius:6px; padding:18px 20px; text-align:left; box-shadow:0 20px 50px rgba(0,0,0,.4)}
-.boot-panel-head{display:flex; align-items:center; justify-content:space-between; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-bottom:10px}
-.boot-pct{color:var(--dorado); font-weight:600; font-variant-numeric:tabular-nums}
-/* Riel recesado (fondo casi negro + borde + sombra interior, como un
-   display hundido en el chasis) en vez de una línea plana — mismo
-   recurso que el mockup original (bg-[#0d0e10] + border + gradiente de
-   3 paradas en el relleno, acá dorado apagado → dorado → verde). El
-   brillo en el extremo (box-shadow del ::after) sigue la punta de
-   avance, como un LED encendido en la posición actual. */
-.boot-bar{position:relative; width:100%; height:8px; border-radius:4px; background:var(--bg); border:1px solid var(--line2); box-shadow:inset 0 1px 3px rgba(0,0,0,.7); overflow:hidden; margin-bottom:16px}
-.boot-bar-fill{position:relative; height:100%; width:0%; border-radius:3px; background:linear-gradient(to right, color-mix(in srgb, var(--dorado) 55%, var(--bg)), var(--dorado) 55%, var(--ok))}
-.boot-bar-fill::after{content:''; position:absolute; top:50%; right:0; width:8px; height:8px; border-radius:50%; background:var(--ok); transform:translate(50%,-50%); box-shadow:0 0 8px 2px var(--ok)}
-.boot-pasos{display:flex; flex-direction:column; gap:2px; border-radius:4px; overflow:hidden}
-.boot-paso{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; background:var(--bg); border-left:3px solid var(--line2); font-family:var(--mono); font-size:11.5px; color:var(--faint); transition:color .3s, border-color .3s, background-color .3s}
-.boot-paso-texto{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.boot-paso-texto::before{content:'› '; color:var(--line2)}
-.boot-paso-estado{flex:0 0 auto; font-size:10px; letter-spacing:.08em; text-transform:uppercase}
-.boot-paso-estado:not(:empty)::before{content:'[ '}
-.boot-paso-estado:not(:empty)::after{content:' ]'}
-.boot-paso.boot-activo{color:var(--text); background:color-mix(in srgb, var(--dorado) 8%, var(--panel3)); border-left-color:var(--dorado)}
-.boot-paso.boot-activo .boot-paso-texto::before{color:var(--dorado)}
-.boot-paso.boot-activo .boot-paso-estado{color:var(--dorado)}
-.boot-paso.boot-hecho{color:var(--dim); background:var(--panel3); border-left-color:var(--ok)}
-.boot-paso.boot-hecho .boot-paso-texto::before{color:var(--ok)}
-.boot-paso.boot-hecho .boot-paso-estado{color:var(--ok)}
-
-@media (max-width:640px){
-  .boot-topbar, .boot-footbar{padding:14px 16px; font-size:9.5px; gap:8px 12px}
-  .boot-inner{gap:20px; padding:24px 18px}
-  .boot-emblema{width:46px; height:46px}
-  .boot-emblema svg{width:22px; height:22px}
-  .boot-syslab{display:block; margin:8px 0 0}
-  .boot-panel{padding:14px 16px}
-  .boot-paso{font-size:10px; padding:9px 10px}
-}
-@media (prefers-reduced-motion:reduce){ .boot-splash{display:none} .boot-sys-dot{animation:none} }
 
 /* IDIOMA */
 .idioma-splash{position:fixed; top:20px; right:22px; z-index:21}
 .segs.idioma button{padding:7px 12px; font-size:11.5px; letter-spacing:.1em}
-.foot-links-splash{position:fixed; bottom:20px; right:22px; z-index:1; display:flex; align-items:center; gap:16px}
-.version-splash{position:fixed; bottom:20px; left:22px; z-index:1; color:var(--faint); font-size:10px; letter-spacing:.12em}
+.foot-links-splash{display:flex; align-items:center; flex-wrap:wrap; gap:6px 22px}
+.version-splash{color:var(--faint); font-size:10px; letter-spacing:.12em}
 
 /* Popup pequeño de "nuevas funciones" — esquina superior izquierda,
    debajo del header fijo (.head, mismo padding-top:78px que ya usa
@@ -371,18 +157,46 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .site-foot-links{display:flex; flex-wrap:wrap; gap:22px}
 .site-foot-bar{display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; padding:14px 0 4px; border-top:1px solid var(--line3); font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint)}
 
-/* HEAD — barra fija de 2 filas en las 5 pantallas de la app de una sola
+/* HEAD — barra fija de 2 filas en las 8 pantallas de la app de una sola
    página (fila 1: wordmark + estado/acciones; fila 2: navegación completa
-   a las 6 secciones, siempre visible — ver .head-nav). AR (ar.html) es una
-   página aparte con su propio chrome de pantalla completa, sin este
-   header; su pestaña en .head-nav navega ahí, no *desde* ahí. */
+   a las 7 secciones internas, siempre visible — ver .head-nav). AR
+   (ar.html) es una página aparte con su propio chrome de pantalla
+   completa, sin este header; su pestaña en .head-nav navega ahí, no
+   *desde* ahí.
+   Los estilos de .head/.head-status/.head-nav-btn/.idioma-splash se
+   scopean con `.screen X` (toda pantalla lleva class="screen"), no con
+   una lista de 8 ids repetida en 8 reglas distintas — ese id-list
+   literal es el riesgo real de olvidarse de sumar una pantalla nueva a
+   alguna de las 8 (`estilos.css` ya venía repitiéndolo idéntico así
+   antes de este cambio); una pantalla nueva ahora hereda el header sin
+   tocar esta hoja. Una excepción deliberada, escrita como negación en
+   vez de lista positiva (`.screen:not(:where(#s-splash)) .head
+   .hright`, la fila derecha de la portada no lleva los botones extra
+   —"Guardar"/"Cambiar sistema"— que exigen el padding compensado en
+   las demás) — el `:where()` adentro del `:not()` no es cosmético:
+   `:not(#id)` cuenta la especificidad de un ID aunque lo esté negando,
+   así que `:not(:where(#id))` es la única forma de excluir una pantalla
+   sin dispararle la especificidad a la regla entera; `:where()` vale
+   siempre cero.
+   `.wrap` NO comparte ninguna regla de `padding-top` entre pantallas —
+   se investigó sumarla a este mismo patrón `.screen`, pero cada una de
+   las 8 ya tenía su propio `#s-X .wrap{padding:88px…}` dedicado (el
+   plano/banda propios de cada pantalla necesitan su propio ancho
+   además del padding). La única lista de 7 ids que sí existía para esto
+   quedaba, en la práctica, muerta en las 7 — perdía contra el override
+   propio de cada pantalla sin excepción — y se borró en vez de
+   consolidarla: preservar código que ya no decide nada sólo agrega
+   confusión (encontrado al medir `padding-top` calculado con Chrome
+   headless antes/después de este cambio, comparando pantalla por
+   pantalla — el primer intento de consolidarla con `.screen:not(...)`
+   sí tenía el bug de especificidad de arriba, pero resultó ser
+   irrelevante: ninguna pantalla dependía de esa regla para empezar). */
 /* Una sola fila en desktop (logo — nav — badges/ES/EN), no dos apiladas —
    mismo esqueleto que la referencia de Stitch (header de 80px, logo y nav
    comparten la fila). Debajo de 1024px se vuelve a las 2 filas ya afinadas
    en muchas rondas anteriores (ver el media query de abajo, que ahora
    declara su propio grid-template-areas en vez de heredar éste). */
 .head{position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:1120px; z-index:20; background:var(--bg); display:grid; grid-template-columns:auto auto 1fr; grid-template-areas:"hm nav hright"; align-items:center; column-gap:28px; padding:14px 22px; border-bottom:1px solid var(--line)}
-#s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:78px}
 .head .hm{grid-area:hm; font-weight:300; letter-spacing:.05em; font-size:19px; padding-left:.05em}
 .head .hm .hm-the{color:var(--dorado)}
 .head .hm b{font-weight:600}
@@ -439,49 +253,15 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .idioma-splash{top:9px}
   .segs.idioma button{padding:5px 7px; font-size:9px}
   .head-nav-btn{font-size:9.5px; padding:5px 8px 7px}
-  #s-splash .wrap, #s-config .wrap, #s-results .wrap, #s-info .wrap, #s-documento .wrap{padding-top:96px}
 }
 
 /* CONFIG */
 .lead{font-weight:300; font-size:30px; letter-spacing:.01em; margin:22px 0 6px; color:var(--dorado)}
 .lead-note{color:var(--dim); font-size:14px; margin:0 0 22px; max-width:640px}
-/* "Define la cadena" en un cuadro, para mantener unidad con las tarjetas de
-   la página de resultado (.card/.veredicto-card) — mismo padding vertical
-   6px que ya estandarizó esa ronda ("línea → texto"), sólo en #s-config. */
-.cfg-lead-box{background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:6px 20px; margin:22px 0 22px}
-/* Breadcrumb real (sin certificación inventada — compárese con el mockup
-   original, que decía "MOTOR IEC CALIBRADO"): declara sólo lo que el sitio
-   puede sostener, "cálculo en el navegador, sin servidor". */
-.cfg-eyebrow{display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin:10px 0 8px}
-.cfg-eyebrow b{color:var(--dorado); font-weight:600}
-.cfg-eyebrow .cfg-eyebrow-dot{width:5px; height:5px; border-radius:50%; background:var(--ok); display:inline-block; margin-right:5px; animation:st-pulse 2.4s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){ .cfg-eyebrow .cfg-eyebrow-dot{animation:none} }
-/* Título grande y en mayúsculas, mismo tratamiento que la maqueta — sólo
-   dentro de .cfg-lead-box (el mismo .lead en la pantalla de Guía se queda
-   con su tamaño de siempre, ver info.titulo). */
-.cfg-lead-box .lead{margin:0 0 8px; font-weight:700; font-size:clamp(26px, 3.6vw, 38px); text-transform:uppercase; letter-spacing:.005em; color:var(--text)}
-.cfg-lead-box .lead-note{margin:0 0 14px}
-.rowlabel{display:flex; align-items:baseline; justify-content:space-between; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--label); margin:0 0 9px}
-.rowlabel .req{color:var(--dim); letter-spacing:.1em; font-size:10px; background:var(--panel2); border:1px solid var(--line3); border-radius:20px; padding:3px 9px}
-/* "requerido" en verde — mismo tratamiento que Stitch da a "OBLIGATORIO"
-   (color de capa física, no un rótulo neutro más). "opcional" se queda
-   gris: no es una severidad, es sólo información de qué hace falta. */
-.rowlabel .req-obligatorio{color:var(--ok); border-color:color-mix(in srgb, var(--ok) 40%, var(--line3))}
-.rowlabel-num{color:var(--dorado); font-family:var(--mono); margin-right:2px}
 
 /* Ícono lineal por bloque — mismo trazo (stroke:currentColor, sin
    relleno) que ya usa el candado del plano; una forma simple por
    categoría, sin pretender ser el logo del equipo elegido. */
-.picker-head{display:flex; align-items:flex-start; gap:12px; margin-bottom:12px; flex-wrap:wrap}
-.picker-icono{flex:0 0 auto; width:38px; height:38px; border-radius:8px; background:var(--panel2); border:1px solid var(--line3); display:flex; align-items:center; justify-content:center; color:var(--dorado); box-shadow:0 0 16px rgba(184,153,106,.18)}
-.picker-icono svg{width:20px; height:20px}
-.picker-head .rowlabel-stack{flex:1 1 auto; min-width:140px}
-.picker-head .rowlabel-stack .rowlabel{margin:0 0 4px}
-/* Subtítulo real bajo la etiqueta numerada — mismo lugar/rol que el
-   título grande ("Parlantes Pasivos", "Amplificador Integrado"...) de la
-   referencia de Stitch, acá con la terminología técnica real del
-   catálogo/motor en vez de un nombre de producto de mentira. */
-.picker-rol{font-size:15px; font-weight:600; color:var(--text)}
 /* Selector de modo de búsqueda (Catálogo / Búsqueda web) — reemplaza el
    badge decorativo "REF: CATÁLOGO #0N" (era sólo el número de orden del
    bloque, sin función real). Ahora declara ANTES de elegir el equipo de
@@ -493,16 +273,6 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .modo-busqueda-btn{font:inherit; letter-spacing:.1em; font-size:10px; text-transform:uppercase; color:var(--dim); background:var(--panel2); border:1px solid var(--line3); border-radius:20px; padding:3px 9px; cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1), color .2s cubic-bezier(.22,.61,.36,1)}
 .modo-busqueda-btn:hover{color:var(--text); border-color:var(--line2)}
 .modo-busqueda-btn[aria-pressed="true"]{color:var(--dorado); border-color:color-mix(in srgb, var(--dorado) 40%, var(--line3))}
-/* Cada selector de equipo pasa a tener su propia caja ("instrumento"),
-   mismo tratamiento --panel3/--line3 que el resto del rediseño — antes
-   era texto suelto sin marco propio. */
-.picker{margin-bottom:16px; background:var(--panel3); border:1px solid var(--line3); border-radius:4px; padding:14px 16px}
-/* Parlantes/Amplificador, ahora a ancho completo (.split-full), suman
-   más aire interno que Streamer/DAC — misma proporción que las tarjetas
-   grandes de la referencia de Stitch frente a las 2 chicas de abajo. */
-.split-full .picker{padding:20px 22px}
-.split-full .picker-icono{width:44px; height:44px}
-.split-full .picker-icono svg{width:23px; height:23px}
 .sel{position:relative}
 .sel::after{content:''; position:absolute; right:16px; top:50%; width:7px; height:7px; border-right:1px solid var(--dim); border-bottom:1px solid var(--dim); transform:translateY(-70%) rotate(45deg); pointer-events:none}
 .sel select{width:100%; appearance:none; -webkit-appearance:none; font:inherit; font-size:15.5px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:14px 40px 14px 16px; cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
@@ -551,20 +321,6 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
   .marca-modelo .campo-marca, .marca-modelo .campo-modelo{flex:1 1 auto}
   .buscar-btn{width:100%}
 }
-/* Bug real, no sólo mobile: dentro de `.split` SIN `.split-full`
-   (Streamer/DAC, la mitad del ancho de Parlantes/Amplificador) marca+
-   modelo+botón lado a lado no entran — el placeholder quedaba cortado
-   ("Marc"/"M"). Mismo criterio de apilar que ya usa la regla de arriba
-   para pantallas angostas, aplicado acá por ANCHO DE COLUMNA en vez de
-   ancho de viewport. El `:not(.split-full)` es necesario: Parlantes/
-   Amplificador usan `class="split split-full"` — las DOS clases juntas
-   en el mismo elemento, así que un `.split` sin calificar los alcanzaba
-   también (bug encontrado al verificar con una captura real, no
-   asumido). */
-.split:not(.split-full) .marca-modelo{flex-direction:column}
-.split:not(.split-full) .campo-marca, .split:not(.split-full) .campo-modelo{flex:1 1 auto}
-.split:not(.split-full) .buscar-btn{width:100%}
-.split:not(.split-full) .sel-marca, .split:not(.split-full) .sel-modelo{flex:1 1 auto}
 
 /* Panel de resultados/estado/ficha manual — vive debajo de `.marca-modelo`,
    arriba de la tarjeta `.info` del equipo elegido; oculto (`.hidden`) hasta
@@ -600,86 +356,12 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .info-linkwrap{display:flex; justify-content:flex-end; margin-top:10px}
 .info-link{font-size:10.5px; letter-spacing:.02em; color:var(--faint); border:1px solid var(--line); border-radius:20px; padding:3px 10px; opacity:.7; cursor:default}
 
-.split{display:grid; grid-template-columns:1fr 1fr; gap:0 34px}
-@media (max-width:720px){ .split{grid-template-columns:1fr} }
-/* Parlantes/Amplificador (los 2 obligatorios) pasan de compartir fila con
-   su par a ocupar el ancho completo del bloque, cada uno solo — mismo
-   tratamiento que Google Stitch les da a estas 2 tarjetas (grandes,
-   apiladas), a diferencia de Streamer/DAC (opcionales, siguen pareados
-   en .split normal) — feedback directo: la maqueta anterior comprimía
-   las 4 categorías al mismo tamaño chico, perdiendo la jerarquía visual
-   entre "obligatorio" y "opcional" que sí tiene el diseño de referencia. */
-.split-full{grid-template-columns:1fr}
 
-/* Configurar en dos columnas — Bloque A (cadena de señal, izquierda, más
-   ancho porque tiene 2 filas de a pares) y Bloque B (sala, colapsada por
-   defecto — ver .room-toggle, sin cambios de comportamiento, sólo de
-   ubicación). Colapsa a una columna antes de que el .split interno de 2
-   selectores por fila se ponga incómodo (mismo criterio que su propio
-   breakpoint de 720px, con margen). */
-/* Una sola columna siempre (Cadena de señal arriba, Sala de escucha
-   debajo) — a pedido del usuario, reemplaza el grid de 2 columnas que
-   sólo colapsaba a 1 por debajo de 900px. Mismo valor que ya usaba ese
-   breakpoint, aplicado ahora sin condición. */
-.cfg-grid{display:grid; grid-template-columns:1fr; gap:0; margin-top:22px}
-.cfg-block-label{display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); margin-bottom:14px; flex-wrap:wrap}
-.cfg-block-label-izq{display:flex; align-items:center; gap:9px}
-.cfg-block-label-der{font-family:var(--mono); letter-spacing:.06em; color:var(--faint)}
 
-/* Encabezado de "Define la cadena": texto a la izquierda, caja de estado
-   real a la derecha (cuántos requeridos ya están elegidos) — mismo
-   patrón de la maqueta, con datos que sí existen (2 requeridos: parlante
-   + amplificador) en vez de un "4 de 4" sin referente. */
-.cfg-lead-row{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:18px}
-.cfg-lead-texto{flex:1 1 320px; min-width:0}
-.cfg-estado-box{flex:0 0 auto; display:flex; align-items:center; gap:14px; background:var(--panel2); border:1px solid var(--line3); border-radius:4px; padding:10px 16px; margin-bottom:6px}
-.cfg-estado-label{display:block; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
-.cfg-estado-valor{display:block; font-family:var(--mono); font-size:13px; font-weight:600; color:var(--dorado); margin-top:2px; white-space:nowrap}
-.cfg-estado-dot{width:10px; height:10px; border-radius:50%; background:var(--warn); flex:0 0 auto; box-shadow:0 0 10px 1px var(--warn); transition:background-color .2s, box-shadow .2s}
-.cfg-estado-dot.cfg-estado-dot-listo{background:var(--ok); box-shadow:0 0 10px 1px var(--ok); animation:st-pulse 1.6s ease-in-out infinite}
-@media (max-width:720px){ .cfg-estado-box{width:100%} }
-/* Ícono lineal en vez de un punto de color — mismo lugar que ocupan los
-   íconos "electrical_services"/"view_in_ar_new" de la referencia de
-   Stitch junto a "BLOQUE A"/"BLOQUE B". */
-.cfg-block-icono{width:14px; height:14px; flex:0 0 auto}
-.cfg-col-equipo .cfg-block-icono{color:var(--ok)}
-.cfg-col-sala .cfg-block-icono{color:var(--info-badge)}
-.cfg-col-sala .room-toggle{margin-top:0}
 
-/* "Personalizar sala" colapsado por defecto (config en 2 pasos: lo esencial
-   —parlante/amplificador/streamer/dac, arriba— siempre visible; la sala,
-   ya con un default razonable, detrás de este resumen de una línea) —
-   mismo <details> nativo que el resto del sitio, sin JS de apertura/cierre.
-   room-summary-desc se mantiene sincronizado con el estado real vía
-   actualizarResumenSala() en main.ts (dims + primer muro + piso). */
-.room-toggle{margin-top:8px}
-.room-summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:14px; padding:14px 2px; user-select:none; border-top:1px solid var(--line)}
-.room-summary-icono{flex:0 0 auto; width:18px; height:18px; color:var(--dorado); filter:drop-shadow(0 0 4px rgba(184,153,106,.4))}
-.room-summary::-webkit-details-marker{display:none}
-.room-summary-title{font-size:14px; color:var(--text); transition:color .15s cubic-bezier(.22,.61,.36,1); white-space:nowrap}
-.room-summary:hover .room-summary-title{color:var(--dorado)}
-.room-summary-desc{font-size:12px; color:var(--faint); font-family:var(--mono); flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-/* Badge de volumen (m³) — mismo dato que el "51.38 m³" de la referencia
-   de Stitch, acá real (W×L×H de estado, ver actualizarResumenSala). */
-.room-summary-vol{flex:0 0 auto; font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--dorado); background:var(--panel2); border:1px solid var(--line3); border-radius:4px; padding:3px 8px; white-space:nowrap}
-.room-summary::after{content:''; flex:0 0 auto; width:8px; height:8px; border-right:1px solid var(--faint); border-bottom:1px solid var(--faint); transform:rotate(45deg); transition:transform .2s}
-.room-toggle[open] .room-summary::after{transform:rotate(225deg)}
-.room-toggle[open] > .room{animation:detalle-in .3s cubic-bezier(.22,.61,.36,1)}
-@media (max-width:640px){ .room-summary-desc, .room-summary-vol{display:none} }
-/* Relación de aspecto de la sala (ancho:largo:alto normalizado al ancho)
-   junto al título "Dimensiones de la sala" — mismo dato real que ya usa
-   modos.ts para detectar coincidencias axiales, sólo mostrado como
-   proporción (no una regla nueva del motor, ver actualizarRatioSala()). */
-.cfg-dims-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:0 0 12px}
-.cfg-dims-head h3{margin:0}
-.cfg-dims-ratio{font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--faint); white-space:nowrap}
-
-.room{padding-top:16px}
-.room h3{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--label); margin:18px 0 12px; font-weight:400}
-.room h3:first-child{margin-top:0}
 .materiales-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px 24px; margin-top:4px}
 @media (max-width:820px){ .materiales-grid{grid-template-columns:1fr 1fr} }
-@media (max-width:480px){ .materiales-grid, .materiales-grid.nivel-genero-grid{grid-template-columns:1fr} }
+@media (max-width:480px){ .materiales-grid{grid-template-columns:1fr} }
 /* Etiqueta arriba del select, no al costado — mismo criterio que la
    maqueta (label chico en mayúsculas, control debajo ocupando todo el
    ancho de su celda) en vez de una fila horizontal label+control. */
@@ -691,8 +373,6 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
    actualizarAlfas() en main.ts en cada cambio de material. */
 .rl-row{display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px}
 .alfa-valor{font-family:var(--mono); font-size:10px; color:var(--dorado); white-space:nowrap}
-.cfg-modo-axial{display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.06em; padding-top:8px; margin-top:2px; border-top:1px dashed var(--line3)}
-.cfg-modo-axial b{color:var(--ok); font-weight:600}
 .materiales-grid .sel-compact{width:100%}
 /* Nivel de escucha / Género musical: grupo de 3 botones con el dato real
    del motor debajo de cada etiqueta (pico objetivo / crest factor) — el
@@ -727,19 +407,6 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .cfg-segbloque .cfg-seg3 button[aria-pressed=true]{background:var(--panel3); color:var(--dorado); font-weight:600; box-shadow:0 0 0 1px var(--line2) inset}
 .cfg-segbloque .cfg-seg3 button[aria-pressed=true] b{opacity:1}
 @media (max-width:420px){ .cfg-seg3{grid-template-columns:1fr}}
-.dims{display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px 26px}
-@media (max-width:640px){ .dims{grid-template-columns:1fr} }
-.dim .dl{display:flex; justify-content:space-between; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin-bottom:8px}
-.dim .dl b{font-family:var(--mono); color:var(--text); font-weight:500}
-/* --fill (0%-100%, la posición del valor actual) la fija wireSlider() en
-   main.ts en cada 'input' y al cargar — el degradé pinta de dorado sólo la
-   porción ya recorrida, como la maqueta, en vez de una línea pareja. */
-/* Riel recesado (mismo recurso que .boot-bar: fondo casi negro + sombra
-   interior) en vez de una línea plana; el pulgar gana un halo dorado —
-   "instrumento con luz propia", no un control de formulario genérico. */
-input[type=range]{-webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:3px; background:linear-gradient(to right, var(--dorado) 0%, var(--dorado) var(--fill, 50%), var(--bg) var(--fill, 50%), var(--bg) 100%); box-shadow:inset 0 1px 2px rgba(0,0,0,.6); outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--dorado); cursor:pointer; border:2px solid var(--bg); box-shadow:0 0 8px 1px rgba(184,153,106,.6)}
-input[type=range]::-moz-range-thumb{width:15px; height:15px; border-radius:50%; background:var(--dorado); cursor:pointer; border:2px solid var(--bg); box-shadow:0 0 8px 1px rgba(184,153,106,.6)}
 
 .rline{display:flex; align-items:center; justify-content:space-between; gap:20px; margin-top:16px; flex-wrap:wrap}
 .rline .rl{font-size:14px; color:var(--dim)}
@@ -761,37 +428,11 @@ input[type=range]::-moz-range-thumb{width:15px; height:15px; border-radius:50%; 
 .soon .st{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-right:6px}
 .soon .pillsoon{font-size:12px; color:var(--faint); border:1px solid var(--line); border-radius:20px; padding:5px 12px}
 
-/* Barra inferior "pegajosa" — queda visible mientras se completan los
-   selectores de arriba, mismo recurso que la maqueta (sticky + fondo
-   translúcido con blur), en vez de un pie de página que hay que
-   scrollear hasta abajo para encontrar. */
-/* Bug real encontrado con Chrome headless (confirmado con scroll real, no
-   era el artefacto conocido de captureBeyondViewport): "position:sticky;
-   bottom" sin un "top" que lo acompañe se renderiza YA pegado al fondo
-   del viewport desde el scroll 0 en cuanto el contenedor (.wrap) tiene
-   suficiente alto restante debajo — comportamiento real de CSS sticky,
-   no un bug del navegador. En desktop (2 columnas, página más corta) no
-   se nota; en mobile (1 columna, formulario largo) la barra "Analizar"
-   quedaba flotando pegada justo después de la primera tarjeta, antes de
-   que el usuario viera el resto del formulario. Se desactiva el sticky
-   bajo el mismo breakpoint donde .cfg-grid ya pasa a una sola columna —
-   ahí la barra vuelve a flujo normal, al final real del formulario. */
-.foot-bar{position:sticky; bottom:14px; z-index:5; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px 20px; margin-top:28px; padding:14px 18px; background:color-mix(in srgb, var(--panel2) 92%, transparent); backdrop-filter:blur(10px); border:1px solid var(--line2); border-radius:6px; box-shadow:0 20px 50px rgba(0,0,0,.45)}
-@media (max-width:900px){ .foot-bar{position:static} }
-.foot-bar-info{display:flex; align-items:center; gap:14px; min-width:0}
-.foot-bar-icono{flex:0 0 auto; width:38px; height:38px; border-radius:8px; background:var(--dorado); color:var(--bg); display:flex; align-items:center; justify-content:center; box-shadow:0 0 18px rgba(184,153,106,.4)}
-.foot-bar-icono svg{width:20px; height:20px}
-.foot-bar-texto{min-width:0}
-.foot-bar-titulo{display:flex; align-items:center; gap:10px; font-size:14.5px; color:var(--text); font-weight:500}
-.foot-bar-badge{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--warn); background:var(--panel3); border:1px solid var(--line3); border-radius:20px; padding:3px 10px}
-.foot-bar-badge.foot-bar-badge-listo{color:var(--ok)}
 .analizar{display:inline-flex; align-items:center; justify-content:center; gap:10px; font:inherit; font-size:13px; letter-spacing:.22em; text-transform:uppercase; border:0; border-radius:3px; padding:15px 34px; background:linear-gradient(135deg, var(--dorado), color-mix(in srgb, var(--dorado) 70%, var(--ok))); color:var(--bg); font-weight:600; cursor:pointer; box-shadow:0 4px 20px rgba(184,153,106,.35); transition:opacity .2s, box-shadow .2s}
 .analizar svg{width:18px; height:18px; flex:0 0 auto}
 .analizar:not(:disabled):hover{box-shadow:0 4px 26px rgba(184,153,106,.55)}
 .analizar:disabled{background:#2A2A2E; color:var(--faint); cursor:not-allowed; box-shadow:none}
 .analizar:not(:disabled):hover{opacity:.85}
-.miss{color:var(--warn); font-size:12.5px; margin-top:3px}
-.miss.miss-ok{color:var(--ok)}
 
 /* RESULTS */
 .chainitem{padding:11px 0; border-bottom:1px solid var(--line)}
@@ -912,6 +553,9 @@ input[type=range]::-moz-range-thumb{width:15px; height:15px; border-radius:50%; 
    del mismo tratamiento — ver CLAUDE.md, "gris apagado o punteado,
    nunca ámbar". */
 .regla-fila.regla-dim{border-bottom-style:dashed}
+/* La última fila no lleva línea de cierre: sin esto, el estilo dashed de arriba
+   la resucitaba (con ancho medio y color de texto) al pie del grupo. */
+.regla-fila.regla-dim:last-child{border-bottom:none}
 .regla-fila.regla-dim .fila-nombre{font-style:italic}
 
 /* Layout real para el ancho de un teléfono: incluso conteniendo el
@@ -1132,15 +776,6 @@ dialog.info-popup[open]::backdrop{opacity:1}
 }
 .contacto-acciones{margin-top:16px; display:flex; justify-content:flex-end}
 
-.info-item summary{cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:16px; user-select:none}
-.info-item summary::-webkit-details-marker{display:none}
-.info-item summary h3{margin:0; font-size:16px; color:var(--text); transition:color .15s}
-.info-item summary::after{content:''; flex:0 0 auto; width:9px; height:9px; border-right:1px solid var(--dim); border-bottom:1px solid var(--dim); transform:rotate(45deg); transition:transform .2s}
-.info-item[open] summary::after{transform:rotate(225deg)}
-.info-item summary:hover h3, .info-item[open] summary h3{color:var(--dorado)}
-.info-item summary:focus-visible{outline:2px solid var(--line2); outline-offset:-2px}
-.info-item p{margin-top:14px}
-.info-item[open] p{animation:detalle-in .3s cubic-bezier(.22,.61,.36,1)}
 
 .hidden{display:none !important}
 footer.note{margin-top:18px; padding-top:14px; border-top:1px solid var(--line); font-size:11.5px; color:var(--faint); line-height:1.8}
@@ -1152,8 +787,6 @@ footer.note b{color:var(--dim)}
    (las 8 tarjetas + plano + gráficos, nada se saca), pero denso — menos
    padding entre secciones y gráficos más chicos, para que se lea de
    corrido en una sola página sin tanto scroll. */
-.doc-toolbar{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; border:1px solid var(--line); border-radius:4px; padding:10px 16px; margin:14px 0 16px; background:var(--panel)}
-.doc-toolbar-acciones{display:flex; gap:10px; flex-wrap:wrap}
 
 /* Único punto del sitio con fondo claro — tokens propios, no se reusan
    --text/--dim/--faint (calibrados para fondo oscuro, contraste incorrecto
@@ -1229,7 +862,6 @@ footer.note b{color:var(--dim)}
 @media (max-width:640px){
   .doc-paper{padding:18px 16px}
   .doc-title{font-size:17px}
-  .doc-toolbar{padding:9px 12px}
 }
 
 /* AR (ar.html) — página propia, servida por red (ver vite.ar.config.ts),
@@ -1254,3 +886,720 @@ html:has(#ar-canvas), html:has(#ar-canvas) body{height:100%; overflow:hidden}
 .ar-hud p{margin:0 0 6px; font-size:13.5px; color:var(--text)}
 .ar-hud .ar-aviso-chico{font-size:11px; color:var(--faint); margin:4px 0}
 .ar-hud .back{margin-top:8px}
+
+/* PORTADA EDITORIAL — estructura de la propuesta de Codex (maqueta "portada
+   acústica") adaptada a la portada real. Nació scopeada sólo a #s-splash;
+   las fases siguientes (Configurar 2b, Resultado/Sala 3, Guía 4, Documento/
+   Mensajes 5-6, Mis sistemas 7) le fueron sumando las 7 pantallas restantes
+   conforme les llegaba el turno — hoy las 8 comparten los mismos tokens
+   `--paper`/`--pc-bg`/`--pc-line`/`--pc-dim`/`--pc-faint` vía `.screen` (ver
+   más abajo), no sólo la portada. Marfil/negro y tracking negativo. */
+@keyframes st-pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+@keyframes proof-in{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
+
+.screen{--paper:#efede7; --ink:#111310; --pc-bg:#050606; --pc-line:rgba(239,237,231,.16); --pc-dim:#a9ada6; --pc-faint:#7f847d; background:var(--pc-bg); font-weight:300}
+#s-splash .wrap{max-width:none; padding:88px 0 0}
+.screen .head{background:rgba(5,6,6,.96); border-bottom-color:var(--pc-line)}
+.screen .head-status{display:none}
+.screen .head-nav-btn{color:var(--pc-dim); font-size:10px; letter-spacing:.09em; border-bottom-width:1px}
+.screen .head-nav-btn:hover{color:var(--paper)}
+.screen .head-nav-btn[aria-current="page"]{color:var(--paper); border-bottom-color:var(--paper); text-shadow:none}
+@media (min-width:1025px){
+  .screen .head{max-width:none; left:0; transform:none; grid-template-columns:1fr auto 1fr; column-gap:36px; padding:0 max(44px, calc((100vw - 1380px) / 2 + 44px)); height:88px}
+  .screen .head .hright{justify-self:end}
+  .screen:not(:where(#s-splash)) .head .hright{padding-right:96px}
+  .screen .idioma-splash{top:28px; right:max(44px, calc((100vw - 1380px) / 2 + 44px))}
+}
+@media (max-width:1024px){ #s-splash .wrap{padding-top:96px} }
+
+.pc-inner{max-width:1380px; margin:0 auto; padding:0 44px}
+.pc-num{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--pc-faint); margin-bottom:34px}
+.pc-h2{margin:0 0 30px; font-weight:300; font-size:clamp(36px,5vw,72px); line-height:.98; letter-spacing:-.06em; text-transform:uppercase; color:var(--paper)}
+.pc-enlace{background:none; border:0; padding:8px 0; color:var(--paper); font:inherit; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; text-decoration:underline; text-underline-offset:5px; cursor:pointer; transition:opacity .2s}
+.pc-enlace:hover{opacity:.7}
+.pc-cta:focus-visible, .pc-enlace:focus-visible, .pc-carril-item:focus-visible, #s-splash .pc-nota a:focus-visible{outline:2px solid #8cabd4; outline-offset:4px}
+
+/* HERO */
+.pc-hero{position:relative; max-width:1380px; margin:0 auto; min-height:clamp(540px, 80vh, 720px); display:flex; align-items:center; padding:40px 44px}
+.pc-hero-texto{position:relative; z-index:1; max-width:680px}
+.pc-eyebrow{font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--pc-dim); margin-bottom:22px}
+#s-splash .mark{justify-content:flex-start; font-size:18px; margin:0 0 30px}
+.pc-titulo{margin:0 0 26px; font-weight:300; font-size:clamp(44px,6.2vw,92px); line-height:.94; letter-spacing:-.065em; text-transform:uppercase; color:var(--paper)}
+.pc-titulo span{display:block}
+.pc-titulo-dim{color:#9ea29b}
+.pc-lead{margin:0 0 34px; max-width:400px; font-size:18px; line-height:1.6; color:#c4c8c0}
+.pc-acciones{display:flex; align-items:center; flex-wrap:wrap; gap:14px 28px}
+.pc-cta{display:inline-flex; align-items:center; justify-content:space-between; gap:36px; background:var(--paper); color:var(--pc-bg); border:0; border-radius:0; padding:19px 24px; font:inherit; font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer; transition:background .2s}
+.pc-cta:hover{background:#d6d8d0}
+.pc-cta span[aria-hidden]{font-family:var(--sans); font-size:18px; letter-spacing:0}
+.pc-remate{margin-top:26px; font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--pc-faint)}
+/* Imagen principal (marcador): a la derecha, con el borde izquierdo fundido
+   al fondo mediante máscara — sin capas extra ni brillos. */
+.pc-hero-imagen{position:absolute; top:24px; bottom:24px; left:32%; right:44px; margin:0; z-index:0; overflow:hidden}
+.pc-hero-imagen img{display:block; width:100%; height:100%; object-fit:cover; object-position:right center; -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 36%); mask-image:linear-gradient(90deg, transparent 0, #000 36%)}
+.pc-hero-imagen figcaption{position:absolute; right:12px; bottom:12px; max-width:calc(100% - 24px); padding:5px 9px; background:rgba(5,6,6,.72); font-family:var(--mono); font-size:9px; letter-spacing:.06em; color:#c4c8c0}
+
+/* CARRIL DE 4 CONCEPTOS + CIFRAS REALES */
+.pc-carril{display:grid; grid-template-columns:repeat(4,1fr); gap:24px; border-top:1px solid var(--pc-line); padding:28px 0}
+.pc-carril-item{display:flex; flex-direction:column; align-items:flex-start; gap:12px; background:none; border:0; padding:0; text-align:left; color:var(--paper); font:inherit; cursor:pointer}
+.pc-carril-titulo{font-size:22px; line-height:1.15; letter-spacing:-.05em; font-weight:300}
+.pc-carril-item:hover .pc-carril-titulo{text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:6px}
+.pc-carril-sub{font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--pc-faint)}
+.pc-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:24px; border-top:1px solid var(--pc-line); padding:26px 0; opacity:0; animation:proof-in .6s cubic-bezier(.22,.61,.36,1) 1.1s forwards}
+.proof-item{min-width:0}
+.proof-num{font-family:var(--mono); font-size:34px; font-weight:300; line-height:1.1; color:var(--paper); white-space:nowrap}
+.proof-label{max-width:230px; margin-top:10px; font-size:12px; line-height:1.5; color:var(--pc-dim)}
+.proof-detalle{margin-top:8px; font-size:10px; line-height:1.5; color:var(--pc-faint)}
+.proof-detalle.mono{font-family:var(--mono)}
+.pc-nota{display:flex; align-items:center; justify-content:space-between; gap:16px; border-top:1px solid var(--pc-line); padding:16px 0 46px; font-size:11px; line-height:1.6; color:var(--pc-dim)}
+.pc-nota strong{color:var(--paper); font-weight:400}
+.pc-nota a{flex:0 0 auto; font-family:var(--mono); font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--pc-faint); text-decoration:none; transition:color .2s}
+.pc-nota a:hover{color:var(--paper)}
+
+/* BANDA MARFIL "01" */
+.pc-banda{background:var(--paper); color:var(--ink); padding:72px 0 84px}
+.pc-banda .pc-num{color:#6b6f68}
+.pc-banda .pc-h2{color:var(--ink)}
+.pc-banda-grid{display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center}
+.pc-banda p{max-width:520px; margin:0 0 28px; font-size:16px; line-height:1.65; color:#5c605a}
+.pc-enlace-oscuro{color:var(--ink)}
+.pc-pasos{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid rgba(17,19,16,.3); border-bottom:1px solid rgba(17,19,16,.3)}
+.pc-pasos li{display:flex; flex-direction:column; gap:18px; padding:26px 0}
+.pc-pasos li span{font-family:var(--mono); font-size:10px; color:#4f534d}
+.pc-pasos li b{font-weight:300; font-size:28px; letter-spacing:-.045em}
+
+/* SECCIÓN OSCURA "02" — dos capas + fuente y confianza */
+.pc-honesta{padding:78px 0 44px}
+.pc-honesta .pc-h2{max-width:860px; margin-bottom:20px; font-size:clamp(30px,3.8vw,54px)}
+.pc-intro{max-width:620px; margin:0 0 46px; font-size:15px; line-height:1.65; color:var(--pc-dim)}
+.pc-cols{display:grid; grid-template-columns:repeat(3,1fr); gap:44px}
+.pc-col{display:flex; flex-direction:column; align-items:flex-start; gap:12px; padding-top:22px; border-top:1px solid var(--pc-line)}
+.dc-col-head{display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--paper)}
+.dc-dot{width:8px; height:8px; border-radius:50%; flex:0 0 auto}
+.dc-dot-fisica{background:var(--ok)}
+.dc-dot-criterio{background:var(--info-badge)}
+.dc-dot-datos{background:var(--dorado)}
+.pc-col-titulo{margin:8px 0 2px; font-weight:300; font-size:24px; line-height:1.15; letter-spacing:-.045em; color:var(--paper)}
+.pc-col p{margin:0; font-size:13.5px; line-height:1.65; color:var(--pc-dim)}
+.pc-col .pc-nota-cursiva{font-size:12.5px; font-style:italic; color:var(--pc-faint)}
+.pc-col .dc-lista{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:8px}
+.pc-col .dc-lista li{font-size:12.5px; line-height:1.55; color:var(--pc-dim)}
+.pc-col .pc-enlace{margin-top:auto; padding-top:14px}
+
+/* THE MATCH RECOMENDADO + PIE */
+.pc-match{padding:24px 0 64px}
+.pc-match .match-mes{margin:0; border-radius:0; border-color:var(--pc-line)}
+.pc-match .veredicto-card{box-shadow:none; border-radius:0}
+.pc-pie{border-top:1px solid var(--pc-line); padding:22px 0}
+.pc-pie-fila{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px 24px}
+.pc-pie .back{font-size:10px; letter-spacing:.12em}
+
+/* NOVEDADES: sin sombras, esquinas rectas */
+#s-splash .novedades-popup{position:relative; top:auto; bottom:auto; left:auto; max-width:330px; margin-top:26px; border-radius:0; box-shadow:none; border-color:var(--pc-line); background:var(--pc-bg)}
+
+@media (max-width:1024px){
+  .screen .idioma-splash{top:9px}
+}
+/* Tablet: texto e imagen en dos columnas sin solaparse (el titular no pisa a los parlantes). */
+@media (min-width:851px) and (max-width:1024px){
+  .pc-hero-texto{max-width:46%}
+  .pc-hero-imagen{left:48%}
+}
+@media (max-width:850px){
+  .pc-inner{padding:0 22px}
+  .pc-hero{display:block; min-height:0; padding:34px 22px 8px}
+  .pc-hero-texto{max-width:none}
+  .pc-hero-imagen{position:relative; top:auto; bottom:auto; left:auto; right:auto; height:clamp(280px,60vw,420px); margin:34px 0 0}
+  .pc-hero-imagen img{-webkit-mask-image:linear-gradient(180deg, transparent 0, #000 30%); mask-image:linear-gradient(180deg, transparent 0, #000 30%)}
+  .pc-carril, .pc-stats{grid-template-columns:1fr 1fr; gap:26px 18px}
+  .pc-banda{padding:56px 0 60px}
+  .pc-banda-grid{grid-template-columns:1fr; gap:40px}
+  .pc-honesta{padding:56px 0 30px}
+  .pc-cols{grid-template-columns:1fr; gap:36px}
+  .pc-nota{flex-direction:column; align-items:flex-start; padding-bottom:36px}
+}
+@media (max-width:480px){
+  .pc-titulo{font-size:clamp(40px,13.4vw,64px)}
+  .pc-cta{width:100%}
+  .proof-num{font-size:26px}
+  .proof-detalle{display:none}
+  .pc-pasos li b{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){ .pc-cta, .pc-enlace, .pc-nota a{transition:none} }
+
+/* CONFIGURAR EN 3 PASOS — misma piel que la portada, scopeada a #s-config.
+   Estructura de la maqueta: tarjetas de equipo simples que abren un cuadro de
+   selección, campos numéricos para la sala y revisión en bloques. La lógica
+   (selectores, búsqueda, materiales) es la de siempre: sólo cambia dónde vive. */
+#s-config{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-config .wrap{max-width:1380px; padding:88px 44px 46px}
+#s-config [hidden]{display:none !important}
+.pc-cfg-cabecera{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:20px; padding:44px 0 28px}
+.pc-cfg-textos{flex:1 1 420px; min-width:0}
+#s-config .lead{margin:0 0 16px; font-weight:300; font-size:clamp(38px,5vw,72px); line-height:.98; letter-spacing:-.06em; text-transform:uppercase; color:var(--paper)}
+#s-config .lead-note{max-width:560px; margin:0; font-size:15px; line-height:1.65; color:var(--pc-dim)}
+.pc-btn-linea{padding:14px 22px; background:transparent; border:1px solid var(--pc-line); border-radius:0; color:var(--paper); font:inherit; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer; transition:border-color .2s}
+.pc-btn-linea:hover{border-color:var(--paper)}
+.pc-btn-linea:focus-visible{outline:2px solid #8cabd4; outline-offset:4px}
+.pc-stepper{display:grid; grid-template-columns:repeat(3,1fr); margin:0 0 36px; border-bottom:1px solid var(--pc-line); scroll-margin-top:110px}
+.pc-stepper button{display:flex; align-items:baseline; gap:18px; margin-bottom:-1px; padding:20px 0; background:transparent; border:0; border-bottom:2px solid transparent; text-align:left; color:var(--pc-faint); font:inherit; font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer; transition:color .2s, border-color .2s}
+.pc-stepper button b{font-weight:400}
+.pc-stepper button:hover:not(:disabled){color:var(--paper)}
+.pc-stepper button[aria-current=step]{color:var(--paper); border-bottom-color:var(--paper)}
+.pc-stepper button:disabled{opacity:.4; cursor:not-allowed}
+.pc-stepper button:focus-visible{outline:2px solid #8cabd4; outline-offset:4px}
+.pc-cfg-cuerpo{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:48px; align-items:start}
+.pc-cfg-principal{min-width:0}
+.pc-paso:focus{outline:none}
+.pc-titulo-paso{margin:0 0 26px; font-weight:300; font-size:clamp(28px,3.2vw,40px); line-height:1.05; letter-spacing:-.05em; color:var(--paper)}
+
+/* Paso 1 · tarjetas de equipo */
+.pc-slots{display:grid; grid-template-columns:1fr 1fr; gap:24px}
+.pc-slot{display:flex; flex-direction:column; gap:18px; padding:24px; border:1px solid var(--pc-line)}
+.pc-slot-top{display:flex; align-items:center; justify-content:space-between; gap:12px; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--pc-dim)}
+.pc-etiqueta{padding:5px 10px; border:1px solid var(--pc-line); font-size:9.5px; letter-spacing:.1em; color:var(--paper)}
+.pc-slot-cuerpo{display:flex; align-items:center; gap:18px}
+.pc-slot .device-icon{flex:0 0 auto}
+/* Pictogramas de equipo de la maqueta: cajas dibujadas con CSS, no íconos
+   lineales. Parlante (caja con tweeter y woofer), amplificador (frente ancho
+   con perilla y ranura) y fuente (streamer/DAC: caja baja con ventana). */
+.device-icon{position:relative; display:flex; align-items:center; justify-content:center; width:39px; min-width:39px; height:65px; border:1px solid #ffffff50; background:linear-gradient(125deg,#3a403b,#141815)}
+.device-icon::before{content:''; position:absolute; bottom:8px; width:25px; height:25px; border:1px solid #ffffff50; border-radius:50%; box-shadow:inset 0 0 0 4px #ffffff08}
+.device-icon::after{content:''; position:absolute; top:8px; width:9px; height:9px; border:1px solid #ffffff40; border-radius:50%}
+.device-icon.amp{width:64px; min-width:64px; height:25px}
+.device-icon.amp::before{right:5px; bottom:5px; width:12px; height:12px; box-shadow:none}
+.device-icon.amp::after{top:12px; left:7px; width:12px; height:1px; background:#ffffff50; border:0; border-radius:0}
+.device-icon.source{width:50px; min-width:50px; height:30px}
+.device-icon.source::before{left:5px; bottom:8px; width:22px; height:11px; border-radius:0; box-shadow:none}
+.device-icon.source::after{right:5px; top:11px; width:5px; height:5px}
+.pc-slot-texto{min-width:0}
+.pc-slot-texto h3{margin:0 0 6px; font-weight:300; font-size:26px; line-height:1.1; letter-spacing:-.045em; color:var(--paper)}
+.pc-slot-texto p{margin:0; font-size:13.5px; line-height:1.5; color:var(--pc-dim)}
+.pc-slot:not(.pc-slot-lleno) .pc-slot-texto h3{color:var(--pc-dim)}
+.pc-slot .info{margin:0; padding:0; background:transparent; border:0; border-radius:0}
+/* El tipo del equipo ya está en el subtítulo del slot: no se repite en la ficha. */
+.pc-slot .info .info-type{display:none}
+.pc-slot-acciones{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; padding-top:18px; border-top:1px solid var(--pc-line)}
+.pc-quitar{color:var(--pc-dim)}
+.pc-nota-suave{margin:14px 0 4px; font-size:12.5px; line-height:1.6; color:var(--pc-faint)}
+.pc-opcionales{margin:26px 0 8px; border-top:1px solid var(--pc-line); border-bottom:1px solid var(--pc-line)}
+.pc-opcionales > summary{list-style:none; padding:18px 0; font-size:16px; color:var(--paper); cursor:pointer}
+.pc-opcionales > summary::-webkit-details-marker{display:none}
+.pc-opcionales > summary::before{content:'▸'; display:inline-block; width:22px; color:var(--pc-dim); transition:transform .2s}
+.pc-opcionales[open] > summary::before{transform:rotate(90deg)}
+.pc-opcionales > summary:focus-visible{outline:2px solid #8cabd4; outline-offset:4px}
+.pc-opcionales[open] > .pc-slots{margin-bottom:6px}
+.pc-pie{display:flex; align-items:center; justify-content:space-between; gap:16px; margin:34px 0 8px; padding-top:22px; border-top:1px solid var(--pc-line)}
+.pc-contador{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--pc-dim)}
+.pc-pie .pc-cta{margin-left:auto}
+.pc-cta:disabled{opacity:.35; cursor:not-allowed}
+.pc-cta:disabled:hover{background:var(--paper)}
+
+/* Paso 2 · sala */
+.pc-campos3{display:grid; grid-template-columns:repeat(3,1fr); gap:28px}
+.pc-campo label{display:block; margin-bottom:10px; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--pc-dim)}
+.pc-campo input{width:100%; padding:8px 0 10px; background:transparent; border:0; border-bottom:1px solid var(--pc-line); border-radius:0; color:var(--paper); font:inherit; font-size:30px; font-weight:300; letter-spacing:-.04em; -moz-appearance:textfield; appearance:textfield}
+.pc-campo input::-webkit-outer-spin-button, .pc-campo input::-webkit-inner-spin-button{opacity:.5}
+.pc-campo input:focus{outline:none; border-bottom-color:var(--paper)}
+.pc-campo input[aria-invalid=true]{border-bottom-color:var(--alert); color:var(--alert)}
+.pc-error{margin:14px 0 0; font-size:13px; color:var(--alert)}
+.pc-franja{display:grid; grid-template-columns:repeat(3,1fr); margin:28px 0 8px; border-top:1px solid var(--pc-line); border-bottom:1px solid var(--pc-line)}
+.pc-franja > div{display:flex; flex-direction:column; gap:8px; padding:20px 0 18px}
+.pc-franja > div + div{padding-left:24px; border-left:1px solid var(--pc-line)}
+.pc-franja strong{font-weight:300; font-size:26px; letter-spacing:-.04em; color:var(--paper)}
+.pc-franja span{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--pc-faint)}
+.pc-subtitulo{margin:30px 0 14px; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--pc-dim)}
+#s-config .cfg-segbloque-fila{margin-top:0}
+#s-config .segs, #s-config .segs button, #s-config .sel, #s-config .campo-texto input, #s-config .info, #s-config .modo-busqueda-btn, #s-config .pillsoon{border-radius:0; box-shadow:none}
+
+/* Paso 3 · revisión y resumen lateral */
+.pc-revision dl, .pc-cadena dl{display:grid; grid-template-columns:auto 1fr; margin:0}
+.pc-revision dt, .pc-revision dd, .pc-cadena dt, .pc-cadena dd{margin:0; padding:15px 0; border-bottom:1px solid var(--pc-line)}
+.pc-revision dt, .pc-cadena dt{padding-right:18px; font-size:13px; color:var(--pc-dim)}
+.pc-revision dd, .pc-cadena dd{text-align:right; font-size:14px; color:var(--paper)}
+.pc-revision dd.vacio, .pc-cadena dd.vacio{color:var(--pc-faint)}
+.pc-cadena{position:sticky; top:112px; padding-left:36px; border-left:1px solid var(--pc-line)}
+.pc-cadena .pc-eyebrow{margin-bottom:10px}
+.pc-cadena-titulo{margin:0 0 20px; font-weight:300; font-size:28px; line-height:1.1; letter-spacing:-.045em; color:var(--paper)}
+.pc-cadena-nota{margin:20px 0 6px; font-size:12.5px; line-height:1.6; color:var(--pc-faint)}
+#s-config .analizar{background:var(--paper); color:var(--pc-bg); border-radius:0; box-shadow:none; font-family:var(--mono); font-size:10.5px; font-weight:300; letter-spacing:.09em; padding:19px 24px; gap:36px}
+#s-config .analizar:not(:disabled):hover{background:#d6d8d0; box-shadow:none}
+#s-config .analizar:disabled{background:var(--paper)}
+
+/* Cuadro de selección de equipo */
+dialog.equipo-dialogo{max-width:640px; width:calc(100% - 32px); padding:26px; background:var(--pc-bg, #050606); border:1px solid rgba(239,237,231,.22); border-radius:0; box-shadow:none; color:#efede7}
+.equipo-dialogo-cab{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px}
+.equipo-dialogo-cab .pc-eyebrow{margin-bottom:8px}
+.equipo-dialogo-cab h3{margin:0; font-weight:300; font-size:28px; line-height:1.1; letter-spacing:-.045em; color:#efede7}
+.equipo-dialogo .info-popup-cerrar{flex:0 0 auto; width:34px; height:34px; background:transparent; border:1px solid rgba(239,237,231,.22); border-radius:0; color:#efede7; font-size:20px; line-height:1; cursor:pointer}
+.equipo-dialogo .info-popup-cerrar:hover{border-color:#efede7}
+.equipo-dialogo .modo-busqueda{margin:0 0 14px}
+
+@media (max-width:1024px){
+  .pc-cfg-cuerpo{grid-template-columns:1fr}
+  .pc-cadena{display:none}
+  #s-config .wrap{padding-top:96px}
+}
+@media (max-width:850px){
+  #s-config .wrap{padding-left:22px; padding-right:22px}
+  .pc-cfg-cabecera{padding-top:30px}
+  .pc-slots{grid-template-columns:1fr}
+  .pc-campos3, .pc-franja{grid-template-columns:1fr}
+  .pc-franja > div + div{padding-left:0; border-left:0; border-top:1px solid var(--pc-line)}
+}
+@media (max-width:640px){
+  .pc-stepper button{flex-direction:column; gap:6px; padding:16px 0 14px; font-size:9.5px}
+  .pc-slot{padding:18px}
+  .pc-pie{flex-wrap:wrap}
+  .pc-pie .pc-cta{width:100%; justify-content:space-between}
+}
+
+/* RESULTADO Y EXPLORAR SALA — misma piel editorial que la portada y
+   Configurar (Fase 3), scopeada a #s-results / #s-sala. La banda marfil lleva
+   el veredicto REAL (capa criterio-editorial, rotulada), la tabla resumen y
+   tres cifras que el motor ya calculó; debajo, tres pestañas. Los ids de las
+   tarjetas de evidencia son los de siempre: sólo cambia dónde viven. */
+#s-results, #s-sala{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-results .wrap, #s-sala .wrap{max-width:none; padding:88px 0 46px}
+#s-results [hidden], #s-sala [hidden]{display:none !important}
+.res-inner{max-width:1380px; margin:0 auto; padding:0 44px}
+
+/* Banda marfil */
+.res-banda{--res-ok:#2F7A4B; --res-warn:#8A6A1F; --res-alert:#A23B2B; --res-linea:rgba(17,19,16,.2); --res-dim:#5c605a; background:var(--paper); color:var(--ink); padding:56px 0 44px}
+.res-banda .pc-eyebrow{color:var(--res-dim); margin-bottom:18px}
+.res-cab{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:22px 32px}
+.res-banda .res-cab{margin-bottom:36px}
+.res-cab-textos{flex:1 1 420px; min-width:0}
+.res-titulo{margin:0; text-wrap:balance; font-weight:300; font-size:clamp(38px,5.2vw,76px); line-height:.96; letter-spacing:-.06em; text-transform:uppercase; color:var(--ink)}
+.res-titulo-oscuro{color:var(--paper)}
+.res-aviso{max-width:640px; margin:22px 0 0; padding:10px 14px; border-left:3px solid var(--res-warn); background:rgba(17,19,16,.05); font-size:13px; line-height:1.55; color:#3f433d}
+.res-aviso button{margin-left:6px; padding:0; background:none; border:0; font:inherit; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink); text-decoration:underline; text-underline-offset:4px; cursor:pointer}
+.res-aviso button:focus-visible{outline:2px solid #2b5a9c; outline-offset:3px}
+.res-cab-acciones{display:flex; flex-wrap:wrap; gap:12px}
+.res-btn{padding:14px 22px; border-radius:0; font:inherit; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer; transition:background-color .2s, border-color .2s, color .2s}
+.res-btn-linea{background:transparent; border:1px solid rgba(17,19,16,.32); color:var(--ink)}
+.res-btn-linea:hover{border-color:var(--ink)}
+.res-btn-solido{background:var(--ink); border:1px solid var(--ink); color:var(--paper)}
+.res-btn-solido:hover{background:#2a2d28}
+.res-btn:focus-visible{outline:2px solid #2b5a9c; outline-offset:3px}
+
+.res-cuerpo{display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:56px; align-items:start; padding:34px 0 36px; border-top:1px solid var(--res-linea)}
+.res-veredicto{padding-left:22px; border-left:3px solid var(--res-linea)}
+.res-veredicto.veredicto-ok{border-left-color:var(--res-ok)}
+.res-veredicto.veredicto-warn{border-left-color:var(--res-warn)}
+.res-veredicto.veredicto-alert{border-left-color:var(--res-alert)}
+.res-veredicto .ct{display:flex; align-items:center; gap:12px; margin-bottom:16px}
+.res-banda .layer{color:var(--res-dim); background:transparent; border:1px solid rgba(17,19,16,.3); border-radius:0; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em}
+.res-banda .infobtn{margin-left:auto; color:var(--res-dim); border-color:rgba(17,19,16,.3)}
+.res-banda .infobtn:hover{color:var(--paper); background:var(--ink); border-color:var(--ink)}
+.res-banda .vd-titulo{margin:0 0 12px; font-weight:300; font-size:clamp(28px,3.4vw,46px); line-height:1.04; letter-spacing:-.05em; color:var(--ink)}
+.res-banda .veredicto-ok .vd-titulo{color:var(--res-ok)}
+.res-banda .veredicto-warn .vd-titulo{color:var(--res-warn)}
+.res-banda .veredicto-alert .vd-titulo{color:var(--res-alert)}
+.res-banda .vd-subtexto{max-width:540px; margin:0; font-size:16px; line-height:1.6; color:#4c504a}
+.res-sum{display:grid; grid-template-columns:auto minmax(0,1fr); margin:0}
+.res-sum dt, .res-sum dd{margin:0; padding:15px 0; border-bottom:1px solid var(--res-linea)}
+.res-sum dt{padding-right:22px; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--res-dim)}
+.res-sum dd{text-align:right; font-size:14.5px; line-height:1.45; color:var(--ink)}
+.res-metricas{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; border-top:1px solid var(--res-linea)}
+.res-metrica{min-width:0; padding:26px 28px 4px 0}
+.res-metrica + .res-metrica{padding-left:28px; border-left:1px solid var(--res-linea)}
+.res-metrica-et{display:block; font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--res-dim)}
+.res-metrica-valor{display:block; margin:14px 0 10px; font-weight:300; font-size:clamp(40px,5vw,64px); line-height:1; letter-spacing:-.06em; color:var(--ink)}
+.res-metrica-valor small{font-size:.3em; letter-spacing:0; color:var(--res-dim)}
+.res-metrica p{max-width:320px; margin:0 0 6px; font-size:13px; line-height:1.55; color:#4c504a}
+.res-metrica .res-metrica-rango{font-family:var(--mono); font-size:11px; color:var(--res-warn)}
+
+/* Pestañas */
+.res-detalle{padding-top:44px}
+.res-tabs{display:flex; margin-bottom:34px; border-bottom:1px solid var(--pc-line); overflow-x:auto}
+.res-tabs [role=tab]{flex:0 0 auto; margin:0 30px -1px 0; padding:16px 0; background:transparent; border:0; border-bottom:2px solid transparent; color:var(--pc-faint); font:inherit; font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; cursor:pointer; transition:color .2s, border-color .2s}
+.res-tabs [role=tab]:hover{color:var(--paper)}
+.res-tabs [role=tab][aria-selected=true]{color:var(--paper); border-bottom-color:var(--paper)}
+.res-tabs [role=tab]:focus-visible{outline:2px solid #8cabd4; outline-offset:4px}
+.res-panel{min-width:0}
+.res-panel:focus{outline:none}
+.res-intro{max-width:640px; margin:0 0 22px; font-size:14.5px; line-height:1.65; color:var(--pc-dim)}
+.res-h3{margin:0 0 10px; font-weight:300; font-size:clamp(26px,3vw,38px); line-height:1.05; letter-spacing:-.05em; color:var(--paper)}
+.res-bloque{margin-top:34px; padding-top:26px; border-top:1px solid var(--pc-line)}
+.res-bloque h3{margin:0 0 14px; font-weight:300; font-size:26px; letter-spacing:-.045em; color:var(--paper)}
+.res-bloque ul{margin:0; padding-left:18px}
+.res-bloque li{font-size:14.5px; line-height:1.7; color:var(--pc-dim)}
+.res-bloque li b{color:var(--paper); font-weight:500}
+#s-results .nota-sindatos{border-top-color:var(--pc-line)}
+
+/* Lectura general en dos columnas (como la maqueta): lectura del sistema a la
+   izquierda, "tu sala en frecuencia" a la derecha. */
+.res-dos{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:56px; align-items:start}
+.res-col{min-width:0}
+.res-etiqueta{margin:0 0 20px; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--pc-faint)}
+.res-col .estados-grid{grid-template-columns:1fr; gap:12px}
+.res-col-modos .res-h3{margin-bottom:0}
+.res-modos{margin:28px 0 6px}
+.res-modos svg{display:block; width:100%; height:auto; max-height:340px}
+.res-col-modos .res-intro{margin-top:14px}
+.res-col-modos .pc-enlace{margin-top:6px}
+
+/* Componentes ya existentes con la piel editorial (esquinas rectas y línea
+   fina); estados y grupos de evidencia van en el bloque "PIEL BLANCO Y NEGRO". */
+#s-results .blk{border-radius:0; border-color:var(--pc-line)}
+#s-results .ficha-final{margin-top:40px; padding-top:26px; border-color:var(--pc-line)}
+#s-results .ficha-final h2{font-family:var(--mono); font-size:10px; letter-spacing:.09em; color:var(--pc-dim)}
+#s-results .layer, #s-sala .layer{border-radius:0}
+#s-results .infobtn:hover, #s-sala .infobtn:hover{color:var(--pc-bg); background:var(--paper); border-color:var(--paper)}
+
+/* Tabla "Datos y fuentes" */
+.res-tabla-wrap{margin:0 0 8px; overflow-x:auto}
+.res-tabla{width:100%; border-collapse:collapse; font-size:13.5px}
+.res-tabla th, .res-tabla td{padding:13px 18px 13px 0; text-align:left; vertical-align:top; border-bottom:1px solid var(--pc-line)}
+.res-tabla thead th{font-family:var(--mono); font-size:9.5px; font-weight:400; letter-spacing:.1em; text-transform:uppercase; color:var(--pc-faint)}
+.res-tabla td{line-height:1.5; color:var(--paper)}
+.res-tabla td:nth-child(2){font-family:var(--mono); font-size:12.5px}
+.res-tabla-grupo th{padding-top:30px; font-family:var(--mono); font-size:10.5px; font-weight:400; letter-spacing:.09em; text-transform:uppercase; color:var(--pc-dim); border-bottom-color:var(--pc-dim)}
+.res-tabla-nota{display:block; margin-top:5px; font-size:12px; line-height:1.5; color:var(--pc-faint)}
+.res-tabla-aviso td{padding:10px 0 4px; border-bottom:0; font-size:12.5px; font-style:italic; color:var(--pc-faint)}
+
+/* Pie de acciones y encabezado de Explorar sala */
+.res-cta{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px 28px; margin-top:44px; padding-top:26px; border-top:1px solid var(--pc-line)}
+#s-results .note{margin-top:34px}
+.sala-cab{padding-top:44px; padding-bottom:26px}
+.sala-cab .res-cab{margin-bottom:0}
+.sala-lead{max-width:560px; margin:18px 0 0; font-size:15px; line-height:1.65; color:var(--pc-dim)}
+#s-sala .card{margin-bottom:0; padding:22px 26px; background:transparent; border-color:var(--pc-line); border-radius:0}
+#s-sala .card h3{font-weight:300; font-size:26px; letter-spacing:-.045em; color:var(--paper)}
+#s-sala .segs, #s-sala .segs button, #s-sala .back{border-radius:0}
+
+@media (max-width:1024px){
+  #s-results .wrap, #s-sala .wrap{padding-top:96px}
+  .res-cuerpo{grid-template-columns:1fr; gap:30px}
+  .res-dos{grid-template-columns:1fr; gap:44px}
+}
+@media (max-width:850px){
+  .res-inner{padding:0 22px}
+  .res-banda{padding:40px 0 34px}
+  .res-metricas{grid-auto-flow:row; grid-auto-columns:auto}
+  .res-metrica{padding:22px 0 6px}
+  .res-metrica + .res-metrica{padding-left:0; border-left:0; border-top:1px solid var(--res-linea)}
+  .res-tabs [role=tab]{margin-right:22px}
+}
+@media (max-width:640px){
+  .res-modos{overflow-x:auto}
+  .res-modos svg{min-width:440px}
+  .res-tabs{overflow-x:visible}
+  .res-tabs [role=tab]{flex:1 1 0; min-width:0; margin-right:14px; padding:14px 0; font-size:9.5px; line-height:1.4; text-align:left; white-space:normal}
+}
+@media (max-width:700px){
+  .res-tabla thead{display:none}
+  .res-tabla, .res-tabla tbody, .res-tabla tr, .res-tabla th, .res-tabla td{display:block}
+  .res-tabla td{padding:5px 0; border-bottom:0}
+  .res-tabla td::before{content:attr(data-label); display:block; font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--pc-faint)}
+  .res-tabla tr:not(.res-tabla-grupo):not(.res-tabla-aviso){padding:12px 0; border-bottom:1px solid var(--pc-line)}
+  .res-tabla-grupo th{padding-top:26px}
+}
+@media (prefers-reduced-motion:reduce){ .res-btn, .res-tabs [role=tab]{transition:none} }
+
+/* PIEL BLANCO Y NEGRO — los cuadros de las pantallas nuevas y sus cuadros de
+   diálogo dejan el azul grisáceo de las superficies de siempre: fondo negro,
+   línea fina marfil y texto marfil. El color queda SOLO en los puntos de
+   estado (verde / dorado / rojo), no en fondos, bordes ni textos. Los tokens
+   --panel* se redefinen en estos ámbitos, así todo lo que ya los usa (selects,
+   listas de resultados, chips, ficha manual…) se adapta sin tocarlo uno a uno. */
+.screen, dialog.equipo-dialogo, dialog.info-popup{--panel:#050606; --panel2:#050606; --panel3:rgba(239,237,231,.04)}
+/* Resultado, Sala, Guía, Documento, Mensajes y Mis sistemas: los grises de
+   texto suben hacia el marfil (más blanco y negro, menos gris); la
+   jerarquía se conserva con tamaño, mayúsculas y peso. Portada y Configurar
+   quedan fuera a propósito — conservan la jerarquía de grises más suave con
+   la que nacieron. Clase en index.html (`screen-alto-contraste`), no una
+   lista de ids: mismo motivo que `.screen` más arriba — una pantalla
+   nueva de este grupo (si alguna vez se agrega otra) sólo necesita la
+   clase en su `<section>`, no volver a tocar esta hoja. */
+.screen-alto-contraste{--dim:#cdd0c9; --faint:#a3a79f; --label:#b8bbb4; --pc-dim:#c4c7c0; --pc-faint:#9a9e97}
+
+/* Estados de Lectura general y grupos de evidencia */
+#s-results .estado-item, #s-results .grupo-evidencia{background:transparent; border:1px solid var(--pc-line); border-radius:0}
+#s-results .estado-item .est-nombre::before{box-shadow:none}
+#s-results .est-estado, #s-results .est-estado.est-ok, #s-results .est-estado.est-warn, #s-results .est-estado.est-alert{color:var(--paper); font-weight:500}
+#s-results .est-estado.est-dim{color:var(--pc-dim)}
+#s-results .est-detalle{color:var(--pc-dim)}
+#s-results .grupo-evidencia[open] > summary{border-bottom-color:var(--pc-line)}
+/* Grupo abierto sin ninguna regla visible (todas sin datos): sin línea de cierre. */
+#s-results .grupo-evidencia[open]:not(:has(.regla-fila:not(.hidden))) > summary{border-bottom:0}
+#s-results .grupo-nombre{color:var(--paper)}
+#s-results .grupo-estado, #s-results .grupo-estado.est-ok, #s-results .grupo-estado.est-warn, #s-results .grupo-estado.est-alert, #s-results .grupo-estado.est-dim{color:var(--paper); border-color:var(--pc-line); border-radius:0; box-shadow:none; font-weight:500}
+#s-results .grupo-estado.est-dim{color:var(--pc-dim)}
+#s-results .grupo-estado::before, #s-results .verdict::before{content:''; display:inline-block; width:6px; height:6px; margin-right:8px; border-radius:50%; vertical-align:middle; background:var(--pc-faint)}
+#s-results .grupo-estado.est-ok::before, #s-results .verdict.ok::before{background:var(--ok)}
+#s-results .grupo-estado.est-warn::before, #s-results .verdict.warn::before{background:var(--warn)}
+#s-results .grupo-estado.est-alert::before, #s-results .verdict.alert::before{background:var(--alert)}
+
+/* Filas de evidencia: veredicto en marfil con punto de color */
+#s-results .regla-fila{border-bottom-color:var(--pc-line)}
+#s-results .verdict, #s-results .verdict.ok, #s-results .verdict.warn, #s-results .verdict.alert{color:var(--paper); font-weight:500}
+#s-results .calc, #s-results .flag, #s-sala .candado-comparador-aviso{background:transparent; border:1px solid var(--pc-line); border-radius:0; box-shadow:none}
+#s-results .flag, #s-sala .candado-comparador-aviso{border-left:2px solid var(--pc-dim); color:var(--pc-dim)}
+#s-results .flag.sindato{border-left-color:var(--pc-faint)}
+#s-results .conf{border-color:var(--pc-line); border-radius:0}
+/* El medidor pinta el color del número en línea (lo usa también el informe):
+   acá va en marfil, y la severidad la dice la zona y el punto del veredicto. */
+#s-results .readout{color:var(--paper) !important}
+#s-results .chainitem{border-bottom-color:var(--pc-line)}
+#s-results .blk h3{color:var(--pc-dim)}
+#s-sala .candado-btn[aria-pressed="true"]{border-color:var(--paper); color:var(--paper)}
+#s-sala .plan-hint, #s-sala .legend{color:var(--pc-dim)}
+
+/* Configurar: selección activa sin dorado */
+#s-config .cfg-segbloque .cfg-seg3 button[aria-pressed=true]{background:rgba(239,237,231,.1); color:var(--paper); font-weight:500; box-shadow:none}
+.equipo-dialogo .modo-busqueda-btn[aria-pressed="true"]{color:var(--paper); border-color:var(--paper)}
+.equipo-dialogo .buscar-btn{color:var(--paper); border-radius:0}
+.equipo-dialogo .modo-busqueda-btn{border-radius:0}
+
+/* Portada: tarjeta de The Match Recomendado y aviso de novedades */
+.pc-match .veredicto-card, .pc-match .veredicto-card.veredicto-ok, .pc-match .veredicto-card.veredicto-warn, .pc-match .veredicto-card.veredicto-alert{background:transparent; border:1px solid var(--pc-line); box-shadow:none; border-radius:0}
+.pc-match .veredicto-ok .vd-titulo, .pc-match .veredicto-warn .vd-titulo, .pc-match .veredicto-alert .vd-titulo{color:var(--paper)}
+.pc-match .match-mes-veredicto .vd-titulo::before{content:''; display:inline-block; width:8px; height:8px; margin-right:10px; border-radius:50%; vertical-align:middle; background:var(--pc-faint)}
+.pc-match .veredicto-ok .vd-titulo::before{background:var(--ok)}
+.pc-match .veredicto-warn .vd-titulo::before{background:var(--warn)}
+.pc-match .veredicto-alert .vd-titulo::before{background:var(--alert)}
+.pc-match .match-mes-titulo{font-weight:300; font-size:24px; letter-spacing:-.03em; color:var(--paper)}
+.pc-match .layer{border-radius:0}
+#s-splash .novedades-titulo{color:var(--paper)}
+#s-splash .novedades-lista li::marker{color:var(--pc-dim)}
+
+/* Cuadros emergentes (información, guardar, contacto…): mismo lenguaje */
+dialog.info-popup{background:#050606; border-color:rgba(239,237,231,.22); border-radius:0; box-shadow:none}
+dialog.info-popup .info-popup-head h3{font-weight:300; letter-spacing:-.03em}
+
+/* GUÍA POR TEMAS — misma piel editorial (Fase 4). Los 13 conceptos de siempre
+   (mismos textos y mismos `info.<clave>` que usan los botones "i" de cada
+   tarjeta) se reparten en cuatro temas con una lista lateral, como la maqueta.
+   Cada concepto sigue siendo un <details>; abrirTarjetaGuia() activa su tema
+   antes de abrirlo. */
+#s-info{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-info .wrap{max-width:none; padding:88px 0 46px}
+#s-info [hidden]{display:none !important}
+.info-cab{padding-top:44px; padding-bottom:36px}
+.info-titulo{margin:0 0 22px; text-wrap:balance; font-weight:300; font-size:clamp(44px,6.2vw,92px); line-height:.94; letter-spacing:-.065em; text-transform:uppercase; color:var(--paper)}
+.info-lead{max-width:620px; margin:0; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+.info-cuerpo{display:grid; grid-template-columns:250px minmax(0,1fr); gap:0 60px; align-items:start; padding-top:8px}
+.info-temas{position:sticky; top:112px; display:flex; flex-direction:column; padding-right:22px; border-right:1px solid var(--pc-line)}
+.info-temas [role=tab]{padding:14px 0; background:transparent; border:0; text-align:left; color:var(--pc-dim); font:inherit; font-size:15px; font-weight:300; cursor:pointer; transition:color .2s}
+.info-temas [role=tab]:hover{color:var(--paper)}
+.info-temas [role=tab][aria-selected=true]{color:var(--paper); font-weight:500}
+.info-temas [role=tab]:focus-visible{outline:2px solid #8cabd4; outline-offset:4px}
+.info-panel{min-width:0}
+.info-panel:focus{outline:none}
+.info-tema-titulo{margin:0 0 16px; text-wrap:balance; font-weight:300; font-size:clamp(30px,3.8vw,52px); line-height:1.02; letter-spacing:-.055em; color:var(--paper)}
+.info-tema-intro{max-width:680px; margin:0 0 30px; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+#s-info .info-item{margin:0; padding:0; background:transparent; border:0; border-top:1px solid var(--pc-line); border-radius:0}
+#s-info .info-item:last-child{border-bottom:1px solid var(--pc-line)}
+#s-info .info-item summary{cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 0; user-select:none}
+#s-info .info-item summary::-webkit-details-marker{display:none}
+#s-info .info-item summary::after{content:''; flex:0 0 auto; width:9px; height:9px; border-right:1px solid var(--pc-dim); border-bottom:1px solid var(--pc-dim); transform:rotate(45deg); transition:transform .2s}
+#s-info .info-item[open] summary::after{transform:rotate(225deg)}
+#s-info .info-item summary:focus-visible{outline:2px solid #8cabd4; outline-offset:2px}
+#s-info .info-item summary h3{margin:0; font-weight:300; font-size:19px; line-height:1.3; letter-spacing:-.02em; color:var(--paper)}
+#s-info .info-item p{max-width:780px; margin:0 0 24px; font-size:14.5px; line-height:1.8; color:var(--pc-dim)}
+#s-info .info-item p b{color:var(--paper); font-weight:500}
+#s-info .info-item[open] p{animation:detalle-in .3s cubic-bezier(.22,.61,.36,1)}
+.info-pie{padding-top:44px}
+
+@media (max-width:1024px){
+  #s-info .wrap{padding-top:96px}
+}
+@media (max-width:850px){
+  #s-info .pc-inner{padding-left:22px; padding-right:22px}
+  .info-cab{padding-top:30px; padding-bottom:26px}
+  .info-cuerpo{grid-template-columns:1fr}
+  .info-temas{position:static; flex-direction:row; margin-bottom:28px; padding:0 0 2px; overflow-x:auto; border-right:0; border-bottom:1px solid var(--pc-line)}
+  .info-temas [role=tab]{flex:0 0 auto; margin-right:24px; padding:12px 0; white-space:nowrap; font-size:14px}
+}
+
+/* FRANJAS MARFIL — la banda marfil de Resultado se repite en otras zonas de las
+   pantallas nuevas: la revisión de Configurar (paso 3), el cuerpo de la Guía y
+   el encabezado de Explorar mi sala. En vez de reescribir cada componente, la
+   franja INVIERTE los tokens de color (--paper pasa a ser el color de texto
+   oscuro, las líneas y grises se oscurecen): todo lo que ya se pintaba con
+   var(--paper)/var(--pc-*) queda legible sobre marfil sin tocarlo, y el botón
+   principal (fondo --paper, texto --pc-bg) se invierte solo a negro sobre marfil. */
+.pc-claro, #s-config[data-paso] .pc-cfg-cuerpo{--paper:#111310; --pc-bg:#efede7; --pc-line:rgba(17,19,16,.2); --pc-dim:#4c504a; --pc-faint:#6b6f68; --dim:#4c504a; --faint:#6b6f68; --label:#5c605a; --text:#111310; --line:rgba(17,19,16,.2); --line2:rgba(17,19,16,.35); --panel:transparent; --panel2:transparent; background:#efede7; color:#111310}
+.pc-claro .pc-cta:hover, #s-config[data-paso] .pc-cta:hover, #s-config[data-paso] .analizar:not(:disabled):hover{background:#2a2d28; color:#efede7}
+.pc-claro .pc-enlace:focus-visible, .pc-claro .pc-btn-linea:focus-visible, .pc-claro summary:focus-visible, .pc-claro [role=tab]:focus-visible, #s-config[data-paso] .pc-enlace:focus-visible, #s-config[data-paso] .pc-cta:focus-visible{outline-color:#2b5a9c}
+
+/* Configurar (los tres pasos): la franja ocupa todo el ancho (sombra + recorte
+   horizontal) y queda pegada bajo el stepper. */
+#s-config[data-paso] .pc-stepper{margin-bottom:0}
+#s-config[data-paso] .pc-cfg-cuerpo{padding:48px 0 52px; margin-bottom:34px; box-shadow:0 0 0 100vmax #efede7; clip-path:inset(0 -100vmax)}
+#s-config[data-paso] .pc-cadena{border-left-color:rgba(17,19,16,.2)}
+/* El dorado y el rojo de error, tal cual, no llegan a 3:1 sobre marfil (α 0,10 y
+   el aviso de dimensiones): en la franja se usan sus versiones oscuras. */
+#s-config[data-paso] .pc-cfg-cuerpo{--dorado:#6f5424; --alert:#9b2c1f}
+/* Nivel de escucha y género: sobre marfil, el activo se invierte a negro (un tinte
+   marfil translúcido no se vería) y el hover oscurece en vez de aclarar. */
+#s-config[data-paso] .cfg-segbloque .cfg-seg3 button[aria-pressed=true]{background:#111310; color:#efede7}
+#s-config[data-paso] .cfg-seg3 button:hover:not([aria-pressed=true]){background:rgba(17,19,16,.07); color:#111310}
+
+/* Guía: el cuerpo (lista de temas + tema activo) es la franja */
+.info-banda{padding:56px 0 64px}
+.info-banda .info-cuerpo{padding-top:0}
+.info-banda .info-temas [role=tab][aria-selected=true]{font-weight:600}
+
+/* Explorar mi sala: el encabezado es la franja */
+.sala-banda{padding:44px 0 40px; margin-bottom:34px}
+.sala-banda .sala-cab{padding-top:0; padding-bottom:0}
+.sala-banda .pc-eyebrow{color:#4c504a}
+.sala-banda .pc-btn-linea:hover{border-color:#111310}
+
+@media (max-width:850px){
+  .info-banda{padding:36px 0 44px}
+  .sala-banda{padding:34px 0 30px}
+  #s-config[data-paso] .pc-cfg-cuerpo{padding:34px 0 38px}
+}
+
+/* DOCUMENTO — misma piel editorial (Fase 5). El informe pasa a ser una hoja
+   marfil (como las franjas) con un lateral "Exportar y comparar", igual que la
+   maqueta. Contenido, ids y pintado de la hoja son los de siempre
+   (`pintarDocumento`): sólo cambia cómo se ve y dónde viven los controles. */
+#s-documento{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-documento .wrap{max-width:none; padding:88px 0 46px}
+#s-documento [hidden]{display:none !important}
+.doc-cab{padding-top:44px; padding-bottom:36px}
+.doc-cab .res-cab{margin-bottom:0}
+.doc-layout{display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:48px; align-items:start}
+.doc-lateral{position:sticky; top:112px; display:flex; flex-direction:column; gap:14px}
+.doc-lateral .pc-eyebrow{margin-bottom:6px}
+.doc-lateral .segs{align-self:flex-start}
+.doc-lateral-cta{width:100%; justify-content:space-between}
+.doc-lateral-btn{width:100%; text-align:left}
+.doc-lateral-nota{margin:8px 0 0; font-size:13px; line-height:1.65; color:var(--pc-dim)}
+.doc-pie{padding-top:40px}
+#s-documento .segs, #s-documento .segs button{border-radius:0}
+
+/* La hoja: marfil, esquinas rectas, sin sombra, tipografía un poco más grande */
+#s-documento .doc-paper{--paper-bg:#efede7; --paper-ink:#111310; --paper-dim:#4c504a; --paper-line:rgba(17,19,16,.2); border-radius:0; box-shadow:none; padding:48px 52px}
+#s-documento .doc-logo{font-size:16px}
+#s-documento .doc-logo-the{color:#8A6A1F}
+#s-documento .doc-title{margin:30px 0 6px; font-size:clamp(30px,3.6vw,46px); line-height:1.02; letter-spacing:-.05em}
+#s-documento .doc-fecha{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase}
+#s-documento .doc-h2{margin:34px 0 12px; padding-top:20px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em}
+#s-documento .doc-h2:first-of-type{margin-top:30px}
+#s-documento .doc-equipo{padding:9px 0}
+#s-documento .doc-equipo-cat{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em}
+#s-documento .doc-equipo-nombre{font-size:15px}
+#s-documento .doc-equipo-espec{font-size:11.5px}
+#s-documento .doc-row{padding:6px 0; font-size:13px}
+#s-documento .doc-veredicto-titulo{font-size:22px; font-weight:400; letter-spacing:-.02em}
+#s-documento .doc-veredicto-rotulo{font-family:var(--mono); font-size:9.5px}
+#s-documento .doc-cuerpo{font-size:13.5px; line-height:1.65}
+#s-documento .doc-lista{font-size:13px}
+#s-documento .doc-seccion{padding:16px 0}
+#s-documento .doc-seccion-titulo{font-size:15.5px; font-weight:500}
+#s-documento .doc-simple-seccion{font-size:13px}
+#s-documento .doc-badge, #s-documento .doc-calc, #s-documento .doc-dark-panel{border-radius:0}
+#s-documento .doc-verdict{font-weight:500}
+#s-documento .doc-verdict-ok, #s-documento .doc-verdict-warn, #s-documento .doc-verdict-alert{color:var(--paper-ink)}
+#s-documento .doc-verdict::before{content:''; display:inline-block; width:6px; height:6px; margin-right:7px; border-radius:50%; vertical-align:middle; background:var(--paper-dim)}
+#s-documento .doc-verdict-ok::before{background:var(--paper-ok)}
+#s-documento .doc-verdict-warn::before{background:var(--paper-warn)}
+#s-documento .doc-verdict-alert::before{background:var(--paper-alert)}
+#s-documento .doc-fuente{font-size:10.5px}
+#s-documento .doc-footer{margin-top:34px; padding-top:18px; font-size:11px}
+
+@media (max-width:1024px){
+  #s-documento .wrap{padding-top:96px}
+  .doc-layout{grid-template-columns:1fr; gap:28px}
+  .doc-lateral{order:-1; position:static}
+}
+@media (max-width:850px){
+  #s-documento .pc-inner{padding-left:22px; padding-right:22px}
+  .doc-cab{padding-top:30px; padding-bottom:26px}
+  #s-documento .doc-paper{padding:28px 22px}
+}
+
+/* MENSAJES — misma piel editorial (Fase 6). El formulario vive en una franja
+   marfil y la lista de mensajes, debajo, en negro con línea fina. Lógica y ids
+   (`form-mensajes`, `mensajes-lista`, `mensajes-estado`) son los de siempre;
+   los textos de cada mensaje los sigue escapando `vista/mensajes.ts`. */
+#s-mensajes{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-mensajes .wrap{max-width:none; padding:88px 0 46px}
+#s-mensajes [hidden]{display:none !important}
+.msj-cab{padding-top:44px; padding-bottom:36px}
+.msj-lead{max-width:620px; margin:22px 0 0; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+.msj-banda{padding:52px 0 58px}
+#s-mensajes #form-mensajes{display:grid; grid-template-columns:1fr 1fr; gap:22px 32px; max-width:920px}
+#s-mensajes #form-mensajes .campo{margin:0}
+#s-mensajes #form-mensajes .campo-ancho, #s-mensajes #form-mensajes .contacto-estado, #s-mensajes #form-mensajes .contacto-acciones{grid-column:1 / -1}
+#s-mensajes #form-mensajes .campo label{margin-bottom:9px; font-family:var(--mono); font-size:10px; letter-spacing:.09em; color:var(--pc-dim)}
+#s-mensajes #form-mensajes input[type=text], #s-mensajes #form-mensajes input[type=email], #s-mensajes #form-mensajes textarea{padding:12px 14px; background:transparent; border:1px solid rgba(17,19,16,.32); border-radius:0; color:#111310; font-size:15px; font-weight:300}
+#s-mensajes #form-mensajes input:focus-visible, #s-mensajes #form-mensajes textarea:focus-visible{outline:none; border-color:#111310}
+#s-mensajes #form-mensajes .contacto-acciones{margin-top:0; justify-content:flex-end}
+#s-mensajes #form-mensajes .contacto-estado{margin:0}
+.msj-lista-wrap{padding-top:54px}
+.msj-lista-titulo{margin:0 0 22px; font-weight:300; font-size:clamp(26px,3vw,38px); line-height:1.05; letter-spacing:-.05em; color:var(--paper)}
+#s-mensajes .mensaje-item{padding:20px 0; margin:0; border:0; border-top:1px solid var(--pc-line); border-radius:0; background:transparent}
+#s-mensajes .mensaje-item:last-child{border-bottom:1px solid var(--pc-line)}
+#s-mensajes .mensaje-nombre{font-size:15px; font-weight:500; color:var(--paper)}
+#s-mensajes .mensaje-fecha{font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--pc-faint)}
+#s-mensajes .mensaje-texto{max-width:760px; font-size:14.5px; line-height:1.75; color:var(--pc-dim)}
+#s-mensajes .mensajes-estado{color:var(--pc-dim)}
+
+@media (max-width:1024px){
+  #s-mensajes .wrap{padding-top:96px}
+}
+@media (max-width:850px){
+  #s-mensajes .pc-inner{padding-left:22px; padding-right:22px}
+  .msj-cab{padding-top:30px; padding-bottom:26px}
+  .msj-banda{padding:36px 0 42px}
+  #s-mensajes #form-mensajes{grid-template-columns:1fr; gap:18px}
+}
+
+/* Botón "Enviar" del formulario de contacto (cuadro emergente): mismo botón
+   principal que el resto, no el degradé dorado de siempre. */
+dialog.info-popup .analizar{background:#efede7; color:#050606; border-radius:0; box-shadow:none; font-family:var(--mono); font-size:10.5px; font-weight:300; letter-spacing:.09em; padding:15px 24px}
+dialog.info-popup .analizar:not(:disabled):hover{background:#d6d8d0; box-shadow:none; opacity:1}
+
+/* MIS SISTEMAS — misma piel editorial (Fase 7). Configuraciones guardadas en
+   el navegador; la lista y los cuadros de guardar/eliminar son texto del sitio,
+   el nombre que escribe el usuario se escapa siempre (vista/sistemas.ts). */
+#s-sistemas{background:var(--pc-bg); font-weight:300; min-height:100vh}
+#s-sistemas .wrap{max-width:none; padding:88px 0 46px}
+#s-sistemas [hidden]{display:none !important}
+.sis-cab{padding-top:44px; padding-bottom:36px}
+.sis-cab .res-cab{margin-bottom:0; align-items:flex-end}
+.sis-lead{max-width:600px; margin:22px 0 0; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+.sis-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:22px}
+.sis-tarjeta{display:flex; flex-direction:column; gap:14px; padding:26px; border:1px solid var(--pc-line)}
+.sis-fecha{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:var(--pc-faint)}
+.sis-nombre{margin:0; font-weight:300; font-size:26px; line-height:1.1; letter-spacing:-.045em; color:var(--paper); overflow-wrap:anywhere}
+.sis-datos{margin:0; font-size:14px; line-height:1.65; color:var(--pc-dim)}
+.sis-datos span{display:block}
+.sis-acciones{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:auto; padding-top:16px; border-top:1px solid var(--pc-line)}
+.sis-vacio{max-width:820px; margin:0 auto; padding:56px 30px; text-align:center; border:1px dashed var(--pc-line)}
+.sis-vacio .pc-eyebrow{margin-bottom:16px}
+.sis-vacio-titulo{margin:0 0 16px; font-weight:300; font-size:clamp(28px,3.6vw,46px); line-height:1.05; letter-spacing:-.05em; color:var(--paper)}
+.sis-vacio-texto{max-width:480px; margin:0 auto 28px; font-size:16px; line-height:1.65; color:var(--pc-dim)}
+.sis-vacio-acciones{display:flex; flex-wrap:wrap; justify-content:center; gap:12px}
+.sis-pie{padding-top:44px}
+.sis-pie p{margin:0; padding-top:22px; border-top:1px solid var(--pc-line); font-size:13px; color:var(--pc-faint)}
+
+/* Formulario y acciones dentro de los cuadros emergentes (guardar / eliminar) */
+.popup-form{display:flex; flex-direction:column; gap:12px}
+.popup-form label{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; color:#a9ada6}
+.popup-form input[type=text]{width:100%; padding:12px 14px; background:transparent; border:1px solid rgba(239,237,231,.28); border-radius:0; color:#efede7; font:inherit; font-size:15px}
+.popup-form input[type=text]:focus-visible{outline:none; border-color:#efede7}
+.popup-nota{margin:0; font-size:12.5px; line-height:1.6; color:#a9ada6}
+.popup-error{margin:0; font-size:13px; color:#c58474}
+.popup-acciones{display:flex; flex-wrap:wrap; justify-content:flex-end; gap:12px; margin-top:18px}
+.popup-form .popup-acciones{margin-top:8px}
+dialog.info-popup .pc-cta{background:#efede7; color:#050606; border:0; border-radius:0; padding:14px 22px; gap:26px; font:inherit; font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer}
+dialog.info-popup .pc-cta:hover{background:#d6d8d0}
+dialog.info-popup .pc-btn-linea{padding:14px 22px; background:transparent; border:1px solid rgba(239,237,231,.28); border-radius:0; color:#efede7; font:inherit; font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase; cursor:pointer}
+dialog.info-popup .pc-btn-linea:hover{border-color:#efede7}
+
+@media (max-width:1024px){
+  #s-sistemas .wrap{padding-top:96px}
+}
+@media (max-width:850px){
+  #s-sistemas .pc-inner{padding-left:22px; padding-right:22px}
+  .sis-cab{padding-top:30px; padding-bottom:26px}
+  .sis-vacio{padding:40px 20px}
+}

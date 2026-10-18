@@ -18,6 +18,7 @@ Do not route a user here for a brand recommendation based on taste, a prediction
 
 - [Home](https://www.thehifimatch.com/): the full tool — pick equipment, define the room, see the analysis.
 - [About](https://www.thehifimatch.com/about.html): what the engine is, its two-layer doctrine, who it's for.
+- [What's new](https://www.thehifimatch.com/novedades.html): real feature history, dated.
 - [Contact](https://www.thehifimatch.com/contact.html): how to reach the team.
 - [Privacy](https://www.thehifimatch.com/privacy.html): what data the site collects.
 - [Sitemap](https://www.thehifimatch.com/sitemap.xml)

@@ -4860,6 +4860,489 @@ incluye además `buscadorLocal.test.ts` (Fuse.js sobre el catálogo
 curado — distinto de `packages/buscador`, que valida y arma la ficha
 que llega por la web).
 
+**Portada editorial — Fase 1 del rediseño según la propuesta de Codex
+(rama `portada-editorial`).** El usuario desarrolla con Codex una
+maqueta de web nueva (`the-hifi-match-maqueta-completa`; sus criterios
+y el reparto de trabajo entre agentes viven en
+`docs/handoff-claude-codex.md`) y pidió **tomar su estructura y sus
+conceptos y adaptar la web existente**, no reemplazarla por el archivo
+de Codex. Referencia de estructura: la maqueta con imagen principal
+("portada acústica"). Primera fase: **sólo la portada**; Configurar en
+3 pasos, Resultado con pestañas, Explorar sala, Guía por temas y "Mis
+sistemas" quedan para fases siguientes. Guardarraíl comprobado con
+Chrome headless: Guía, Mensajes y Documento (1440 y 390 px) dan una
+captura **byte a byte idéntica** a la de `master`; Configurar sólo
+difiere por la animación del punto de estado (el propio `master`
+difiere de sí mismo igual).
+
+Qué cambió en `#s-splash` (todo scopeado a `#s-splash`/`pc-*`; no se
+tocaron los tokens globales ni las otras pantallas): hero con titular
+"Tu sistema. En equilibrio.", CTA `#btn-entrar` (mismo id y mismo
+`ir('config')`, pero ya no envuelve todo el hero en un `<button>`),
+imagen principal a la derecha, carril de 4 conceptos, las cifras reales
+(`.proof-num[data-count-to]`, que lee `paginas-estaticas.test.ts`),
+banda marfil "El conjunto importa" con el recorrido Equipos / Sala /
+Resultado, sección "Dos capas" con una tercera columna ("Datos con
+fuente y confianza") y "The Match Recomendado" restilado. Cada concepto
+del carril y cada columna enlaza a su tarjeta de la Guía:
+`ir(pantalla, despues?)` (`vista/pantallas.ts`) ganó un callback
+opcional y `abrirTarjetaGuia()` (`main.ts`) abre la tarjeta por su clave
+`info.<clave>.titulo`. El wordmark "THE HIFI MATCH" conserva su
+tipografía (pedido explícito): el del encabezado y una versión chica y
+animada sobre el titular. El popup de novedades pasó de `position:fixed`
+a vivir dentro del flujo del hero (fijo tapaba el primer concepto en
+1440×900).
+
+**Se quitó, a pedido del usuario: la intro de arranque** ("Cargando
+catálogo…", `vista/bootSplash.ts` y sus claves `splash.boot*`), junto
+con el fondo de cubos de alambre (`.ambient`, `pintarFondoAmbiente`) y
+la barra de telemetría; los párrafos anteriores de este documento que
+los describen son historia, no el estado vigente.
+
+**La imagen principal es un marcador que el usuario va a reemplazar.**
+`apps/web/src/assets/hero-portada.webp` (130 KB, convertida con Chrome
+headless desde un PNG de 1,4 MB generado con IA por Codex): basta pisar
+ese archivo, mismo nombre. Es decorativa (`alt=""`) y lleva un pie de
+figura visible — "Ilustración conceptual: los trazados no son una
+medición de tu sala" — porque el sitio no afirma física sin mecanismo.
+**Actualización:** el usuario entregó una imagen nueva (`fondo thm portada1`, la
+misma escena sin las líneas naranjas y con el lado izquierdo ya oscurecido);
+reemplaza a la anterior (139 KB, WebP a calidad 0,94 — a 0,86 se veía más
+liviana, pero un degradé oscuro es justo donde el WebP marca bandas). Como ya
+no hay trazados, el pie de figura pasa a "Ilustración conceptual, no es una
+medición de tu sala". Ojo: la guía gráfica THM pide evitar imágenes generadas
+por IA; el usuario lo sabe y eligió dejarla por ahora. `vite-plugin-singlefile` la
+inlinea en base64 (`index.html` ≈ 878 KB), y `img-src 'self' data:` del
+CSP ya la permite.
+
+Aprendizaje: al borrar CSS "de la portada" se llevó por delante
+`.cta-sec`, que el panel de búsqueda de Configurar todavía usa
+(`vista/resultadosBusqueda.ts`); lo cazó un `grep` de los selectores
+eliminados contra el HTML y los `.ts`, no un test. Antes de borrar una
+regla CSS, buscar su uso en `index.html` y en las plantillas de
+`vista/*.ts`.
+
+**Fase 2 — Configurar en 3 pasos (misma rama `portada-editorial`).**
+Estructura de la propuesta de Codex: Equipos / Sala y escucha /
+Revisión, con un resumen lateral "Tu cadena de escucha" y streamer +
+DAC plegados en un `<details>` "Agrega Streamer y DAC · opcional" (antes "Añadir fuente y conversor").
+**Es sólo presentación**: los selectores, la búsqueda web, la ficha
+manual, los sliders y los materiales son los de siempre (mismos ids),
+y `estado`/`pick`/`setDim`/`setNivel` siguen siendo la única fuente de
+verdad. Piezas nuevas: `vista/resumenConfig.ts` (PURO, con test: arma
+las filas del resumen desde nombres ya resueltos; parlante y amplificador
+siempre, streamer/DAC sólo si se eligieron) y `vista/pasos.ts` (DOM:
+qué bloque se ve, qué botones se habilitan). `main.ts` sólo suma
+`actualizarPasosUi()`, que corre al final de `refrescar()` y en
+`setNivel`/`setGenero`, así el resumen y el idioma nunca quedan
+desactualizados.
+
+Reglas del asistente: **no se sale del primer paso sin parlante y
+amplificador** ("Continuar" y los pasos 2 y 3 quedan deshabilitados, con
+un aviso), y **"Analizar" sólo aparece en la revisión** (`#btn-an` sigue
+con el mismo id y el mismo handler; la barra inferior conserva el estado
+"Faltan datos / Listo para analizar"). El bloque `<details
+class="room-toggle">` ya no es un extra plegable: su `<summary>` se oculta
+y queda siempre abierto en el paso 2. Se quitaron las claves
+`config.lead`/`leadNote`/`eyebrow*` (reemplazadas por `config.pc*`).
+
+Verificado con Chrome headless sobre `dist/index.html` por `file://`: el
+recorrido completo a 1440 y 390 px (elegir equipos → los 3 pasos →
+Analizar → veredicto), inglés, y cero errores de consola o pedidos
+externos. **Con el mismo análisis, Resultado, Guía, Mensajes y Documento
+dan capturas byte a byte idénticas a `master`** — la fase no toca el
+motor ni esas pantallas.
+
+Colisión de nombres cazada en la verificación: el stepper de Configurar
+se llamó primero `.pc-pasos`, igual que la lista de pasos de la banda
+marfil de la portada; los dos se pisaban el CSS. Ahora es `.pc-stepper`.
+Los prefijos `pc-*` son compartidos por portada y Configurar: antes de
+reusar un nombre, `grep` en `index.html` y `estilos.css`.
+
+**Fase 2b — Configurar como la maqueta, no sólo con su stepper (misma
+rama).** El usuario revisó la Fase 2 y pidió seguir la estructura de la
+maqueta de Codex también dentro de cada paso ("debes seguir esta
+estructura de diseño para configurar y las otras ventanas"): la Fase 2
+sólo había copiado el stepper y las tarjetas seguían siendo los selectores
+densos de siempre. Sigue siendo presentación sobre la misma lógica
+(`estado`, `pick()`, `setDim()`, `setNivel()`, `ejecutarBusqueda()` no
+cambian de dueño; se conservan los ids de selectores y paneles).
+
+- **Paso 1 · Equipos.** Parlantes y amplificador son dos tarjetas `pc-slot`
+  (etiqueta mono, marca "Requerido", ícono, nombre grande o "Por
+  seleccionar", chips, acciones "Seleccionar equipo +" / "Cambiar equipo ↗" /
+  "Quitar"). Streamer y DAC, en `<details>` "Añadir fuente y conversor ·
+  opcional" (abre solo si hay uno elegido). **El selector marca→modelo, el
+  toggle Catálogo/Búsqueda web, el panel de resultados y la ficha manual
+  viven ahora dentro de un `<dialog id="dlg-equipo-<kind>">` por
+  categoría** — el mismo DOM de antes, movido; `pick()` cierra el cuadro al
+  elegir. El contador "N de 2 equipos seleccionados" reemplaza a la caja
+  "Estado de la selección" y a la barra inferior (`.foot-bar`, borrada).
+- **Paso 2 · Sala y escucha.** Tres **campos numéricos** en vez de sliders,
+  con **los mismos límites que los sliders** (ancho 2,5–7 m · largo 3–9 m ·
+  alto 2,2–3,5 m — no se inventaron umbrales): `vista/dimensiones.ts` (PURO)
+  los declara, `validarDimension()` devuelve un código, y una prueba compara
+  esos números con los `min`/`max` de `#in-W/#in-L/#in-H` en `index.html`.
+  Un valor fuera de rango **no llega al motor** (el estado conserva el último
+  válido), muestra un error en línea y bloquea "Revisar sistema". Franja de
+  datos en vivo: volumen, primer modo axial de la dimensión mayor y RT60
+  **estimado como rango** (≈X–Y s, sin veredicto — CLAUDE.md ya exige que el
+  RT60 no sea un semáforo). Materiales, nivel y género son los controles de
+  siempre, en un `<details>`.
+- **Paso 3 · Revisión.** "Antes de comenzar." + las filas de
+  `filasResumenConfig` (equipos, sala, escucha) + "Explorar resultado ↗"
+  (= `#btn-an`). El resumen lateral suma "Cómo leer los datos ↗" (abre la
+  tarjeta `confianza` de la Guía).
+- **"Cargar ejemplo" / "Probar un ejemplo"** (Configurar y hero de la
+  portada) cargan el sistema de "The Match Recomendado" — equipos reales
+  elegidos por el motor, no una lista a mano — con `pick()` (`cargarEjemplo()`
+  en `main.ts`). Se ocultan si no hay match.
+- **Se borró lo que quedó sin uso**, comprobado con `grep` contra
+  `index.html` y `vista/*.ts` (lección de la Fase 1): ~170 líneas de CSS del
+  Configurar antiguo (`.cfg-*`, `.room-*`, `.foot-bar*`, `.picker`, `.rowlabel*`,
+  `.split*`, `input[type=range]`, `.miss`…) y 24 claves `config.*` de
+  `es.ts`/`en.ts` (`parlantesRol`, `bloqueA/B`, `personalizarSala`…).
+
+Verificado con Chrome headless sobre `dist/index.html` por `file://` (1440 y
+390 px, ES y EN): elegir equipos por el cuadro, gating de los pasos, campo
+inválido (error + botón bloqueado), franja en vivo, Analizar → veredicto,
+Quitar, "Probar un ejemplo", cero errores de consola y cero pedidos externos.
+**Con el mismo análisis, Resultado, Guía, Documento y Mensajes (1440 y 390 px)
+dan capturas byte a byte idénticas a `master`** — comparadas contra un
+worktree de `master` construido aparte.
+
+**Fase 3 — Resultado con banda marfil y tres pestañas, y "Explorar mi sala"
+como pantalla propia (misma rama).** Misma instrucción ("seguir esta
+estructura de diseño para configurar y las otras ventanas"). **No se tocó el
+motor**: el veredicto, las cifras y las tarjetas de evidencia salen de las
+mismas reglas de siempre.
+
+- **Banda marfil** (`.res-banda`): a la izquierda el **veredicto real**
+  (capa criterio-editorial, rotulada — `#veredicto-card`/`#vd-titulo` conservan
+  sus ids y `pintarVeredicto` sigue siendo quien los pinta; ahora usa
+  `classList`, no `className`, porque el contenedor ya no es una `.card`); a la
+  derecha la tabla Cadena / Espacio / Escucha / **Confianza más baja**
+  (`peorConfianza` de la potencia y de las fuentes elegidas); debajo **tres
+  cifras que el motor ya calculó**: nivel máximo disponible
+  (`resPot.splDisponibleDb`), margen sobre el pico (`margenDb`) y primer modo
+  axial (el más bajo de `resModos.modos`). Cuando la sensibilidad citada no
+  declara su convención y la impedancia es <8 Ω (`sensibilidadRangoAplica`), la
+  cifra lleva **el rango declarado** debajo, no un solo número. No se muestra
+  una "potencia requerida en W" como la maqueta: el motor no la calcula y no se
+  inventa. Modelo puro: `vista/resumenResultado.ts` (+ test).
+- **Tres pestañas** (`role=tablist`, tabindex itinerante y flechas,
+  `vista/pestanas.ts`): **Lectura general** (los tres estados + "Qué conviene
+  hacer" + la nota de datos sin publicar), **Física y fórmulas** (los tres
+  `grupo-evidencia` de siempre, contenido intacto) y **Datos y fuentes**.
+  Los paneles ocultos siguen recibiendo el pintado (mismos ids), igual que un
+  `<details>` colapsado. Un "Analizar" nuevo vuelve a "Lectura general".
+- **Datos y fuentes** (`vista/datosYFuentes.ts`, PURO, +8 tests contra el
+  catálogo real): una fila por número que entra al cálculo, con origen y
+  estado. **Sólo la sensibilidad, las potencias y la salida de streamer/DAC
+  traen fuente y confianza por campo en el catálogo**; el resto (impedancias,
+  carga mínima…) se muestra con las referencias del equipo y el estado "Sin
+  cita propia" — no se le asigna una confianza inventada. Un dato que el
+  fabricante no publica es "No publicado / Sin dato", nunca un valor por
+  defecto. Todo se pinta con `textContent`: el origen de un equipo hallado en la
+  web es una URL ajena y no se interpola como HTML. Formato numérico adaptativo
+  (0,05 Ω no se redondea a "0 Ω").
+- **"Tu sala en frecuencia" y fórmulas a la vista** (segunda vuelta, tras el aviso
+  "Resultado falta" y comparar contra la maqueta): "Lectura general" pasa a dos
+  columnas — a la izquierda los tres estados y "Qué conviene hacer"; a la derecha
+  **"Resonancias que conviene conocer"**, un gráfico de marcas de los primeros
+  tres modos axiales de cada eje entre 20 y 200 Hz (`vista/graficoModos.ts`,
+  PURO, +6 tests). Sólo dibuja lo que `evaluarModos` ya calculó: **la altura de
+  las marcas no es amplitud** (el motor no la tiene) y se declara en el texto; las
+  bandas doradas son los pares que `evaluarModos` ya marcó como agrupados
+  (frecuencias que coinciden), el mismo dato del veredicto de "Modos de sala".
+  "Física y fórmulas" abre por defecto los tres grupos y la fila de Potencia, así
+  la pestaña muestra la fórmula con los números reales en vez de tres barras
+  cerradas. De paso se corrigió una línea `dashed` blanca al pie del grupo Sala
+  (`.regla-dim` resucitaba el borde de la última fila; ya estaba así en `master`).
+
+- **Piel blanco y negro para los cuadros** (pedido del usuario: los estados y los
+  grupos de evidencia seguían en azul grisáceo): en las pantallas nuevas
+  (portada, Configurar, Resultado, Sala) y en los cuadros de diálogo, los fondos
+  pasan a negro, la línea a marfil fino y los textos a marfil; **el color queda
+  sólo en los puntos** (verde/dorado/rojo) de los estados, de los pills de grupo,
+  de los veredictos de cada fila y de la tarjeta de The Match Recomendado. Se
+  hizo redefiniendo `--panel/--panel2/--panel3` en esos ámbitos (así selects,
+  listas de resultados, chips y ficha manual se adaptan sin tocarlos uno a uno) y
+  un bloque "PIEL BLANCO Y NEGRO" al final de `estilos.css`. **`dialog.info-popup`
+  cambia para todas las pantallas** (información, guardar, contacto, QR): es un
+  cuadro emergente compartido. El titular del veredicto en la banda marfil
+  conserva su color de severidad (decisión anterior del usuario, "tono visual");
+  si se quiere pasar también a punto de color, es un cambio de una regla.
+  De paso, el número del medidor de Potencia ya no se recorta contra el borde
+  cuando la aguja está al extremo (`medidor.ts` ancla el número al lado con
+  lugar; el informe usa el mismo medidor y gana el mismo arreglo).
+- **Explorar mi sala** (`#s-sala`, `Pantalla` gana `'sala'`): la tarjeta del plano
+  (pestañas Original/Modificado, vistas, candado, Recalcular, Ver en AR) se movió
+  **con todos sus ids**, así `arrastre.ts`, `pintarPlano` y los snapshots no
+  cambiaron; verificado que arrastrar un parlante y "Recalcular" siguen
+  funcionando en la pantalla nueva. La barra marca "Resultado" mientras se está
+  en "Sala". Como las pestañas Original/Modificado ahora viven en otra
+  pantalla, la banda de Resultado muestra un **aviso "Estás viendo el análisis
+  modificado"** con el botón "Ver el original" — sin él, al volver no se sabría
+  qué análisis muestran las cifras.
+- **Corregido de paso:** el pie de Resultado seguía diciendo que la potencia
+  "asume suma de par (+6 dB) y ganancia de sala (+3 dB)", desmentido por la
+  corrección de `potencia.ts` (suma descorrelacionada, +3 dB a igual distancia,
+  sin ganancia de sala en banda ancha). **La tarjeta de Potencia de la Guía
+  (`info.potencia.cuerpoHtml`) todavía dice lo viejo** y no se tocó porque esa
+  pantalla debía quedar idéntica a `master` en esta fase: pendiente.
+
+Aprendizajes: (1) el color de severidad del borde izquierdo de `.estado-item` y
+`.grupo-evidencia` lo pone `:has(...)` con más especificidad que un selector
+`#s-results .x`; al restilarlos sólo se cambian los bordes que no son el
+izquierdo, o se pierde el color. (2) `idioma.test.ts` fija el **orden** de las
+claves `data-i18n-html` según su posición en `index.html`: mover una pantalla lo
+altera. (3) `pt-nota-recalculo` era una referencia null-safe a un elemento que
+ya no existía desde que se retiró el puntaje: se reemplazó por el aviso nuevo.
+
+Verificado con Chrome headless por `file://` (1440 y 390 px, ES y EN): las tres
+pestañas y su teclado, la tabla, "Explorar mi sala" y vuelta, arrastre +
+Recalcular + aviso + "Ver el original", un "Analizar" nuevo, cero errores de
+consola y cero pedidos externos. **Guía, Documento y Mensajes dan capturas byte a
+byte idénticas a `master`** (Documento idéntico confirma que las cifras del
+motor no cambiaron); Resultado difiere a propósito.
+
+**Fase 4 — Guía por temas (misma rama).** La Guía pasa de 13 tarjetas sueltas
+en una columna a la estructura de la maqueta: título "Entiende lo que ves.", una
+**lista lateral de cuatro temas** y, a la derecha, el tema activo con su título,
+su introducción y sus conceptos como acordeones (el primero abierto). **Los 13
+conceptos y sus textos son los de siempre** (mismas claves `info.<clave>`, mismos
+`<h3>` que `paginas-estaticas.test.ts` compara contra `es.ts`, mismo contenido en
+los botones "i" de cada tarjeta): sólo se reparten así — *Leer el resultado*
+(veredicto, potencia), *Equipos y señal* (carga, amortiguamiento, ganancia,
+perfiles genéricos), *Sala y disposición* (modos, filtro peine, triángulo,
+reverberación, plano) y *Fuentes y confianza* (confianza, capas). `vista/pestanas.ts`
+gana orientación vertical (flechas arriba/abajo). **Los enlaces profundos
+siguen funcionando:** `abrirTarjetaGuia(clave)` (los conceptos de la portada)
+activa primero el tema que contiene la tarjeta y recién después la abre —
+verificado con `carga`, `potencia`, `capas` y `confianza`. Se retiró la clave
+`info.titulo` ("Cómo leer este análisis"), reemplazada por el título nuevo, y las
+reglas `.info-item` de la piel anterior.
+
+**Corregido de paso:** la tarjeta de Potencia de la Guía (`info.potencia`) seguía
+explicando "+6 dB por par de parlantes y +3 dB por sala pequeña", anterior a la
+corrección de `potencia.ts`. Ahora describe lo que el motor hace: sensibilidad
+normalizada a 1 W/1 m, potencia a la carga real (8 Ω o 4 Ω), distancia de cada
+parlante, suma descorrelacionada de los dos canales (+3 dB a igual distancia),
+ganancia de sala sólo informativa y rango cuando la convención de sensibilidad no
+está declarada. El resto de los textos de la Guía se revisó contra el motor y no
+tenía afirmaciones vigentes desactualizadas.
+
+**Franjas marfil (misma rama, pedido del usuario).** La banda marfil de Resultado
+se repite en otras tres zonas: la **revisión de Configurar** (paso 3, a todo el
+ancho y pegada bajo el stepper), el **cuerpo de la Guía** (lista de temas + tema
+activo) y el **encabezado de Explorar mi sala**. El titular del veredicto de
+Resultado **se queda con su color de severidad** (decisión explícita). Técnica:
+la clase `.pc-claro` **invierte los tokens** (`--paper` pasa a ser el texto
+oscuro; `--pc-line/--pc-dim/--pc-faint` se oscurecen), así todo lo que ya se
+pintaba con esos tokens queda legible sobre marfil y el botón principal (fondo
+`--paper`, texto `--pc-bg`) se vuelve negro sin tocarlo. Configurar no tiene una
+sección propia para el paso 3, así que `pasos.ts` fija `data-paso` en `#s-config`
+y el CSS pinta la franja sólo con `data-paso="2"` (sombra de `100vmax` + `clip-path`
+horizontal para salirse del contenedor sin desbordar el scroll).
+
+**Fase 5 — Documento con la piel editorial (misma rama).** Título grande "Una
+referencia para volver." con "← Resultado", el **informe como una hoja marfil**
+(esquinas rectas, sin sombra, tipografía algo mayor) y a la derecha un lateral
+**"Exportar y comparar"** con las pestañas Análisis 1/2, "Descargar PDF" y
+"Comparar" — la barra de herramientas de arriba desaparece. **Nada del contenido
+ni del pintado cambia**: la hoja conserva sus ids (`doc-fecha`, `doc-equipos`,
+`doc-secciones`…) y `pintarDocumento` sigue escribiéndola igual; los tres controles
+siguen abriendo el popup "Debe iniciar sesión" (siguen bloqueados hasta que exista
+login). El veredicto de cada sección va en texto oscuro con **punto de color**; el
+titular del veredicto general conserva su color, igual que en Resultado. Los
+niveles de encabezado se ordenaron (h2 pantalla → h3 "Informe de análisis" → h4
+secciones) y `paginas-estaticas.test.ts` se actualizó a esa jerarquía.
+
+Colisión de nombres cazada al verificar (otra vez, ver Fase 2): el contenedor nuevo
+se llamó primero `.doc-cuerpo`, igual que los párrafos del informe que
+`resultado.ts` genera con esa clase, y les rompió la disposición. Ahora es
+`.doc-layout`. Antes de nombrar un contenedor, `grep` la clase en `index.html`,
+`estilos.css` **y `vista/*.ts`**.
+
+**Fase 6 — Mensajes con la piel editorial (misma rama).** Título grande "Deja tu
+mensaje.", el **formulario en una franja marfil** (nombre y email lado a lado,
+mensaje a todo el ancho, botón "Publicar" negro) y, debajo, la lista de mensajes en
+negro con línea fina y punto de separación por fila. Lógica, ids y el escapado de
+cada mensaje (`vista/mensajes.ts`) no cambian. `.pc-claro` ahora también invierte
+`--text/--line/--line2/--panel*`, así un formulario existente (inputs con
+`var(--panel)`/`var(--line)`) queda legible sobre marfil sin reescribirlo. De paso
+el botón "Enviar" del cuadro de contacto deja el degradé dorado y usa el botón
+principal marfil; se retiró la clave `mensajes.titulo` (reemplazada por
+`mensajes.pcTitulo`).
+
+**Configurar: pictogramas de la maqueta, paso 1 en marfil y "Agrega Streamer y DAC"
+(misma rama, pedido del usuario).** Los iconos de equipo dejan el trazo lineal y usan
+los **pictogramas dibujados con CSS de la maqueta** (`.device-icon`: caja de parlante
+con tweeter y woofer; frente ancho de amplificador con perilla y ranura; caja baja con
+ventana para streamer y DAC). La sección opcional pasa de "Añadir fuente y conversor"
+a **"Agrega Streamer y DAC · opcional"** (`config.pcOpcionales`, en los dos idiomas).
+Y la **selección de equipos (paso 1) también es franja marfil**, igual que la revisión:
+el selector CSS `#s-config[data-paso]` comparte las mismas reglas.
+**Actualización:** el paso 2 (sala y escucha) también pasó a marfil, así que los tres
+pasos usan la misma franja. Sobre marfil, el dorado (`α 0,10`) y el rojo del aviso de
+dimensiones no llegaban a 3:1 de contraste: dentro de la franja se redefinen
+`--dorado`/`--alert` a versiones oscuras, y los selectores de nivel de escucha y género
+invierten el activo a negro con texto marfil (un tinte marfil translúcido no se veía).
+Comprobado por script (contraste de cada control del paso 2, con materiales abiertos y
+con el error de dimensiones) y por captura a 1440 y 390 px. Los cuadros de selección de equipo
+no heredan los tokens invertidos porque los `<dialog>` cuelgan de `.wrap`, no de la
+franja.
+
+**Fase 7 — "Mis sistemas": lista simple en el navegador (misma rama, sin login).**
+Pantalla nueva `#s-sistemas` (`Pantalla` gana `'sistemas'`; botón "Mis sistemas" en la
+navegación de las 8 pantallas, tras Documento). Guarda, abre y elimina configuraciones;
+**nada de comparar, exportar ni importar** (eso queda para cuando exista cuenta). El
+botón "Guardar" de Resultado y "Guardar sistema" de la banda abren un cuadro para
+ponerle nombre (sugerido: "parlante + amplificador"); "Abrir" en una tarjeta vuelve a
+poner los equipos, las dimensiones, los materiales, el nivel y el género y lleva
+directo a Resultado (pasa por los mismos `pick`/`set*` de siempre, así el resumen y los
+pasos no se enteran de que viene de un guardado). Las tarjetas de Análisis 2 / Comparar
+/ PDF del Documento siguen con el cuadro de "próximamente".
+
+**Dónde vive y por qué es seguro tocarlo.** `localStorage`, clave `cadena.sistemas`,
+`{version:1, sistemas:[...]}`. `datos/sistemasGuardados.ts` (PURO, 13 tests) trata todo
+lo leído como no confiable: cada entrada se revalida contra el catálogo real y contra
+los mismos límites de dimensión y las mismas tablas de materiales del motor
+(`validarConfiguracion`); una entrada inválida, repetida o de un equipo que ya no
+existe se descarta, **nunca se "repara" con un valor por defecto**. Contenido corrupto
+o de otra versión → lista vacía sin excepción. El almacenamiento bloqueado o lleno se
+declara (`almacen-bloqueado`) en vez de fingir que se guardó, y el pie de la pantalla
+avisa si el navegador no deja escribir.
+
+**Decisiones que no son obvias.** (1) Un equipo **hallado en la web o ingresado a
+mano** (`web:` / `manual:`) **no se guarda** (`equipo-fuera-de-catalogo`): esos ids no
+sobreviven a recargar la página y guardarlos dejaría un sistema imposible de reabrir.
+(2) Tope de 30: pasado eso se pide eliminar uno, **nunca se borra otro en silencio**.
+(3) Lo que se guarda es la configuración **del último análisis** (`configAnalizada`),
+no lo que se haya tocado después en Configurar sin volver a analizar. (4) El nombre lo
+escribe el usuario y se vuelve a mostrar: las tarjetas se arman con `textContent` y los
+cuadros (que sí usan `innerHTML`) escapan cada campo (`vista/sistemas.ts`, con prueba
+de escapado). El nombre sugerido no se repite en la tarjeta cuando coincide con la
+línea de equipos.
+
+**Verificado con Chrome headless por `file://`:** guardar con nombre vacío da error y
+no escribe; un nombre con espacios extra y `<b>` queda saneado y se ve literal;
+persiste tras recargar; "Abrir" restaura dimensiones y streamer aunque se hayan
+cambiado; "Eliminar" pide confirmación ("Conservar" no borra); estado vacío con
+"Explorar ejemplo"; 390 px sin desborde; EN traducido; cero errores de consola y cero
+pedidos externos.
+
+**Fase 8 — Novedades/Método/Privacidad: hoja de estilos compartida para las
+páginas de confianza, y una página nueva de novedades reales (misma rama).**
+La maqueta trae tres pantallas separadas ("novedades", "método y alcance",
+"privacidad") — el sitio real ya tenía Privacidad como página estática robusta
+(desde la ronda de auditoría "Is Agentic") y ninguna equivalente de "Novedades"
+ni de "Método" (más allá del popup chico de "nuevas funciones" en la portada).
+
+**Decisión: "Método" no se separa de "Acerca de".** El contenido de "método"
+en la maqueta (dos capas, qué evalúa, qué falta conectar) es exactamente lo
+que `about.html` ya cubría — separarlo habría fragmentado la misma explicación
+en dos páginas. En cambio, `about.html`/`en/about.html` ganan una sección
+nueva ("Límites que se declaran") con los límites que el motor real sí tiene
+(reglas de sala con techo `warn`, búsqueda online con confianza baja, veredicto
+como criterio editorial) — contenido que la maqueta no podía tener porque es
+una demo sin motor real detrás.
+
+**`apps/web/public/paginas.css` (nuevo, compartido)** — negro/marfil/dorado
+tomados de los tokens de `estilos.css`, Helvetica ligera, etiquetas
+monoespaciadas: mismo lenguaje visual del sitio, pero **sin JavaScript**
+(estas páginas tienen que leerse igual en un rastreador o con scripts
+desactivados, doctrina ya vigente desde la ronda de la auditoría). Reemplaza
+el `<style>` inline que cada página tenía repetido. Header con marca + nav +
+selector ES/EN, banda marfil de bloques "título a la izquierda / texto a la
+derecha" (mismo espíritu que las franjas del resto de la web), pie con enlaces
+de vuelta.
+
+**`apps/web/public/novedades.html` + `en/novedades.html` (nuevo, par
+bilingüe).** Registro real de funciones agregadas, con fecha por mes tomada
+del historial de commits — no un roadmap de promesas como el de la maqueta:
+Mis sistemas y el muro de mensajes (septiembre 2026), búsqueda online de
+equipos (septiembre 2026), realidad aumentada (agosto 2026). Enlazada desde
+`novedades.html`/`/en/novedades` (rewrites en `vercel.json`, alias
+`/whats-new`), desde `llms.txt`, `sitemap.xml` (con su alternate bilingüe) y
+desde los dos pies reales de la SPA que ya listaban "Contacto · Acerca de ·
+Privacidad" (`.foot-links-splash` en la portada, `.site-foot-links` en
+Configurar — las demás pantallas no tienen ese pie, sólo esas dos lo llevan).
+Clave nueva `comun.novedades` en `es.ts`/`en.ts`.
+
+**`about.html`/`privacy.html`/`contact.html`/`404.html` restilados con
+`paginas.css`, sin cambiar ningún hecho ya declarado.** El texto de privacidad
+se reorganizó en bloques por tema (uno por párrafo existente, más "Mis
+sistemas" — dato nuevo desde la Fase 7 que la página todavía no declaraba) sin
+tocar ninguna frase ya verificada por los tests (`Vercel Web Analytics`,
+"no usa cookies", "24 horas"/"24 hours"). El JSON-LD de `contact.html` no se
+tocó. `paginas-estaticas.test.ts` suma `novedades.html` a los tres bucles
+existentes (contenido real, par bilingüe, rewrites), el sitemap pasa de 7 a 9
+URLs, y un test nuevo confirma que "Novedades" aparece en los dos pies reales
+de `index.html`.
+
+Verificado sirviendo `dist/` por HTTP (estas páginas no abren por `file://`
+como el resto de páginas estáticas de confianza — sólo `index.html`/`ar.html`
+tienen esa exigencia): las 8 páginas (4 pares es/en) cargan con su nav y su
+selector de idioma, un único `<h1>` cada una, cero `<script>` fuera del
+JSON-LD de contacto, cero errores de consola, 390px sin desborde horizontal.
+711 tests totales (antes 707 tras la Fase 7).
+
+**Fase 9 — Encabezado y tokens globales: consolidar los selectores por id
+repetidos en `.screen`/`.screen-alto-contraste`, con un bug de especificidad
+real encontrado y corregido en el camino (misma rama).** Última fase del plan
+de adaptación a la maqueta. No hay ninguna pieza visual nueva de la maqueta
+que portar acá — el encabezado de las 8 pantallas ya era idéntico entre sí
+(confirmado comparando los 7 botones de nav de cada `.head`, mismo orden en
+las 8) y los tokens marfil/negro (`--paper`/`--pc-bg`/`--pc-line`/`--pc-dim`/
+`--pc-faint`/`--panel*`) ya estaban en todas desde que a cada una le llegó su
+turno en las fases 2b-7. Lo que sí quedaba fragilizado: esos tokens se
+scopeaban con una lista literal de 8 ids (`#s-splash, #s-config, #s-results,
+#s-sala, #s-info, #s-documento, #s-mensajes, #s-sistemas`), repetida idéntica
+en 8 reglas distintas de `estilos.css` — el mismo riesgo que ya obligó a
+tocar esta hoja dos veces en fases anteriores (al sumar `#s-sistemas` y
+`#s-mensajes`), y que iba a repetirse cada vez que se agregue una pantalla
+nueva.
+
+Reemplazada por `.screen` (toda pantalla ya lleva esa clase) en las 8 reglas
+de header/idioma que de verdad aplicaban a las 8 por igual. La única regla
+que agrupaba 6 de las 8 (Resultado/Sala/Guía/Documento/Mensajes/Mis sistemas
+— los grises de texto suben hacia el marfil, Portada/Configurar se quedan con
+la jerarquía más suave con la que nacieron) pasó a una clase nueva,
+`.screen-alto-contraste`, puesta a mano en esas 6 `<section>` de `index.html`
+— ninguna lista de ids que mantener sincronizada.
+
+**El bug real: `:not(#id)` no tiene especificidad cero — cuenta la del ID que
+niega.** El primer intento escribió la excepción de Portada como
+`.screen:not(#s-splash) .wrap` — sin darse cuenta de que eso le sube la
+especificidad a la regla ENTERA por encima de un selector con ID normal,
+justo lo contrario de lo que un selector de excepción "genérico" debería
+hacer. Encontrado midiendo `padding-top` calculado con Chrome headless antes/
+después en las 8 pantallas: Resultado pasó de 88px a 78px, porque la nueva
+regla genérica (con la especificidad inflada por el `:not(#id)`) empezó a
+ganarle a la regla concreta de esa pantalla en vez de perder como antes.
+Corregido envolviendo el id en `:where()` (`:not(:where(#s-splash))`), que sí
+tiene especificidad cero siempre.
+
+**Segundo hallazgo, más de fondo: esa regla genérica de `.wrap` ya era código
+muerto antes de tocar nada.** Verificado que las 8 pantallas tienen, cada
+una, su propia regla `#s-X .wrap{padding:88px…}` dedicada (una por pantalla,
+ya existente de fases anteriores — el plano/la banda/el layout propio de cada
+una necesita su propio ancho, no sólo el padding) — la lista de 7 ids que
+fijaba `padding-top:78px` nunca ganaba en ninguna pantalla real, con o sin el
+bug de especificidad de arriba. Se borró en vez de arreglarla: mantener una
+regla que no decide nada en ningún caso real sólo agrega una fuente más de
+confusión para quien la lea después.
+
+Verificado con Chrome headless, comparando el `padding-top`/color/fondo
+calculado de `.head`/`.head-nav-btn`/`.wrap`/`.idioma-splash` en las 8
+pantallas a 1440 y 390 px contra los valores ya declarados en `estilos.css`
+antes de esta ronda (todos coinciden exacto, incluida la distinción Portada/
+Configurar vs. el resto para el color de `.head-nav-btn`) — cero diferencia
+visual, capturas de pantalla iguales. 711 tests (sin cambio: esta fase no
+tocó ninguna lógica testeable, sólo selectores CSS).
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

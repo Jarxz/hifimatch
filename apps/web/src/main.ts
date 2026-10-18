@@ -16,6 +16,7 @@ import { evaluarFiltroPeine, evaluarAsimetria, evaluarAnguloEscucha } from '../.
 import type { Genero } from '../../../packages/engine/src/genero.ts';
 import { CREST_FACTOR_DB } from '../../../packages/engine/src/genero.ts';
 import { calcularVeredicto } from '../../../packages/engine/src/veredicto.ts';
+import { peorConfianza } from '../../../packages/engine/src/tipos.ts';
 import type { NivelEscucha } from '../../../packages/engine/src/potencia.ts';
 import type { Idioma } from '../../../packages/data/src/idioma.ts';
 import { validarContacto } from '../../../packages/contact/src/contacto.ts';
@@ -30,6 +31,25 @@ import { estado } from './estado.ts';
 import type { NivelUI } from './estado.ts';
 import { ir } from './vista/pantallas.ts';
 import type { Pantalla } from './vista/pantallas.ts';
+import { iniciarPasos } from './vista/pasos.ts';
+import type { ControlPasos } from './vista/pasos.ts';
+import { iniciarPestanas } from './vista/pestanas.ts';
+import type { ControlPestanas } from './vista/pestanas.ts';
+import { modeloBandaResultado, primerModoAxialHz } from './vista/resumenResultado.ts';
+import { modeloDatosYFuentes } from './vista/datosYFuentes.ts';
+import {
+  configDesdeEstado,
+  leerSistemas,
+  guardarSistema,
+  eliminarSistema,
+  CLAVE_ALMACEN,
+} from './datos/sistemasGuardados.ts';
+import type { AlmacenLike, ConfiguracionGuardada, SistemaGuardado } from './datos/sistemasGuardados.ts';
+import { modeloTarjetaSistema, nombreSugerido, cuerpoGuardarHtml, cuerpoGuardadoHtml, cuerpoEliminarHtml, cuerpoErrorHtml } from './vista/sistemas.ts';
+import { filasResumenConfig, requeridosCompletos } from './vista/resumenConfig.ts';
+import { LIMITES_DIMENSION_M, validarDimension } from './vista/dimensiones.ts';
+import type { DimensionSala } from './vista/dimensiones.ts';
+import type { DatosResumenConfig } from './vista/resumenConfig.ts';
 import { infoHtmlParlante, infoHtmlAmplificador, infoHtmlFuente } from './vista/selectores.ts';
 import { buscarLocal, marcasDe, equiposDeMarca } from './datos/buscadorLocal.ts';
 import type { CategoriaLocal } from './datos/buscadorLocal.ts';
@@ -37,11 +57,11 @@ import { registrarEquipo, buscarEnRegistro } from './datos/registroEquipos.ts';
 import { modeloListaResultados, modeloEstadoBusqueda, modeloPanelManual, modeloSinCoincidenciasLocales, opcionesMarcaHtml, opcionesModeloHtml } from './vista/resultadosBusqueda.ts';
 import { listaMensajesHtml, estadoCargandoMensajesHtml, estadoErrorMensajesHtml, estadoFileProtocolMensajesHtml } from './vista/mensajes.ts';
 import { construirEscala } from './vista/medidor.ts';
-import { iniciarBootSplash } from './vista/bootSplash.ts';
 import { construirPlanoSvg } from './vista/plano.ts';
 import type { MurosVista, Vista } from './vista/plano.ts';
 import { activarArrastre } from './vista/arrastre.ts';
 import { construirCurvasModalesSvg } from './vista/curvamodal.ts';
+import { construirGraficoModosSvg } from './vista/graficoModos.ts';
 import {
   modeloPotencia,
   modeloCarga,
@@ -76,6 +96,10 @@ import {
   pintarVeredicto,
   pintarRecomendacionesTop,
   pintarNotaSinDatos,
+  pintarBandaResultado,
+  pintarDatosYFuentes,
+  pintarGraficoModos,
+  pintarSistemas,
   pintarDocumento,
   pintarMatchDelMes,
 } from './vista/pintar.ts';
@@ -370,40 +394,77 @@ function actualizarBadgesNivelGenero(): void {
   }
 }
 
-function refrescar(): void {
+/** Configurar en 3 pasos (vista/pasos.ts): se crea en main() una vez que el
+ * DOM existe; hasta entonces, `actualizarPasosUi()` no hace nada. */
+let controlPasos: ControlPasos | null = null;
+let controlPestanasRes: ControlPestanas | null = null;
+let controlTemasGuia: ControlPestanas | null = null;
+
+/** "Mis sistemas": lo guardado en este navegador y la configuración con la que
+ * se calculó el ÚLTIMO análisis — "Guardar" guarda lo que se está viendo en
+ * Resultado, no lo que se haya tocado después en Configurar sin volver a
+ * analizar. */
+let sistemasGuardados: SistemaGuardado[] = [];
+let configAnalizada: ReturnType<typeof configDesdeEstado> | null = null;
+
+function actualizarPasosUi(): void {
+  if (!controlPasos) return;
   const t = textosDe(idiomaActual).config;
+  const nombreFuente = (id: string | null): string | null => (id ? buscarFuente(id).nombre : null);
+  const nivel = { mod: t.nivelModerado, alto: t.nivelAlto, ref: t.nivelReferencia }[estado.lvl];
+  const genero = { rockpop: t.generoRockPop, jazzvocal: t.generoJazzVocal, clasica: t.generoClasica }[estado.genero];
+  const datos: DatosResumenConfig = {
+    spk: estado.spk ? buscarParlante(estado.spk).nombre : null,
+    amp: estado.amp ? buscarAmplificador(estado.amp).nombre : null,
+    streamer: nombreFuente(estado.streamer),
+    dac: nombreFuente(estado.dac),
+    dimensiones: `${num(estado.W, 1, idiomaActual)} × ${num(estado.L, 1, idiomaActual)} × ${num(estado.H, 2, idiomaActual)} m`,
+    nivel,
+    genero,
+  };
+  const hechos = (datos.spk !== null ? 1 : 0) + (datos.amp !== null ? 1 : 0);
+  controlPasos.actualizar({
+    listo: requeridosCompletos(datos),
+    salaValida: dimensionesEnError.size === 0,
+    contador: t.pcContador({ hechos: String(hechos), total: '2' }),
+    filas: filasResumenConfig(datos, idiomaActual),
+  });
+}
+
+/** Tarjetas de equipo de Configurar: nombre, tipo y acciones según lo elegido.
+ * Las etiquetas fijas ("Por seleccionar", "Seleccionar equipo +") las pone
+ * data-i18n; acá se pisan cuando hay un equipo, y refrescar() corre después
+ * de cada cambio de idioma para que no se pierdan. */
+function actualizarSlots(): void {
+  const t = textosDe(idiomaActual).config;
+  for (const kind of ['spk', 'amp', 'streamer', 'dac'] as const) {
+    const id = estado[kind];
+    const nombreEl = document.getElementById(`slot-nombre-${kind}`);
+    const tipoEl = document.getElementById(`slot-tipo-${kind}`);
+    const abrir = document.getElementById(`btn-abrir-${kind}`);
+    const quitar = document.getElementById(`btn-quitar-${kind}`);
+    const equipo = id ? (kind === 'spk' ? buscarParlante(id) : kind === 'amp' ? buscarAmplificador(id) : buscarFuente(id)) : null;
+    if (nombreEl) nombreEl.textContent = equipo ? equipo.nombre : t.pcSinSeleccionar;
+    if (tipoEl) tipoEl.textContent = equipo ? equipo.tipo[idiomaActual] : t.pcSlotVacio;
+    if (abrir) abrir.textContent = equipo ? t.pcCambiarEquipo : t.pcSeleccionarEquipo;
+    if (quitar) quitar.hidden = !equipo;
+    document.getElementById(`slot-${kind}`)?.classList.toggle('pc-slot-lleno', equipo !== null);
+  }
+  if (estado.streamer || estado.dac) {
+    const opcionales = document.getElementById('pc-opcionales') as HTMLDetailsElement | null;
+    if (opcionales) opcionales.open = true;
+  }
+}
+
+function refrescar(): void {
   const { disposicion } = disposicionActual();
   const vDist = document.getElementById('v-dist');
   const vVol = document.getElementById('v-vol');
   if (vDist) vDist.textContent = num(disposicion.distanciaEscuchaM, 1, idiomaActual) + ' m';
   if (vVol) vVol.textContent = num(disposicion.volumenM3, 0, idiomaActual) + ' m³';
 
-  const ok = estado.spk !== null && estado.amp !== null;
-  const btn = document.getElementById('btn-an') as HTMLButtonElement | null;
-  if (btn) btn.disabled = !ok;
-
-  const miss = document.getElementById('miss');
-  if (miss) {
-    const faltantes = [!estado.spk ? t.faltaParlantes : null, !estado.amp ? t.faltaAmplificador : null].filter(
-      (x): x is string => x !== null
-    );
-    miss.textContent = ok ? t.sinInconsistencias : t.faltaElegir({ que: faltantes.join(t.faltaY) });
-    miss.classList.toggle('miss-ok', ok);
-  }
-
-  // Contador real de requeridos elegidos (parlante + amplificador) — mismo
-  // booleano `ok` de arriba, sólo expresado como "X de 2" para la caja de
-  // estado del encabezado y la insignia de la barra inferior.
-  const hechos = (estado.spk !== null ? 1 : 0) + (estado.amp !== null ? 1 : 0);
-  const estadoValorEl = document.getElementById('cfg-estado-valor');
-  if (estadoValorEl) estadoValorEl.textContent = t.estadoAnalisisValor({ hechos: String(hechos), total: '2' });
-  const estadoDotEl = document.getElementById('cfg-estado-dot');
-  if (estadoDotEl) estadoDotEl.classList.toggle('cfg-estado-dot-listo', ok);
-  const footBadge = document.getElementById('foot-bar-badge');
-  if (footBadge) {
-    footBadge.textContent = ok ? t.listoAnalizar : t.faltanDatos;
-    footBadge.classList.toggle('foot-bar-badge-listo', ok);
-  }
+  actualizarSlots();
+  actualizarPasosUi();
 }
 
 function infoHTML(kind: 'spk' | 'amp' | 'streamer' | 'dac', id: string): string {
@@ -433,6 +494,8 @@ function pick(kind: 'spk' | 'amp' | 'streamer' | 'dac', valor: string): void {
   } else {
     estado[kind] = valor;
     box.innerHTML = infoHTML(kind, valor);
+    const dialogo = document.getElementById(`dlg-equipo-${kind}`) as HTMLDialogElement | null;
+    if (dialogo?.open) dialogo.close();
   }
   refrescar();
 }
@@ -745,25 +808,41 @@ function iniciarBuscadorEquipos(): void {
   }
 }
 
-/** Relleno dorado del slider hasta la posición del valor actual (--fill,
- * leído por el degradé de input[type=range] en estilos.css) — nativamente
- * un <input type=range> no expone su propio % recorrido a CSS, así que se
- * calcula acá en cada 'input' y una vez al cargar, para que arranque en la
- * posición correcta con el default (no en el 50% del fallback del degradé). */
-function actualizarFillSlider(input: HTMLInputElement): void {
-  const min = parseFloat(input.min);
-  const max = parseFloat(input.max);
-  const pct = ((parseFloat(input.value) - min) / (max - min)) * 100;
-  input.style.setProperty('--fill', `${pct}%`);
+/** Dimensiones que hoy están fuera de sus límites: mientras haya alguna, el
+ * estado conserva el último valor válido (los cálculos nunca ven un número
+ * fuera de rango) y Configurar no deja pasar a la revisión. */
+const dimensionesEnError = new Set<DimensionSala>();
+
+function actualizarErrorDimensiones(): void {
+  const el = document.getElementById('pc-dim-error');
+  if (!el) return;
+  const t = textosDe(idiomaActual).config;
+  const f = (n: number): string => num(n, Number.isInteger(n) ? 0 : 1, idiomaActual);
+  const { W, L, H } = LIMITES_DIMENSION_M;
+  el.textContent = t.pcDimError({
+    anchoMin: f(W.min), anchoMax: f(W.max),
+    largoMin: f(L.min), largoMax: f(L.max),
+    altoMin: f(H.min), altoMax: f(H.max),
+  });
+  el.hidden = dimensionesEnError.size === 0;
 }
 
-function wireSlider(id: string, dim: 'W' | 'L' | 'H'): void {
+function wireCampoDim(id: string, dim: DimensionSala): void {
   const input = document.getElementById(id) as HTMLInputElement | null;
   if (!input) return;
-  actualizarFillSlider(input);
+  input.value = String(estado[dim]);
   input.addEventListener('input', () => {
-    setDim(dim, parseFloat(input.value));
-    actualizarFillSlider(input);
+    const valor = input.valueAsNumber;
+    const ok = validarDimension(dim, valor) === 'ok';
+    if (ok) {
+      dimensionesEnError.delete(dim);
+      setDim(dim, valor);
+    } else {
+      dimensionesEnError.add(dim);
+    }
+    input.setAttribute('aria-invalid', String(!ok));
+    actualizarErrorDimensiones();
+    actualizarPasosUi();
   });
 }
 
@@ -779,6 +858,7 @@ function setNivel(lvl: NivelUI): void {
   document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-lvl]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.lvl === lvl));
   });
+  actualizarPasosUi();
 }
 
 // Los 6 selectores de material son <select> nativos (menú desplegable, ver
@@ -817,6 +897,7 @@ function setGenero(genero: Genero): void {
   document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-genero]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.genero === genero));
   });
+  actualizarPasosUi();
 }
 
 /** A diferencia de los demás `set*`, esto vive en la pantalla de resultado
@@ -1036,6 +1117,55 @@ function pintarSnapshot(a: UltimoAnalisis, snap: SnapshotAnalisis): void {
   pintarRecomendacionesTop(modeloRecomendacionesTop(snap.componentesResumen, idiomaActual));
   pintarNotaSinDatos(modeloNotaSinDatos(snap.componentesResumen, idiomaActual));
 
+  // Banda de resumen y pestaña "Datos y fuentes": sólo re-muestran números y
+  // citas ya calculados/declarados (ver vista/resumenResultado.ts y
+  // vista/datosYFuentes.ts); la confianza más baja es la de los datos que
+  // alimentaron las reglas (potencia ya la trae degradada por convención).
+  const confianzaMasBaja = peorConfianza(
+    snap.resPot.confianza,
+    ...[a.streamer, a.dac].filter((f): f is NonNullable<typeof f> => f !== null).map((f) => f.confianza)
+  );
+  pintarBandaResultado(
+    modeloBandaResultado(
+      {
+        spkNombre: a.spk.nombre,
+        ampNombre: a.amp.nombre,
+        streamerNombre: a.streamer?.nombre ?? null,
+        dacNombre: a.dac?.nombre ?? null,
+        anchoM: a.sala.anchoM,
+        largoM: a.sala.largoM,
+        altoM: a.sala.altoM,
+        nivelTexto: a.nivelTexto,
+        picoObjetivoDb: a.picoObjetivo,
+        distanciaEscuchaM: snap.disposicion.distanciaEscuchaM,
+        splDisponibleDb: snap.resPot.splDisponibleDb,
+        splDisponibleRangoDb: snap.resPot.splDisponibleRangoDb,
+        margenDb: snap.resPot.margenDb,
+        margenRangoDb: snap.resPot.margenRangoDb,
+        primerModoHz: primerModoAxialHz(a.resModos.modos),
+        confianzaMasBaja,
+      },
+      idiomaActual
+    )
+  );
+  pintarDatosYFuentes(
+    modeloDatosYFuentes(
+      {
+        spk: a.spk,
+        amp: a.amp,
+        streamer: a.streamer,
+        dac: a.dac,
+        anchoM: a.sala.anchoM,
+        largoM: a.sala.largoM,
+        altoM: a.sala.altoM,
+        nivelTexto: a.nivelTexto,
+        picoObjetivoDb: a.picoObjetivo,
+      },
+      idiomaActual
+    ),
+    idiomaActual
+  );
+
   const referenciaSimetricaM = snap.candadoAbierto ? calcularDisposicionManual(a.sala, snap.disposicion.parlanteIzq, snap.disposicion.parlanteDer).puntoDulce : null;
   ultimoPlano = { sala: a.sala, disposicion: snap.disposicion, murosVista: a.murosVista, referenciaSimetricaM };
   actualizarNavHabilitada();
@@ -1220,9 +1350,11 @@ function activarPestana(pestana: 'original' | 'modificado'): void {
   document.querySelectorAll<HTMLButtonElement>('[data-pestana]').forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.pestana === pestana));
   });
-  // Sólo "Modificado" recalculó potencia con una disposición distinta —
-  // "Análisis original" nunca cambia, así que la aclaración no aplica ahí.
-  document.getElementById('pt-nota-recalculo')?.classList.toggle('hidden', pestana !== 'modificado');
+  // Sólo "Modificado" recalculó con una disposición distinta — "Análisis
+  // original" nunca cambia. El aviso vive en la banda de Resultado (las
+  // pestañas están en "Explorar mi sala", otra pantalla): sin él, al volver
+  // a Resultado no se sabría qué análisis muestran las cifras.
+  document.getElementById('res-modificado-aviso')?.classList.toggle('hidden', pestana !== 'modificado');
 }
 
 /** "Recalcular": congela la posición actual del arrastre (parlantes y,
@@ -1339,6 +1471,9 @@ function renderizarResultado(): void {
   const techoModosHz = techoModosDesdeSchroeder(resReverb.frecuenciaSchroederHz);
   const resModos = evaluarModos(sala, techoModosHz);
   pintarCurvasModales(construirCurvasModalesSvg(sala, resModos.agrupados, idiomaActual), t.motor.modos.curvasCaption);
+  // Mismos modos, dibujados como marcas por eje en "Lectura general": sólo
+  // depende de las dimensiones, así que se pinta una vez por Analizar.
+  pintarGraficoModos(construirGraficoModosSvg(resModos.modos, resModos.agrupados, idiomaActual));
 
   ultimoAnalisis = {
     sala,
@@ -1369,6 +1504,8 @@ function renderizarResultado(): void {
     picoObjetivo,
   };
 
+  configAnalizada = configDesdeEstado(estado);
+
   // "Analizar" nuevo siempre vuelve a partir de cero: candado cerrado y sin
   // posición manual de asiento guardada, igual que un sistema recién
   // elegido — nada de un arrastre de un análisis anterior sobrevive acá
@@ -1384,9 +1521,12 @@ function renderizarResultado(): void {
   const pestanaModEl = document.querySelector('[data-pestana="modificado"]');
   pestanaModEl?.setAttribute('aria-pressed', 'false');
   pestanaModEl?.classList.add('hidden');
-  document.getElementById('pt-nota-recalculo')?.classList.add('hidden');
+  document.getElementById('res-modificado-aviso')?.classList.add('hidden');
 
   pintarSnapshot(ultimoAnalisis, analisisOriginal);
+  // Un análisis nuevo abre en "Lectura general", no en la pestaña que
+  // hubiera quedado abierta del análisis anterior.
+  controlPestanasRes?.activar(0);
 }
 
 function analizar(): void {
@@ -1421,6 +1561,7 @@ function cambiarIdioma(idioma: Idioma): void {
 
   refrescar();
   renderizarResultado();
+  repintarSistemas();
 }
 
 type InfoClave =
@@ -1444,7 +1585,7 @@ function abrirPopup(titulo: string, cuerpoHtml: string): void {
   if (!dialog || !tituloEl || !cuerpoEl) return;
   tituloEl.textContent = titulo;
   cuerpoEl.innerHTML = cuerpoHtml;
-  dialog.showModal();
+  if (!dialog.open) dialog.showModal();
 }
 
 /** Popup con la misma explicación de la pantalla "Guía del análisis"
@@ -1456,9 +1597,172 @@ function abrirInfoPopup(clave: InfoClave): void {
   abrirPopup(info.titulo, info.cuerpoHtml);
 }
 
-/** "Guardar" queda diferido (necesita backend/auth) — el botón sólo
- * declara la limitación, mismo patrón que "Distribuidor
- * próximamente". */
+/** "Mis sistemas" guarda en localStorage — que en Safari por file:// o con los
+ * datos del sitio bloqueados tira SecurityError. `null` = no hay dónde guardar. */
+function almacenLocal(): AlmacenLike | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** ¿El navegador deja escribir de verdad? (una lectura no lo prueba) */
+function almacenPermiteEscribir(): boolean {
+  const a = almacenLocal();
+  if (!a) return false;
+  try {
+    a.setItem(CLAVE_ALMACEN + '.prueba', '1');
+    (a as Storage).removeItem(CLAVE_ALMACEN + '.prueba');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function repintarSistemas(): void {
+  pintarSistemas(sistemasGuardados.map((s) => modeloTarjetaSistema(s, idiomaActual)), idiomaActual);
+  const pie = document.getElementById('sis-pie');
+  const t = textosDe(idiomaActual).sistemas;
+  if (pie) pie.textContent = almacenPermiteEscribir() ? t.pie : t.pieBloqueado;
+}
+
+/** Cuadro para nombrar y guardar el sistema que se está viendo en Resultado. */
+function abrirGuardarSistema(): void {
+  const t = textosDe(idiomaActual).sistemas;
+  const cfg = configAnalizada;
+  if (!cfg || !estado.spk || !estado.amp) {
+    abrirPopup(t.guardarTitulo, cuerpoErrorHtml('sin-equipos', idiomaActual));
+    return;
+  }
+  if (!cfg.ok) {
+    abrirPopup(t.guardarTitulo, cuerpoErrorHtml(cfg.codigo, idiomaActual));
+    return;
+  }
+  const sugerido = nombreSugerido(buscarParlante(cfg.config.spk).nombre, buscarAmplificador(cfg.config.amp).nombre);
+  abrirPopup(t.guardarTitulo, cuerpoGuardarHtml(sugerido, idiomaActual));
+  (document.getElementById('gs-nombre') as HTMLInputElement | null)?.select();
+}
+
+function confirmarGuardarSistema(nombre: string): void {
+  const t = textosDe(idiomaActual).sistemas;
+  const cfg = configAnalizada;
+  const mostrarError = (codigo: keyof typeof t.error): void => {
+    const el = document.getElementById('gs-error');
+    if (!el) return;
+    el.textContent = t.error[codigo];
+    el.classList.remove('hidden');
+  };
+  if (!cfg || !cfg.ok) {
+    mostrarError(cfg && !cfg.ok ? cfg.codigo : 'sin-equipos');
+    return;
+  }
+  const r = guardarSistema(almacenLocal(), sistemasGuardados, nombre, cfg.config, Date.now());
+  if (!r.ok) {
+    mostrarError(r.codigo);
+    return;
+  }
+  sistemasGuardados = r.sistemas;
+  repintarSistemas();
+  abrirPopup(t.guardadoTitulo, cuerpoGuardadoHtml(r.sistemas[0]!.nombre, idiomaActual));
+}
+
+/** Vuelve a poner en los controles de Configurar lo que se guardó, pasando por
+ * los mismos `pick`/`set*` de siempre (así el resumen, los pasos y las
+ * validaciones no se enteran de que vino de un guardado). */
+function aplicarConfiguracion(c: ConfiguracionGuardada): void {
+  pick('spk', c.spk);
+  pick('amp', c.amp);
+  pick('streamer', c.streamer ?? '');
+  pick('dac', c.dac ?? '');
+  for (const [id, valor] of [['in-W', c.W], ['in-L', c.L], ['in-H', c.H]] as const) {
+    const input = document.getElementById(id) as HTMLInputElement | null;
+    if (!input) continue;
+    input.value = String(valor);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  const material = (id: string, valor: string, set: (v: never) => void): void => {
+    const sel = document.getElementById(id) as HTMLSelectElement | null;
+    if (sel) sel.value = valor;
+    set(valor as never);
+  };
+  material('sel-murofrontal', c.muroFrontal, setMuroFrontal);
+  material('sel-muroposterior', c.muroPosterior, setMuroPosterior);
+  material('sel-muroizquierdo', c.muroIzquierdo, setMuroIzquierdo);
+  material('sel-muroderecho', c.muroDerecho, setMuroDerecho);
+  material('sel-piso', c.piso, setPiso);
+  material('sel-techo', c.techo, setTecho);
+  setNivel(c.lvl);
+  setGenero(c.genero as Genero);
+}
+
+/** "Abrir": restaura la configuración y la analiza — se llega a Resultado. */
+function abrirSistema(id: string): void {
+  const s = sistemasGuardados.find((x) => x.id === id);
+  if (!s) return;
+  aplicarConfiguracion(s.config);
+  analizar();
+}
+
+function pedirEliminarSistema(id: string): void {
+  const s = sistemasGuardados.find((x) => x.id === id);
+  if (!s) return;
+  const t = textosDe(idiomaActual).sistemas;
+  abrirPopup(t.eliminarTitulo, cuerpoEliminarHtml(s.id, s.nombre, idiomaActual));
+}
+
+function confirmarEliminarSistema(id: string): void {
+  const r = eliminarSistema(almacenLocal(), sistemasGuardados, id);
+  const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
+  if (r.ok) {
+    sistemasGuardados = r.sistemas;
+    repintarSistemas();
+    dialog?.close();
+  } else {
+    abrirPopup(textosDe(idiomaActual).sistemas.eliminarTitulo, cuerpoErrorHtml(r.codigo, idiomaActual));
+  }
+}
+
+/** Los botones de los cuadros de "Mis sistemas" se inyectan con innerHTML: un
+ * solo listener delegado en el cuadro los atiende. */
+function wireSistemas(): void {
+  const dialog = document.getElementById('info-popup') as HTMLDialogElement | null;
+  dialog?.addEventListener('click', (ev) => {
+    const boton = (ev.target as HTMLElement).closest<HTMLElement>('[data-popup-accion]');
+    if (!boton) return;
+    const accion = boton.dataset.popupAccion;
+    if (accion === 'cerrar') dialog.close();
+    else if (accion === 'ir-sistemas') {
+      dialog.close();
+      ir('sistemas');
+    } else if (accion === 'eliminar' && boton.dataset.id) confirmarEliminarSistema(boton.dataset.id);
+  });
+  dialog?.addEventListener('submit', (ev) => {
+    const form = ev.target as HTMLFormElement;
+    if (form.id !== 'form-guardar-sistema') return;
+    ev.preventDefault();
+    const nombre = (form.elements.namedItem('nombre') as HTMLInputElement | null)?.value ?? '';
+    confirmarGuardarSistema(nombre);
+  });
+  document.getElementById('sis-lista')?.addEventListener('click', (ev) => {
+    const boton = (ev.target as HTMLElement).closest<HTMLElement>('[data-sis-abrir], [data-sis-eliminar]');
+    if (!boton) return;
+    if (boton.dataset.sisAbrir) abrirSistema(boton.dataset.sisAbrir);
+    else if (boton.dataset.sisEliminar) pedirEliminarSistema(boton.dataset.sisEliminar);
+  });
+  document.getElementById('btn-sis-ejemplo')?.addEventListener('click', () => {
+    cargarEjemplo();
+    ir('config');
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-nav-ir="sistemas"]').forEach((b) => {
+    b.addEventListener('click', () => repintarSistemas());
+  });
+  document.getElementById('btn-contacto-sistemas')?.addEventListener('click', () => abrirContactoPopup());
+}
+
+/** Guardar y comparar con CUENTA (Análisis 2, Comparar, Descargar PDF del
+ * informe) sigue diferido — necesita backend/auth — y sólo declara la
+ * limitación. Guardar EN ESTE NAVEGADOR es "Mis sistemas" (`abrirGuardarSistema`). */
 function abrirGuardarPopup(): void {
   const t = textosDe(idiomaActual).resultado;
   abrirPopup(t.guardarPopupTitulo, t.guardarPopupCuerpo);
@@ -1726,75 +2030,23 @@ async function enviarMensaje(e: SubmitEvent): Promise<void> {
   }
 }
 
-/** Fórmula de proyección isométrica 30° — misma que usa `vista/plano.ts`
- * para el plano de reflexiones real (`sx=(x−y)·cos30, sy=(x+y)·sin30−z`).
- * Reimplementada localmente (no importada) a propósito: acá es puramente
- * decorativa, con proporciones arbitrarias que no representan ninguna sala
- * real, así que acoplarla a la API de `plano.ts` (pensada para `Sala`/
- * `DisposicionSala`) sería una dependencia falsa — el motivo visual es el
- * mismo, no los datos. */
-const AMBIENTE_COS30 = Math.sqrt(3) / 2;
-const AMBIENTE_SIN30 = 0.5;
-
-function cuboAmbienteSvg(scale: number, ox: number, oy: number, w: number, d: number, h: number): string {
-  const p = (x: number, y: number, z: number): [number, number] => [
-    ox + (x - y) * AMBIENTE_COS30 * scale,
-    oy + (x + y) * AMBIENTE_SIN30 * scale - z * scale,
-  ];
-  const v = {
-    a: p(0, 0, 0),
-    b: p(w, 0, 0),
-    c: p(w, d, 0),
-    e: p(0, d, 0),
-    f: p(0, 0, h),
-    g: p(w, 0, h),
-    h2: p(w, d, h),
-    i: p(0, d, h),
-  };
-  const aristas: [keyof typeof v, keyof typeof v][] = [
-    ['a', 'b'], ['b', 'c'], ['c', 'e'], ['e', 'a'],
-    ['f', 'g'], ['g', 'h2'], ['h2', 'i'], ['i', 'f'],
-    ['a', 'f'], ['b', 'g'], ['c', 'h2'], ['e', 'i'],
-  ];
-  return aristas
-    .map(([p1, p2]) => `<line x1="${v[p1][0].toFixed(1)}" y1="${v[p1][1].toFixed(1)}" x2="${v[p2][0].toFixed(1)}" y2="${v[p2][1].toFixed(1)}" />`)
-    .join('');
-}
-
-/** Dos cubos de alambre a distinta escala, posicionados a mano para no
- * cruzar el bloque de texto central (verificado con Chrome headless) —
- * uno grande arriba a la derecha, uno chico abajo a la izquierda. */
-function pintarFondoAmbiente(): void {
-  const svg = document.querySelector('[data-ambient]');
-  if (!svg) return;
-  const cubos = [
-    { scale: 540, ox: 1080, oy: -80, w: 1.6, d: 2.1, h: 1 },
-    { scale: 170, ox: 90, oy: 700, w: 1.3, d: 1, h: 0.7 },
-  ];
-  svg.innerHTML = cubos.map((c) => cuboAmbienteSvg(c.scale, c.ox, c.oy, c.w, c.d, c.h)).join('');
-}
-
 function inicializarSplash(): void {
-  const ticks = document.getElementById('splash-ticks');
-  if (ticks) {
-    const alturas = [8, 12, 8, 16, 8, 12, 8, 22, 8, 12, 8, 16, 8, 12, 8];
-    for (const h of alturas) {
-      const i = document.createElement('i');
-      i.style.height = h + 'px';
-      ticks.appendChild(i);
-    }
-  }
-  pintarFondoAmbiente();
   iniciarContadorProof();
   iniciarNovedadesPopup();
-  const tBoot = textosDe(idiomaActual).splash;
-  iniciarBootSplash(tBoot.bootProcesando, tBoot.bootListo);
 
   // "The Match Recomendado" corre una sola vez, contra la fecha real de
   // carga — determinístico por mes (ver datos/matchDelMes.ts), no depende
   // de nada que el usuario elija todavía.
   matchDelMesCache = elegirMatchDelMes(new Date());
   repintarMatchDelMes();
+  if (matchDelMesCache) {
+    for (const id of ['btn-cargar-ejemplo', 'btn-probar-ejemplo']) {
+      const el = document.getElementById(id);
+      if (el) el.hidden = false;
+    }
+    const guia = document.getElementById('btn-guia-hero');
+    if (guia) guia.hidden = true;
+  }
 }
 
 function repintarMatchDelMes(): void {
@@ -1873,35 +2125,28 @@ function iniciarContadorProof(): void {
   setTimeout(() => numeros.forEach(contar), 1100);
 }
 
-/** Resumen de una línea que muestra `<details class="room-toggle">` cuando
- * está colapsado ("Personalizar sala"): dimensiones + muro frontal + piso —
- * suficiente para confirmar que hay un default razonable sin tener que
- * abrirlo. Se llama en cada cambio de dimensión/material y de idioma
- * (los nombres de material están traducidos). */
+/** Franja de datos del paso "Sala y escucha": volumen, RT60 estimado (rango
+ * amoblado/vacío, sin veredicto) y — desde actualizarTextosDimension — el
+ * primer modo axial. Todo sale del motor, con los materiales elegidos. */
 function actualizarResumenSala(): void {
-  const t = textosDe(idiomaActual).config;
-  const el = document.getElementById('room-summary-desc');
-  if (el) {
-    el.textContent = t.resumenSala({
-      ancho: num(estado.W, 1, idiomaActual),
-      largo: num(estado.L, 1, idiomaActual),
-      alto: num(estado.H, 2, idiomaActual),
-      muro: t.materiales[estado.muroFrontal],
-      piso: t.materiales[estado.piso],
-    });
+  const vol = document.getElementById('v-vol-franja');
+  if (vol) vol.textContent = num(estado.W * estado.L * estado.H, 0, idiomaActual) + ' m³';
+  const rt = document.getElementById('v-rt60');
+  if (rt) {
+    const res = evaluarReverberacion(
+      { anchoM: estado.W, largoM: estado.L, altoM: estado.H },
+      {
+        muroFrontal: estado.muroFrontal,
+        muroPosterior: estado.muroPosterior,
+        muroIzquierdo: estado.muroIzquierdo,
+        muroDerecho: estado.muroDerecho,
+        piso: estado.piso,
+        techo: estado.techo,
+      }
+    );
+    rt.textContent = datoReverberacion(res);
   }
-  const vol = document.getElementById('room-summary-vol');
-  if (vol) vol.textContent = t.volumenBadge({ m3: num(estado.W * estado.L * estado.H, 2, idiomaActual) });
-  // Relación W:L respecto de H — H suele ser la dimensión más chica de una
-  // sala doméstica, así que se normaliza a ella (mismo criterio que la
-  // referencia visual: "1 : x.xx : y.yy" con el 1 en la más chica).
-  const ratio = document.getElementById('v-ratio');
-  if (ratio) {
-    ratio.textContent = t.relacion({
-      w: num(estado.W / estado.H, 2, idiomaActual),
-      l: num(estado.L / estado.H, 2, idiomaActual),
-    });
-  }
+  actualizarErrorDimensiones();
 }
 
 /** Habilita/deshabilita las pestañas "Resultado", "Documento" y "AR" de
@@ -1925,10 +2170,64 @@ function actualizarNavHabilitada(): void {
   if (btnAr) btnAr.disabled = !disponible;
 }
 
+/** Desde la portada, cada concepto enlaza a su tarjeta de la Guía: la abre y
+ * la deja a la vista. `clave` es la de `info.<clave>.titulo` (ver #s-info). */
+function abrirTarjetaGuia(clave: string): void {
+  const tarjeta = document.querySelector(`#s-info [data-i18n="info.${clave}.titulo"]`)?.closest('details');
+  if (!tarjeta) return;
+  // La tarjeta vive en el panel de un tema: hay que activar ese tema antes de
+  // abrirla, o queda dentro de un panel oculto y no hay nada que mostrar.
+  const panel = tarjeta.closest('[role="tabpanel"]');
+  const paneles = [...document.querySelectorAll('#s-info [role="tabpanel"]')];
+  if (panel) controlTemasGuia?.activar(paneles.indexOf(panel));
+  tarjeta.open = true;
+  tarjeta.scrollIntoView({ block: 'start' });
+}
+
+/** Carga en la cadena el sistema que el propio motor eligió este mes ("The
+ * Match Recomendado", equipos reales, ver datos/matchDelMes.ts). No inventa
+ * nada: sólo usa los ids ya calculados. */
+function cargarEjemplo(): void {
+  const m = matchDelMesCache;
+  if (!m) return;
+  pick('spk', m.parlanteId);
+  pick('amp', m.amplificadorId);
+  pick('streamer', m.streamerId ?? '');
+  pick('dac', m.dacId ?? '');
+  controlPasos?.ir(0);
+}
+
 function wireEventos(): void {
   document.getElementById('btn-entrar')?.addEventListener('click', () => ir('config'));
+  document.getElementById('btn-cargar-ejemplo')?.addEventListener('click', () => cargarEjemplo());
+  document.getElementById('btn-probar-ejemplo')?.addEventListener('click', () => {
+    cargarEjemplo();
+    ir('config');
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-abrir-equipo]').forEach((b) => {
+    b.addEventListener('click', () => {
+      (document.getElementById(`dlg-equipo-${b.dataset.abrirEquipo}`) as HTMLDialogElement | null)?.showModal();
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-quitar-equipo]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const kind = b.dataset.quitarEquipo as CategoriaLocal;
+      setModoBusqueda(kind, modoBusqueda[kind]);
+    });
+  });
+  document.querySelectorAll<HTMLDialogElement>('dialog.equipo-dialogo').forEach((d) => {
+    d.addEventListener('click', (ev) => {
+      if (ev.target === d) d.close();
+    });
+    d.querySelector('[data-cerrar-dialogo]')?.addEventListener('click', () => d.close());
+  });
   document.getElementById('btn-info-volver-2')?.addEventListener('click', () => ir('results'));
-  document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarPopup());
+  document.getElementById('btn-guardar')?.addEventListener('click', () => abrirGuardarSistema());
+  document.getElementById('btn-guardar-res')?.addEventListener('click', () => abrirGuardarSistema());
+  wireSistemas();
+  document.getElementById('btn-ver-original')?.addEventListener('click', () => activarPestana('original'));
+  controlPestanasRes = iniciarPestanas(document.getElementById('res-tabs'));
+  controlTemasGuia = iniciarPestanas(document.getElementById('info-temas'), 'vertical');
 
   // Navegación de las 6 secciones (.head-nav, ver estilos.css) — un solo
   // listener delegado por tipo de botón, en vez de uno por pantalla:
@@ -1938,9 +2237,14 @@ function wireEventos(): void {
   // botón activo (aria-current) lo actualiza ir() mismo, en
   // vista/pantallas.ts — corre para cualquier navegación, no sólo la
   // disparada desde acá.
-  document.querySelectorAll<HTMLButtonElement>('.head-nav-btn[data-nav-ir], .cta-sec[data-nav-ir]').forEach((boton) => {
-    boton.addEventListener('click', () => ir(boton.dataset.navIr as Pantalla));
-  });
+  document
+    .querySelectorAll<HTMLButtonElement>('.head-nav-btn[data-nav-ir], .pc-enlace[data-nav-ir], .pc-carril-item[data-nav-ir], .pc-cta[data-nav-ir], .pc-btn-linea[data-nav-ir], .res-btn[data-nav-ir]')
+    .forEach((boton) => {
+      const clave = boton.dataset.infoAbrir;
+      boton.addEventListener('click', () => {
+        ir(boton.dataset.navIr as Pantalla, clave ? () => abrirTarjetaGuia(clave) : undefined);
+      });
+    });
   document.getElementById('btn-nav-ar')?.addEventListener('click', () => irAVerEnAr());
 
   // "Documento" (#s-documento) ahora SÍ tiene una entrada visible (la
@@ -1977,6 +2281,7 @@ function wireEventos(): void {
   document.getElementById('btn-contacto-config')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-config-foot')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-resultado')?.addEventListener('click', () => abrirContactoPopup());
+  document.getElementById('btn-contacto-sala')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-info')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-documento')?.addEventListener('click', () => abrirContactoPopup());
   document.getElementById('btn-contacto-mensajes')?.addEventListener('click', () => abrirContactoPopup());
@@ -1998,9 +2303,9 @@ function wireEventos(): void {
   });
   document.getElementById('form-mensajes')?.addEventListener('submit', enviarMensaje);
 
-  wireSlider('in-W', 'W');
-  wireSlider('in-L', 'L');
-  wireSlider('in-H', 'H');
+  wireCampoDim('in-W', 'W');
+  wireCampoDim('in-L', 'L');
+  wireCampoDim('in-H', 'H');
 
   document.querySelectorAll<HTMLButtonElement>('.cfg-seg3 button[data-lvl]').forEach((b) => {
     b.addEventListener('click', () => setNivel(b.dataset.lvl as NivelUI));
@@ -2079,7 +2384,10 @@ function main(): void {
   actualizarBadgesNivelGenero();
   actualizarResumenSala();
   actualizarNavHabilitada();
+  controlPasos = iniciarPasos();
   refrescar();
+  sistemasGuardados = leerSistemas(almacenLocal());
+  repintarSistemas();
 
   // Hook de devtools, ya no el único camino a "Documento" (tiene su propia
   // pestaña en .head-nav) — se conserva como atajo para saltar la

@@ -14,46 +14,90 @@
 <link rel="alternate" hreflang="en" href="https://www.thehifimatch.com/en/about.html">
 <link rel="alternate" hreflang="x-default" href="https://www.thehifimatch.com/about.html">
 <title>Acerca de · The Hifi Match</title>
-<style>
-:root{--bg:#0A0A0B; --text:#ECECEE; --dim:#A3A3AA; --dorado:#B8996A; --line:rgba(255,255,255,.10)}
-*{box-sizing:border-box}
-body{margin:0; background:var(--bg); color:var(--text); font-family:'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif; font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased}
-.idioma{position:fixed; top:20px; right:22px; display:flex; border:1px solid var(--line); border-radius:2px; overflow:hidden}
-.idioma a{padding:7px 14px; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); text-decoration:none}
-.idioma a:hover{color:var(--text)}
-.idioma a.activo{background:var(--text); color:var(--bg)}
-.idioma a.activo:hover{color:var(--bg)}
-.wrap{max-width:640px; margin:0 auto; padding:56px 22px 80px}
-.mark{font-weight:300; font-size:14px; letter-spacing:.26em; text-transform:uppercase; color:var(--dim); margin:0 0 34px}
-.mark b{color:var(--dorado); font-weight:600}
-h1{font-weight:300; font-size:30px; letter-spacing:.01em; margin:0 0 26px; color:var(--dorado)}
-p{margin:0 0 20px}
-a{color:var(--text)}
-a:hover{color:var(--dorado)}
-.volver{display:inline-block; margin-top:28px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim)}
-</style>
+<link rel="stylesheet" href="/paginas.css">
 </head>
 <body>
-<div class="idioma">
-  <a href="/about.html" class="activo" aria-current="page">ES</a>
-  <a href="/en/about.html">EN</a>
-</div>
-<div class="wrap">
-  <div class="mark"><b>THE</b> HIFI <b>MATCH</b></div>
-  <h1>Acerca de The Hifi Match</h1>
+<header class="cab">
+  <div class="in">
+    <a class="mark" href="/"><b class="the">THE</b> HIFI <b>MATCH</b></a>
+    <nav class="cab-nav" aria-label="Secciones del sitio">
+      <a href="/about.html" aria-current="page">Acerca de</a>
+      <a href="/privacy.html">Privacidad</a>
+      <a href="/contact.html">Contacto</a>
+    </nav>
+    <div class="idioma">
+      <a href="/about.html" class="activo" aria-current="page">ES</a>
+      <a href="/en/about.html">EN</a>
+    </div>
+  </div>
+</header>
 
-  <p>The Hifi Match es un motor de compatibilidad hi-fi: evalúa si los equipos de un sistema de audio calzan entre sí y qué prestaciones entrega en una sala real. Corre enteramente en el navegador, sin cuentas ni pagos.</p>
+<main>
+  <section class="portada">
+    <div class="in">
+      <p class="eyebrow">Acerca de / Método y alcance</p>
+      <h1>Acerca de The Hifi Match</h1>
+      <p class="lead">Un motor de compatibilidad hi-fi: dice si los equipos de un sistema calzan entre sí y qué entregan en una sala real, con cada regla a la vista.</p>
+    </div>
+  </section>
 
-  <p>Cada resultado se separa en dos capas, siempre declaradas. La capa física tiene fórmula, umbral, fuente del dato y nivel de confianza — es refutable, y por eso es defendible: se puede discutir un umbral con argumentos. La capa de criterio editorial son preferencias que el sitio declara como tales (por ejemplo, cómo agrupar varias severidades en un solo veredicto), y nunca se mezcla visualmente con la física.</p>
+  <div class="banda">
+    <div class="in">
+      <section class="bloque">
+        <h2>Qué es</h2>
+        <div>
+          <p>The Hifi Match es un motor de compatibilidad hi-fi: evalúa si los equipos de un sistema de audio calzan entre sí y qué prestaciones entrega en una sala real. Corre enteramente en el navegador, sin cuentas ni pagos.</p>
+        </div>
+      </section>
 
-  <p>El motor evalúa margen de potencia frente a los picos de la sala, la carga e impedancia que ve el amplificador, el puente de impedancias y el recorrido de volumen cuando se agrega un streamer o un DAC, los modos axiales de la sala y el tiempo de reverberación estimado (RT60). Un dato faltante nunca se presenta como aprobado: se marca como "sin datos" y se declara la razón.</p>
+      <section class="bloque">
+        <h2>Dos capas, siempre declaradas</h2>
+        <div>
+          <p>Cada resultado se separa en dos capas, siempre declaradas. La capa física tiene fórmula, umbral, fuente del dato y nivel de confianza — es refutable, y por eso es defendible: se puede discutir un umbral con argumentos. La capa de criterio editorial son preferencias que el sitio declara como tales (por ejemplo, cómo agrupar varias severidades en un solo veredicto), y nunca se mezcla visualmente con la física.</p>
+        </div>
+      </section>
 
-  <p>El motor nunca emite juicios de carácter tonal, predicciones de sinergia sonora entre marcas, ni comparaciones de calidad entre productos — eso no se calcula, y no está previsto que lo haga. La escucha final queda en manos de cada persona; el sitio entrega los datos y el mecanismo físico detrás de cada uno.</p>
+      <section class="bloque">
+        <h2>Qué evalúa</h2>
+        <div>
+          <p>El motor evalúa margen de potencia frente a los picos de la sala, la carga e impedancia que ve el amplificador, el puente de impedancias y el recorrido de volumen cuando se agrega un streamer o un DAC, los modos axiales de la sala y el tiempo de reverberación estimado (RT60). Un dato faltante nunca se presenta como aprobado: se marca como "sin datos" y se declara la razón.</p>
+        </div>
+      </section>
 
-  <p>Está pensado para quien arma o revisa un sistema de audio y quiere una verificación basada en física antes de decidir una compra.</p>
+      <section class="bloque">
+        <h2>Lo que nunca dice</h2>
+        <div>
+          <p>El motor nunca emite juicios de carácter tonal, predicciones de sinergia sonora entre marcas, ni comparaciones de calidad entre productos — eso no se calcula, y no está previsto que lo haga. La escucha final queda en manos de cada persona; el sitio entrega los datos y el mecanismo físico detrás de cada uno.</p>
+        </div>
+      </section>
 
-  <a class="volver" href="/">← Analizar un sistema</a><br>
-  <a class="volver" href="/contact.html" style="margin-top:8px; border-top:0; padding-top:0">Contacto</a>
-</div>
+      <section class="bloque">
+        <h2>Límites que se declaran</h2>
+        <div>
+          <p>Los fabricantes publican con distinta calidad la impedancia de salida, las curvas de impedancia y, a veces, la sensibilidad real (se mide en medio espacio y se sobreestima). Por eso cada dato lleva su fuente y su nivel de confianza, y una regla que corre sobre datos de confianza baja degrada la suya y lo declara.</p>
+          <p>Las reglas de sala parten de una caja rectangular rígida, una aproximación que se equivoca con facilidad: ninguna emite un veredicto de error — el máximo es una advertencia, y siempre se verifica midiendo, no calculando. Los modos consideran sólo los axiales, y el tiempo de reverberación se entrega como un rango estimado, no como un veredicto, porque el sitio no mide la sala.</p>
+          <p>Un equipo encontrado con la búsqueda online no forma parte del catálogo curado: entra con confianza baja y su fuente a la vista, y los datos fuera de un rango físico razonable se descartan. El veredicto general (Potencia, Acople eléctrico y Sala) es criterio editorial del sitio: toma el peor componente de cada grupo, y así se rotula en pantalla.</p>
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h2>Para quién</h2>
+        <div>
+          <p>Está pensado para quien arma o revisa un sistema de audio y quiere una verificación basada en física antes de decidir una compra.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="in">
+    <nav aria-label="Enlaces del sitio">
+      <a href="/">← Analizar un sistema</a>
+      <a href="/contact.html">Contacto</a>
+    </nav>
+    <small>Se calcula en tu navegador, sin servidor</small>
+  </div>
+</footer>
 </body>
 </html>

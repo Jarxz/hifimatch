@@ -53,73 +53,8 @@
 
 <h1 class="sr-only">The Hifi Match — análisis de compatibilidad hi-fi basado en física</h1>
 
-<!-- SPLASH -->
+<!-- SPLASH · portada editorial -->
 <section class="screen active" id="s-splash">
-  <div class="boot-splash" id="boot-splash" role="status" aria-live="polite">
-    <div class="boot-ambient" aria-hidden="true">
-      <svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice" fill="none">
-        <line class="boot-grid" x1="100" y1="300" x2="900" y2="300" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 5"></line>
-        <line class="boot-grid" x1="500" y1="50" x2="500" y2="550" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 5"></line>
-        <circle class="boot-wave" cx="500" cy="300" r="130" stroke="var(--faint)" stroke-width="0.75" stroke-dasharray="3 6"></circle>
-        <circle class="boot-wave boot-wave-2" cx="500" cy="300" r="230" stroke="var(--faint)" stroke-width="0.5" stroke-dasharray="2 8"></circle>
-        <path class="boot-trace" d="M60 380 C 180 420, 260 200, 360 220 C 460 240, 500 460, 620 400 C 720 350, 780 180, 940 260" stroke="var(--dorado)" stroke-width="1"></path>
-        <path class="boot-trace boot-trace-2" d="M60 240 C 200 260, 300 380, 460 340 C 560 315, 640 420, 780 380 C 850 360, 900 300, 940 320" stroke="var(--ok)" stroke-width="0.75"></path>
-        <circle class="boot-nodo" cx="360" cy="220" r="3"></circle>
-        <circle class="boot-nodo boot-nodo-2" cx="620" cy="400" r="3"></circle>
-      </svg>
-    </div>
-    <div class="boot-topbar">
-      <span class="boot-sys">
-        <span class="boot-sys-dot"></span>
-        <span data-i18n="splash.bootSistema">Motor CADENA v2.4</span>
-        <span class="boot-sys-sep">|</span>
-        <span data-i18n="splash.bootInicializacion">Inicialización determinista</span>
-      </span>
-      <span class="boot-topbar-right">
-        <span class="boot-badge-top" data-i18n="splash.bootBadgeTop">Sin servidor</span>
-        <button type="button" class="boot-saltar" id="btn-boot-saltar">
-          <span data-i18n="splash.bootSaltar">Saltar intro</span>
-          <span aria-hidden="true">▶▶</span>
-        </button>
-      </span>
-    </div>
-    <div class="boot-inner">
-      <div class="boot-emblema" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-          <path d="M2 12h2M6 8v8M10 5v14M14 9v6M18 4v16M22 12h-2" stroke-linecap="square"></path>
-        </svg>
-      </div>
-      <div class="boot-mark">
-        <span class="boot-mark-linea">THE <b>HIFI MATCH</b> <span class="boot-syslab">SYS.LAB</span></span>
-        <span class="boot-tagline" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</span>
-      </div>
-      <div class="boot-panel">
-        <div class="boot-panel-head">
-          <span data-i18n="splash.bootDiagnostico">Diagnóstico del sistema</span>
-          <span class="boot-pct" id="boot-pct">0%</span>
-        </div>
-        <div class="boot-bar"><div class="boot-bar-fill" id="boot-bar-fill"></div></div>
-        <div class="boot-pasos">
-          <div class="boot-paso" id="boot-paso-1">
-            <span class="boot-paso-texto" data-i18n="splash.bootPaso1">Cargando catálogo (170+ equipos)…</span>
-            <span class="boot-paso-estado" id="boot-estado-1"></span>
-          </div>
-          <div class="boot-paso" id="boot-paso-2">
-            <span class="boot-paso-texto" data-i18n="splash.bootPaso2">Aplicando reglas físicas (modos de Rayleigh, Sabine/Eyring)…</span>
-            <span class="boot-paso-estado" id="boot-estado-2"></span>
-          </div>
-          <div class="boot-paso" id="boot-paso-3">
-            <span class="boot-paso-texto" data-i18n="splash.bootPaso3">Separando ley física de criterio editorial…</span>
-            <span class="boot-paso-estado" id="boot-estado-3"></span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="boot-footbar">
-      <span data-i18n="splash.bootPieIzq">Arquitectura determinista, sin intervención humana en el resultado</span>
-      <span data-i18n="splash.bootPieDer">Basado en física, specs medidos</span>
-    </div>
-  </div>
   <div class="wrap">
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -129,6 +64,7 @@
         <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
         <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
         <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
         <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
         <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
       </nav>
@@ -140,38 +76,16 @@
         </span>
       </div>
     </div>
-    <div class="ambient"><svg data-ambient width="100%" height="100%" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" stroke="var(--dorado)" stroke-width="1" fill="none"></svg></div>
     <div class="idioma-splash">
       <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
         <button type="button" data-idioma="es" aria-pressed="true">ES</button>
         <button type="button" data-idioma="en" aria-pressed="false">EN</button>
       </div>
     </div>
-    <div class="foot-links-splash">
-      <button type="button" class="back" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
-      <a href="./about.html" class="back" data-i18n="comun.acercaDe">Acerca de</a>
-      <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
-    </div>
-    <div class="version-splash" data-i18n="splash.version">V20.08.26</div>
-    <div class="novedades-popup hidden" id="novedades-popup">
-      <button type="button" class="novedades-cerrar" id="novedades-cerrar" data-i18n-aria="splash.novedadesCerrarAria" aria-label="Close">×</button>
-      <div class="novedades-titulo" data-i18n="splash.novedadesTitulo">New features</div>
-      <ul class="novedades-lista">
-        <li data-i18n="splash.novedadesBusqueda">Online equipment search</li>
-        <li data-i18n="splash.novedadesAr">AR reflection simulation</li>
-      </ul>
-    </div>
-    <div class="splash-telemetry">
-      <span class="st-badge"><span class="st-dot"></span><span data-i18n="splash.telemetriaEstado">Motor en vivo, sin servidor</span></span>
-      <span class="st-layers">
-        <span class="st-layer st-layer-fisica"><i></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
-        <span class="st-sep">/</span>
-        <span class="st-layer st-layer-criterio"><i></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
-      </span>
-    </div>
-    <div class="splash">
-      <button class="enter" id="btn-entrar" data-i18n-aria="splash.entrarAria">
-        <div class="subm" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</div>
+
+    <div class="pc-hero">
+      <div class="pc-hero-texto">
+        <div class="pc-eyebrow" data-i18n="splash.subtitulo">análisis de compatibilidad hi-fi · basado en física</div>
         <div class="mark" aria-hidden="true">
           <b class="the">THE</b>
           <span class="hm-wrap">
@@ -179,19 +93,59 @@
             <span class="hm-fill"><span class="mword">HIFI</span><b class="mword">MATCH</b></span>
           </span>
         </div>
-        <div class="ticks" id="splash-ticks" aria-hidden="true"></div>
-        <div class="remate" data-i18n="splash.remate">tú escuchas y decides</div>
-        <p class="lead-parrafo" data-i18n="splash.leadParrafo">Evalúa el acople eléctrico, la reserva de potencia y la acústica de la sala entre los equipos que elijas, con reglas físicas propias: cada una declara su fórmula, su umbral y de dónde sale el dato.</p>
-        <div class="cta"><span data-i18n="splash.cta">Analizar un sistema</span> <span aria-hidden="true">→</span></div>
-      </button>
-      <!-- Botón secundario fuera de .enter a propósito: .enter ya es un
-           <button> que envuelve todo el hero (navega a Configurar) — un
-           elemento interactivo (botón/link) no puede anidarse dentro de
-           otro sin romper la semántica ni el manejo real del click. Este
-           navega a la Guía en vez de Configurar, así que necesita su
-           propio <button> al lado, no adentro. -->
-      <button type="button" class="cta-sec" data-nav-ir="info"><span data-i18n="splash.ctaSecundaria">Explorar la guía</span></button>
-      <div class="proof">
+        <h2 class="pc-titulo">
+          <span data-i18n="splash.pcTitulo1">Tu sistema.</span>
+          <span data-i18n="splash.pcTitulo2">En</span>
+          <span class="pc-titulo-dim" data-i18n="splash.pcTitulo3">equilibrio.</span>
+        </h2>
+        <p class="pc-lead" data-i18n="splash.pcLead">Entiende la relación entre tus equipos, tu sala y tu forma de escuchar.</p>
+        <div class="pc-acciones">
+          <button type="button" class="pc-cta" id="btn-entrar">
+            <span data-i18n="splash.pcCta">Configurar mi sistema</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+          <button type="button" class="pc-enlace" id="btn-probar-ejemplo" hidden data-i18n="splash.pcProbarEjemplo">Probar un ejemplo</button>
+          <button type="button" class="pc-enlace" id="btn-guia-hero" data-nav-ir="info" data-i18n="splash.ctaSecundaria">Explorar la guía</button>
+        </div>
+        <div class="pc-remate" data-i18n="splash.remate">tú escuchas y decides</div>
+        <div class="novedades-popup hidden" id="novedades-popup">
+          <button type="button" class="novedades-cerrar" id="novedades-cerrar" data-i18n-aria="splash.novedadesCerrarAria" aria-label="Close">×</button>
+          <div class="novedades-titulo" data-i18n="splash.novedadesTitulo">New features</div>
+          <ul class="novedades-lista">
+            <li data-i18n="splash.novedadesBusqueda">Online equipment search</li>
+            <li data-i18n="splash.novedadesAr">AR reflection simulation</li>
+          </ul>
+        </div>
+      </div>
+      <!-- Imagen principal (escena ilustrativa, sin trazados). Para cambiarla
+           basta reemplazar apps/web/src/assets/hero-portada.webp (mismo
+           nombre) — decorativa (alt vacío), el pie de figura declara qué es. -->
+      <figure class="pc-hero-imagen">
+        <img src="./src/assets/hero-portada.webp" width="1672" height="941" alt="">
+        <figcaption data-i18n="splash.pcImagenNota">Ilustración conceptual, no es una medición de tu sala.</figcaption>
+      </figure>
+    </div>
+
+    <div class="pc-inner">
+      <div class="pc-carril">
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="carga">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril1Titulo">Acople eléctrico</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril1Sub">amplificador ↔ parlantes</span>
+        </button>
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="potencia">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril2Titulo">Reserva de potencia</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril2Sub">tu nivel de escucha</span>
+        </button>
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="modos">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril3Titulo">Acústica de sala</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril3Sub">el espacio también suena</span>
+        </button>
+        <button type="button" class="pc-carril-item" data-nav-ir="info" data-info-abrir="confianza">
+          <span class="pc-carril-titulo" data-i18n="splash.pcCarril4Titulo">Información visible</span>
+          <span class="pc-carril-sub" data-i18n="splash.pcCarril4Sub">fórmula / fuente / alcance</span>
+        </button>
+      </div>
+      <div class="pc-stats">
         <div class="proof-item">
           <div class="proof-num" data-count-to="9">0</div>
           <div class="proof-label" data-i18n="splash.proofReglas">reglas físicas, cada una con fórmula y umbral declarado</div>
@@ -213,31 +167,80 @@
           <div class="proof-detalle" data-i18n="splash.proofArDetalle">Realidad aumentada de reflexiones en tu sala</div>
         </div>
       </div>
-    </div>
-    <div class="dos-capas">
-      <div class="dos-capas-head">
-        <span class="dc-eyebrow" data-i18n="splash.capasEyebrow">Regla estructural del proyecto</span>
-        <h2 class="dc-titulo" data-i18n="splash.capasTitulo">Dos capas de información. Cero confusión.</h2>
-        <p class="dc-intro" data-i18n="splash.capasIntro">Todo lo que este sitio afirma pertenece a una de dos capas, y la capa se declara siempre — nunca mezcladas.</p>
-      </div>
-      <div class="dc-grid">
-        <div class="dc-col dc-col-fisica">
-          <div class="dc-col-head"><i class="dc-dot dc-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></div>
-          <p data-i18n="splash.capasFisicaDesc">Fórmula, umbral y fuente declarados. Cada dato viene de la ficha del fabricante o de una medición independiente ya publicada (Stereophile, Audio Science Review, Hi-Fi News), con su nivel de confianza junto al número.</p>
-          <p class="dc-nota" data-i18n="splash.capasFisicaNota">Se calcula en tu navegador — sin servidor, sin intervención humana en el resultado.</p>
-        </div>
-        <div class="dc-col dc-col-criterio">
-          <div class="dc-col-head"><i class="dc-dot dc-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></div>
-          <p data-i18n="splash.capasCriterioDesc">Decisiones de diseño del propio sitio, rotuladas como tales, nunca mezcladas con un veredicto físico.</p>
-          <ul class="dc-lista">
-            <li data-i18n="splash.capasCriterioEj1">SPL de pico objetivo por nivel de escucha: 90 dB (moderado) · 100 dB (alto) · 105 dB (referencia).</li>
-            <li data-i18n="splash.capasCriterioEj2">Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.</li>
-            <li data-i18n="splash.capasCriterioEj3">Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.</li>
-          </ul>
-        </div>
+      <div class="pc-nota">
+        <span><strong data-i18n="splash.pcNotaTitulo">Cálculo en tu navegador</strong> · <span data-i18n="splash.pcNotaTexto">sin servidor y sin intervención humana en el resultado.</span></span>
+        <a href="./about.html" data-i18n="comun.acercaDe">Acerca de</a>
       </div>
     </div>
-    <div class="match-mes hidden" id="splash-match-mes"></div>
+
+    <section class="pc-banda">
+      <div class="pc-inner pc-banda-grid">
+        <div>
+          <div class="pc-num" data-i18n="splash.pcBanda1Eyebrow">01 — del equipo a la experiencia</div>
+          <h2 class="pc-h2" data-i18n="splash.pcBanda1Titulo">El conjunto importa.</h2>
+          <p data-i18n="splash.pcBanda1Texto">Empieza con tus parlantes y amplificador. Añade tu sala. Explora qué cambia al modificar la disposición.</p>
+          <button type="button" class="pc-enlace pc-enlace-oscuro" data-nav-ir="config"><span data-i18n="splash.pcBanda1Cta">Construye tu cadena</span> <span aria-hidden="true">↗</span></button>
+        </div>
+        <ol class="pc-pasos">
+          <li><span data-i18n="splash.pcPaso1Etiqueta">01 / Elige</span><b data-i18n="splash.pcPaso1Nombre">Equipos</b></li>
+          <li><span data-i18n="splash.pcPaso2Etiqueta">02 / Sitúa</span><b data-i18n="splash.pcPaso2Nombre">Sala</b></li>
+          <li><span data-i18n="splash.pcPaso3Etiqueta">03 / Entiende</span><b data-i18n="splash.pcPaso3Nombre">Resultado</b></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="pc-honesta">
+      <div class="pc-inner">
+        <div class="pc-num" data-i18n="splash.pcSeccion2Eyebrow">02 — una lectura honesta del sistema</div>
+        <h2 class="pc-h2" data-i18n="splash.capasTitulo">Dos capas de información. Cero confusión.</h2>
+        <p class="pc-intro" data-i18n="splash.capasIntro">Todo lo que este sitio afirma pertenece a una de dos capas, y la capa se declara siempre — nunca mezcladas.</p>
+        <div class="pc-cols">
+          <div class="pc-col">
+            <div class="dc-col-head"><i class="dc-dot dc-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></div>
+            <h3 class="pc-col-titulo" data-i18n="splash.pcFisicaTitulo">La física, explicada.</h3>
+            <p data-i18n="splash.capasFisicaDesc">Fórmula, umbral y fuente declarados. Cada dato viene de la ficha del fabricante o de una medición independiente ya publicada (Stereophile, Audio Science Review, Hi-Fi News), con su nivel de confianza junto al número.</p>
+            <p class="pc-nota-cursiva" data-i18n="splash.capasFisicaNota">Se calcula en tu navegador — sin servidor, sin intervención humana en el resultado.</p>
+            <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="capas"><span data-i18n="splash.pcMasGuia">Más en la guía</span> <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="pc-col">
+            <div class="dc-col-head"><i class="dc-dot dc-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></div>
+            <h3 class="pc-col-titulo" data-i18n="splash.pcCriterioTitulo">Los criterios, a la vista.</h3>
+            <p data-i18n="splash.capasCriterioDesc">Decisiones de diseño del propio sitio, rotuladas como tales, nunca mezcladas con un veredicto físico.</p>
+            <ul class="dc-lista">
+              <li data-i18n="splash.capasCriterioEj1">SPL de pico objetivo por nivel de escucha: 90 dB (moderado) · 100 dB (alto) · 105 dB (referencia).</li>
+              <li data-i18n="splash.capasCriterioEj2">Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.</li>
+              <li data-i18n="splash.capasCriterioEj3">Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.</li>
+            </ul>
+            <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="veredicto"><span data-i18n="splash.pcMasGuia">Más en la guía</span> <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="pc-col">
+            <div class="dc-col-head"><i class="dc-dot dc-dot-datos"></i><span data-i18n="splash.pcDatosEtiqueta">Fuente y confianza</span></div>
+            <h3 class="pc-col-titulo" data-i18n="splash.pcDatosTitulo">Datos con fuente y confianza.</h3>
+            <p data-i18n="splash.pcDatosDesc">Cada especificación lleva su fuente y su nivel de confianza.</p>
+            <p class="pc-nota-cursiva" data-i18n="splash.pcDatosNota">Un equipo fuera del catálogo se puede buscar en la web: entra siempre con confianza baja y su fuente a la vista.</p>
+            <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="confianza"><span data-i18n="splash.pcMasGuia">Más en la guía</span> <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pc-match">
+      <div class="pc-inner">
+        <div class="match-mes hidden" id="splash-match-mes"></div>
+      </div>
+    </section>
+
+    <footer class="pc-pie">
+      <div class="pc-inner pc-pie-fila">
+    <div class="version-splash" data-i18n="splash.version">V20.08.26</div>
+    <div class="foot-links-splash">
+      <button type="button" class="back" id="btn-contacto-splash" data-i18n="contacto.boton">Contacto</button>
+      <a href="./novedades.html" class="back" data-i18n="comun.novedades">Novedades</a>
+      <a href="./about.html" class="back" data-i18n="comun.acercaDe">Acerca de</a>
+      <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
+    </div>
+      </div>
+    </footer>
   </div>
 </section>
 
@@ -252,6 +255,7 @@
         <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
         <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
         <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
         <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
         <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
       </nav>
@@ -271,174 +275,102 @@
       </div>
     </div>
 
-    <div class="cfg-lead-box">
-      <div class="cfg-lead-row">
-        <div class="cfg-lead-texto">
-          <div class="cfg-eyebrow">
-            <span data-i18n="config.eyebrowFase">Fase 01</span>
-            <span>/</span>
-            <span data-i18n="config.eyebrowMatriz">Matriz de configuración</span>
-            <span>/</span>
-            <span><span class="cfg-eyebrow-dot"></span><b data-i18n="config.eyebrowEstado">Cálculo en el navegador, sin servidor</b></span>
-          </div>
-          <h2 class="lead" data-i18n="config.lead">Define la cadena</h2>
-          <p class="lead-note" data-i18n="config.leadNote">Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.</p>
-        </div>
-        <div class="cfg-estado-box">
-          <span class="cfg-estado-label" data-i18n="config.estadoAnalisisLabel">Estado de la selección</span>
-          <span class="cfg-estado-valor" id="cfg-estado-valor">— de 2 requeridos</span>
-          <i class="cfg-estado-dot" id="cfg-estado-dot"></i>
-        </div>
+    <div class="pc-cfg-cabecera">
+      <div class="pc-cfg-textos">
+        <div class="pc-eyebrow" data-i18n="config.pcEyebrow">Configuración / tu sistema</div>
+        <h2 class="lead" data-i18n="config.pcLead">Da forma a tu escucha.</h2>
+        <p class="lead-note" data-i18n="config.pcLeadNote">Tres pasos para relacionar tus equipos, tu espacio y tus preferencias. El análisis se calcula en tu navegador.</p>
       </div>
+      <button type="button" class="pc-btn-linea" id="btn-cargar-ejemplo" hidden data-i18n="config.pcCargarEjemplo">Cargar ejemplo</button>
     </div>
 
-    <div class="cfg-grid">
-    <div class="cfg-col cfg-col-equipo">
-    <div class="cfg-block-label">
-      <span class="cfg-block-label-izq"><svg class="cfg-block-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"></path></svg><span data-i18n="config.bloqueA">Cadena de señal</span></span>
-      <span class="cfg-block-label-der" data-i18n="config.bloqueAMeta">6 reglas físicas aplicables</span>
-    </div>
-    <div class="split">
-      <div class="picker">
-        <div class="picker-head">
-          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2"></rect><circle cx="12" cy="8" r="1.8"></circle><circle cx="12" cy="15" r="3.2"></circle></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">01 ·</span> <span data-i18n="config.parlantesRol">Transductor principal</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
-            <div class="picker-rol" data-i18n="config.parlantes">Parlantes</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+    <nav class="pc-stepper" data-i18n-aria="config.pcPasosAria" aria-label="Pasos de la configuración">
+      <button type="button" data-paso="0" aria-current="step"><span>01</span><b data-i18n="config.pcPaso1">Equipos</b></button>
+      <button type="button" data-paso="1"><span>02</span><b data-i18n="config.pcPaso2">Sala y escucha</b></button>
+      <button type="button" data-paso="2"><span>03</span><b data-i18n="config.pcPaso3">Revisión</b></button>
+    </nav>
+
+    <div class="pc-cfg-cuerpo">
+    <div class="pc-cfg-principal">
+
+    <section class="pc-paso" id="pc-paso-0" tabindex="-1">
+      <div class="pc-slots">
+      <div class="pc-slot" id="slot-spk" data-kind="spk">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.parlantes">Parlantes</span><span class="pc-etiqueta" data-i18n="config.requerido">requerido</span></div>
+        <div class="pc-slot-cuerpo">
+          <div class="device-icon" aria-hidden="true"></div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-spk" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-spk" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-spk">
-          <div class="sel sel-marca"><select id="sel-spk-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-spk-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-spk">
-          <div class="campo-texto campo-marca"><input type="text" id="in-spk-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-spk-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-spk-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-spk"></div>
         <div id="info-spk"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-spk" data-abrir-equipo="spk" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-spk" data-quitar-equipo="spk" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-      <div class="picker">
-        <div class="picker-head">
-          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="11" rx="1.8"></rect><circle cx="8" cy="12.5" r="2.2"></circle><line x1="13" y1="10.5" x2="19" y2="10.5"></line><line x1="13" y1="14.5" x2="17" y2="14.5"></line></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">02 ·</span> <span data-i18n="config.amplificadorRol">Etapa de amplificación</span></span> <span class="req req-obligatorio" data-i18n="config.requerido">requerido</span></div>
-            <div class="picker-rol" data-i18n="config.amplificador">Amplificador</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+      <div class="pc-slot" id="slot-amp" data-kind="amp">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.amplificador">Amplificador</span><span class="pc-etiqueta" data-i18n="config.requerido">requerido</span></div>
+        <div class="pc-slot-cuerpo">
+          <div class="device-icon amp" aria-hidden="true"></div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-amp" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-amp" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-amp">
-          <div class="sel sel-marca"><select id="sel-amp-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-amp-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-amp">
-          <div class="campo-texto campo-marca"><input type="text" id="in-amp-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-amp-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-amp-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-amp"></div>
         <div id="info-amp"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-amp" data-abrir-equipo="amp" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-amp" data-quitar-equipo="amp" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-    </div>
-
-    <div class="split">
-      <div class="picker">
-        <div class="picker-head">
-          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="9" width="19" height="8" rx="1.8"></rect><path d="M8 9a4 4 0 0 1 8 0"></path><circle cx="12" cy="13" r="1" fill="currentColor" stroke="none"></circle></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">03 ·</span> <span data-i18n="config.streamerRol">Fuente de streaming</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
-            <div class="picker-rol" data-i18n="config.streamer">Streamer</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+      </div>
+      <details class="pc-opcionales" id="pc-opcionales">
+        <summary data-i18n="config.pcOpcionales">Agrega Streamer y DAC · opcional</summary>
+        <div class="pc-slots">
+      <div class="pc-slot" id="slot-streamer" data-kind="streamer">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.streamer">Streamer</span><span class="pc-etiqueta" data-i18n="config.opcionalFuente">opcional</span></div>
+        <div class="pc-slot-cuerpo">
+          <div class="device-icon source" aria-hidden="true"></div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-streamer" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-streamer" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-streamer">
-          <div class="sel sel-marca"><select id="sel-streamer-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-streamer-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-streamer">
-          <div class="campo-texto campo-marca"><input type="text" id="in-streamer-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-streamer-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-streamer-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-streamer"></div>
         <div id="info-streamer"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-streamer" data-abrir-equipo="streamer" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-streamer" data-quitar-equipo="streamer" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-      <div class="picker">
-        <div class="picker-head">
-          <div class="picker-icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="1.8"></rect><path d="M6 14h2v-3h2v5h2v-7h2v9h2v-4h2"></path></svg></div>
-          <div class="rowlabel-stack">
-            <div class="rowlabel"><span><span class="rowlabel-num">04 ·</span> <span data-i18n="config.dacRol">Conversor digital-analógico</span></span> <span class="req" data-i18n="config.opcionalFuente">opcional</span></div>
-            <div class="picker-rol" data-i18n="config.dac">DAC</div>
-          </div>
-          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
-            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
-            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
-          </div>
+      <div class="pc-slot" id="slot-dac" data-kind="dac">
+        <div class="pc-slot-top"><span class="pc-slot-rol" data-i18n="config.dac">DAC</span><span class="pc-etiqueta" data-i18n="config.opcionalFuente">opcional</span></div>
+        <div class="pc-slot-cuerpo">
+          <div class="device-icon source" aria-hidden="true"></div>
+          <div class="pc-slot-texto"><h3 id="slot-nombre-dac" data-i18n="config.pcSinSeleccionar">Por seleccionar</h3><p id="slot-tipo-dac" data-i18n="config.pcSlotVacio">Encuentra un perfil para tu sistema.</p></div>
         </div>
-        <div class="marca-modelo" id="mm-cat-dac">
-          <div class="sel sel-marca"><select id="sel-dac-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
-          <div class="sel sel-modelo"><select id="sel-dac-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
-        </div>
-        <div class="marca-modelo hidden" id="mm-web-dac">
-          <div class="campo-texto campo-marca"><input type="text" id="in-dac-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
-          <div class="campo-texto campo-modelo"><input type="text" id="in-dac-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
-          <button type="button" class="buscar-btn" id="btn-dac-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-        </div>
-        <div class="resultados-busqueda hidden" id="panel-dac"></div>
         <div id="info-dac"></div>
+        <div class="pc-slot-acciones">
+          <button type="button" class="pc-enlace" id="btn-abrir-dac" data-abrir-equipo="dac" data-i18n="config.pcSeleccionarEquipo">Seleccionar equipo +</button>
+          <button type="button" class="pc-enlace pc-quitar" id="btn-quitar-dac" data-quitar-equipo="dac" hidden data-i18n="config.pcQuitar">Quitar</button>
+        </div>
       </div>
-    </div>
+        </div>
+        <p class="pc-nota-suave" data-i18n="config.pcOpcionalesNota">Se incluyen en el análisis y en el documento: cada uno evalúa su propio puente de impedancias y recorrido de volumen contra el amplificador.</p>
+      </details>
+      <div class="pc-pie">
+        <span class="pc-contador" id="pc-contador">0 de 2 equipos seleccionados</span>
+        <button type="button" class="pc-cta" id="pc-a-sala" data-paso-ir="1" disabled><span data-i18n="config.pcDefinirSala">Definir mi sala</span><span aria-hidden="true">→</span></button>
+      </div>
+    </section>
 
-    </div>
-    <div class="cfg-col cfg-col-sala">
-    <div class="cfg-block-label">
-      <span class="cfg-block-label-izq"><svg class="cfg-block-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 12 3l9 7"></path><path d="M5 9v11h14V9"></path><path d="M9 20v-6h6v6"></path></svg><span data-i18n="config.bloqueB">Sala de escucha</span></span>
-      <span class="cfg-block-label-der">SABINE / EYRING</span>
-    </div>
-    <details class="room-toggle" id="room-toggle" open>
-      <summary class="room-summary">
-        <svg class="room-summary-icono" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"></line><circle cx="9" cy="6" r="2" fill="var(--bg)"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="16" cy="12" r="2" fill="var(--bg)"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="11" cy="18" r="2" fill="var(--bg)"></circle></svg>
-        <span class="room-summary-title" data-i18n="config.personalizarSala">Personalizar sala</span>
-        <span class="room-summary-desc" id="room-summary-desc">—</span>
-        <span class="room-summary-vol" id="room-summary-vol">— m³</span>
-        <span class="req" data-i18n="config.opcionalFuente">opcional</span>
-      </summary>
-      <div class="room">
-      <div class="cfg-dims-head">
-        <h3 data-i18n="config.dimensionesTitulo">Dimensiones de la sala</h3>
-        <span class="cfg-dims-ratio" id="v-ratio">—</span>
+    <section class="pc-paso" id="pc-paso-1" hidden tabindex="-1">
+      <h3 class="pc-titulo-paso" data-i18n="config.pcSalaTitulo">El espacio también es parte del sistema.</h3>
+      <div class="pc-campos3">
+        <div class="pc-campo"><label for="in-W" data-i18n="config.pcAnchoEtiqueta">Ancho / metros</label><input type="number" id="in-W" inputmode="decimal" min="2.5" max="7" step="0.1" value="3.2" required></div>
+        <div class="pc-campo"><label for="in-L" data-i18n="config.pcLargoEtiqueta">Largo / metros</label><input type="number" id="in-L" inputmode="decimal" min="3" max="9" step="0.1" value="3.2" required></div>
+        <div class="pc-campo"><label for="in-H" data-i18n="config.pcAltoEtiqueta">Alto / metros</label><input type="number" id="in-H" inputmode="decimal" min="2.2" max="3.5" step="0.05" value="2.4" required></div>
       </div>
-      <div class="dims">
-        <div class="dim">
-          <div class="dl"><span data-i18n="config.ancho">Ancho (frente)</span> <b id="v-W">3,2 m</b></div>
-          <input type="range" id="in-W" min="2.5" max="7" step="0.1" value="3.2">
-        </div>
-        <div class="dim">
-          <div class="dl"><span data-i18n="config.largo">Largo (fondo)</span> <b id="v-L">3,2 m</b></div>
-          <input type="range" id="in-L" min="3" max="9" step="0.1" value="3.2">
-        </div>
-        <div class="dim">
-          <div class="dl"><span data-i18n="config.alto">Alto</span> <b id="v-H">2,4 m</b></div>
-          <input type="range" id="in-H" min="2.2" max="3.5" step="0.05" value="2.4">
-        </div>
+      <p class="pc-error" id="pc-dim-error" role="alert" hidden></p>
+      <div class="pc-franja">
+        <div><strong id="v-vol-franja">—</strong><span data-i18n="config.pcFranjaVolumen">Volumen</span></div>
+        <div><strong id="v-modo-axial">—</strong><span data-i18n="config.pcFranjaModo">Primer modo / eje mayor</span></div>
+        <div><strong id="v-rt60">—</strong><span data-i18n="config.pcFranjaRt60">RT60 estimado</span></div>
       </div>
-      <div class="cfg-modo-axial">
-        <span data-i18n="config.modoAxial">Modo axial de la dimensión mayor</span>
-        <b id="v-modo-axial">—</b>
-      </div>
-
-      <h3 data-i18n="config.materialesTitulo">Materiales de la sala</h3>
+      <details class="pc-opcionales" id="pc-materiales">
+        <summary data-i18n="config.pcMateriales">Materiales del recinto</summary>
       <div class="materiales-grid">
         <div class="rline">
           <div class="rl-row"><span class="rl" data-i18n="config.muroFrontal">Muro frontal</span><span class="alfa-valor" id="alfa-murofrontal">α 0.10</span></div>
@@ -503,6 +435,8 @@
           </select></div>
         </div>
       </div>
+      </details>
+      <div class="pc-subtitulo" data-i18n="config.pcNivelEditorial">Nivel de escucha · criterio editorial</div>
       <div class="cfg-segbloque-fila">
         <div class="cfg-segbloque">
           <span class="cfg-segbloque-label" data-i18n="config.nivelEscucha">Nivel de escucha</span>
@@ -525,9 +459,30 @@
         <span class="rl" data-i18n="config.distanciaResultante">Distancia de escucha resultante</span>
         <div class="derived">≈ <b id="v-dist">—</b> · <span data-i18n="config.volumenPrefix">volumen</span> <b id="v-vol">—</b></div>
       </div>
+      <div class="pc-pie">
+        <button type="button" class="pc-enlace" data-paso-ir="0" data-i18n="config.pcVolverEquipos">← Equipos</button>
+        <button type="button" class="pc-cta" id="pc-a-revision" data-paso-ir="2"><span data-i18n="config.pcRevisarSistema">Revisar sistema</span><span aria-hidden="true">→</span></button>
       </div>
-    </details>
+    </section>
+
+    <section class="pc-paso pc-revision" id="pc-paso-2" hidden tabindex="-1">
+      <h3 class="pc-titulo-paso" data-i18n="config.pcRevisionTitulo">Antes de comenzar.</h3>
+      <dl id="pc-revision-filas"></dl>
+      <p class="pc-nota-suave" data-i18n="config.pcRevisionNota">Puedes volver a cualquier paso sin perder tu selección. El análisis se calcula en tu navegador; cada dato conserva su fuente y su nivel de confianza.</p>
+      <div class="pc-pie">
+        <button type="button" class="pc-enlace" data-paso-ir="1" data-i18n="config.pcVolverSala">← Sala y escucha</button>
+        <button type="button" class="pc-cta analizar" id="btn-an" disabled><span data-i18n="config.pcExplorarResultado">Explorar resultado</span><span aria-hidden="true">↗</span></button>
+      </div>
+    </section>
+
     </div>
+    <aside class="pc-cadena" aria-live="polite">
+      <div class="pc-eyebrow" data-i18n="config.pcCadenaEyebrow">Tu cadena de escucha</div>
+      <h3 class="pc-cadena-titulo" data-i18n="config.pcCadenaTitulo">Mi sistema de escucha</h3>
+      <dl id="pc-cadena-filas"></dl>
+      <p class="pc-cadena-nota" data-i18n="config.pcCadenaNota">Los datos de cada equipo traen su fuente y su nivel de confianza.</p>
+      <button type="button" class="pc-enlace" data-nav-ir="info" data-info-abrir="confianza"><span data-i18n="config.pcComoLeer">Cómo leer los datos</span> <span aria-hidden="true">↗</span></button>
+    </aside>
     </div>
 
     <div class="soon">
@@ -536,21 +491,6 @@
       <span class="pillsoon" data-i18n="config.cables">Cables</span>
     </div>
 
-    <div class="foot-bar">
-      <div class="foot-bar-info">
-        <div class="foot-bar-icono" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 15l3-4 3 3 5-7"></path></svg>
-        </div>
-        <div class="foot-bar-texto">
-          <div class="foot-bar-titulo">
-            <span data-i18n="config.matrizTitulo">Matriz de la cadena</span>
-            <span class="foot-bar-badge" id="foot-bar-badge">—</span>
-          </div>
-          <div class="miss" id="miss">Falta elegir parlantes y amplificador</div>
-        </div>
-      </div>
-      <button class="analizar" id="btn-an" disabled><span data-i18n="config.analizar">Analizar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></button>
-    </div>
     <footer class="site-foot">
       <div class="site-foot-marca">
         <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -558,6 +498,7 @@
       </div>
       <div class="site-foot-links">
         <button type="button" class="back" id="btn-contacto-config-foot" data-i18n="contacto.boton">Contacto</button>
+        <a href="./novedades.html" class="back" data-i18n="comun.novedades">Novedades</a>
         <a href="./about.html" class="back" data-i18n="comun.acercaDe">Acerca de</a>
         <a href="./privacy.html" class="back" data-i18n="comun.privacidad">Privacidad</a>
       </div>
@@ -567,10 +508,102 @@
       </div>
     </footer>
   </div>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-spk" aria-labelledby="dlg-equipo-spk-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.parlantes">Parlantes</span></div>
+        <h3 id="dlg-equipo-spk-titulo" data-i18n="config.pcDialogoSpk">Selecciona parlantes</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="spk" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="spk" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-spk">
+          <div class="sel sel-marca"><select id="sel-spk-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-spk-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-spk">
+          <div class="campo-texto campo-marca"><input type="text" id="in-spk-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-spk-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-spk-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-spk"></div>
+  </dialog>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-amp" aria-labelledby="dlg-equipo-amp-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.amplificador">Amplificador</span></div>
+        <h3 id="dlg-equipo-amp-titulo" data-i18n="config.pcDialogoAmp">Selecciona amplificador</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="amp" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="amp" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-amp">
+          <div class="sel sel-marca"><select id="sel-amp-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-amp-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-amp">
+          <div class="campo-texto campo-marca"><input type="text" id="in-amp-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-amp-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-amp-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-amp"></div>
+  </dialog>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-streamer" aria-labelledby="dlg-equipo-streamer-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.streamer">Streamer</span></div>
+        <h3 id="dlg-equipo-streamer-titulo" data-i18n="config.pcDialogoStreamer">Selecciona streamer</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="streamer" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="streamer" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-streamer">
+          <div class="sel sel-marca"><select id="sel-streamer-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-streamer-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-streamer">
+          <div class="campo-texto campo-marca"><input type="text" id="in-streamer-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-streamer-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-streamer-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-streamer"></div>
+  </dialog>
+  <dialog class="info-popup equipo-dialogo" id="dlg-equipo-dac" aria-labelledby="dlg-equipo-dac-titulo">
+    <div class="equipo-dialogo-cab">
+      <div>
+        <div class="pc-eyebrow"><span data-i18n="config.pcCatalogo">Catálogo</span> / <span data-i18n="config.dac">DAC</span></div>
+        <h3 id="dlg-equipo-dac-titulo" data-i18n="config.pcDialogoDac">Selecciona DAC</h3>
+      </div>
+      <button type="button" class="info-popup-cerrar" data-cerrar-dialogo="dac" data-i18n-aria="config.pcCerrar" aria-label="Cerrar">×</button>
+    </div>
+          <div class="modo-busqueda" role="group" data-i18n-aria="config.modoBusquedaAria" aria-label="Modo de búsqueda">
+            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="catalogo" aria-pressed="true" data-i18n="config.modoCatalogo">Catálogo</button>
+            <button type="button" class="modo-busqueda-btn" data-kind="dac" data-modo="web" aria-pressed="false" data-i18n="config.modoWeb">Búsqueda web</button>
+          </div>
+        <div class="marca-modelo" id="mm-cat-dac">
+          <div class="sel sel-marca"><select id="sel-dac-marca"><option value="" data-i18n="config.catalogoMarcaPlaceholder">Marca</option></select></div>
+          <div class="sel sel-modelo"><select id="sel-dac-modelo" disabled><option value="" data-i18n="config.catalogoElegirMarcaPrimero">Elige una marca primero</option></select></div>
+        </div>
+        <div class="marca-modelo hidden" id="mm-web-dac">
+          <div class="campo-texto campo-marca"><input type="text" id="in-dac-marca" autocomplete="off" data-i18n-placeholder="config.buscarMarcaPlaceholder" placeholder="Marca"></div>
+          <div class="campo-texto campo-modelo"><input type="text" id="in-dac-modelo" autocomplete="off" data-i18n-placeholder="config.buscarModeloPlaceholder" placeholder="Modelo"></div>
+          <button type="button" class="buscar-btn" id="btn-dac-buscar" data-i18n-aria="config.buscarBtnAria" aria-label="Buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+        </div>
+        <div class="resultados-busqueda hidden" id="panel-dac"></div>
+  </dialog>
 </section>
 
 <!-- RESULTS -->
-<section class="screen" id="s-results">
+<section class="screen screen-alto-contraste" id="s-results">
   <div class="wrap">
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -580,6 +613,7 @@
         <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
         <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
         <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
         <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
         <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
       </nav>
@@ -600,326 +634,356 @@
       </div>
     </div>
 
-    <div class="card veredicto-card" id="veredicto-card">
-      <div class="ct">
-        <span class="layer" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
-        <button type="button" class="infobtn" data-info="veredicto" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-      </div>
-      <h2 class="vd-titulo" id="vd-titulo">Veredicto del análisis</h2>
-      <p class="vd-subtexto" id="vd-subtexto">—</p>
-      <div class="estados-grid">
-        <div class="estado-item" id="est-potencia">
-          <div class="est-nombre" id="est-potencia-nombre">—</div>
-          <div class="est-estado" id="est-potencia-estado">—</div>
-          <div class="est-detalle" id="est-potencia-detalle">—</div>
+    <div class="res-banda">
+      <div class="res-inner">
+        <div class="res-cab">
+          <div class="res-cab-textos">
+            <p class="pc-eyebrow" data-i18n="resultado.pcEyebrow">Resultado / tu análisis</p>
+            <h2 class="res-titulo" data-i18n="resultado.pcTitulo">Tu sistema. En perspectiva.</h2>
+            <p class="res-aviso hidden" id="res-modificado-aviso"><span data-i18n="resultado.pcModificadoAviso">—</span> <button type="button" id="btn-ver-original" data-i18n="resultado.pcVerOriginal">Ver el original</button></p>
+          </div>
+          <div class="res-cab-acciones">
+            <button type="button" class="res-btn res-btn-linea" data-nav-ir="config" data-i18n="resultado.pcEditar">Editar configuración</button>
+            <button type="button" class="res-btn res-btn-solido" id="btn-guardar-res" data-i18n="resultado.pcGuardar">Guardar sistema</button>
+          </div>
         </div>
-        <div class="estado-item" id="est-acople">
-          <div class="est-nombre" id="est-acople-nombre">—</div>
-          <div class="est-estado" id="est-acople-estado">—</div>
-          <div class="est-detalle" id="est-acople-detalle">—</div>
-        </div>
-        <div class="estado-item" id="est-sala">
-          <div class="est-nombre" id="est-sala-nombre">—</div>
-          <div class="est-estado" id="est-sala-estado">—</div>
-          <div class="est-detalle" id="est-sala-detalle">—</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 data-i18n="resultado.recomendacionesTitulo">Qué conviene hacer</h3>
-      <ul class="rf-recomendaciones" id="top-recomendaciones"></ul>
-    </div>
-
-    <details class="grupo-evidencia" id="grupo-potencia">
-      <summary>
-        <span class="grupo-nombre" data-i18n="motor.veredicto.nombrePotencia">Potencia</span>
-        <span class="grupo-estado" id="grupo-potencia-estado">—</span>
-        <span class="grupo-linea" id="grupo-potencia-linea">—</span>
-      </summary>
-      <div class="filas">
-        <details class="regla-fila" id="fila-potencia">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</span>
-            <span class="verdict" id="pw-verdict">—</span>
-            <span class="fila-dato" id="pw-dato">—</span>
-            <button type="button" class="infobtn" data-info="potencia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="pw-simple">—</p>
-            <p id="pw-text">—</p>
-            <div class="meter">
-              <div class="scale" id="pw-scale"></div>
-              <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
+        <div class="res-cuerpo">
+          <div class="res-veredicto" id="veredicto-card">
+            <div class="ct">
+              <span class="layer" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
+              <button type="button" class="infobtn" data-info="veredicto" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
             </div>
-            <div class="calc" id="pw-calc"></div>
-            <div class="flag hidden" id="pw-flag"></div>
-            <p class="src" id="pw-crest"></p>
-            <div class="src" id="pw-src"></div>
+            <h3 class="vd-titulo" id="vd-titulo">Veredicto del análisis</h3>
+            <p class="vd-subtexto" id="vd-subtexto">—</p>
           </div>
-        </details>
+          <dl class="res-sum" id="res-sum" role="group" data-i18n-aria="resultado.pcSumAria"></dl>
+        </div>
+        <div class="res-metricas" id="res-metricas" role="group" data-i18n-aria="resultado.pcMetricasAria"></div>
       </div>
-    </details>
+    </div>
 
-    <details class="grupo-evidencia" id="grupo-acople">
-      <summary>
-        <span class="grupo-nombre" data-i18n="motor.veredicto.nombreAcople">Acople eléctrico</span>
-        <span class="grupo-estado" id="grupo-acople-estado">—</span>
-        <span class="grupo-linea" id="grupo-acople-linea">—</span>
-      </summary>
-      <div class="filas">
-        <details class="regla-fila" id="card-carga">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.carga.titulo">La carga que ve el amplificador</span>
-            <span class="verdict" id="z-verdict">—</span>
-            <span class="fila-dato" id="z-dato">—</span>
-            <button type="button" class="infobtn" data-info="carga" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="z-simple">—</p>
-            <p id="z-text">—</p>
-            <div class="calc hidden" id="z-calc"></div>
-            <div class="flag hidden" id="z-flag"></div>
-            <div class="src" id="z-src"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila" id="card-amortiguamiento">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</span>
-            <span class="verdict" id="am-verdict">—</span>
-            <span class="fila-dato" id="am-dato">—</span>
-            <button type="button" class="infobtn" data-info="amortiguamiento" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="am-simple">—</p>
-            <div id="am-text">—</div>
-            <div class="calc hidden" id="am-calc"></div>
-            <div class="flag hidden" id="am-flag"></div>
-            <div class="src" id="am-src"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-puente-streamer">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</span>
-            <span class="verdict" id="pz-verdict-streamer">—</span>
-            <span class="fila-dato" id="pz-dato-streamer">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
-            <p class="simple" id="pz-simple-streamer">—</p>
-            <p id="pz-text-streamer">—</p>
-            <div class="calc" id="pz-calc-streamer"></div>
-            <div class="flag hidden" id="pz-flag-streamer"></div>
-            <div class="src" id="pz-src-streamer"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-recorrido-streamer">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</span>
-            <span class="verdict" id="pv-verdict-streamer">—</span>
-            <span class="fila-dato" id="pv-dato-streamer">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
-            <p class="simple" id="pv-simple-streamer">—</p>
-            <p id="pv-text-streamer">—</p>
-            <div class="calc" id="pv-calc-streamer"></div>
-            <div class="flag hidden" id="pv-flag-streamer"></div>
-            <div class="src" id="pv-src-streamer"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-puente-dac">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</span>
-            <span class="verdict" id="pz-verdict-dac">—</span>
-            <span class="fila-dato" id="pz-dato-dac">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
-            <p class="simple" id="pz-simple-dac">—</p>
-            <p id="pz-text-dac">—</p>
-            <div class="calc" id="pz-calc-dac"></div>
-            <div class="flag hidden" id="pz-flag-dac"></div>
-            <div class="src" id="pz-src-dac"></div>
-          </div>
-        </details>
-
-        <details class="regla-fila hidden" id="card-recorrido-dac">
-          <summary>
-            <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
-            <span class="fila-nombre" data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</span>
-            <span class="verdict" id="pv-verdict-dac">—</span>
-            <span class="fila-dato" id="pv-dato-dac">—</span>
-            <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
-            <p class="simple" id="pv-simple-dac">—</p>
-            <p id="pv-text-dac">—</p>
-            <div class="calc" id="pv-calc-dac"></div>
-            <div class="flag hidden" id="pv-flag-dac"></div>
-            <div class="src" id="pv-src-dac"></div>
-          </div>
-        </details>
+    <div class="res-inner res-detalle">
+      <div class="res-tabs" role="tablist" id="res-tabs" data-i18n-aria="resultado.pcTabsAria">
+        <button type="button" role="tab" id="tab-res-lectura" aria-selected="true" aria-controls="panel-res-lectura" data-i18n="resultado.pcTabLectura">Lectura general</button>
+        <button type="button" role="tab" id="tab-res-fisica" aria-selected="false" tabindex="-1" aria-controls="panel-res-fisica" data-i18n="resultado.pcTabFisica">Física y fórmulas</button>
+        <button type="button" role="tab" id="tab-res-datos" aria-selected="false" tabindex="-1" aria-controls="panel-res-datos" data-i18n="resultado.pcTabDatos">Datos y fuentes</button>
       </div>
-    </details>
 
-    <details class="grupo-evidencia" id="grupo-sala">
-      <summary>
-        <span class="grupo-nombre" data-i18n="motor.veredicto.nombreSala">Sala</span>
-        <span class="grupo-estado" id="grupo-sala-estado">—</span>
-        <span class="grupo-linea" id="grupo-sala-linea">—</span>
-      </summary>
-      <div class="filas">
-        <details class="regla-fila" id="fila-modos">
-          <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.modos.titulo">Modos de sala (graves)</span>
-            <span class="verdict" id="mo-verdict">—</span>
-            <span class="fila-dato" id="mo-dato">—</span>
-            <button type="button" class="infobtn" data-info="modos" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
-          </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="mo-simple">—</p>
-            <p id="mo-text">—</p>
-            <div class="flag hidden" id="mo-flag"></div>
-            <div class="curvas hidden" id="mo-curvas"></div>
-            <div class="src" id="mo-src"></div>
+      <div class="res-panel" role="tabpanel" id="panel-res-lectura" aria-labelledby="tab-res-lectura">
+        <div class="res-dos">
+          <div class="res-col">
+            <p class="res-etiqueta" data-i18n="resultado.pcLecturaEtiqueta">Lectura del sistema</p>
+            <div class="estados-grid">
+              <div class="estado-item" id="est-potencia">
+                <div class="est-nombre" id="est-potencia-nombre">—</div>
+                <div class="est-estado" id="est-potencia-estado">—</div>
+                <div class="est-detalle" id="est-potencia-detalle">—</div>
+              </div>
+              <div class="estado-item" id="est-acople">
+                <div class="est-nombre" id="est-acople-nombre">—</div>
+                <div class="est-estado" id="est-acople-estado">—</div>
+                <div class="est-detalle" id="est-acople-detalle">—</div>
+              </div>
+              <div class="estado-item" id="est-sala">
+                <div class="est-nombre" id="est-sala-nombre">—</div>
+                <div class="est-estado" id="est-sala-estado">—</div>
+                <div class="est-detalle" id="est-sala-detalle">—</div>
+              </div>
+            </div>
+            <div class="res-bloque">
+              <h3 data-i18n="resultado.recomendacionesTitulo">Qué conviene hacer</h3>
+              <ul class="rf-recomendaciones" id="top-recomendaciones"></ul>
+            </div>
+            <p class="src nota-sindatos hidden" id="nota-sindatos"></p>
           </div>
-        </details>
+          <div class="res-col res-col-modos">
+            <p class="res-etiqueta" data-i18n="resultado.pcModosEtiqueta">Tu sala en frecuencia</p>
+            <h3 class="res-h3" data-i18n="resultado.pcModosTitulo">Resonancias que conviene conocer.</h3>
+            <div class="res-modos" id="res-modos"></div>
+            <p class="res-intro" data-i18n="resultado.pcModosCaption">—</p>
+            <button type="button" class="pc-enlace" data-nav-ir="sala" data-i18n="resultado.pcVerSala">Ver la disposición de sala ↗</button>
+          </div>
+        </div>
+      </div>
 
-        <details class="regla-fila" id="fila-filtropeine">
+      <div class="res-panel" role="tabpanel" id="panel-res-fisica" aria-labelledby="tab-res-fisica" hidden>
+        <h3 class="res-h3" data-i18n="resultado.pcFisicaTitulo">Los números, con contexto.</h3>
+        <p class="res-intro" data-i18n="resultado.pcFisicaIntro">Cada regla con su fórmula, su umbral y su fuente. Ábrela para ver el cálculo completo.</p>
+        <details class="grupo-evidencia" id="grupo-potencia" open>
           <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.filtroPeine.titulo">Filtro peine por reflexión</span>
-            <span class="verdict" id="fp-verdict">—</span>
-            <span class="fila-dato" id="fp-dato">—</span>
-            <button type="button" class="infobtn" data-info="filtroPeine" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+            <span class="grupo-nombre" data-i18n="motor.veredicto.nombrePotencia">Potencia</span>
+            <span class="grupo-estado" id="grupo-potencia-estado">—</span>
+            <span class="grupo-linea" id="grupo-potencia-linea">—</span>
           </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="fp-simple">—</p>
-            <p id="fp-text">—</p>
-            <div class="calc" id="fp-calc"></div>
-            <details class="detalle" id="fp-todas-wrap">
-              <summary data-i18n="resultado.plano.verLasDiez">Ver las diez</summary>
-              <div class="calc" id="fp-calc-todas"></div>
+          <div class="filas">
+            <details class="regla-fila" id="fila-potencia" open>
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.potencia.titulo">Potencia frente a los picos de la sala</span>
+                <span class="verdict" id="pw-verdict">—</span>
+                <span class="fila-dato" id="pw-dato">—</span>
+                <button type="button" class="infobtn" data-info="potencia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="pw-simple">—</p>
+                <p id="pw-text">—</p>
+                <div class="meter">
+                  <div class="scale" id="pw-scale"></div>
+                  <div class="scap"><span data-i18n="motor.potencia.escalaInsuficiente">insuficiente</span><span data-i18n="motor.potencia.escalaEje">margen sobre el pico (dB)</span><span data-i18n="motor.potencia.escalaSobra">de sobra</span></div>
+                </div>
+                <div class="calc" id="pw-calc"></div>
+                <div class="flag hidden" id="pw-flag"></div>
+                <p class="src" id="pw-crest"></p>
+                <div class="src" id="pw-src"></div>
+              </div>
             </details>
-            <div class="flag hidden" id="fp-flag"></div>
-            <div class="src" id="fp-src"></div>
           </div>
         </details>
 
-        <details class="regla-fila" id="fila-triangulo">
+        <details class="grupo-evidencia" id="grupo-acople" open>
           <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.triangulo.titulo">Triángulo de escucha</span>
-            <span class="verdict" id="te-verdict">—</span>
-            <span class="fila-dato" id="te-dato">—</span>
-            <button type="button" class="infobtn" data-info="triangulo" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+            <span class="grupo-nombre" data-i18n="motor.veredicto.nombreAcople">Acople eléctrico</span>
+            <span class="grupo-estado" id="grupo-acople-estado">—</span>
+            <span class="grupo-linea" id="grupo-acople-linea">—</span>
           </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="te-simple">—</p>
-            <p id="te-text">—</p>
-            <div class="calc" id="te-calc"></div>
-            <div class="flag hidden" id="te-flag"></div>
-            <div class="src" id="te-src"></div>
+          <div class="filas">
+            <details class="regla-fila" id="card-carga">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.carga.titulo">La carga que ve el amplificador</span>
+                <span class="verdict" id="z-verdict">—</span>
+                <span class="fila-dato" id="z-dato">—</span>
+                <button type="button" class="infobtn" data-info="carga" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="z-simple">—</p>
+                <p id="z-text">—</p>
+                <div class="calc hidden" id="z-calc"></div>
+                <div class="flag hidden" id="z-flag"></div>
+                <div class="src" id="z-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila" id="card-amortiguamiento">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</span>
+                <span class="verdict" id="am-verdict">—</span>
+                <span class="fila-dato" id="am-dato">—</span>
+                <button type="button" class="infobtn" data-info="amortiguamiento" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="am-simple">—</p>
+                <div id="am-text">—</div>
+                <div class="calc hidden" id="am-calc"></div>
+                <div class="flag hidden" id="am-flag"></div>
+                <div class="src" id="am-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-puente-streamer">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.puente.tituloStreamer">Puente de impedancias: streamer → amplificador</span>
+                <span class="verdict" id="pz-verdict-streamer">—</span>
+                <span class="fila-dato" id="pz-dato-streamer">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
+                <p class="simple" id="pz-simple-streamer">—</p>
+                <p id="pz-text-streamer">—</p>
+                <div class="calc" id="pz-calc-streamer"></div>
+                <div class="flag hidden" id="pz-flag-streamer"></div>
+                <div class="src" id="pz-src-streamer"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-recorrido-streamer">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.recorrido.tituloStreamer">Recorrido del volumen: streamer</span>
+                <span class="verdict" id="pv-verdict-streamer">—</span>
+                <span class="fila-dato" id="pv-dato-streamer">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
+                <p class="simple" id="pv-simple-streamer">—</p>
+                <p id="pv-text-streamer">—</p>
+                <div class="calc" id="pv-calc-streamer"></div>
+                <div class="flag hidden" id="pv-flag-streamer"></div>
+                <div class="src" id="pv-src-streamer"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-puente-dac">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.puente.tituloDac">Puente de impedancias: DAC → amplificador</span>
+                <span class="verdict" id="pz-verdict-dac">—</span>
+                <span class="fila-dato" id="pz-dato-dac">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.puente.subtitulo">Puente de impedancias</p>
+                <p class="simple" id="pz-simple-dac">—</p>
+                <p id="pz-text-dac">—</p>
+                <div class="calc" id="pz-calc-dac"></div>
+                <div class="flag hidden" id="pz-flag-dac"></div>
+                <div class="src" id="pz-src-dac"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila hidden" id="card-recorrido-dac">
+              <summary>
+                <span class="layer" data-i18n="resultado.capaFisica">Capa física</span>
+                <span class="fila-nombre" data-i18n="motor.recorrido.tituloDac">Recorrido del volumen: DAC</span>
+                <span class="verdict" id="pv-verdict-dac">—</span>
+                <span class="fila-dato" id="pv-dato-dac">—</span>
+                <button type="button" class="infobtn" data-info="ganancia" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="subtitulo-tecnico" data-i18n="motor.recorrido.subtitulo">Recorrido del volumen</p>
+                <p class="simple" id="pv-simple-dac">—</p>
+                <p id="pv-text-dac">—</p>
+                <div class="calc" id="pv-calc-dac"></div>
+                <div class="flag hidden" id="pv-flag-dac"></div>
+                <div class="src" id="pv-src-dac"></div>
+              </div>
+            </details>
           </div>
         </details>
 
-        <details class="regla-fila regla-dim" id="fila-reverberacion">
+        <details class="grupo-evidencia" id="grupo-sala" open>
           <summary>
-            <span class="layer" data-i18n="resultado.geometria">Geometría</span>
-            <span class="fila-nombre" data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</span>
-            <span class="verdict" id="rt-verdict">—</span>
-            <span class="fila-dato" id="rt-dato">—</span>
-            <button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+            <span class="grupo-nombre" data-i18n="motor.veredicto.nombreSala">Sala</span>
+            <span class="grupo-estado" id="grupo-sala-estado">—</span>
+            <span class="grupo-linea" id="grupo-sala-linea">—</span>
           </summary>
-          <div class="fila-cuerpo">
-            <p class="simple" id="rt-simple">—</p>
-            <p id="rt-text">—</p>
-            <div class="calc" id="rt-calc"></div>
-            <div class="src" id="rt-src"></div>
+          <div class="filas">
+            <details class="regla-fila" id="fila-modos">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.modos.titulo">Modos de sala (graves)</span>
+                <span class="verdict" id="mo-verdict">—</span>
+                <span class="fila-dato" id="mo-dato">—</span>
+                <button type="button" class="infobtn" data-info="modos" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="mo-simple">—</p>
+                <p id="mo-text">—</p>
+                <div class="flag hidden" id="mo-flag"></div>
+                <div class="curvas hidden" id="mo-curvas"></div>
+                <div class="src" id="mo-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila" id="fila-filtropeine">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.filtroPeine.titulo">Filtro peine por reflexión</span>
+                <span class="verdict" id="fp-verdict">—</span>
+                <span class="fila-dato" id="fp-dato">—</span>
+                <button type="button" class="infobtn" data-info="filtroPeine" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="fp-simple">—</p>
+                <p id="fp-text">—</p>
+                <div class="calc" id="fp-calc"></div>
+                <details class="detalle" id="fp-todas-wrap">
+                  <summary data-i18n="resultado.plano.verLasDiez">Ver las diez</summary>
+                  <div class="calc" id="fp-calc-todas"></div>
+                </details>
+                <div class="flag hidden" id="fp-flag"></div>
+                <div class="src" id="fp-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila" id="fila-triangulo">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.triangulo.titulo">Triángulo de escucha</span>
+                <span class="verdict" id="te-verdict">—</span>
+                <span class="fila-dato" id="te-dato">—</span>
+                <button type="button" class="infobtn" data-info="triangulo" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="te-simple">—</p>
+                <p id="te-text">—</p>
+                <div class="calc" id="te-calc"></div>
+                <div class="flag hidden" id="te-flag"></div>
+                <div class="src" id="te-src"></div>
+              </div>
+            </details>
+
+            <details class="regla-fila regla-dim" id="fila-reverberacion">
+              <summary>
+                <span class="layer" data-i18n="resultado.geometria">Geometría</span>
+                <span class="fila-nombre" data-i18n="motor.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</span>
+                <span class="verdict" id="rt-verdict">—</span>
+                <span class="fila-dato" id="rt-dato">—</span>
+                <button type="button" class="infobtn" data-info="reverberacion" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button>
+              </summary>
+              <div class="fila-cuerpo">
+                <p class="simple" id="rt-simple">—</p>
+                <p id="rt-text">—</p>
+                <div class="calc" id="rt-calc"></div>
+                <div class="src" id="rt-src"></div>
+              </div>
+            </details>
           </div>
         </details>
       </div>
-    </details>
 
-    <div class="card">
-      <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" style="color:var(--dim)" data-i18n="resultado.disposicionReferencia">Disposición de referencia</span><button type="button" class="infobtn" data-info="plano" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
-      <h3 data-i18n="resultado.plano.titulo">Plano, escucha y reflexiones</h3>
-      <p data-i18n="resultado.plano.texto">Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
-      <div class="rline plan-toprow" style="margin-top:14px">
-        <div class="segs" role="group" id="tabs-analisis">
-          <button type="button" data-pestana="original" aria-pressed="true" data-i18n="resultado.plano.pestanaOriginal">Análisis original</button>
-          <button type="button" data-pestana="modificado" class="hidden" aria-pressed="false" data-i18n="resultado.plano.pestanaModificado">Modificado</button>
+      <div class="res-panel" role="tabpanel" id="panel-res-datos" aria-labelledby="tab-res-datos" hidden>
+        <h3 class="res-h3" data-i18n="resultado.pcDatosTitulo">Todo dato tiene un origen.</h3>
+        <p class="res-intro" data-i18n="resultado.pcDatosNota">—</p>
+        <div class="res-tabla-wrap">
+          <table class="res-tabla" id="res-tabla">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="resultado.datos.colDato">Dato</th>
+                <th scope="col" data-i18n="resultado.datos.colValor">Valor</th>
+                <th scope="col" data-i18n="resultado.datos.colOrigen">Origen</th>
+                <th scope="col" data-i18n="resultado.datos.colEstado">Estado</th>
+              </tr>
+            </thead>
+          </table>
         </div>
-        <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
-          <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
-          <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
-          <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
-          <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
+        <div class="ficha-final">
+          <h2 data-i18n="resultado.fichaTitulo">La cadena y los datos de sala</h2>
+          <p class="ficha-subtitulo" data-i18n="resultado.fichaSubtitulo">Supuestos, fuentes y nivel de confianza · guardar e informe</p>
+          <div class="ficha-grid">
+            <div class="blk"><h3 data-i18n="resultado.cadena">La cadena</h3><div id="chain"></div></div>
+            <div class="blk">
+              <h3 data-i18n="resultado.sala">Sala</h3>
+              <div class="rr"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="r-wl">—</b></div>
+              <div class="rr"><span data-i18n="resultado.alto">Alto</span><b id="r-h">—</b></div>
+              <div class="rr"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="r-dist">—</b></div>
+              <div class="rr"><span data-i18n="resultado.nivel">Nivel</span><b id="r-lvl">—</b></div>
+              <div class="rr"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="r-peak">—</b></div>
+            </div>
+          </div>
         </div>
-        <button type="button" id="btn-candado" class="back candado-btn" aria-pressed="false" data-i18n-aria="resultado.plano.candadoAria" aria-label="Candado del punto de escucha">
-          <svg class="candado-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path id="candado-shackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          <span id="btn-candado-texto">Candado cerrado</span>
-        </button>
-        <button type="button" id="btn-ver-ar" class="back" data-i18n="resultado.plano.verEnArBoton">Ver en AR</button>
       </div>
-      <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.</p>
-      <p id="plan-hint-asiento" class="plan-hint hidden" data-i18n="resultado.plano.hintAsiento">Candado abierto: el punto de escucha también se puede arrastrar, de forma independiente de los parlantes.</p>
-      <p id="candado-comparador-aviso" class="src candado-comparador-aviso hidden" data-i18n="resultado.plano.candadoComparadorAviso">Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.</p>
-      <div class="plan-wrap" id="plan"></div>
-      <div class="legend">
-        <span><i style="border-top:1px dashed var(--dim)"></i> <span data-i18n="resultado.plano.leyendaTriangulo">triángulo de escucha</span></span>
-        <span><i style="border-top:1px dashed var(--warn)"></i> <span data-i18n="resultado.plano.leyendaReflexion">1ª reflexión</span></span>
-        <span><i style="border-top:2px solid var(--text)"></i> <span data-i18n="resultado.plano.leyendaParlante">parlante / escucha</span></span>
+
+      <div class="res-cta">
+        <button type="button" class="pc-cta" data-nav-ir="sala"><span data-i18n="resultado.pcExplorarSala">Explorar mi sala</span><span aria-hidden="true">↗</span></button>
+        <button type="button" class="pc-enlace" data-nav-ir="documento" data-i18n="resultado.pcAbrirDocumento">Abrir documento ↗</button>
       </div>
-      <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
-      <h4 data-i18n="resultado.plano.ubicacionTitulo">Ubicación de referencia de los parlantes</h4>
-      <p id="plan-ubicacion">—</p>
+
+      <footer class="note" data-i18n-html="resultado.footer.html">
+        <b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>
+        Si se agrega una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para verificarse escuchando.<br>
+        Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide en media-espacio y sobreestima, se usa la medición anecoica independiente.
+      </footer>
     </div>
-
-    <div class="ficha-final">
-      <h2 data-i18n="resultado.fichaTitulo">La cadena y los datos de sala</h2>
-      <p class="ficha-subtitulo" data-i18n="resultado.fichaSubtitulo">Supuestos, fuentes y nivel de confianza · guardar e informe</p>
-      <div class="ficha-grid">
-        <div class="blk"><h3 data-i18n="resultado.cadena">La cadena</h3><div id="chain"></div></div>
-        <div class="blk">
-          <h3 data-i18n="resultado.sala">Sala</h3>
-          <div class="rr"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="r-wl">—</b></div>
-          <div class="rr"><span data-i18n="resultado.alto">Alto</span><b id="r-h">—</b></div>
-          <div class="rr"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="r-dist">—</b></div>
-          <div class="rr"><span data-i18n="resultado.nivel">Nivel</span><b id="r-lvl">—</b></div>
-          <div class="rr"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="r-peak">—</b></div>
-        </div>
-      </div>
-    </div>
-
-    <p class="src nota-sindatos hidden" id="nota-sindatos"></p>
-
-    <footer class="note" data-i18n-html="resultado.footer.html">
-      <b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>
-      Si se agrega una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para verificarse escuchando.<br>
-      Base de datos inicial de equipos populares y bien medidos. Cuando la sensibilidad de fábrica se mide en media-espacio y sobreestima, se usa la medición anecoica independiente.
-    </footer>
   </div>
 </section>
 
-<!-- INFO -->
-<section class="screen" id="s-info">
+<!-- SALA · explorar mi sala (el plano, sacado de Resultado) -->
+<section class="screen screen-alto-contraste" id="s-sala">
   <div class="wrap">
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -929,6 +993,97 @@
         <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
         <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
         <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
+      <div class="hright">
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
+        <button class="back" id="btn-contacto-sala" data-i18n="contacto.boton">Contacto</button>
+      </div>
+    </div>
+    <div class="idioma-splash">
+      <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+        <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <div class="pc-claro sala-banda">
+    <div class="res-inner sala-cab">
+      <p class="pc-eyebrow" data-i18n="resultado.pcSalaEyebrow">Disposición / modelo geométrico</p>
+      <div class="res-cab">
+        <div class="res-cab-textos">
+          <h2 class="res-titulo res-titulo-oscuro" data-i18n="resultado.pcSalaTitulo">El espacio también suena.</h2>
+          <p class="sala-lead" data-i18n="resultado.pcSalaLead">—</p>
+        </div>
+        <div class="res-cab-acciones">
+          <button type="button" class="pc-btn-linea" data-nav-ir="results" data-i18n="resultado.pcVolverResultado">← Resultado</button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="res-inner">
+      <div class="card">
+        <div class="ct"><span class="layer" data-i18n="resultado.geometria">Geometría</span><span class="verdict" style="color:var(--dim)" data-i18n="resultado.disposicionReferencia">Disposición de referencia</span><button type="button" class="infobtn" data-info="plano" data-i18n-aria="comun.infoAria" aria-label="Ver información">i</button></div>
+        <h3 data-i18n="resultado.plano.titulo">Plano, escucha y reflexiones</h3>
+        <p data-i18n="resultado.plano.texto">Disposición simétrica calculada desde las medidas de la sala. El punto dulce es el vértice del triángulo con los parlantes; los puntos marcados en los muros laterales son las primeras reflexiones que conviene tratar.</p>
+        <div class="rline plan-toprow" style="margin-top:14px">
+          <div class="segs" role="group" id="tabs-analisis">
+            <button type="button" data-pestana="original" aria-pressed="true" data-i18n="resultado.plano.pestanaOriginal">Análisis original</button>
+            <button type="button" data-pestana="modificado" class="hidden" aria-pressed="false" data-i18n="resultado.plano.pestanaModificado">Modificado</button>
+          </div>
+          <div class="segs" role="group" data-i18n-aria="resultado.plano.vista">
+            <button data-vista="isometrica" aria-pressed="true" data-i18n="resultado.plano.vistaIsometrica">Isométrica</button>
+            <button data-vista="frontal" data-i18n="resultado.plano.vistaFrontal">Frontal</button>
+            <button data-vista="lateral" data-i18n="resultado.plano.vistaLateral">Lateral</button>
+            <button data-vista="superior" data-i18n="resultado.plano.vistaSuperior">Superior</button>
+          </div>
+          <button type="button" id="btn-candado" class="back candado-btn" aria-pressed="false" data-i18n-aria="resultado.plano.candadoAria" aria-label="Candado del punto de escucha">
+            <svg class="candado-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path id="candado-shackle" d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span id="btn-candado-texto">Candado cerrado</span>
+          </button>
+          <button type="button" id="btn-ver-ar" class="back" data-i18n="resultado.plano.verEnArBoton">Ver en AR</button>
+        </div>
+        <p id="plan-hint" class="plan-hint hidden" aria-live="polite" data-i18n-html="resultado.plano.hintArrastreHtml">En esta vista se puede mover los parlantes para probar otra disposición, <button type="button" id="btn-recalcular">RECALCULAR</button> y comparar con Análisis original.</p>
+        <p id="plan-hint-asiento" class="plan-hint hidden" data-i18n="resultado.plano.hintAsiento">Candado abierto: el punto de escucha también se puede arrastrar, de forma independiente de los parlantes.</p>
+        <p id="candado-comparador-aviso" class="src candado-comparador-aviso hidden" data-i18n="resultado.plano.candadoComparadorAviso">Análisis original y Modificado usan un método distinto para el punto de escucha (candado cerrado/abierto) — una diferencia entre ambos puede deberse a eso, no sólo a la posición.</p>
+        <div class="plan-wrap" id="plan"></div>
+        <div class="legend">
+          <span><i style="border-top:1px dashed var(--dim)"></i> <span data-i18n="resultado.plano.leyendaTriangulo">triángulo de escucha</span></span>
+          <span><i style="border-top:1px dashed var(--warn)"></i> <span data-i18n="resultado.plano.leyendaReflexion">1ª reflexión</span></span>
+          <span><i style="border-top:2px solid var(--text)"></i> <span data-i18n="resultado.plano.leyendaParlante">parlante / escucha</span></span>
+        </div>
+        <div class="src" data-i18n="resultado.plano.fuente">Predicción desde geometría de sala rígida y rectangular. Se afina escuchando y midiendo en el espacio real; no reemplaza esa verificación.</div>
+        <h4 data-i18n="resultado.plano.ubicacionTitulo">Ubicación de referencia de los parlantes</h4>
+        <p id="plan-ubicacion">—</p>
+      </div>
+
+      <div class="res-cta">
+        <button type="button" class="pc-enlace" data-nav-ir="results" data-i18n="resultado.pcVolverResultadoEnlace">Volver al resultado ↗</button>
+        <button type="button" class="pc-cta" data-nav-ir="documento"><span data-i18n="resultado.pcVerDocumento">Ver documento</span><span aria-hidden="true">↗</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INFO -->
+<section class="screen screen-alto-contraste" id="s-info">
+  <div class="wrap">
+    <div class="head">
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
         <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
         <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
       </nav>
@@ -948,25 +1103,57 @@
       </div>
     </div>
 
-    <h2 class="lead" data-i18n="info.titulo">Cómo leer este análisis</h2>
-    <p class="lead-note" data-i18n="info.intro">—</p>
+    <div class="pc-inner info-cab">
+      <p class="pc-eyebrow" data-i18n="info.pcEyebrow">Guía / Escucha informada</p>
+      <h2 class="info-titulo" data-i18n="info.pcTitulo">Entiende lo que ves.</h2>
+      <p class="info-lead" data-i18n="info.intro">—</p>
+    </div>
 
-    <details class="card info-item"><summary><h3 data-i18n="info.capas.titulo">Dos tipos de afirmación: física y criterio editorial</h3></summary><p data-i18n-html="info.capas.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.confianza.titulo">Fuente y confianza de cada dato</h3></summary><p data-i18n-html="info.confianza.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.generico.titulo">Perfiles genéricos (arquetipos): cuando el equipo real no está en el catálogo</h3></summary><p data-i18n-html="info.generico.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.potencia.titulo">Potencia frente a los picos de la sala</h3></summary><p data-i18n-html="info.potencia.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.carga.titulo">La carga que ve el amplificador</h3></summary><p data-i18n-html="info.carga.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</h3></summary><p data-i18n-html="info.amortiguamiento.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.ganancia.titulo">Puente de impedancias y recorrido de volumen</h3></summary><p data-i18n-html="info.ganancia.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.modos.titulo">Modos de sala (resonancias de graves)</h3></summary><p data-i18n-html="info.modos.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.filtroPeine.titulo">Filtro peine por reflexión</h3></summary><p data-i18n-html="info.filtroPeine.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.triangulo.titulo">Triángulo de escucha</h3></summary><p data-i18n-html="info.triangulo.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3></summary><p data-i18n-html="info.reverberacion.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.plano.titulo">Vista isométrica y reflexiones tempranas</h3></summary><p data-i18n-html="info.plano.cuerpoHtml">—</p></details>
-    <details class="card info-item"><summary><h3 data-i18n="info.veredicto.titulo">El veredicto y los tres estados</h3></summary><p data-i18n-html="info.veredicto.cuerpoHtml">—</p></details>
+    <div class="pc-claro info-banda">
+    <div class="pc-inner info-cuerpo">
+      <div class="info-temas" role="tablist" aria-orientation="vertical" id="info-temas" data-i18n-aria="info.pcTemasAria">
+        <button type="button" role="tab" id="tema-leer" aria-selected="true" aria-controls="panel-tema-leer" data-i18n="info.temas.leer.nombre">—</button>
+        <button type="button" role="tab" id="tema-equipos" aria-selected="false" tabindex="-1" aria-controls="panel-tema-equipos" data-i18n="info.temas.equipos.nombre">—</button>
+        <button type="button" role="tab" id="tema-sala" aria-selected="false" tabindex="-1" aria-controls="panel-tema-sala" data-i18n="info.temas.sala.nombre">—</button>
+        <button type="button" role="tab" id="tema-fuentes" aria-selected="false" tabindex="-1" aria-controls="panel-tema-fuentes" data-i18n="info.temas.fuentes.nombre">—</button>
+      </div>
+      <div class="info-paneles">
+        <div class="info-panel" role="tabpanel" id="panel-tema-leer" aria-labelledby="tema-leer">
+          <h3 class="info-tema-titulo" data-i18n="info.temas.leer.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.leer.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.veredicto.titulo">El veredicto y los tres estados</h3></summary><p data-i18n-html="info.veredicto.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.potencia.titulo">Potencia frente a los picos de la sala</h3></summary><p data-i18n-html="info.potencia.cuerpoHtml">—</p></details>
+        </div>
+        <div class="info-panel" role="tabpanel" id="panel-tema-equipos" aria-labelledby="tema-equipos" hidden>
+          <h3 class="info-tema-titulo" data-i18n="info.temas.equipos.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.equipos.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.carga.titulo">La carga que ve el amplificador</h3></summary><p data-i18n-html="info.carga.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.amortiguamiento.titulo">¿La impedancia de salida del amplificador colorea el sonido?</h3></summary><p data-i18n-html="info.amortiguamiento.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.ganancia.titulo">Puente de impedancias y recorrido de volumen</h3></summary><p data-i18n-html="info.ganancia.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.generico.titulo">Perfiles genéricos (arquetipos): cuando el equipo real no está en el catálogo</h3></summary><p data-i18n-html="info.generico.cuerpoHtml">—</p></details>
+        </div>
+        <div class="info-panel" role="tabpanel" id="panel-tema-sala" aria-labelledby="tema-sala" hidden>
+          <h3 class="info-tema-titulo" data-i18n="info.temas.sala.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.sala.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.modos.titulo">Modos de sala (resonancias de graves)</h3></summary><p data-i18n-html="info.modos.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.filtroPeine.titulo">Filtro peine por reflexión</h3></summary><p data-i18n-html="info.filtroPeine.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.triangulo.titulo">Triángulo de escucha</h3></summary><p data-i18n-html="info.triangulo.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.reverberacion.titulo">Tiempo de reverberación estimado (RT60)</h3></summary><p data-i18n-html="info.reverberacion.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.plano.titulo">Vista isométrica y reflexiones tempranas</h3></summary><p data-i18n-html="info.plano.cuerpoHtml">—</p></details>
+        </div>
+        <div class="info-panel" role="tabpanel" id="panel-tema-fuentes" aria-labelledby="tema-fuentes" hidden>
+          <h3 class="info-tema-titulo" data-i18n="info.temas.fuentes.titulo">—</h3>
+          <p class="info-tema-intro" data-i18n="info.temas.fuentes.intro">—</p>
+          <details class="info-item" open><summary><h3 data-i18n="info.confianza.titulo">Fuente y confianza de cada dato</h3></summary><p data-i18n-html="info.confianza.cuerpoHtml">—</p></details>
+          <details class="info-item"><summary><h3 data-i18n="info.capas.titulo">Dos tipos de afirmación: física y criterio editorial</h3></summary><p data-i18n-html="info.capas.cuerpoHtml">—</p></details>
+        </div>
+      </div>
+    </div>
 
-    <div style="display:flex; justify-content:center; margin:30px 0 10px">
-      <button class="back" id="btn-info-volver-2" data-i18n="info.volver">← Volver al análisis</button>
+    </div>
+
+    <div class="pc-inner info-pie">
+      <button class="pc-enlace" id="btn-info-volver-2" data-i18n="info.volver">← Volver al análisis</button>
     </div>
   </div>
 </section>
@@ -978,7 +1165,7 @@
      Se llega escribiendo ir('documento') en la consola (window.ir, ver
      main.ts). Sólo "Análisis 1" tiene contenido real; "Análisis 2"/
      "Comparar"/"Descargar PDF" reusan el mismo popup de #btn-guardar. -->
-<section class="screen" id="s-documento">
+<section class="screen screen-alto-contraste" id="s-documento">
   <div class="wrap">
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -988,6 +1175,7 @@
         <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
         <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
         <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
         <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
         <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
       </nav>
@@ -1007,58 +1195,72 @@
       </div>
     </div>
 
-    <div class="doc-toolbar">
-      <div class="segs" role="group" id="tabs-documento">
-        <button type="button" data-doc-tab="1" aria-pressed="true" data-i18n="documento.pestana1">Análisis 1</button>
-        <button type="button" data-doc-tab="2" aria-pressed="false" data-i18n="documento.pestana2">Análisis 2</button>
-      </div>
-      <div class="doc-toolbar-acciones">
-        <button type="button" class="back" id="btn-doc-comparar" data-i18n="documento.comparar">Comparar</button>
-        <button type="button" class="back" id="btn-doc-pdf" data-i18n="documento.descargarPdf">Descargar PDF</button>
+    <div class="pc-inner doc-cab">
+      <p class="pc-eyebrow" data-i18n="documento.pcEyebrow">Documento / resumen del análisis</p>
+      <div class="res-cab">
+        <div class="res-cab-textos">
+          <h2 class="res-titulo res-titulo-oscuro" data-i18n="documento.pcTitulo">Una referencia para volver.</h2>
+        </div>
+        <div class="res-cab-acciones">
+          <button type="button" class="pc-btn-linea" data-nav-ir="results" data-i18n="resultado.pcVolverResultado">← Resultado</button>
+        </div>
       </div>
     </div>
 
-    <div class="doc-paper">
-      <div class="doc-logo"><b class="doc-logo-the">THE</b> HIFI <b>MATCH</b></div>
-      <h2 class="doc-title" data-i18n="documento.titulo">Informe de análisis</h2>
-      <div class="doc-fecha" id="doc-fecha">—</div>
+    <div class="pc-inner doc-layout">
+      <div class="doc-paper">
+        <div class="doc-logo"><b class="doc-logo-the">THE</b> HIFI <b>MATCH</b></div>
+        <h3 class="doc-title" data-i18n="documento.titulo">Informe de análisis</h3>
+        <div class="doc-fecha" id="doc-fecha">—</div>
 
-      <h3 class="doc-h2" data-i18n="documento.equipoTitulo">Equipo</h3>
-      <div class="doc-equipos" id="doc-equipos"></div>
+        <h4 class="doc-h2" data-i18n="documento.equipoTitulo">Equipo</h4>
+        <div class="doc-equipos" id="doc-equipos"></div>
 
-      <h3 class="doc-h2" data-i18n="resultado.sala">Sala</h3>
-      <div class="doc-sala">
-        <div class="doc-row"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="doc-r-wl">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.alto">Alto</span><b id="doc-r-h">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="doc-r-dist">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.nivel">Nivel</span><b id="doc-r-lvl">—</b></div>
-        <div class="doc-row"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="doc-r-peak">—</b></div>
+        <h4 class="doc-h2" data-i18n="resultado.sala">Sala</h4>
+        <div class="doc-sala">
+          <div class="doc-row"><span data-i18n="resultado.anchoLargo">Ancho × largo</span><b id="doc-r-wl">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.alto">Alto</span><b id="doc-r-h">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.distanciaEscucha">Distancia escucha</span><b id="doc-r-dist">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.nivel">Nivel</span><b id="doc-r-lvl">—</b></div>
+          <div class="doc-row"><span data-i18n="resultado.picoObjetivo">Pico objetivo</span><b id="doc-r-peak">—</b></div>
+        </div>
+
+        <div id="doc-plano"></div>
+
+        <h4 class="doc-h2" data-i18n="documento.veredictoTitulo">Veredicto general</h4>
+        <div class="doc-veredicto-wrap">
+          <b class="doc-veredicto-titulo" id="doc-veredicto-titulo">—</b>
+          <span class="doc-veredicto-rotulo" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
+        </div>
+
+        <h4 class="doc-h2" data-i18n="resultado.evaluacion">Evaluación</h4>
+        <div id="doc-secciones"></div>
+
+        <h4 class="doc-h2" data-i18n="motor.resumen.titulo">En resumen</h4>
+        <div id="doc-resumen"></div>
+
+        <div class="doc-footer" data-i18n-html="documento.disclaimerHtml">—</div>
       </div>
 
-      <div id="doc-plano"></div>
-
-      <h3 class="doc-h2" data-i18n="documento.veredictoTitulo">Veredicto general</h3>
-      <div class="doc-veredicto-wrap">
-        <b class="doc-veredicto-titulo" id="doc-veredicto-titulo">—</b>
-        <span class="doc-veredicto-rotulo" data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span>
-      </div>
-
-      <h3 class="doc-h2" data-i18n="resultado.evaluacion">Evaluación</h3>
-      <div id="doc-secciones"></div>
-
-      <h3 class="doc-h2" data-i18n="motor.resumen.titulo">En resumen</h3>
-      <div id="doc-resumen"></div>
-
-      <div class="doc-footer" data-i18n-html="documento.disclaimerHtml">—</div>
+      <aside class="doc-lateral">
+        <p class="pc-eyebrow" data-i18n="documento.pcLateralEtiqueta">Exportar y comparar</p>
+        <div class="segs" role="group" id="tabs-documento">
+          <button type="button" data-doc-tab="1" aria-pressed="true" data-i18n="documento.pestana1">Análisis 1</button>
+          <button type="button" data-doc-tab="2" aria-pressed="false" data-i18n="documento.pestana2">Análisis 2</button>
+        </div>
+        <button type="button" class="pc-cta doc-lateral-cta" id="btn-doc-pdf"><span data-i18n="documento.descargarPdf">Descargar PDF</span><span aria-hidden="true">↓</span></button>
+        <button type="button" class="pc-btn-linea doc-lateral-btn" id="btn-doc-comparar" data-i18n="documento.comparar">Comparar</button>
+        <p class="doc-lateral-nota" data-i18n="documento.pcLateralNota">—</p>
+      </aside>
     </div>
 
-    <div style="display:flex; justify-content:center; margin:20px 0 10px">
-      <button class="back" id="btn-doc-volver-2" data-i18n="info.volver">← Volver al análisis</button>
+    <div class="pc-inner doc-pie">
+      <button class="pc-enlace" id="btn-doc-volver-2" data-i18n="info.volver">← Volver al análisis</button>
     </div>
   </div>
 </section>
 
-<section class="screen" id="s-mensajes">
+<section class="screen screen-alto-contraste" id="s-sistemas">
   <div class="wrap">
     <div class="head">
       <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
@@ -1068,6 +1270,69 @@
         <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
         <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
         <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
+        <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
+      </nav>
+      <div class="hright">
+        <span class="head-status">
+          <span class="hs-layer"><i class="hs-dot hs-dot-fisica"></i><span data-i18n="resultado.capaFisica">Capa física</span></span>
+          <span class="hs-sep">/</span>
+          <span class="hs-layer"><i class="hs-dot hs-dot-criterio"></i><span data-i18n="resultado.capaCriterioEditorial">Criterio editorial, no física</span></span>
+        </span>
+        <button class="back" id="btn-contacto-sistemas" data-i18n="contacto.boton">Contacto</button>
+      </div>
+    </div>
+    <div class="idioma-splash">
+      <div class="segs idioma" role="group" data-i18n-aria="comun.idiomaAria">
+        <button type="button" data-idioma="es" aria-pressed="true">ES</button>
+        <button type="button" data-idioma="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+
+    <div class="pc-inner sis-cab">
+      <p class="pc-eyebrow" data-i18n="sistemas.eyebrow">Biblioteca de configuraciones / En este navegador</p>
+      <div class="res-cab">
+        <div class="res-cab-textos">
+          <h2 class="res-titulo res-titulo-oscuro" data-i18n="sistemas.titulo">Tus sistemas. Tu punto de partida.</h2>
+          <p class="sis-lead" data-i18n="sistemas.lead">—</p>
+        </div>
+        <div class="res-cab-acciones">
+          <button type="button" class="pc-cta" data-nav-ir="config"><span data-i18n="sistemas.nuevo">Nuevo sistema +</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pc-inner sis-cuerpo">
+      <div class="sis-vacio hidden" id="sis-vacio">
+        <p class="pc-eyebrow" data-i18n="sistemas.vacioEtiqueta">Tu primera configuración</p>
+        <h3 class="sis-vacio-titulo" data-i18n="sistemas.vacioTitulo">Haz espacio para tu sistema.</h3>
+        <p class="sis-vacio-texto" data-i18n="sistemas.vacioTexto">—</p>
+        <div class="sis-vacio-acciones">
+          <button type="button" class="pc-cta" data-nav-ir="config"><span data-i18n="sistemas.configurar">Configurar ↗</span></button>
+          <button type="button" class="pc-btn-linea" id="btn-sis-ejemplo" data-i18n="sistemas.ejemplo">Explorar ejemplo</button>
+        </div>
+      </div>
+      <div class="sis-grid" id="sis-lista"></div>
+    </div>
+
+    <div class="pc-inner sis-pie">
+      <p id="sis-pie" data-i18n="sistemas.pie">Almacenamiento local del navegador · sin sincronización.</p>
+    </div>
+  </div>
+</section>
+
+<section class="screen screen-alto-contraste" id="s-mensajes">
+  <div class="wrap">
+    <div class="head">
+      <div class="hm"><b class="hm-the">THE</b> HIFI <b>MATCH</b></div>
+      <nav class="head-nav" aria-label="Secciones">
+        <button type="button" class="head-nav-btn" data-nav-ir="splash" data-i18n="nav.portada">Portada</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="config" data-i18n="nav.configurar">Configurar</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="results" data-i18n="nav.resultado">Resultado</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="info" data-i18n="nav.guia">Guía</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="documento" data-i18n="nav.documento">Documento</button>
+        <button type="button" class="head-nav-btn" data-nav-ir="sistemas" data-i18n="nav.sistemas">Mis sistemas</button>
         <button type="button" class="head-nav-btn" data-nav-ir="mensajes" data-i18n="nav.mensajes">Mensajes</button>
         <button type="button" class="head-nav-btn" id="btn-nav-ar" data-i18n="nav.ar" data-i18n-aria="nav.arAria">AR</button>
       </nav>
@@ -1087,34 +1352,43 @@
       </div>
     </div>
 
-    <h2 class="lead" data-i18n="mensajes.titulo">Mensajes</h2>
-    <p class="lead-note" data-i18n="mensajes.intro">—</p>
+    <div class="pc-inner msj-cab">
+      <p class="pc-eyebrow" data-i18n="mensajes.pcEyebrow">Mensajes / Muro público</p>
+      <h2 class="res-titulo res-titulo-oscuro" data-i18n="mensajes.pcTitulo">Deja tu mensaje.</h2>
+      <p class="msj-lead" data-i18n="mensajes.intro">—</p>
+    </div>
 
-    <form id="form-mensajes" novalidate>
-      <div class="campo">
-        <label for="mn-nombre" data-i18n="mensajes.campoNombre">Nombre (opcional)</label>
-        <input type="text" id="mn-nombre" name="nombre" autocomplete="name" maxlength="100">
+    <div class="pc-claro msj-banda">
+      <div class="pc-inner">
+        <form id="form-mensajes" novalidate>
+          <div class="campo">
+            <label for="mn-nombre" data-i18n="mensajes.campoNombre">Nombre (opcional)</label>
+            <input type="text" id="mn-nombre" name="nombre" autocomplete="name" maxlength="100">
+          </div>
+          <div class="campo">
+            <label for="mn-email" data-i18n="mensajes.campoEmail">Tu email</label>
+            <input type="email" id="mn-email" name="email" required autocomplete="email">
+          </div>
+          <div class="campo campo-ancho">
+            <label for="mn-mensaje" data-i18n="mensajes.campoMensaje">Mensaje</label>
+            <textarea id="mn-mensaje" name="mensaje" rows="5" required maxlength="1000"></textarea>
+          </div>
+          <div class="campo-hp" aria-hidden="true">
+            <label for="mn-sitio">Sitio web</label>
+            <input type="text" id="mn-sitio" name="sitio_web" tabindex="-1" autocomplete="off">
+          </div>
+          <p id="mensajes-estado" class="contacto-estado hidden" role="status" aria-live="polite"></p>
+          <div class="contacto-acciones">
+            <button type="submit" id="mensajes-enviar" class="pc-cta"><span data-i18n="mensajes.enviar">Publicar</span><span aria-hidden="true">↗</span></button>
+          </div>
+        </form>
       </div>
-      <div class="campo">
-        <label for="mn-email" data-i18n="mensajes.campoEmail">Tu email</label>
-        <input type="email" id="mn-email" name="email" required autocomplete="email">
-      </div>
-      <div class="campo">
-        <label for="mn-mensaje" data-i18n="mensajes.campoMensaje">Mensaje</label>
-        <textarea id="mn-mensaje" name="mensaje" rows="5" required maxlength="1000"></textarea>
-      </div>
-      <div class="campo-hp" aria-hidden="true">
-        <label for="mn-sitio">Sitio web</label>
-        <input type="text" id="mn-sitio" name="sitio_web" tabindex="-1" autocomplete="off">
-      </div>
-      <p id="mensajes-estado" class="contacto-estado hidden" role="status" aria-live="polite"></p>
-      <div class="contacto-acciones">
-        <button type="submit" id="mensajes-enviar" class="analizar" data-i18n="mensajes.enviar">Publicar</button>
-      </div>
-    </form>
+    </div>
 
-    <h2 class="lead" data-i18n="mensajes.listaTitulo">Mensajes recientes</h2>
-    <div id="mensajes-lista" aria-live="polite"></div>
+    <div class="pc-inner msj-lista-wrap">
+      <h3 class="msj-lista-titulo" data-i18n="mensajes.listaTitulo">Mensajes recientes</h3>
+      <div id="mensajes-lista" aria-live="polite"></div>
+    </div>
   </div>
 </section>
 

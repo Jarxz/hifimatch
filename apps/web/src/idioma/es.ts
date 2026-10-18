@@ -20,6 +20,7 @@ import type { NombreReflexion, CodigoAnguloEscucha } from '../../../../packages/
 import type { Confianza } from '../../../../packages/engine/src/tipos.ts';
 import type { CodigoContacto } from '../../../../packages/contact/src/contacto.ts';
 import type { CodigoMensaje } from '../../../../packages/mensajes/src/mensajes.ts';
+import type { CodigoGuardado } from '../datos/sistemasGuardados.ts';
 
 /** Códigos que puede devolver `/api/contact.ts` — superset de
  * `CodigoContacto` (que sólo cubre lo que valida `validarContacto`, del
@@ -67,6 +68,7 @@ export const es = {
     cerrarAria: 'Cerrar',
     acercaDe: 'Acerca de',
     privacidad: 'Privacidad',
+    novedades: 'Novedades',
     // Pie de página real (Configurar/Resultado/Guía) — mismo lugar que
     // ocupa el footer de la referencia de Stitch, con texto real en vez
     // de "LAB INSTRUMENT PLATFORM"/"CALIBRATED SPECS: IEC-60268-5".
@@ -84,6 +86,7 @@ export const es = {
     resultado: 'Resultado',
     guia: 'Guía',
     documento: 'Documento',
+    sistemas: 'Mis sistemas',
     mensajes: 'Mensajes',
     ar: 'AR',
     arAria: 'Ver en realidad aumentada — Chrome/Android con un análisis ya calculado',
@@ -118,8 +121,45 @@ export const es = {
   // concepto se superpone), con las claves propias del listado público.
   // Nombre y mensaje se muestran a cualquier visitante; el email nunca
   // se muestra (viaja al servidor, se guarda, no más que eso).
+  sistemas: {
+    eyebrow: 'Biblioteca de configuraciones / En este navegador',
+    titulo: 'Tus sistemas. Tu punto de partida.',
+    lead: 'Guarda escenarios para volver a explorarlos. Se guardan sólo en este navegador: sin cuenta y sin sincronización.',
+    nuevo: 'Nuevo sistema +',
+    vacioEtiqueta: 'Tu primera configuración',
+    vacioTitulo: 'Haz espacio para tu sistema.',
+    vacioTexto: 'Aún no has guardado ninguno. Empieza con tus equipos o explora un sistema de ejemplo.',
+    configurar: 'Configurar ↗',
+    ejemplo: 'Explorar ejemplo',
+    abrir: 'Abrir ↗',
+    eliminar: 'Eliminar',
+    pie: 'Almacenamiento local del navegador · sin sincronización.',
+    pieBloqueado: 'El navegador no permite guardar en este momento (almacenamiento bloqueado): los sistemas guardados no se conservarán.',
+    guardarTitulo: 'Guardar este sistema',
+    guardarNombre: 'Nombre del sistema',
+    guardarNota: 'Se guarda sólo en este navegador: sin cuenta y sin sincronización, y no viaja a otro dispositivo.',
+    guardar: 'Guardar',
+    cancelar: 'Cancelar',
+    guardadoTitulo: 'Sistema guardado',
+    guardadoTexto: (p: { nombre: string }): string => `«${p.nombre}» quedó en «Mis sistemas», en este navegador.`,
+    verSistemas: 'Ver mis sistemas',
+    cerrar: 'Cerrar',
+    eliminarTitulo: 'Eliminar este sistema',
+    eliminarTexto: (p: { nombre: string }): string => `Se quitará «${p.nombre}» de los sistemas guardados en este navegador.`,
+    conservar: 'Conservar',
+    error: {
+      'nombre-vacio': 'Escribe un nombre para el sistema.',
+      'sin-equipos': 'Falta elegir parlantes y amplificador.',
+      'equipo-fuera-de-catalogo':
+        'Este sistema incluye un equipo hallado en la web o ingresado a mano, que todavía no se puede guardar. Con equipos del catálogo sí.',
+      'almacen-bloqueado': 'El navegador no permitió guardar (almacenamiento bloqueado o lleno).',
+      'limite-alcanzado': 'Ya hay 30 sistemas guardados: elimina alguno para guardar otro.',
+    } satisfies Record<CodigoGuardado, string>,
+  },
+
   mensajes: {
-    titulo: 'Mensajes',
+    pcEyebrow: 'Mensajes / Muro público',
+    pcTitulo: 'Deja tu mensaje.',
     intro: 'Deja un mensaje público para otros visitantes del sitio — se publica de inmediato, sin revisión previa.',
     campoNombre: 'Nombre (opcional)',
     campoEmail: 'Tu email (no se muestra — sólo para responder si hiciera falta)',
@@ -146,15 +186,8 @@ export const es = {
   },
 
   splash: {
-    entrarAria: 'Entrar al análisis de compatibilidad',
     subtitulo: 'análisis de compatibilidad hi-fi · basado en física',
     remate: 'tú escuchas y decides',
-    // Párrafo de precisión bajo el remate — describe el motor real (qué
-    // evalúa), sin adjetivos de "laboratorio" ni certificaciones que el
-    // sitio no tiene.
-    leadParrafo:
-      'Evalúa el acople eléctrico, la reserva de potencia y la acústica de la sala entre los equipos que elijas, con reglas físicas propias: cada una declara su fórmula, su umbral y de dónde sale el dato.',
-    cta: 'Analizar un sistema',
     ctaSecundaria: 'Explorar la guía',
     proofReglas: 'reglas físicas, cada una con fórmula y umbral declarado',
     // Chips de marca bajo el conteo de equipos — 4 marcas reales del
@@ -196,29 +229,12 @@ export const es = {
     // ModeloMatchDelMes en vista/matchDelMes.ts), así que el titular nunca
     // necesita matizar por severidad.
     recomendadoPositivoTitulo: 'Potencia y acople eléctrico verificados',
-    // Intro de arranque (ver vista/bootSplash.ts) — puramente decorativa,
-    // nombra mecanismos reales del motor (catálogo, Rayleigh, Sabine/
-    // Eyring, la separación de capas), nunca una certificación o auditoría
-    // que este sitio no tiene.
-    bootPaso1: 'Cargando catálogo (170+ equipos)…',
-    bootPaso2: 'Aplicando reglas físicas (modos de Rayleigh, Sabine/Eyring)…',
-    bootPaso3: 'Separando ley física de criterio editorial…',
-    bootProcesando: 'Procesando…',
-    bootListo: 'Listo',
-    bootSaltar: 'Saltar intro',
-    bootSistema: 'Motor CADENA v2.4',
-    bootInicializacion: 'Inicialización determinista',
-    bootBadgeTop: 'Sin servidor',
-    bootDiagnostico: 'Diagnóstico del sistema',
-    bootPieIzq: 'Arquitectura determinista, sin intervención humana en el resultado',
-    bootPieDer: 'Basado en física, specs medidos',
-    // Barra de telemetría + sección "Dos capas" de la portada (rediseño a
+    // Sección "Dos capas" de la portada (rediseño a
     // partir del sistema de Google Stitch, corregido: reusa capaFisica/
     // capaCriterioEditorial de motor.veredicto en vez de duplicar el
     // rótulo, y cita criterios editoriales REALES del motor — nunca los
     // inventados del mockup original (AES20, "instrumental Audio
     // Precision/Klippel", un reparto de presupuesto 85/15 que no existe).
-    telemetriaEstado: 'Motor en vivo, sin servidor',
     capasEyebrow: 'Regla estructural del proyecto',
     capasTitulo: 'Dos capas de información. Cero confusión.',
     capasIntro:
@@ -234,13 +250,80 @@ export const es = {
       'Ángulo de referencia propio de 45°, declarado aparte de la convención de 60° del triángulo estéreo.',
     capasCriterioEj3:
       'Un par de modos coincide si difiere menos de 1% exacto, o si hay 2 o más pares bajo 2% — umbral propio, no una norma publicada.',
+    // Portada editorial (estructura de la propuesta de Codex, adaptada al sitio
+    // real). Los titulares van en minúscula: la mayúscula la pone el CSS.
+    pcTitulo1: 'Tu sistema.',
+    pcTitulo2: 'En',
+    pcTitulo3: 'equilibrio.',
+    pcLead: 'Entiende la relación entre tus equipos, tu sala y tu forma de escuchar.',
+    pcCta: 'Configurar mi sistema',
+    pcImagenNota: 'Ilustración conceptual, no es una medición de tu sala.',
+    pcCarril1Titulo: 'Acople eléctrico',
+    pcCarril1Sub: 'amplificador ↔ parlantes',
+    pcCarril2Titulo: 'Reserva de potencia',
+    pcCarril2Sub: 'tu nivel de escucha',
+    pcCarril3Titulo: 'Acústica de sala',
+    pcCarril3Sub: 'el espacio también suena',
+    pcCarril4Titulo: 'Información visible',
+    pcCarril4Sub: 'fórmula / fuente / alcance',
+    pcNotaTitulo: 'Cálculo en tu navegador',
+    pcNotaTexto: 'sin servidor y sin intervención humana en el resultado.',
+    pcBanda1Eyebrow: '01 — del equipo a la experiencia',
+    pcBanda1Titulo: 'El conjunto importa.',
+    pcBanda1Texto: 'Empieza con tus parlantes y amplificador. Añade tu sala. Explora qué cambia al modificar la disposición.',
+    pcBanda1Cta: 'Construye tu cadena',
+    pcPaso1Etiqueta: '01 / Elige',
+    pcPaso1Nombre: 'Equipos',
+    pcPaso2Etiqueta: '02 / Sitúa',
+    pcPaso2Nombre: 'Sala',
+    pcPaso3Etiqueta: '03 / Entiende',
+    pcPaso3Nombre: 'Resultado',
+    pcSeccion2Eyebrow: '02 — una lectura honesta del sistema',
+    pcFisicaTitulo: 'La física, explicada.',
+    pcCriterioTitulo: 'Los criterios, a la vista.',
+    pcDatosEtiqueta: 'Fuente y confianza',
+    pcDatosTitulo: 'Datos con fuente y confianza.',
+    pcDatosDesc:
+      'Cada especificación lleva su fuente y su nivel de confianza. Si un dato falta, el análisis lo declara como «sin datos»: nunca se rellena en silencio ni cuenta como aprobado.',
+    pcDatosNota:
+      'Un equipo fuera del catálogo se puede buscar en la web: entra siempre con confianza baja y su fuente a la vista.',
+    pcProbarEjemplo: 'Probar un ejemplo',
+    pcMasGuia: 'Más en la guía',
   },
 
   info: {
     hs: 'Guía del análisis',
     boton: 'Info',
     volver: '← Volver al análisis',
-    titulo: 'Cómo leer este análisis',
+    pcEyebrow: 'Guía / Escucha informada',
+    pcTitulo: 'Entiende lo que ves.',
+    pcTemasAria: 'Temas de la guía',
+    temas: {
+      leer: {
+        nombre: 'Leer el resultado',
+        titulo: 'Leer el resultado, con criterio.',
+        intro:
+          'Cada conclusión necesita contexto. El sitio distingue lo que calcula, lo que decide como criterio propio y lo que todavía falta: así se agrupan las reglas en un veredicto y qué significa la reserva de potencia.',
+      },
+      equipos: {
+        nombre: 'Equipos y señal',
+        titulo: 'Los equipos, más allá de la ficha.',
+        intro:
+          'Potencia, carga, impedancia de salida y ganancia describen partes distintas de la cadena. Compararlas exige saber cómo se midió cada dato y qué ocurre entre una etapa y la siguiente.',
+      },
+      sala: {
+        nombre: 'Sala y disposición',
+        titulo: 'El espacio participa en la escucha.',
+        intro:
+          'La geometría ofrece un punto de partida. Los materiales, las aberturas y la ubicación determinan cuánto se parece la sala real al modelo, por eso cada predicción se verifica midiendo.',
+      },
+      fuentes: {
+        nombre: 'Fuentes y confianza',
+        titulo: 'El origen es parte del dato.',
+        intro:
+          'Un análisis transparente muestra qué se conoce, de dónde viene y qué límites tiene. Aquí se explica cómo se rotula cada afirmación y qué ocurre cuando falta un dato.',
+      },
+    },
     intro:
       'Esta página explica qué significa cada tarjeta del resultado y de dónde sale cada número — para que el análisis se pueda leer con criterio propio, no sólo confiando en el veredicto final.',
     capas: {
@@ -261,7 +344,7 @@ export const es = {
     potencia: {
       titulo: 'Potencia frente a los picos de la sala',
       cuerpoHtml:
-        'La pregunta que responde esta tarjeta: ¿el amplificador entrega el nivel de pico (SPL) que la sala pide, a la distancia real de escucha? Se calcula desde la sensibilidad del parlante, la potencia del amplificador y la distancia, sumando un refuerzo típico por par de parlantes (+6 dB) y por sala pequeña (+3 dB) — dos supuestos declarados, no datos del equipo, que se verifican midiendo. El resultado es un <b>margen en dB</b> sobre el pico objetivo del nivel de escucha elegido (moderado/alto/referencia). La frase simple de la tarjeta reexpresa ese margen como <b>% de la capacidad del amplificador</b> que exige ese pico — más intuitivo que un número en dB: si el margen es de +6 dB, el amplificador está usando apenas una fracción de lo que tiene; si el margen es negativo, exigiría más del 100% de su capacidad, es decir, recortaría la señal (clipping) en los picos.',
+        'La pregunta que responde esta tarjeta: ¿el amplificador entrega el nivel de pico (SPL) que la sala pide, a la distancia real de escucha? Se calcula desde la sensibilidad del parlante (normalizada a 1 W/1 m cuando la ficha la cita a 2,83 V), la potencia del amplificador a la carga real (8 Ω o 4 Ω, según el parlante) y la distancia de cada parlante al punto de escucha. Los dos canales se suman como fuentes descorrelacionadas (+3 dB a igual distancia) y la ganancia de sala <b>no</b> se suma al nivel de banda ancha: aparece aparte, como información, bajo la frecuencia del modo axial de la dimensión mayor. Cuando la ficha no declara con qué convención se midió la sensibilidad y la impedancia es menor de 8 Ω, la tarjeta muestra un rango en vez de un solo número. Son supuestos declarados, no datos del equipo, y se verifican midiendo. El resultado es un <b>margen en dB</b> sobre el pico objetivo del nivel de escucha elegido (moderado/alto/referencia). La frase simple de la tarjeta reexpresa ese margen como <b>% de la capacidad del amplificador</b> que exige ese pico — más intuitivo que un número en dB: si el margen es de +6 dB, el amplificador está usando apenas una fracción de lo que tiene; si el margen es negativo, exigiría más del 100% de su capacidad, es decir, recortaría la señal (clipping) en los picos.',
     },
     carga: {
       titulo: 'La carga que ve el amplificador',
@@ -313,37 +396,12 @@ export const es = {
   config: {
     hs: 'Configurar',
     volver: '← Volver',
-    lead: 'Define la cadena',
-    leadNote:
-      'Elige un amplificador y un par de parlantes, e indica las medidas de la sala. El análisis calcula la potencia que el sistema pide en ese espacio y propone una disposición.',
     parlantes: 'Parlantes',
     amplificador: 'Amplificador',
     streamer: 'Streamer',
     dac: 'DAC',
-    // Subtítulo real bajo cada categoría (terminología técnica exacta del
-    // rol que cumple, no un dato inventado) — mismo lugar que ocupa el
-    // título grande de la referencia de Stitch ("Parlantes Pasivos",
-    // "Amplificador Integrado"...) bajo la etiqueta numerada.
-    parlantesRol: 'Transductor principal',
-    amplificadorRol: 'Etapa de amplificación',
-    streamerRol: 'Fuente de streaming',
-    dacRol: 'Conversor digital-analógico',
     requerido: 'requerido',
     opcionalFuente: 'opcional',
-    // Etiquetas de los dos bloques del rediseño (ver estilos.css .cfg-grid)
-    // — puramente organizativas, agrupan visualmente lo que ya existía.
-    bloqueA: 'Cadena de señal',
-    bloqueB: 'Sala de escucha',
-    eyebrowFase: 'Fase 01',
-    eyebrowMatriz: 'Matriz de configuración',
-    eyebrowEstado: 'Cálculo en el navegador, sin servidor',
-    estadoAnalisisLabel: 'Estado de la selección',
-    estadoAnalisisValor: (p: { hechos: string; total: string }): string => `${p.hechos} de ${p.total} requeridos`,
-    bloqueAMeta: '6 reglas físicas aplicables',
-    matrizTitulo: 'Matriz de la cadena',
-    faltanDatos: 'Faltan datos',
-    listoAnalizar: 'Listo para analizar',
-    sinInconsistencias: 'Sin inconsistencias detectadas — listo para calcular.',
     verFicha: 'Distribuidor próximamente',
     verDescripcion: 'Ver descripción',
     notaGenerico:
@@ -385,25 +443,9 @@ export const es = {
     buscarManualIntroFuente: 'Un streamer o DAC no necesita ningún dato numérico obligatorio — puedes usarlo así, sin voltaje ni impedancia de salida.',
     buscarManualUsarSinDatos: 'Usar sin datos de salida',
     buscarSolicitarAlta: 'Avisar al sitio sobre este equipo',
-    personalizarSala: 'Personalizar sala',
-    resumenSala: (p: { ancho: string; largo: string; alto: string; muro: string; piso: string }): string =>
-      `${p.ancho} × ${p.largo} × ${p.alto} m · ${p.muro} + ${p.piso}`,
-    // Volumen (m³) junto al título "Personalizar sala" — mismo dato que
-    // el badge de volumen de la referencia, acá real (W×L×H).
-    volumenBadge: (p: { m3: string }): string => `${p.m3} m³`,
-    dimensionesTitulo: 'Dimensiones de la sala',
-    // Relación ancho/largo respecto del alto (siempre el más chico en la
-    // sala por defecto) — sólo aritmética sobre las 3 medidas ya
-    // ingresadas, no una regla nueva del motor.
-    relacion: (p: { w: string; l: string }): string => `Relación (alto=1) 1 : ${p.w} : ${p.l}`,
-    // Lectura en vivo (packages/engine/src/unidades.ts, frecuenciaModoAxialHz)
-    // — el modo axial de orden 1 de la dimensión más larga, se recalcula al
-    // mover cualquier slider.
-    modoAxial: 'Modo axial de la dimensión mayor',
     ancho: 'Ancho (frente)',
     largo: 'Largo (fondo)',
     alto: 'Alto',
-    materialesTitulo: 'Materiales de la sala',
     muroFrontal: 'Muro frontal',
     muroPosterior: 'Muro posterior',
     muroIzquierdo: 'Muro izquierdo',
@@ -441,11 +483,57 @@ export const es = {
     proximamente: 'Próximamente',
     subwoofer: 'Subwoofer',
     cables: 'Cables',
-    faltaElegir: (p: { que: string }): string => `Falta elegir ${p.que}`,
-    faltaParlantes: 'parlantes',
-    faltaAmplificador: 'amplificador',
-    faltaY: ' y ',
     analizar: 'Analizar',
+    // Configurar en 3 pasos (estructura de la propuesta de Codex, adaptada a la
+    // pantalla real). Los titulares van en minúscula: la mayúscula la pone el CSS.
+    pcEyebrow: 'Configuración / tu sistema',
+    pcLead: 'Da forma a tu escucha.',
+    pcLeadNote: 'Tres pasos para relacionar tus equipos, tu espacio y tus preferencias. El análisis se calcula en tu navegador.',
+    pcPasosAria: 'Pasos de la configuración',
+    pcPaso1: 'Equipos',
+    pcPaso2: 'Sala y escucha',
+    pcPaso3: 'Revisión',
+    pcOpcionales: 'Agrega Streamer y DAC · opcional',
+    pcCadenaEyebrow: 'Tu cadena de escucha',
+    pcCadenaTitulo: 'Mi sistema de escucha',
+    pcSinSeleccionar: 'Por seleccionar',
+    pcFilaSala: 'Sala',
+    pcFilaEscucha: 'Escucha',
+    pcCadenaNota: 'Los datos de cada equipo traen su fuente y su nivel de confianza.',
+    pcRevisionTitulo: 'Antes de comenzar.',
+    pcRevisionNota:
+      'Puedes volver a cualquier paso sin perder tu selección. El análisis se calcula en tu navegador; cada dato conserva su fuente y su nivel de confianza.',
+    pcCargarEjemplo: 'Cargar ejemplo',
+    pcSeleccionarEquipo: 'Seleccionar equipo +',
+    pcCambiarEquipo: 'Cambiar equipo ↗',
+    pcQuitar: 'Quitar',
+    pcSlotVacio: 'Encuentra un perfil para tu sistema.',
+    pcCatalogo: 'Catálogo',
+    pcDialogoSpk: 'Selecciona parlantes',
+    pcDialogoAmp: 'Selecciona amplificador',
+    pcDialogoStreamer: 'Selecciona streamer',
+    pcDialogoDac: 'Selecciona DAC',
+    pcCerrar: 'Cerrar',
+    pcOpcionalesNota:
+      'Se incluyen en el análisis y en el documento: cada uno evalúa su propio puente de impedancias y recorrido de volumen contra el amplificador.',
+    pcContador: (p: { hechos: string; total: string }): string => `${p.hechos} de ${p.total} equipos seleccionados`,
+    pcDefinirSala: 'Definir mi sala',
+    pcSalaTitulo: 'El espacio también es parte del sistema.',
+    pcAnchoEtiqueta: 'Ancho / metros',
+    pcLargoEtiqueta: 'Largo / metros',
+    pcAltoEtiqueta: 'Alto / metros',
+    pcDimError: (p: { anchoMin: string; anchoMax: string; largoMin: string; largoMax: string; altoMin: string; altoMax: string }): string =>
+      `Revisa las dimensiones: ancho de ${p.anchoMin} a ${p.anchoMax} m, largo de ${p.largoMin} a ${p.largoMax} m y alto de ${p.altoMin} a ${p.altoMax} m.`,
+    pcFranjaVolumen: 'Volumen',
+    pcFranjaModo: 'Primer modo / eje mayor',
+    pcFranjaRt60: 'RT60 estimado',
+    pcMateriales: 'Materiales del recinto',
+    pcNivelEditorial: 'Nivel de escucha · criterio editorial',
+    pcRevisarSistema: 'Revisar sistema',
+    pcVolverEquipos: '← Equipos',
+    pcVolverSala: '← Sala y escucha',
+    pcExplorarResultado: 'Explorar resultado',
+    pcComoLeer: 'Cómo leer los datos',
   },
 
   resultado: {
@@ -475,6 +563,94 @@ export const es = {
     evidenciaTitulo: 'Ver evidencia técnica completa',
     fichaTitulo: 'La cadena y los datos de sala',
     fichaSubtitulo: 'Supuestos, fuentes y nivel de confianza · guardar e informe',
+    // Banda de resumen, cifras y pestañas de Resultado (Fase 3, estructura de
+    // la maqueta de Codex). Todo texto de UI; las cifras las calcula el motor.
+    pcEyebrow: 'Resultado / tu análisis',
+    pcTitulo: 'Tu sistema. En perspectiva.',
+    pcEditar: 'Editar configuración',
+    pcGuardar: 'Guardar sistema',
+    pcSumAria: 'Resumen del sistema analizado',
+    pcSumCadena: 'Cadena',
+    pcSumEspacio: 'Espacio',
+    pcSumEscucha: 'Escucha',
+    pcSumConfianza: 'Confianza más baja',
+    pcConfianza: { alta: 'Alta', media: 'Media', baja: 'Baja' },
+    pcMetricasAria: 'Cifras principales del análisis',
+    pcMetricaNivelEtiqueta: 'Nivel máximo disponible',
+    pcMetricaNivelTexto: (p: { distancia: string }): string =>
+      `Pico de los dos parlantes a ${p.distancia} m, con la potencia declarada del amplificador.`,
+    pcMetricaMargenEtiqueta: 'Margen sobre el pico',
+    pcMetricaMargenTexto: (p: { pico: string }): string =>
+      `Respecto al pico de ${p.pico} dB que pide el nivel de escucha elegido.`,
+    pcMetricaModoEtiqueta: 'Primer modo axial',
+    pcMetricaModoTexto: 'De la dimensión mayor, en una sala rectangular rígida. Se verifica midiendo.',
+    pcRango: (p: { min: string; max: string }): string =>
+      `Rango de ${p.min} a ${p.max} dB: la sensibilidad citada no declara su convención de medición.`,
+    pcTabsAria: 'Detalle del análisis',
+    pcTabLectura: 'Lectura general',
+    pcTabFisica: 'Física y fórmulas',
+    pcTabDatos: 'Datos y fuentes',
+    pcFisicaIntro: 'Cada regla con su fórmula, su umbral y su fuente. Ábrela para ver el cálculo completo.',
+    pcDatosTitulo: 'Todo dato tiene un origen.',
+    pcDatosNota:
+      'Cada número que entra al cálculo muestra de dónde viene y qué confianza tiene. «Sin cita propia» significa que el catálogo lo respalda con las referencias del equipo, sin un nivel de confianza por campo.',
+    pcExplorarSala: 'Explorar mi sala',
+    pcAbrirDocumento: 'Abrir documento ↗',
+    pcModificadoAviso:
+      'Estás viendo el análisis modificado: los parlantes o el punto de escucha están en otra posición que la disposición de referencia.',
+    pcVerOriginal: 'Ver el original',
+    pcLecturaEtiqueta: 'Lectura del sistema',
+    pcModosEtiqueta: 'Tu sala en frecuencia',
+    pcModosTitulo: 'Resonancias que conviene conocer.',
+    pcModosCaption:
+      'Frecuencias axiales teóricas de una sala rectangular rígida: los tres primeros modos de cada eje, entre 20 y 200 Hz. La altura de las marcas no representa amplitud sonora.',
+    pcModosAria: 'Frecuencias de los primeros modos axiales por ancho, largo y alto',
+    pcModosCoinciden: 'Frecuencias que coinciden',
+    pcVerSala: 'Ver la disposición de sala ↗',
+    pcFisicaTitulo: 'Los números, con contexto.',
+    pcSalaEyebrow: 'Disposición / modelo geométrico',
+    pcSalaTitulo: 'El espacio también suena.',
+    pcSalaLead:
+      'Explora posiciones y distancia de escucha. El dibujo ayuda a visualizar la geometría; no sustituye una simulación acústica ni una medición en tu sala.',
+    pcVolverResultado: '← Resultado',
+    pcVolverResultadoEnlace: 'Volver al resultado ↗',
+    pcVerDocumento: 'Ver documento',
+    datos: {
+      colDato: 'Dato',
+      colValor: 'Valor',
+      colOrigen: 'Origen',
+      colEstado: 'Estado',
+      grupoSala: 'Sala y escucha',
+      sensibilidad: 'Sensibilidad',
+      impedancia: 'Impedancia nominal / mínima',
+      impedanciaExtra: 'Impedancia de pico / fase en graves',
+      potencia8: 'Potencia a 8 Ω',
+      potencia4: 'Potencia a 4 Ω',
+      cargaMinima: 'Carga mínima soportada',
+      factorAmortiguamiento: 'Factor de amortiguamiento',
+      salida: 'Salida analógica / impedancia de salida',
+      dimensiones: 'Dimensiones',
+      materiales: 'Materiales de las superficies',
+      picoObjetivo: 'Objetivo de pico',
+      noPublicado: 'No publicado',
+      convencion2v83: '2,83 V / 1 m',
+      convencion1w: '1 W / 1 m',
+      convencionSinDeclarar: 'convención sin declarar',
+      referenciasEquipo: 'Referencias del equipo',
+      sinReferencias: '—',
+      estadoAlta: 'Confianza alta',
+      estadoMedia: 'Confianza media',
+      estadoBaja: 'Confianza baja',
+      estadoSinCita: 'Sin cita propia',
+      estadoSinDato: 'Sin dato',
+      origenUsuario: 'Configuración del usuario',
+      estadoSinMedicion: 'Sin medición independiente',
+      valorMateriales: 'Según los materiales elegidos',
+      origenMateriales: 'Coeficientes típicos de la literatura de acústica arquitectónica (criterio del sitio)',
+      estadoEstimacion: 'Estimación, no medición',
+      origenNivel: (p: { nivel: string }): string => `Nivel de escucha elegido: ${p.nivel}`,
+      estadoCriterio: 'Criterio editorial',
+    },
     notaSinDatos: (p: { items: string }): string =>
       `<b>Datos que el fabricante no publica:</b> ${p.items}. No es un problema de tu sistema — es información que el catálogo todavía no tiene.`,
     plano: {
@@ -516,8 +692,8 @@ export const es = {
     footer: {
       html:
         '<b>Análisis basado en física publicada.</b> Cada dato lleva su fuente y su nivel de confianza. ' +
-        'El cálculo de potencia asume suma de par (+6&nbsp;dB) y ganancia de sala (+3&nbsp;dB), que se ' +
-        'verifican midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>' +
+        'El cálculo de potencia suma los dos parlantes como fuentes descorrelacionadas (+3&nbsp;dB a igual ' +
+        'distancia) y no suma ganancia de sala al nivel de banda ancha; se verifica midiendo. No se emiten juicios de timbre, escena ni sinergia sonora: eso no se calcula.<br>' +
         'Si se agrega una fuente digital (streamer o DAC), el puente de impedancias usa la convención de 10:1 ' +
         'de la industria; el umbral de recorrido de volumen (10×) es un criterio del sitio, pensado para ' +
         'verificarse escuchando.<br>' +
@@ -533,6 +709,11 @@ export const es = {
     comparar: 'Comparar',
     descargarPdf: 'Descargar PDF',
     titulo: 'Informe de análisis',
+    pcEyebrow: 'Documento / resumen del análisis',
+    pcTitulo: 'Una referencia para volver.',
+    pcLateralEtiqueta: 'Exportar y comparar',
+    pcLateralNota:
+      'Guardar análisis, compararlos y descargarlos como PDF estará disponible con una cuenta. Mientras tanto, este informe muestra siempre el análisis vigente, con la fuente y la confianza de cada dato.',
     equipoTitulo: 'Equipo',
     planoTitulo: 'Plano, escucha y reflexiones (vista superior)',
     veredictoTitulo: 'Veredicto general',

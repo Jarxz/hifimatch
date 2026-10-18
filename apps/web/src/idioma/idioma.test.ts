@@ -49,21 +49,23 @@ test('leerRuta tira si la clave resuelve a un objeto o función, no a un string'
 
 test('data-i18n-html sólo se usa donde el texto realmente lleva HTML (footer + guía de conceptos)', () => {
   assert.deepEqual(CLAVES_HTML, [
-    'resultado.plano.hintArrastreHtml',
     'resultado.footer.html',
-    'info.capas.cuerpoHtml',
-    'info.confianza.cuerpoHtml',
-    'info.generico.cuerpoHtml',
+    'resultado.plano.hintArrastreHtml',
+    // Guía por temas: el orden es el de index.html (Leer el resultado → Equipos y
+    // señal → Sala y disposición → Fuentes y confianza).
+    'info.veredicto.cuerpoHtml',
     'info.potencia.cuerpoHtml',
     'info.carga.cuerpoHtml',
     'info.amortiguamiento.cuerpoHtml',
     'info.ganancia.cuerpoHtml',
+    'info.generico.cuerpoHtml',
     'info.modos.cuerpoHtml',
     'info.filtroPeine.cuerpoHtml',
     'info.triangulo.cuerpoHtml',
     'info.reverberacion.cuerpoHtml',
     'info.plano.cuerpoHtml',
-    'info.veredicto.cuerpoHtml',
+    'info.confianza.cuerpoHtml',
+    'info.capas.cuerpoHtml',
     'documento.disclaimerHtml',
   ]);
 });
