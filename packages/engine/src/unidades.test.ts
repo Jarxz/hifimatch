@@ -6,6 +6,7 @@ import {
   sumarNivelesDb,
   sensibilidadA1WDb,
   frecuenciaModoAxialHz,
+  frecuenciaModoHz,
 } from './unidades.ts';
 
 // Tolerancia estándar del proyecto: ±0,05 dB (ver docs/motor-mvp.md, cabecera).
@@ -82,4 +83,37 @@ test('frecuenciaModoAxialHz — dimensiones en razón 3:2 (3,6 y 2,4) hacen coin
   const modoW3 = frecuenciaModoAxialHz(3.6, 3);
   const modoH2 = frecuenciaModoAxialHz(2.4, 2);
   assert.ok(Math.abs(modoW3 - modoH2) < EPS);
+});
+
+// ---- frecuenciaModoHz: generaliza frecuenciaModoAxialHz a 2/3 dimensiones (modos tangenciales/oblicuos) ----
+
+test('frecuenciaModoHz — con un solo término da el mismo resultado que frecuenciaModoAxialHz (caso particular; difieren sólo por redondeo de punto flotante entre los dos caminos — división directa vs. raíz de un cuadrado)', () => {
+  const generalizada = frecuenciaModoHz([{ longitudM: 3.6, orden: 1 }]);
+  const axial = frecuenciaModoAxialHz(3.6, 1);
+  assert.ok(Math.abs(generalizada - axial) < 1e-9);
+});
+
+test('frecuenciaModoHz — tangencial (2 términos): ancho=3,6 orden 1 + largo=5,0 orden 1 → 58,70224641841146 Hz', () => {
+  const f = frecuenciaModoHz([
+    { longitudM: 3.6, orden: 1 },
+    { longitudM: 5.0, orden: 1 },
+  ]);
+  assert.ok(Math.abs(f - 58.70224641841146) < 1e-9);
+});
+
+test('frecuenciaModoHz — oblicuo (3 términos): 3,6/1 + 5,0/1 + 2,4/1 → 92,47836037336346 Hz', () => {
+  const f = frecuenciaModoHz([
+    { longitudM: 3.6, orden: 1 },
+    { longitudM: 5.0, orden: 1 },
+    { longitudM: 2.4, orden: 1 },
+  ]);
+  assert.ok(Math.abs(f - 92.47836037336346) < 1e-9);
+});
+
+test('frecuenciaModoHz — órdenes distintos de 1 también funcionan: ancho=3,6 orden 2 + alto=2,4 orden 1 → 119,09722222222224 Hz', () => {
+  const f = frecuenciaModoHz([
+    { longitudM: 3.6, orden: 2 },
+    { longitudM: 2.4, orden: 1 },
+  ]);
+  assert.ok(Math.abs(f - 119.09722222222224) < 1e-9);
 });

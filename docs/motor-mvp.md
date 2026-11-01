@@ -668,6 +668,64 @@ H=2.5 (ancho=largo) → 3 pares exactos (Δ=0 % en los órdenes 1, 2 y 3) →
 `warn` por la condición de "2 o más pares", no por el par exacto (que acá
 también se cumple, pero la sala ya está marcada por la otra vía).
 
+### Modos tangenciales y oblicuos (`evaluarModos3D`) — calculado, sin severidad
+
+Retoma el plan "CADENA Acoustic Estimate 3D" (conversación externa, resumen
+guardado en memoria del asistente), corregido explícitamente por el usuario
+antes de implementarlo: sin curva de respuesta acústica combinada (ya se
+probó y se retiró, ver más abajo) y sin EQ predictivo — sólo geometría
+calculada, con la incertidumbre declarada en vez de pronosticada.
+
+Generaliza `frecuenciaModoAxialHz` (`unidades.ts`) a `frecuenciaModoHz`:
+
+```
+f = (c/2)·√(Σᵢ (nᵢ/Lᵢ)²)
+```
+
+Con un solo término da exactamente el caso axial. Con 2 términos (dos ejes
+a la vez) da un **modo tangencial**; con 3 (los tres ejes a la vez), un
+**modo oblicuo**. `evaluarModos3D(sala, techoHz)` enumera ambos con órdenes
+crecientes, cortando en cuanto el caso mínimo de cada nivel de anidamiento
+ya supera `techoHz` — mismo techo de LISTADO que reciben los axiales
+(`techoModosHz`, derivado de Schroeder cuando hay dato — ver más arriba).
+
+**Por qué `ResultadoModos3D` no tiene `severidad` ni `codigo`, a diferencia
+de `ResultadoModos`:** un axial refleja contra 2 superficies por ciclo, un
+tangencial contra 4, un oblicuo contra 6 — por convención general de
+acústica de salas, cada superficie de más disipa energía, así que
+tangenciales/oblicuos suelen llevar menos energía que un axial. Pero
+*cuánta* menos, en una sala real, depende de amplitud y fase que este
+motor no mide. Asignarles un umbral de "warn" propio sería pronosticar una
+respuesta acústica sin la base para hacerlo — exactamente lo que motivó
+retirar el "Mapa de zonas modales" (ver más abajo). Se muestran como dato
+calculado (frecuencia + qué ejes/órdenes — la "distribución espacial" del
+plan corregido), nunca como veredicto.
+
+**Vectores de prueba** (sala por defecto, W=3,6, L=5,0, H=2,4 — calculados
+con Node, no a mano):
+
+- Tangencial ancho×largo (1,1): `frecuenciaModoHz([{3.6,1},{5.0,1}])` =
+  **58,70224641841146 Hz**.
+- Oblicuo (1,1,1) con los 3 ejes: **92,47836037336346 Hz**.
+- Con `techoHz=40` (por debajo del tangencial/oblicuo más grave de esta
+  sala), las dos listas quedan vacías sin tirar — mismo principio de
+  "dato faltante nunca se inventa" aplicado a un techo que no alcanza a
+  cubrir ningún modo 3D.
+
+**Curación de UI, no del motor:** `evaluarModos3D` devuelve la lista
+completa; es `apps/web/src/vista/resultado.ts` (`modeloModos3D`,
+`TOP_N_MODOS_3D=5`) quien recorta a los 5 más graves de cada tipo para el
+resumen colapsado, detrás de un "Ver todos los modos 3D calculados" con la
+lista completa — mismo patrón que `TOP_N_FILTRO_PEINE`/`TOP_N_AGRUPADOS`.
+Vive dentro de la misma tarjeta "Modos de sala" (`#mo-calc3d`/
+`#mo-calc3d-todas`), pintado una sola vez por "Analizar"/cambio de idioma
+(no depende de la disposición de parlantes, así que no pasa por
+`UltimoAnalisis`/`SnapshotAnalisis` — se recalcula junto a
+`pintarCurvasModales`/`pintarGraficoModos`, que tienen la misma
+dependencia). `veredicto.ts` y `modeloModos()` (verdicto/aviso de la fila)
+no se tocaron: la severidad de "Modos de sala" sigue siendo exactamente la
+de antes de esta ronda.
+
 ### Curvas de presión modal (`apps/web/src/vista/curvamodal.ts`)
 
 Sólo cuando hay agrupamiento: una curva 1D por eje afectado, mostrando la

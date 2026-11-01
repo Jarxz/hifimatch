@@ -4,11 +4,25 @@
  * "Severidad y bloque de sala": ninguna regla de sala emite `error`, techo
  * `warn`, siempre con la nota de que se verifica midiendo).
  *
- * Sólo se calculan modos axiales (una sola dimensión) — son los más fuertes
- * porque no pierden energía en reflexiones múltiples; tangenciales y
- * oblicuos quedan fuera del alcance de este modelo simplificado.
+ * Los modos axiales (una sola dimensión) son los que tienen severidad
+ * (agrupamiento, nulo de escucha, acoplamiento modal — más abajo). Son los
+ * más fuertes porque reflejan sólo entre 2 superficies por ciclo.
+ *
+ * `evaluarModos3D()` (más abajo) agrega modos tangenciales (4 superficies,
+ * 2 ejes a la vez) y oblicuos (6 superficies, los 3 ejes a la vez) — su
+ * frecuencia y distribución espacial (qué ejes, qué órdenes) se calculan
+ * con la misma geometría de sala rígida, pero **sin severidad propia**:
+ * por convención general de acústica de salas, cada superficie de más por
+ * ciclo pierde energía, así que un tangencial suele llevar menos energía
+ * que un axial, y un oblicuo menos que un tangencial — pero cuánto menos
+ * EN ESTA sala real es algo que este motor no mide (necesitaría amplitud y
+ * fase reales). Asignarles un umbral de "warn" propio sería pronosticar
+ * una respuesta acústica que no se tiene base para predecir — exactamente
+ * lo que este sitio decidió no hacer (ver "Mapa de zonas modales" en
+ * CLAUDE.md, retirado por la misma razón). Se muestran como dato calculado,
+ * nunca como veredicto.
  */
-import { frecuenciaModoAxialHz } from './unidades.ts';
+import { frecuenciaModoAxialHz, frecuenciaModoHz } from './unidades.ts';
 import type { Sala } from './sala.ts';
 
 /** Techo de la región de modos de sala — convención estándar de acústica de
@@ -154,6 +168,105 @@ export function evaluarModos(sala: Sala, techoModosHz: number = TECHO_MODOS_HZ):
   const severidad: 'ok' | 'warn' = hayParExacto || hayVariosCercanos ? 'warn' : 'ok';
   const codigo: CodigoModos = severidad === 'warn' ? 'modos-agrupados' : 'modos-distribuidos';
   return { modos, agrupados, severidad, codigo };
+}
+
+/**
+ * Modos tangenciales y oblicuos — geometría calculada, sin severidad (ver
+ * comentario de cabecera del archivo). `ParEjes` nombra el par de ejes
+ * involucrado en un tangencial; los oblicuos siempre son los 3 ejes a la
+ * vez, en el orden fijo [ancho, largo, alto].
+ */
+export type ParEjes = 'ancho-largo' | 'ancho-alto' | 'largo-alto';
+
+export interface ModoTangencial {
+  ejes: ParEjes;
+  ordenes: readonly [number, number];
+  frecuenciaHz: number;
+}
+
+export interface ModoOblicuo {
+  ordenes: readonly [number, number, number]; // [nAncho, nLargo, nAlto]
+  frecuenciaHz: number;
+}
+
+export interface ResultadoModos3D {
+  tangenciales: ModoTangencial[];
+  oblicuos: ModoOblicuo[];
+}
+
+const PARES_EJES: ReadonlyArray<{ par: ParEjes; ejeA: EjeSala; ejeB: EjeSala }> = [
+  { par: 'ancho-largo', ejeA: 'ancho', ejeB: 'largo' },
+  { par: 'ancho-alto', ejeA: 'ancho', ejeB: 'alto' },
+  { par: 'largo-alto', ejeA: 'largo', ejeB: 'alto' },
+];
+
+function longitudDeEje(sala: Sala, eje: EjeSala): number {
+  return eje === 'ancho' ? sala.anchoM : eje === 'largo' ? sala.largoM : sala.altoM;
+}
+
+/**
+ * Lista modos tangenciales (2 ejes a la vez) y oblicuos (3 ejes a la vez)
+ * hasta `techoHz` — mismo techo de LISTADO que `evaluarModos()` recibe
+ * (`techoModosHz`), para que las dos listas describan la misma región de
+ * frecuencias. Recorre órdenes crecientes y corta en cuanto el caso mínimo
+ * (el otro/los otros órdenes en 1) ya supera el techo — la frecuencia sólo
+ * puede subir al subir cualquier orden, así que no hace falta un límite de
+ * orden aparte.
+ */
+export function evaluarModos3D(sala: Sala, techoHz: number = TECHO_MODOS_HZ): ResultadoModos3D {
+  const tangenciales: ModoTangencial[] = [];
+  for (const { par, ejeA, ejeB } of PARES_EJES) {
+    const lA = longitudDeEje(sala, ejeA);
+    const lB = longitudDeEje(sala, ejeB);
+    for (let nA = 1; frecuenciaModoHz([{ longitudM: lA, orden: nA }, { longitudM: lB, orden: 1 }]) <= techoHz; nA++) {
+      for (let nB = 1; ; nB++) {
+        const frecuenciaHz = frecuenciaModoHz([
+          { longitudM: lA, orden: nA },
+          { longitudM: lB, orden: nB },
+        ]);
+        if (frecuenciaHz > techoHz) break;
+        tangenciales.push({ ejes: par, ordenes: [nA, nB], frecuenciaHz });
+      }
+    }
+  }
+  tangenciales.sort((a, b) => a.frecuenciaHz - b.frecuenciaHz);
+
+  const lAncho = sala.anchoM;
+  const lLargo = sala.largoM;
+  const lAlto = sala.altoM;
+  const oblicuos: ModoOblicuo[] = [];
+  for (
+    let nAncho = 1;
+    frecuenciaModoHz([
+      { longitudM: lAncho, orden: nAncho },
+      { longitudM: lLargo, orden: 1 },
+      { longitudM: lAlto, orden: 1 },
+    ]) <= techoHz;
+    nAncho++
+  ) {
+    for (
+      let nLargo = 1;
+      frecuenciaModoHz([
+        { longitudM: lAncho, orden: nAncho },
+        { longitudM: lLargo, orden: nLargo },
+        { longitudM: lAlto, orden: 1 },
+      ]) <= techoHz;
+      nLargo++
+    ) {
+      for (let nAlto = 1; ; nAlto++) {
+        const frecuenciaHz = frecuenciaModoHz([
+          { longitudM: lAncho, orden: nAncho },
+          { longitudM: lLargo, orden: nLargo },
+          { longitudM: lAlto, orden: nAlto },
+        ]);
+        if (frecuenciaHz > techoHz) break;
+        oblicuos.push({ ordenes: [nAncho, nLargo, nAlto], frecuenciaHz });
+      }
+    }
+  }
+  oblicuos.sort((a, b) => a.frecuenciaHz - b.frecuenciaHz);
+
+  return { tangenciales, oblicuos };
 }
 
 /** Clamp declarado (`CLAMP_TECHO_MODOS_MIN_HZ`/`MAX_HZ`) sobre la

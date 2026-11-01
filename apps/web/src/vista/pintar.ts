@@ -9,6 +9,7 @@ import type {
   ModeloTarjetaPuente,
   ModeloTarjetaRecorrido,
   ModeloTarjetaModos,
+  ModeloModos3D,
   ModeloTarjetaFiltroPeine,
   ModeloTarjetaTrianguloEscucha,
   ModeloTarjetaReverberacion,
@@ -205,6 +206,16 @@ export function pintarModos(m: ModeloTarjetaModos, dato: string): void {
   el('mo-text').innerHTML = m.textoHtml;
   pintarFlag('mo-flag', m.avisoHtml, false);
   el('mo-src').innerHTML = m.fuenteHtml;
+}
+
+/** Modos tangenciales/oblicuos — dato calculado, nunca toca `mo-verdict`/
+ * `mo-dato` (sin severidad propia, ver modos.ts). Independiente de
+ * `pintarModos`: no depende de la disposición de parlantes, así que se
+ * llama una sola vez por "Analizar"/cambio de idioma, no por snapshot. */
+export function pintarModos3D(m: ModeloModos3D): void {
+  el('mo-calc3d').innerHTML = m.calcHtml;
+  el('mo-calc3d-todas').innerHTML = m.calcHtmlTodas;
+  el('mo-3d-todas-wrap').classList.toggle('hidden', !m.hayDatos);
 }
 
 /** Filtro peine por reflexión — igual patrón que pintarModos: siempre tiene

@@ -8,7 +8,7 @@ import { evaluarCarga } from '../../../packages/engine/src/carga.ts';
 import { evaluarAmortiguamiento } from '../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../packages/engine/src/ganancia.ts';
-import { evaluarModos, evaluarNuloEscucha, evaluarAcoplamientoModal, techoModosDesdeSchroeder } from '../../../packages/engine/src/modos.ts';
+import { evaluarModos, evaluarModos3D, evaluarNuloEscucha, evaluarAcoplamientoModal, techoModosDesdeSchroeder } from '../../../packages/engine/src/modos.ts';
 import { evaluarReverberacion, ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS } from '../../../packages/engine/src/reverberacion.ts';
 import type { MaterialMuro, MaterialPiso, MaterialTecho, Materiales } from '../../../packages/engine/src/reverberacion.ts';
 import { frecuenciaModoAxialHz } from '../../../packages/engine/src/unidades.ts';
@@ -69,6 +69,7 @@ import {
   modeloPuente,
   modeloRecorrido,
   modeloModos,
+  modeloModos3D,
   modeloFiltroPeine,
   modeloTrianguloEscucha,
   modeloReverberacion,
@@ -89,6 +90,7 @@ import {
   pintarGanancia,
   pintarPlano,
   pintarModos,
+  pintarModos3D,
   pintarFiltroPeine,
   pintarTrianguloEscucha,
   pintarCurvasModales,
@@ -1474,6 +1476,13 @@ function renderizarResultado(): void {
   // Mismos modos, dibujados como marcas por eje en "Lectura general": sólo
   // depende de las dimensiones, así que se pinta una vez por Analizar.
   pintarGraficoModos(construirGraficoModosSvg(resModos.modos, resModos.agrupados, idiomaActual));
+
+  // Modos tangenciales/oblicuos — calculado, SIN severidad (ver cabecera de
+  // modos.ts): no entra a ningún veredicto, así que no hace falta pasar por
+  // ultimoAnalisis/snapshot; se recalcula aquí mismo, mismo techo que la
+  // lista de axiales, igual que pintarCurvasModales/pintarGraficoModos.
+  const resModos3D = evaluarModos3D(sala, techoModosHz);
+  pintarModos3D(modeloModos3D(resModos3D, techoModosHz, idiomaActual));
 
   ultimoAnalisis = {
     sala,

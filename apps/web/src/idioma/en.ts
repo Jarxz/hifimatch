@@ -269,7 +269,7 @@ export const en: Textos = {
     modos: {
       titulo: 'Room modes (bass resonances)',
       cuerpoHtml:
-        'Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room\'s width, length, and height "fit" certain wavelengths. The card marks it "clustered" when at least one pair of modes on different axes lands within 1% of each other (a near-exact overlap, the worst case, counts on its own), or when there are two or more pairs within 2% — both thresholds, below 150 Hz, declared by this site, not a published convention. A sweep of thousands of rooms showed a single 5% threshold flagged 86% of them — a traffic light that almost never changes; this two-condition rule flags a much more informative 37%. This rule never returns "error" severity — it\'s a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space.',
+        'Every rectangular room reinforces certain bass frequencies based on its three dimensions — these are <b>axial modes</b>, resonances that appear because the room\'s width, length, and height "fit" certain wavelengths. The card marks it "clustered" when at least one pair of modes on different axes lands within 1% of each other (a near-exact overlap, the worst case, counts on its own), or when there are two or more pairs within 2% — both thresholds, below 150 Hz, declared by this site, not a published convention. A sweep of thousands of rooms showed a single 5% threshold flagged 86% of them — a traffic light that almost never changes; this two-condition rule flags a much more informative 37%. This rule never returns "error" severity — it\'s a prediction from rigid room geometry, which gets things wrong easily and always gets verified by measuring or listening in the real space. The same card also shows <b>tangential modes</b> (resonances between 2 axes at once) and <b>oblique modes</b> (all 3 axes at once), calculated with the same geometry — but unlike axial modes, these carry no severity of their own: they bounce off more surfaces per cycle (4 and 6, against an axial mode\'s 2) and so tend to carry less energy, but how much less in a real room is something this engine doesn\'t measure, so they\'re shown as calculated data, never as a new "warn".',
     },
     filtroPeine: {
       titulo: 'Comb filtering from reflections',
@@ -904,6 +904,14 @@ export const en: Textos = {
       curvaOrden: (p) => `order ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Relative pressure along each affected axis — only the lowest-frequency clusters (the most audible and hardest to treat). Independent 1D curves per axis, not a combined room map.',
+      intro3d: (p) =>
+        `<b>Tangential and oblique modes (calculated, not a verdict):</b> besides the axial modes above, these are the resonances that involve 2 axes at once (tangential) or all 3 at once (oblique), up to ${p.techo} Hz — same rigid-room geometry, calculated the exact same way. By general room-acoustics convention, they lose more energy per cycle than axial modes (they bounce off more surfaces: 2 for axial, 4 for tangential, 6 for oblique), so they tend to sound weaker — but how much weaker in this particular room is something this engine doesn't measure, so it doesn't assign them a severity of their own or try to forecast how they'll sound.`,
+      etiquetaTangenciales: 'Tangential (2 axes at once)',
+      etiquetaOblicuos: 'Oblique (all 3 axes at once)',
+      fila3dTangencial: (p) => `${p.ejes} (${p.ordenes}): ${p.frecuencia} Hz`,
+      fila3dOblicuo: (p) => `width × length × height (${p.ordenes}): ${p.frecuencia} Hz`,
+      vacio3d: (p) => `No tangential or oblique mode calculated below ${p.techo} Hz in this room.`,
+      verTodos3d: 'See all calculated 3D modes',
     },
 
     filtroPeine: {

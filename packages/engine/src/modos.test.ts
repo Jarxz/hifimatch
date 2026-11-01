@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   evaluarModos,
+  evaluarModos3D,
   evaluarNuloEscucha,
   evaluarAcoplamientoModal,
   paresMasImportantes,
@@ -307,4 +308,68 @@ test('severidad nunca es "alert"/"error" — mismo techo de severidad de sala qu
     assert.notEqual(r.severidad as string, 'alert');
     assert.notEqual(r.severidad as string, 'error');
   }
+});
+
+// ---- evaluarModos3D: tangenciales y oblicuos — calculado, sin severidad (ver comentario de cabecera del archivo) ----
+
+test('sala por defecto: el tangencial ancho-largo (1,1) está en la lista, con la frecuencia exacta de frecuenciaModoHz', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarModos3D(sala);
+  const primero = r.tangenciales.find((t) => t.ejes === 'ancho-largo' && t.ordenes[0] === 1 && t.ordenes[1] === 1);
+  assert.ok(primero, 'debería existir el tangencial ancho-largo (1,1)');
+  assert.ok(Math.abs(primero!.frecuenciaHz - 58.70224641841146) < 1e-9);
+});
+
+test('sala por defecto: el oblicuo (1,1,1) está en la lista, con la frecuencia exacta de frecuenciaModoHz', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarModos3D(sala);
+  const primero = r.oblicuos.find((o) => o.ordenes[0] === 1 && o.ordenes[1] === 1 && o.ordenes[2] === 1);
+  assert.ok(primero, 'debería existir el oblicuo (1,1,1)');
+  assert.ok(Math.abs(primero!.frecuenciaHz - 92.47836037336346) < 1e-9);
+});
+
+test('sala por defecto: tangenciales y oblicuos quedan ordenados ascendente y ninguno supera el techo por defecto', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarModos3D(sala);
+  assert.ok(r.tangenciales.length > 0);
+  assert.ok(r.oblicuos.length > 0);
+  for (let i = 1; i < r.tangenciales.length; i++) assert.ok(r.tangenciales[i]!.frecuenciaHz >= r.tangenciales[i - 1]!.frecuenciaHz);
+  for (let i = 1; i < r.oblicuos.length; i++) assert.ok(r.oblicuos[i]!.frecuenciaHz >= r.oblicuos[i - 1]!.frecuenciaHz);
+  for (const t of r.tangenciales) assert.ok(t.frecuenciaHz <= TECHO_MODOS_HZ);
+  for (const o of r.oblicuos) assert.ok(o.frecuenciaHz <= TECHO_MODOS_HZ);
+});
+
+test('cada tangencial declara un par de ejes válido con los dos órdenes ≥ 1; cada oblicuo declara los 3 órdenes ≥ 1', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarModos3D(sala);
+  const paresValidos = ['ancho-largo', 'ancho-alto', 'largo-alto'];
+  for (const t of r.tangenciales) {
+    assert.ok(paresValidos.includes(t.ejes));
+    assert.ok(t.ordenes[0] >= 1 && t.ordenes[1] >= 1);
+  }
+  for (const o of r.oblicuos) {
+    assert.ok(o.ordenes[0] >= 1 && o.ordenes[1] >= 1 && o.ordenes[2] >= 1);
+  }
+});
+
+test('un techo muy bajo (40 Hz, por debajo del tangencial/oblicuo más grave de esta sala) devuelve listas vacías sin tirar', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarModos3D(sala, 40);
+  assert.deepEqual(r.tangenciales, []);
+  assert.deepEqual(r.oblicuos, []);
+});
+
+test('subir el techo nunca reduce la cantidad de modos 3D listados (monótono, igual criterio que el listado de axiales)', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const rChico = evaluarModos3D(sala, 100);
+  const rGrande = evaluarModos3D(sala, 300);
+  assert.ok(rGrande.tangenciales.length >= rChico.tangenciales.length);
+  assert.ok(rGrande.oblicuos.length >= rChico.oblicuos.length);
+});
+
+test('evaluarModos3D no tiene severidad ni código — es sólo geometría calculada (a diferencia de ResultadoModos)', () => {
+  const sala = { anchoM: 3.6, largoM: 5.0, altoM: 2.4 };
+  const r = evaluarModos3D(sala);
+  assert.ok(!('severidad' in r));
+  assert.ok(!('codigo' in r));
 });

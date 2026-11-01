@@ -364,7 +364,7 @@ export const es = {
     modos: {
       titulo: 'Modos de sala (resonancias de graves)',
       cuerpoHtml:
-        'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. La tarjeta marca "agrupados" cuando al menos un par de modos de ejes distintos cae a menos de 1% de diferencia entre sí (un solapamiento casi exacto, el peor caso, alcanza solo), o cuando hay dos o más pares a menos de 2% — ambos umbrales, por debajo de 150 Hz, declarados por este sitio, no una convención publicada. Un barrido de miles de salas mostró que un umbral único de 5% marcaba el 86% de ellas, un semáforo que casi nunca cambia; esta regla de dos condiciones marca un 37% mucho más informativo. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real.',
+        'Toda sala rectangular refuerza ciertas frecuencias graves según sus tres dimensiones — son los <b>modos axiales</b>, resonancias que aparecen porque el ancho, el largo y el alto de la sala "encajan" con ciertas longitudes de onda. La tarjeta marca "agrupados" cuando al menos un par de modos de ejes distintos cae a menos de 1% de diferencia entre sí (un solapamiento casi exacto, el peor caso, alcanza solo), o cuando hay dos o más pares a menos de 2% — ambos umbrales, por debajo de 150 Hz, declarados por este sitio, no una convención publicada. Un barrido de miles de salas mostró que un umbral único de 5% marcaba el 86% de ellas, un semáforo que casi nunca cambia; esta regla de dos condiciones marca un 37% mucho más informativo. Esta regla nunca da severidad "error" — es una predicción desde geometría de sala rígida, que se equivoca fácil y siempre se verifica midiendo o escuchando en el espacio real. La misma tarjeta muestra además los <b>modos tangenciales</b> (resonancias entre 2 ejes a la vez) y <b>oblicuos</b> (los 3 ejes a la vez) calculados con la misma geometría — pero a diferencia de los axiales, estos no tienen severidad propia: reflejan contra más superficies por ciclo (4 y 6, contra las 2 de un axial) y por eso suelen llevar menos energía, pero cuánta menos en una sala real es algo que este motor no mide, así que se muestran como dato calculado, nunca como un "warn" nuevo.',
     },
     filtroPeine: {
       titulo: 'Filtro peine por reflexión',
@@ -1074,6 +1074,18 @@ export const es = {
       curvaOrden: (p: { orden: string; frecuencia: string }): string => `orden ${p.orden} (${p.frecuencia} Hz)`,
       curvasCaption:
         'Presión relativa a lo largo de cada eje afectado — sólo los agrupamientos de menor frecuencia (los más audibles y difíciles de tratar). Curvas 1D independientes por eje, no un mapa combinado de la sala.',
+      // Modos tangenciales/oblicuos — geométricos, SIN severidad (ver
+      // cabecera de modos.ts): nivel "calculado" de incertidumbre, nunca un
+      // veredicto. intro3d/vacio3d llevan el mismo {techo} que ya usa
+      // textoOk/textoWarn, para describir exactamente la misma región.
+      intro3d: (p: { techo: string }): string =>
+        `<b>Modos tangenciales y oblicuos (calculado, no es un veredicto):</b> además de los axiales de arriba, estas son las resonancias que involucran 2 ejes a la vez (tangenciales) o los 3 a la vez (oblicuos), hasta ${p.techo} Hz — misma geometría de sala rígida, calculada exactamente igual. Por convención general de acústica de salas, pierden más energía por ciclo que los axiales (reflejan contra más superficies: 2 los axiales, 4 los tangenciales, 6 los oblicuos), así que suelen sonar más débiles — pero cuánto más débiles en esta sala real es algo que este motor no mide, así que no les asigna una severidad propia ni intenta pronosticar cómo van a sonar.`,
+      etiquetaTangenciales: 'Tangenciales (2 ejes a la vez)',
+      etiquetaOblicuos: 'Oblicuos (los 3 ejes a la vez)',
+      fila3dTangencial: (p: { ejes: string; ordenes: string; frecuencia: string }): string => `${p.ejes} (${p.ordenes}): ${p.frecuencia} Hz`,
+      fila3dOblicuo: (p: { ordenes: string; frecuencia: string }): string => `ancho × largo × alto (${p.ordenes}): ${p.frecuencia} Hz`,
+      vacio3d: (p: { techo: string }): string => `Ningún modo tangencial u oblicuo calculado por debajo de ${p.techo} Hz en esta sala.`,
+      verTodos3d: 'Ver todos los modos 3D calculados',
     },
 
     filtroPeine: {

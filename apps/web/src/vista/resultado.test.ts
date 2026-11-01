@@ -4,7 +4,7 @@ import { evaluarPotencia } from '../../../../packages/engine/src/potencia.ts';
 import { evaluarCarga } from '../../../../packages/engine/src/carga.ts';
 import { evaluarAmortiguamiento } from '../../../../packages/engine/src/amortiguamiento.ts';
 import { evaluarPuenteImpedancias, evaluarRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
-import { evaluarModos, evaluarNuloEscucha, evaluarAcoplamientoModal } from '../../../../packages/engine/src/modos.ts';
+import { evaluarModos, evaluarModos3D, evaluarNuloEscucha, evaluarAcoplamientoModal, TECHO_MODOS_HZ } from '../../../../packages/engine/src/modos.ts';
 import { evaluarFiltroPeine, evaluarAsimetria, evaluarAnguloEscucha } from '../../../../packages/engine/src/colocacion.ts';
 import { calcularDisposicion, calcularDisposicionManual, calcularDisposicionAsientoManual } from '../../../../packages/engine/src/sala.ts';
 import type { Sala } from '../../../../packages/engine/src/sala.ts';
@@ -25,6 +25,7 @@ import {
   modeloPuente,
   modeloRecorrido,
   modeloModos,
+  modeloModos3D,
   modeloFiltroPeine,
   modeloTrianguloEscucha,
   modeloReverberacion,
@@ -598,6 +599,56 @@ test('modeloModos en inglés: acoplamiento alto usa los textos propios, sin mezc
   assert.equal(m.verdictoTexto, 'Speaker sitting in a pressure node');
   assert.match(m.avisoHtml!, /pressure node/);
   assert.doesNotMatch(m.avisoHtml!, /nodo de presión/);
+});
+
+// ---- modeloModos3D: tangenciales/oblicuos — calculado, SIN severidad (no hay verdictoClase, no toca mo-verdict) ----
+
+test('modeloModos3D: sala por defecto hay datos, la intro aparece una sola vez, y las listas muestran ejes/órdenes/frecuencia reales', () => {
+  const r3d = evaluarModos3D(SALA_MODOS);
+  const m = modeloModos3D(r3d, TECHO_MODOS_HZ, 'es');
+  assert.equal(m.hayDatos, true);
+  assert.match(m.calcHtml, /Tangenciales/);
+  assert.match(m.calcHtml, /Oblicuos/);
+  assert.match(m.calcHtml, /ancho × largo/);
+  assert.match(m.calcHtml, /58,7 Hz/); // ancho-largo (1,1), mismo vector que modos.test.ts
+});
+
+test('modeloModos3D: calcHtml recorta a TOP_N_MODOS_3D (5) por lista, calcHtmlTodas trae todos los calculados', () => {
+  // Sala grande: a techo alto hay más de 5 tangenciales y más de 5 oblicuos.
+  const salaGrande = { anchoM: 7, largoM: 9, altoM: 3.5 };
+  const techo = 300;
+  const r3d = evaluarModos3D(salaGrande, techo);
+  assert.ok(r3d.tangenciales.length > 5, 'el vector necesita más de 5 tangenciales para probar el recorte');
+  assert.ok(r3d.oblicuos.length > 5, 'el vector necesita más de 5 oblicuos para probar el recorte');
+  const m = modeloModos3D(r3d, techo, 'es');
+  const contarHz = (html: string): number => (html.match(/ Hz/g) ?? []).length;
+  // +1 en cada caso porque la intro también menciona "... Hz" (el techo).
+  assert.equal(contarHz(m.calcHtml), 1 + 5 + 5);
+  assert.equal(contarHz(m.calcHtmlTodas), 1 + r3d.tangenciales.length + r3d.oblicuos.length);
+});
+
+test('modeloModos3D: sin ningún tangencial/oblicuo bajo el techo, calcHtml/calcHtmlTodas muestran la frase de "ninguno" y hayDatos es false', () => {
+  const r3dVacio = evaluarModos3D(SALA_MODOS, 40); // 40 Hz: por debajo del tangencial/oblicuo más grave de esta sala
+  const m = modeloModos3D(r3dVacio, 40, 'es');
+  assert.equal(m.hayDatos, false);
+  assert.match(m.calcHtml, /Ningún modo tangencial u oblicuo calculado/);
+  assert.match(m.calcHtmlTodas, /Ningún modo tangencial u oblicuo calculado/);
+});
+
+test('modeloModos3D: no tiene verdictoClase ni ningún campo de severidad — es sólo texto calculado (CLAUDE.md: sin predecir una respuesta acústica real)', () => {
+  const m = modeloModos3D(evaluarModos3D(SALA_MODOS), TECHO_MODOS_HZ, 'es');
+  assert.ok(!('verdictoClase' in m));
+  assert.ok(!('verdictoTexto' in m));
+});
+
+test('modeloModos3D en inglés: etiquetas y mensaje de "ninguno" en inglés, sin mezclar idiomas', () => {
+  const m = modeloModos3D(evaluarModos3D(SALA_MODOS), TECHO_MODOS_HZ, 'en');
+  assert.match(m.calcHtml, /Tangential/);
+  assert.match(m.calcHtml, /Oblique/);
+  assert.doesNotMatch(m.calcHtml, /Tangenciales|Oblicuos/);
+
+  const vacio = modeloModos3D(evaluarModos3D(SALA_MODOS, 40), 40, 'en');
+  assert.match(vacio.calcHtml, /No tangential or oblique mode calculated/);
 });
 
 // ---- filtro peine por reflexión (Cambio 3) ----

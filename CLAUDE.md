@@ -5343,6 +5343,61 @@ Configurar vs. el resto para el color de `.head-nav-btn`) — cero diferencia
 visual, capturas de pantalla iguales. 711 tests (sin cambio: esta fase no
 tocó ninguna lógica testeable, sólo selectores CSS).
 
+**Modos tangenciales y oblicuos — calculado, SIN severidad propia.**
+Retoma el plan "CADENA Acoustic Estimate 3D" de una conversación externa
+(resumen guardado en memoria del asistente), que el propio usuario corrigió
+antes de pedir que se implementara: sin curva de respuesta acústica
+combinada (ya se probó dos veces y se retiró — ver "Mapa de zonas modales"
+más arriba, por la misma razón) y sin EQ predictivo — sólo dos piezas:
+modos 3D geométricos (frecuencia y distribución espacial de tangenciales y
+oblicuos, calculados sin pretender predecir una respuesta acústica real) e
+incertidumbre explícita (calculado vs. declarado como limitación, nunca
+estimado a medias). Los axiales en los 3 ejes ya existían desde antes.
+
+`packages/engine/src/unidades.ts` gana `frecuenciaModoHz(terminos)`,
+generaliza `frecuenciaModoAxialHz` a 2 o 3 dimensiones a la vez
+(`f=(c/2)·√Σ(n/L)²`; con un término da el mismo resultado que la función
+axial, salvo redondeo de punto flotante entre los dos caminos).
+`packages/engine/src/modos.ts` gana `evaluarModos3D(sala, techoHz)`:
+tangenciales (2 ejes a la vez) y oblicuos (los 3 a la vez), mismo techo de
+listado que ya usan los axiales, loops anidados que cortan en cuanto el
+caso mínimo de cada nivel ya supera el techo. **Deliberadamente sin
+`severidad`/`codigo`** — por convención general de acústica de salas, un
+tangencial pierde más energía por ciclo que un axial (4 superficies contra
+2) y un oblicuo más todavía (6) así que suelen sonar más débiles, pero
+cuánto más débiles en una sala real es algo que este motor no mide;
+asignarles un "warn" propio sería pronosticar una respuesta acústica sin
+base para hacerlo — la misma razón que ya había retirado el mapa de zonas
+modales. `evaluarModos()`, `ResultadoModos` y `veredicto.ts` no se
+tocaron: la severidad de "Modos de sala" es exactamente la misma que
+antes de esta ronda.
+
+`apps/web/src/vista/resultado.ts` gana `modeloModos3D()` (función pura
+independiente de `modeloModos()`, que tampoco se tocó): redacta la lista
+curada (`TOP_N_MODOS_3D=5` por tipo, mismo criterio de UI que
+`TOP_N_AGRUPADOS`/`TOP_N_FILTRO_PEINE` — no un umbral físico) + la lista
+completa detrás de un "Ver todos los modos 3D calculados", con una intro
+que declara la limitación de energía relativa antes de cualquier número.
+Vive dentro de la misma tarjeta "Modos de sala" (`#mo-calc3d`/
+`#mo-calc3d-todas`, nuevos en `index.html`; `pintarModos3D()` nuevo en
+`pintar.ts`) — se pinta una sola vez por "Analizar"/cambio de idioma en
+`main.ts` (no depende de la disposición de parlantes, así que no pasa por
+`UltimoAnalisis`/`SnapshotAnalisis`, igual que `pintarCurvasModales`/
+`pintarGraficoModos`, que tienen la misma dependencia). Texto nuevo bajo
+`motor.modos.*` en `es.ts`/`en.ts`, más un párrafo agregado a
+`info.modos.cuerpoHtml` (Guía del análisis) explicando la adición.
+
+**727 tests totales** entre los 7 workspaces/piezas (antes 711 al cierre
+de la Fase 9 del rediseño — 198 engine/+11, 16 data, 17 contact, 61
+buscador, 24 mensajes, 403 web/+5, 8 middleware). Verificado con Chrome
+headless real (CDP crudo sobre el build de producción, por `file://`): el
+flujo completo "Probar un ejemplo" → 3 pasos de Configurar → Analizar
+muestra el veredicto de "Modos de sala" sin cambios (confirmando cero
+regresión de severidad) junto a la caja nueva con frecuencias/órdenes
+reales de tangenciales/oblicuos; "Ver todos los modos 3D calculados" abre
+el `<details>` nativo; cambiar a inglés repinta todo el texto sin mezclar
+idiomas; cero errores ni excepciones de consola en todo el recorrido.
+
 Falta:
 - **Descubribilidad de marca ("The Hifi Match" no aparece en los
   primeros resultados de una búsqueda de su propio nombre)**: no es un

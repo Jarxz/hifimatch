@@ -18,7 +18,7 @@ import type { ResultadoAmortiguamiento } from '../../../../packages/engine/src/a
 import { DELTA_DB_OPTIMO_MAX, TEXTO_TIER_MODERADO_MAX_DB, TEXTO_TIER_SEVERO_MAX_DB } from '../../../../packages/engine/src/amortiguamiento.ts';
 import type { ResultadoPuenteImpedancias, ResultadoRecorridoVolumen } from '../../../../packages/engine/src/ganancia.ts';
 import { RATIO_BRIDGING_OK, UMBRAL_RECORRIDO } from '../../../../packages/engine/src/ganancia.ts';
-import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha, ResultadoAcoplamientoModal } from '../../../../packages/engine/src/modos.ts';
+import type { ResultadoModos, ModoAgrupado, ResultadoNuloEscucha, ResultadoAcoplamientoModal, ResultadoModos3D, ModoTangencial, ModoOblicuo } from '../../../../packages/engine/src/modos.ts';
 import { TECHO_AGRUPAMIENTO_HZ, UMBRAL_AGRUPAMIENTO, UMBRAL_AGRUPAMIENTO_EXACTO, MIN_PARES_AGRUPADOS, VENTANA_NULO_MODAL, UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO } from '../../../../packages/engine/src/modos.ts';
 import type { ResultadoReverberacion, Materiales, MaterialMuro, MaterialPiso, MaterialTecho } from '../../../../packages/engine/src/reverberacion.ts';
 import { ABSORCION_MURO_BANDAS, ABSORCION_PISO_BANDAS, ABSORCION_TECHO_BANDAS } from '../../../../packages/engine/src/reverberacion.ts';
@@ -611,6 +611,70 @@ export function modeloModos(r: ResultadoModos, resNulo: ResultadoNuloEscucha, re
       t.motor.modos.fuenteNulo({ ventana: String(Math.round(VENTANA_NULO_MODAL * 100)) }) +
       ' ' +
       t.motor.modos.fuenteAcoplamiento({ umbral: String(Math.round(UMBRAL_PRODUCTO_ACOPLAMIENTO_ALTO * 100)) }),
+  };
+}
+
+export interface ModeloModos3D {
+  /** Intro (nivel de incertidumbre: calculado, no es un veredicto) + listas
+   * curadas a `TOP_N_MODOS_3D` por tipo — o el texto de "ninguno" cuando
+   * las dos listas vienen vacías. */
+  calcHtml: string;
+  /** Intro + las listas completas, sin recortar — detrás de "Ver todos". */
+  calcHtmlTodas: string;
+  /** `false` si no hay ningún tangencial/oblicuo bajo el techo — oculta el
+   * toggle "Ver todos" (nada que expandir). */
+  hayDatos: boolean;
+}
+
+/** Cuántos tangenciales/oblicuos mostrar en el resumen de cada lista — el
+ * resto vive detrás de "Ver todos los modos 3D calculados", nunca se
+ * pierde. Curación de UI, mismo criterio que `TOP_N_AGRUPADOS`/
+ * `TOP_N_FILTRO_PEINE`: no es un umbral físico. */
+const TOP_N_MODOS_3D = 5;
+
+/**
+ * Modos tangenciales/oblicuos — SIN severidad (ver cabecera de modos.ts):
+ * esta función sólo redacta la lista calculada + la nota de incertidumbre
+ * declarada, nunca un veredicto. No toca `ModeloTarjetaModos.verdictoClase`
+ * ni nada de la fila "Modos de sala" — es contenido adicional dentro de la
+ * misma tarjeta.
+ */
+export function modeloModos3D(r: ResultadoModos3D, techoHz: number, idioma: Idioma): ModeloModos3D {
+  const t = textosDe(idioma).motor.modos;
+  const eje = t.eje;
+
+  const filaTangencial = (m: ModoTangencial): string => {
+    const [ejeA, ejeB] = m.ejes.split('-') as ['ancho' | 'largo', 'alto' | 'largo'];
+    return t.fila3dTangencial({
+      ejes: `${eje[ejeA]} × ${eje[ejeB]}`,
+      ordenes: `${m.ordenes[0]},${m.ordenes[1]}`,
+      frecuencia: num(m.frecuenciaHz, 1, idioma),
+    });
+  };
+  const filaOblicuo = (m: ModoOblicuo): string =>
+    t.fila3dOblicuo({
+      ordenes: `${m.ordenes[0]},${m.ordenes[1]},${m.ordenes[2]}`,
+      frecuencia: num(m.frecuenciaHz, 1, idioma),
+    });
+
+  const hayDatos = r.tangenciales.length > 0 || r.oblicuos.length > 0;
+
+  const listasHtml = (tangenciales: ModoTangencial[], oblicuos: ModoOblicuo[]): string => {
+    const partes: string[] = [];
+    if (tangenciales.length > 0) partes.push(`<b>${t.etiquetaTangenciales}</b><br>${tangenciales.map(filaTangencial).join('<br>')}`);
+    if (oblicuos.length > 0) partes.push(`<b>${t.etiquetaOblicuos}</b><br>${oblicuos.map(filaOblicuo).join('<br>')}`);
+    return partes.join('<br><br>');
+  };
+
+  const introHtml = t.intro3d({ techo: num(techoHz, 0, idioma) });
+  const vacioHtml = t.vacio3d({ techo: num(techoHz, 0, idioma) });
+  const cuerpo = hayDatos ? listasHtml(r.tangenciales.slice(0, TOP_N_MODOS_3D), r.oblicuos.slice(0, TOP_N_MODOS_3D)) : vacioHtml;
+  const cuerpoTodas = hayDatos ? listasHtml(r.tangenciales, r.oblicuos) : vacioHtml;
+
+  return {
+    calcHtml: `${introHtml}<br><br>${cuerpo}`,
+    calcHtmlTodas: `${introHtml}<br><br>${cuerpoTodas}`,
+    hayDatos,
   };
 }
 

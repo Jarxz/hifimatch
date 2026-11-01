@@ -39,6 +39,18 @@ export function frecuenciaModoAxialHz(longitudM: number, orden: number): number 
 }
 
 /**
+ * Generaliza `frecuenciaModoAxialHz` a 2 o 3 dimensiones a la vez — modos
+ * tangenciales (2 términos) y oblicuos (3 términos) de una sala rígida y
+ * rectangular: f = (c/2)·√(Σ(orden/longitud)²). Con un solo término da
+ * exactamente lo mismo que `frecuenciaModoAxialHz` (es el caso particular de
+ * un solo eje). Mismo supuesto y misma salvedad que el resto de sala.ts.
+ */
+export function frecuenciaModoHz(terminos: ReadonlyArray<{ longitudM: number; orden: number }>): number {
+  const suma = terminos.reduce((acc, t) => acc + (t.orden / t.longitudM) ** 2, 0);
+  return (VELOCIDAD_SONIDO_MS / 2) * Math.sqrt(suma);
+}
+
+/**
  * Convierte una sensibilidad medida a 2,83V/1m a su equivalente "a 1W/1m".
  * 2,83V sólo equivale a 1W cuando la impedancia es 8Ω (2,83² / 8 ≈ 1). Para otras
  * impedancias, 2,83V entrega más o menos de 1W, y ambas convenciones divergen —
