@@ -135,8 +135,18 @@ function schemaAmplificador(): Schema {
       potencia8OhmW: { type: Type.NUMBER, nullable: true, description: 'Potencia continua a 8 ohms en W, null si no se encontró' },
       potencia4OhmW: { type: Type.NUMBER, nullable: true, description: 'Potencia continua a 4 ohms en W, null si no se publica' },
       cargaMinOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de carga mínima soportada en ohms, null si no se publica' },
-      sensEntradaMv: { type: Type.NUMBER, nullable: true, description: 'Sensibilidad de entrada en mV, null si no se publica' },
-      impedanciaEntradaOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de entrada en ohms, null si no se publica' },
+      sensEntradaMv: {
+        type: Type.NUMBER,
+        nullable: true,
+        description:
+          'Sensibilidad de entrada en mV, SIEMPRE la de la entrada RCA/single-ended (no balanceada). Si los resultados dan una cifra para XLR y otra para RCA (son frecuentemente distintas), usa la de RCA. null si no se publica',
+      },
+      impedanciaEntradaOhm: {
+        type: Type.NUMBER,
+        nullable: true,
+        description:
+          'Impedancia de entrada en ohms, de la entrada RCA/single-ended (no balanceada) — mismo criterio que sensEntradaMv: si XLR y RCA difieren, usa RCA. null si no se publica',
+      },
       ...CAMPOS_DESCRIPCION,
     },
     required: ['potencia8OhmW', 'potencia4OhmW', 'cargaMinOhm', 'sensEntradaMv', 'impedanciaEntradaOhm', ...REQUERIDOS_DESCRIPCION],
@@ -147,8 +157,18 @@ function schemaFuente(): Schema {
   return {
     type: Type.OBJECT,
     properties: {
-      salidaV: { type: Type.NUMBER, nullable: true, description: 'Tensión de salida analógica RMS en voltios, null si no se publica (pero el equipo sí tiene salida analógica)' },
-      impedanciaSalidaOhm: { type: Type.NUMBER, nullable: true, description: 'Impedancia de salida en ohms, null si no se publica (pero el equipo sí tiene salida analógica)' },
+      salidaV: {
+        type: Type.NUMBER,
+        nullable: true,
+        description:
+          'Tensión de salida analógica RMS en voltios, SIEMPRE la de la salida RCA/single-ended (no balanceada). Muchos equipos publican dos cifras distintas, XLR y RCA (la XLR suele ser 2× la de RCA) — si los resultados distinguen las dos, usa la de RCA, nunca la de XLR, aunque la de XLR aparezca primero o más destacada. null si no se publica (pero el equipo sí tiene salida analógica)',
+      },
+      impedanciaSalidaOhm: {
+        type: Type.NUMBER,
+        nullable: true,
+        description:
+          'Impedancia de salida en ohms, de la salida RCA/single-ended (no balanceada) — mismo criterio que salidaV: si los resultados dan una cifra para XLR y otra para RCA, usa la de RCA. null si no se publica (pero el equipo sí tiene salida analógica)',
+      },
       tieneSalidaAnalogica: {
         type: Type.BOOLEAN,
         description:
