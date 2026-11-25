@@ -275,11 +275,19 @@ body{background:var(--bg); color:var(--text); font-family:var(--sans); font-size
 .modo-busqueda-btn[aria-pressed="true"]{color:var(--dorado); border-color:color-mix(in srgb, var(--dorado) 40%, var(--line3))}
 .sel{position:relative}
 .sel::after{content:''; position:absolute; right:16px; top:50%; width:7px; height:7px; border-right:1px solid var(--dim); border-bottom:1px solid var(--dim); transform:translateY(-70%) rotate(45deg); pointer-events:none}
-.sel select{width:100%; appearance:none; -webkit-appearance:none; font:inherit; font-size:15.5px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:14px 40px 14px 16px; cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1)}
+.sel select{width:100%; appearance:none; -webkit-appearance:none; font:inherit; font-size:15.5px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:14px 40px 14px 16px; cursor:pointer; transition:border-color .2s cubic-bezier(.22,.61,.36,1);
+  /* El cuadro cerrado sigue oscuro (background/color de arriba, con appearance:none
+     controlamos todo lo visible) — esto es sólo para el desplegable nativo de opciones,
+     que el navegador dibuja fuera del árbol de la página: sin declarar el esquema,
+     algunos navegadores ignoran el color:var(--text) de abajo en las <option> y el
+     texto cae al negro por defecto del sistema sobre nuestro propio fondo oscuro —
+     bug real reportado por el usuario ("barra negra, no se leen los textos"). */
+  color-scheme:light;
+}
 .sel select:hover{border-color:var(--line2)}
 .sel select.empty{color:var(--faint)}
 .sel select:focus-visible{outline:none; border-color:var(--line2)}
-.sel select option{background:#161619; color:var(--text)}
+.sel select option{background:#FFFFFF; color:#17171A}
 .sel-compact{flex:1 1 auto; min-width:0}
 .sel-compact select{width:100%; min-width:0; font-size:14px; padding:9px 32px 9px 14px}
 .sel-compact::after{right:12px}
