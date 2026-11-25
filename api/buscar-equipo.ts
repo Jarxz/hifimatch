@@ -161,14 +161,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const ai = new GoogleGenAI({ apiKey: geminiKey });
   const ip = ipDeRequest(req);
 
-  const resultado = await manejarBusqueda(entrada, {
-    cache: cacheRedis(redis),
-    buscarEnProveedor: async (solicitud): Promise<ResultadoProveedor> => {
-      if (!(await cupoDisponible(redis, ip))) return { ok: false, codigo: 'cupo-agotado' };
-      await registrarUso(redis, ip);
-      return buscarEquipoEnLaWeb(ai, solicitud);
-    },
-  });
-
-  res.status(200).json(resultado);
+  // Red de seguridad para cualquier fallo de infraestructura no previsto
+  // (ej. Redis caído/DNS roto — encontrado en producción: la base de
+  // Upstash dejó de resolver y, sin este try/catch, tiraba abajo toda la
+  // función con FUNCTION_INVOCATION_FAILED en vez de degradar). Mismo
+  // principio que ya aplica buscarEquipoEnLaWeb para Tavily/Gemini:
+  // cualquier fallo degrada a un codigo, nunca a una excepción sin capturar.
+  try {
+    const resultado = await manejarBusqueda(entrada, {
+      cache: cacheRedis(redis),
+      buscarEnProveedor: async (solicitud): Promise<ResultadoProveedor> => {
+        if (!(await cupoDisponible(redis, ip))) return { ok: false, codigo: 'cupo-agotado' };
+        await registrarUso(redis, ip);
+        return buscarEquipoEnLaWeb(ai, solicitud);
+      },
+    });
+    res.status(200).json(resultado);
+  } catch (err) {
+    // HTTP 500, no 200: es un fallo de la propia función (infraestructura),
+    // no un resultado de negocio normal — misma categoría que "falta
+    // configuración" un poco más arriba, ver el comentario de cabecera.
+    console.error('api/buscar-equipo: fallo de infraestructura (Redis u otro)', err);
+    res.status(500).json({ ok: false, codigo: 'error-servidor' });
+  }
 }
